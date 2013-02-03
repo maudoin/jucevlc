@@ -28,6 +28,7 @@
 #include "VLCWrapper.h"
 #include "juce.h"
 #include <modules\juce_gui_basics\filebrowser\juce_FileBrowserComponent.h>
+#include <sstream>
 //[/Headers]
 
 
@@ -44,13 +45,19 @@ public:
 }
 
 //==============================================================================
-class VideoComponent   : public Component
+class VideoComponent   : public Component, public DisplayCallback
 {
+	juce::Image img;
+    juce::CriticalSection imgCriticalSection;
 public:
-    VideoComponent()
+    VideoComponent():img(Image::PixelFormat::RGB, 160, 160, false)
     {    
+		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+		Graphics g(img);
+		g.setColour(Colour::fromRGB(255, 0, 255));
+		g.drawText("Init", Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
+
 		setOpaque(true);
-		addToDesktop(ComponentPeer::windowIsTemporary);
 	}
     ~VideoComponent()
     {    
@@ -58,13 +65,71 @@ public:
 	}
     void paint (Graphics& g)
     {
+		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+		g.drawImage(img, 0, 0, getWidth(), getHeight(), 0, 0, img.getWidth(), img.getHeight());
 	}
+	
+	int imageWidth()
+	{
+		return img.getWidth();
+	}
+	virtual int imageHeight()
+	{
+		return img.getHeight();
+	}
+	virtual int imageStride()
+	{
+		Image::BitmapData ptr(img, Image::BitmapData::readWrite);
+		return ptr.lineStride;
+	}
+	void resized()
+	{
+		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+		img.rescaled(getWidth(), getHeight());
+
+		std::ostringstream oss;
+		oss << getWidth()<<"x"<< getHeight();
+		Graphics g(img);
+		g.fillAll(Colour::fromRGB(0, 0, 0));
+		g.setColour(Colour::fromRGB(255, 0, 255));
+		g.drawText(oss.str().c_str(), Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
+
+		vlc.SetDisplayCallback(this);
+	}
+
+
 	void play(char* path)
 	{
-		vlc.SetOutputWindow(getWindowHandle());
+		//vlc.SetOutputWindow(getWindowHandle());
+		vlc.SetDisplayCallback(this);
 		vlc.OpenMedia(path);
 		vlc.Play();
 	}
+	
+
+	void *lock(void **p_pixels)
+	{
+		imgCriticalSection.enter();
+		Image::BitmapData ptr(img, Image::BitmapData::readWrite);
+		*p_pixels = ptr.getLinePointer(0);
+		return NULL; /* picture identifier, not needed here */
+	}
+
+	void unlock(void *id, void *const *p_pixels)
+	{
+		imgCriticalSection.exit();
+
+		jassert(id == NULL); /* picture identifier, not needed here */
+	}
+
+	void display(void *id)
+	{
+		//MessageManagerLock lock;
+
+		//repaint();
+		jassert(id == NULL);
+	}
+
 private:
 	VLCWrapper vlc;
 };
@@ -103,11 +168,11 @@ public:
 		
 
 		
-
-        addAndMakeVisible (tree);
-        //addAndMakeVisible (&videoComponent);
-
 		
+        addAndMakeVisible (&videoComponent);
+        addAndMakeVisible (tree);
+		//addToDesktop(ComponentPeer::windowIsTemporary);
+
 		setSize (600, 300);
 		
 		tree->addListener (this);

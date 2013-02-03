@@ -17,6 +17,7 @@
 #include "VLCWrapper.h"
 #include "VLCWrapperImpl.h"
 
+
 VLCWrapper::VLCWrapper(void)
 :   pImpl_(std::auto_ptr<VLCWrapperImpl>(new VLCWrapperImpl()))
 {
@@ -26,6 +27,10 @@ VLCWrapper::~VLCWrapper(void)
 {
 }
 
+void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
+{
+    pImpl_->SetDisplayCallback(cb);
+}
 void VLCWrapper::SetOutputWindow(void* pHwnd)
 {
     pImpl_->SetOutputWindow(pHwnd);

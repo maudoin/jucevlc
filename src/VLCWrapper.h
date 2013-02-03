@@ -29,6 +29,19 @@ typedef __int64             int64_t;
 typedef struct libvlc_event_t           VLCEvent;                     ///< A vlc event.
 typedef void (*VLCEventHandler)         (const VLCEvent *, void *);   ///< Event handler callback.
 
+class DisplayCallback
+{
+public:
+	virtual void *lock(void **p_pixels) = 0;
+
+	virtual void unlock(void *id, void *const *p_pixels) = 0;
+
+	virtual void display(void *id) = 0;
+	
+	virtual int imageWidth() = 0;
+	virtual int imageHeight() = 0;
+	virtual int imageStride() = 0;
+};
 class VLCWrapper
 {
 	std::auto_ptr<VLCWrapperImpl> pImpl_; ///< VLCWrapper's private Implementation
@@ -39,6 +52,9 @@ public:
     /** Set window for media output.
     *   @param [in] pHwnd window, on Windows a HWND handle. */
     void SetOutputWindow(void* pHwnd);
+    void SetDisplayCallback(DisplayCallback* cb);
+
+
 
     /** Register an event handler for libvlc-events.
     *   @param [in] event The event handler.

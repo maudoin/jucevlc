@@ -36,6 +36,7 @@ public:
 	VLCWrapperImpl(void);
 	~VLCWrapperImpl(void);
     void SetOutputWindow(void* pHwnd);    
+    void SetDisplayCallback(DisplayCallback* cb);
     void SetCallbacks()
 	{
 		//libvlc_audio_set_callbacks

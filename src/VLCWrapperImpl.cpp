@@ -19,6 +19,23 @@
 #include "vlc\libvlc_events.h"
 #include <stdio.h>
 
+static void *lock(void *data, void **p_pixels)
+{
+	return data?((DisplayCallback*)data)->lock( p_pixels):NULL;
+}
+
+static void unlock(void *data, void *id, void *const *p_pixels)
+{
+	if(data)
+		((DisplayCallback*)data)->unlock( id, p_pixels);
+}
+
+static void display(void *data, void *id)
+{
+	if(data)
+		((DisplayCallback*)data)->display(id);
+}
+
 VLCWrapperImpl::VLCWrapperImpl(void)
 :	pVLCInstance_(0),
 	pMediaPlayer_(0),
@@ -49,6 +66,14 @@ VLCWrapperImpl::~VLCWrapperImpl(void)
 	libvlc_release (pVLCInstance_);
 }
 
+void VLCWrapperImpl::SetDisplayCallback(DisplayCallback* cb)
+{
+	if(cb)
+	{
+	    libvlc_video_set_callbacks(pMediaPlayer_, lock, unlock, display, cb);
+	    libvlc_video_set_format(pMediaPlayer_, "RV24", cb->imageWidth(), cb->imageHeight(), cb->imageStride());
+	}
+}
 void VLCWrapperImpl::SetOutputWindow(void* pHwnd)
 {
     // Set the output window    

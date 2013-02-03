@@ -274,5 +274,19 @@ private:
 
 
 //==============================================================================
-// This macro creates the application's main() function..
-START_JUCE_APPLICATION (JUCEHelloWorldApplication)
+
+	
+static juce::JUCEApplicationBase* juce_CreateApplication() { return new JUCEHelloWorldApplication(); } 
+extern "C" JUCE_MAIN_FUNCTION 
+{ 
+    juce::JUCEApplication::createInstance = &juce_CreateApplication; 
+	try
+	{
+		return juce::JUCEApplication::main (JUCE_MAIN_FUNCTION_ARGS); 
+	}
+	catch(std::exception const&e)
+	{
+		std::cerr << e.what() << std::endl;
+		return 1;
+	}
+}
