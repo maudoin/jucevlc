@@ -342,9 +342,4 @@
   <ItemGroup>
     <None Include="libvlc\activex\test.html" />
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
 </Project>

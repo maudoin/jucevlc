@@ -6,3 +6,5 @@ ipch
 vlcfrontend.sdf
 vlcfrontend.suo
 vlcfrontendDebug.pdb
+vlcfrontendDebug.exe
+vlcfrontendDebug.ilk
