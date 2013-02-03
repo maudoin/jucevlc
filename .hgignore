@@ -1,0 +1,8 @@
+syntax: glob
+Debug
+THG.lnk
+data/test7.mp4
+ipch
+vlcfrontend.sdf
+vlcfrontend.suo
+vlcfrontendDebug.pdb

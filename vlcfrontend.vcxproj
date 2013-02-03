@@ -1,0 +1,202 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)\</OutDir>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <OutDir>$(SolutionDir)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(ProjectDir)/libvlc/lib</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalDependencies>libvlccore.lib;libvlc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(ProjectDir)/libvlc/lib</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalDependencies>libvlccore.lib;libvlc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="juce\amalgamation\juce_amalgamated1.cpp" />
+    <ClCompile Include="juce\amalgamation\juce_amalgamated2.cpp" />
+    <ClCompile Include="juce\amalgamation\juce_amalgamated3.cpp" />
+    <ClCompile Include="juce\amalgamation\juce_amalgamated4.cpp" />
+    <ClCompile Include="src\Execute.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\MainComponent.cpp" />
+    <ClCompile Include="src\VideoVLC.cpp" />
+    <ClCompile Include="src\VLCWrapper.cpp" />
+    <ClCompile Include="src\VLCWrapperImpl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="juce\AppConfig.h" />
+    <ClInclude Include="juce\juce.h" />
+    <ClInclude Include="libvlc\include\vlc\deprecated.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_events.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media_discoverer.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media_library.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media_list.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media_list_player.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_media_player.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_structures.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_version.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_vlm.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_about.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_access.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_acl.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_aout.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_aout_intf.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_aout_mixer.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_arrays.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_art_finder.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_atomic.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_avcodec.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_bits.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_block.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_block_helper.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_charset.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_codec.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_common.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_config.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_configuration.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_config_cat.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_cpu.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_demux.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_dialog.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_epg.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_es.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_es_out.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_events.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_filter.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_fourcc.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_fs.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_gcrypt.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_http.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_httpd.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_image.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_inhibit.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_input.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_input_item.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_main.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_md5.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_media_library.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_messages.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_meta.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_modules.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_mouse.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_mtime.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_network.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_objects.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_opengl.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_picture.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_picture_fifo.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_picture_pool.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_playlist.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_plugin.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_probe.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_rand.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_services_discovery.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_sout.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_spu.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_sql.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_stream.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_strings.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_subpicture.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_text_style.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_threads.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_tls.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_url.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_variables.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_video_splitter.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_vlm.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_vout.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_vout_display.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_vout_osd.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_vout_window.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_xlib.h" />
+    <ClInclude Include="libvlc\include\vlc\plugins\vlc_xml.h" />
+    <ClInclude Include="libvlc\include\vlc\vlc.h" />
+    <ClInclude Include="src\Execute.h" />
+    <ClInclude Include="src\MainComponent.h" />
+    <ClInclude Include="src\VideoVLC.h" />
+    <ClInclude Include="src\VLCWrapper.h" />
+    <ClInclude Include="src\VLCWrapperImpl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libvlc\activex\test.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
