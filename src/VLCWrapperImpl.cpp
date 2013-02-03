@@ -33,7 +33,7 @@ VLCWrapperImpl::VLCWrapperImpl(void)
 		"--plugin-path=./plugins" };
 
 	// init vlc modules, should be done only once
-	pVLCInstance_ = libvlc_new (sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+	pVLCInstance_ = libvlc_new (0, NULL);//sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
      
     // Create a media player playing environement
     pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_);

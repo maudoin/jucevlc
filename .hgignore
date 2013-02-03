@@ -8,3 +8,5 @@ vlcfrontend.suo
 vlcfrontendDebug.pdb
 vlcfrontendDebug.exe
 vlcfrontendDebug.ilk
+plugins
+vlcfrontend.opensdf

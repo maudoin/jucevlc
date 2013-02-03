@@ -36,12 +36,6 @@
     <ClCompile Include="src\VideoVLC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\VLCWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\VLCWrapperImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="juce\amalgamation\juce_amalgamated1.cpp">
       <Filter>Source Files\juce</Filter>
     </ClCompile>
@@ -53,6 +47,12 @@
     </ClCompile>
     <ClCompile Include="juce\amalgamation\juce_amalgamated4.cpp">
       <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VLCWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VLCWrapperImpl.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
