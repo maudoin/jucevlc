@@ -186,7 +186,7 @@ public:
 		g.setGradientFill (ColourGradient (Colour (0xff414553),
 										   getWidth(), 0,
 										   Colours::black,
-										   0.8*getWidth(), 0,
+										   0.75*getWidth(), 0,
 										   true));
 		g.fillRect (0.75*getWidth(), 0, getWidth(), 0.25*getHeight());
 	}

@@ -44,6 +44,31 @@ public:
 }
 
 //==============================================================================
+class VideoComponent   : public Component
+{
+public:
+    VideoComponent()
+    {    
+		setOpaque(true);
+		addToDesktop(ComponentPeer::windowIsTemporary);
+	}
+    ~VideoComponent()
+    {    
+		vlc.SetOutputWindow(nullptr);
+	}
+    void paint (Graphics& g)
+    {
+	}
+	void play(char* path)
+	{
+		vlc.SetOutputWindow(getWindowHandle());
+		vlc.OpenMedia(path);
+		vlc.Play();
+	}
+private:
+	VLCWrapper vlc;
+};
+//==============================================================================
 class MainComponent   : public Component, public FileBrowserListener
 {
 public:
@@ -78,8 +103,6 @@ public:
 		
 
 		
-		videoComponent.setOpaque(true);
-		videoComponent.addToDesktop(ComponentPeer::windowIsTemporary);
 
         addAndMakeVisible (tree);
         //addAndMakeVisible (&videoComponent);
@@ -100,7 +123,6 @@ public:
 
     ~MainComponent()
     {    
-		vlc.SetOutputWindow(nullptr);
 		tree = nullptr;
 		fileList = nullptr;
 		thread.stopThread (10000);
@@ -120,9 +142,7 @@ public:
 		{
 			resized();
 			videoComponent.setVisible(true);
-			vlc.SetOutputWindow(videoComponent.getWindowHandle());
-			vlc.OpenMedia(file.getFullPathName().getCharPointer().getAddress());
-			vlc.Play();
+			videoComponent.play(file.getFullPathName().getCharPointer().getAddress());
 		}
 	}
 
@@ -158,9 +178,9 @@ public:
     {
 		int w =  getWidth() - 2*BORDER;
 		int h =  getHeight() - 2*BORDER;
-        tree->setBounds (BORDER, BORDER,w, h);
+        tree->setBounds (3*w/4, BORDER,w/4, h);
 		
-		videoComponent.setBounds (BORDER+3*w/4, BORDER+3*h/4, w/4, h/4);
+		videoComponent.setBounds (BORDER, BORDER, w-2*BORDER, h-2*BORDER);
     }
 
 private:
@@ -170,8 +190,7 @@ private:
     ScopedPointer<WildcardFileFilter> wildcard;
     ScopedPointer<DirectoryContentsList> fileList;
     ScopedPointer<BigFileTreeComponent> tree;
-	Component videoComponent;
-	VLCWrapper vlc;
+	VideoComponent videoComponent;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

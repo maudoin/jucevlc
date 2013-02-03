@@ -10,3 +10,6 @@ vlcfrontendDebug.exe
 vlcfrontendDebug.ilk
 plugins
 vlcfrontend.opensdf
+Release/
+vlcfrontendRelease.exe
+vlcfrontendRelease.pdb
