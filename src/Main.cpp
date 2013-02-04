@@ -165,9 +165,12 @@ public:
         centreWithSize (getWidth(), getHeight());
 
 		//setResizable(true, false);
-		setTitleBarHeight(20);
-		setFullScreen(true);
-		setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
+		//setTitleBarHeight(20);
+		//setFullScreen(true);
+		//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
+
+		
+		switchFullScreen();
 
         // And show it!
         setVisible (true);
@@ -189,6 +192,15 @@ public:
         // When the user presses the close button, we'll tell the app to quit. This
         // HelloWorldWindow object will be deleted by the JUCEHelloWorldApplication class.
         JUCEApplication::quit();
+    }
+	void switchFullScreen()
+	{
+		Desktop& desktop = Desktop::getInstance();
+
+		if (desktop.getKioskModeComponent() == nullptr)
+			desktop.setKioskModeComponent (getTopLevelComponent());
+		else
+			desktop.setKioskModeComponent (nullptr);
     }
 };
 
