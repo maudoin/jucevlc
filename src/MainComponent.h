@@ -125,7 +125,7 @@ public:
 
 	void display(void *id)
 	{
-		vf::MessageThread::getInstance().call (&juce::Component::repaint, this);
+		vf::MessageThread::getInstance().queuef(std::bind  (&Component::repaint, this));
 		//MessageManagerLock lock;
 		//repaint();
 		jassert(id == NULL);
