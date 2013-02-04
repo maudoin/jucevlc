@@ -66,6 +66,7 @@ public:
 		slider->addListener(this);
 
 		sliderUpdating = false;
+		videoUpdating = false;
 	}
     ~VideoComponent()
     {    
@@ -139,18 +140,22 @@ public:
 	}
 	void frameReady()
 	{
-		sliderUpdating = true;
 		repaint();
-		slider->setValue(vlc.GetTime()*1000./vlc.GetLength());
-		sliderUpdating =false;
+		if(!sliderUpdating)
+		{
+			videoUpdating = true;
+			slider->setValue(vlc.GetTime()*1000./vlc.GetLength(), sendNotificationSync);
+			videoUpdating =false;
+		}
 	}
     void sliderValueChanged (Slider* slider)
 	{
-		if(sliderUpdating)
+		if(!videoUpdating)
 		{
-			return;
+			sliderUpdating = true;
+			vlc.SetTime(slider->getValue()*vlc.GetLength()/1000.);
+			sliderUpdating =false;
 		}
-		vlc.SetTime(slider->getValue()*vlc.GetLength()/1000.);
 	}
 	Slider* getSlider()
 	{
@@ -160,6 +165,7 @@ public:
 private:
 	VLCWrapper vlc;
 	bool sliderUpdating;
+	bool videoUpdating;
 };
 //==============================================================================
 class MainComponent   : public Component, public FileBrowserListener
