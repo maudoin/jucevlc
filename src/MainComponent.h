@@ -64,6 +64,12 @@ public:
 		slider = new Slider();
 		slider->setRange(0, 1000);
 		slider->addListener(this);
+		slider->setSliderStyle (Slider::LinearBar);
+		slider->setAlpha(1.f);
+		static LookAndFeel lnf;
+		slider->setLookAndFeel(&lnf);
+		slider->setOpaque(true);
+        slider->setTextBoxStyle (Slider::NoTextBox, false, 0, 0);
 
 		sliderUpdating = false;
 		videoUpdating = false;
@@ -201,7 +207,6 @@ public:
 		tree = new BigFileTreeComponent (*fileList);
 		
 		
-		videoComponent.getSlider()->setSliderStyle (Slider::LinearBar);
 		
 		
         addAndMakeVisible (&videoComponent);
@@ -278,10 +283,10 @@ public:
     {
 		int w =  getWidth();
 		int h =  getHeight();
-        tree->setBounds (0, 0,w/4, h);
+        tree->setBounds (3*w/4, 0,w/4, 0.925*h);
 		
 		videoComponent.setBounds (0, 0, w, h);
-		videoComponent.getSlider()->setBounds (0.1*w, 0.9*h, 0.8*w, 0.05*h);
+		videoComponent.getSlider()->setBounds (0.1*w, 0.95*h, 0.8*w, 0.025*h);
     }
 
 private:
