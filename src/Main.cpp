@@ -146,7 +146,7 @@ void drawFileBrowserRow (Graphics& g, int width, int height,
     show a component from the MainComponent.cpp file (you can open this file using
     the Jucer to edit it).
 */
-class HelloWorldWindow  : public DocumentWindow
+class HelloWorldWindow  : public DocumentWindow , public juce::KeyListener
 {
 public:
     //==============================================================================
@@ -170,13 +170,14 @@ public:
 		//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
 
 		
+		addKeyListener(this);
 		switchFullScreen();
 
         // And show it!
         setVisible (true);
     }
 
-    ~HelloWorldWindow()
+    virtual ~HelloWorldWindow()
     {
         // (the content component will be deleted automatically, so no need to do it here)
     }
@@ -193,14 +194,32 @@ public:
         // HelloWorldWindow object will be deleted by the JUCEHelloWorldApplication class.
         JUCEApplication::quit();
     }
+    bool keyPressed (const KeyPress& key,
+                             Component* originatingComponent)
+	{
+		if(key.isKeyCurrentlyDown(KeyPress::returnKey) && key.getModifiers().isAltDown())
+		{
+			switchFullScreen();
+			return true;
+		}
+		return false;
+
+	}
 	void switchFullScreen()
 	{
 		Desktop& desktop = Desktop::getInstance();
 
 		if (desktop.getKioskModeComponent() == nullptr)
+		{
 			desktop.setKioskModeComponent (getTopLevelComponent());
+			setTitleBarHeight(0);
+		}
 		else
+		{
 			desktop.setKioskModeComponent (nullptr);
+			setTitleBarHeight(20);
+			setResizable(true, true);
+		}
     }
 };
 
