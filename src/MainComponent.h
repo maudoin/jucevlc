@@ -46,10 +46,11 @@ public:
 }
 
 //==============================================================================
-class VideoComponent   : public Component, public DisplayCallback
+class VideoComponent   : public Component, public DisplayCallback, juce::Slider::Listener
 {
 	juce::Image img;
     juce::CriticalSection imgCriticalSection;
+    ScopedPointer<Slider> slider;
 public:
     VideoComponent():img(Image::PixelFormat::RGB, 160, 160, false)
     {    
@@ -59,10 +60,17 @@ public:
 		g.drawText("Init", Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
 
 		setOpaque(true);
+
+		slider = new Slider();
+		slider->setRange(0, 1000);
+		slider->addListener(this);
+
+		sliderUpdating = false;
 	}
     ~VideoComponent()
     {    
-		vlc.SetOutputWindow(nullptr);
+		slider = nullptr;
+		vlc.SetDisplayCallback(nullptr);
 	}
     void paint (Graphics& g)
     {
@@ -101,10 +109,11 @@ public:
 
 	void play(char* path)
 	{
-		//vlc.SetOutputWindow(getWindowHandle());
 		vlc.SetDisplayCallback(this);
 		vlc.OpenMedia(path);
 		vlc.Play();
+
+		slider->setValue(0);
 	}
 	
 
@@ -125,14 +134,32 @@ public:
 
 	void display(void *id)
 	{
-		vf::MessageThread::getInstance().queuef(std::bind  (&Component::repaint, this));
-		//MessageManagerLock lock;
-		//repaint();
+		vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::frameReady,this));
 		jassert(id == NULL);
+	}
+	void frameReady()
+	{
+		sliderUpdating = true;
+		repaint();
+		slider->setValue(vlc.GetTime()*1000./vlc.GetLength());
+		sliderUpdating =false;
+	}
+    void sliderValueChanged (Slider* slider)
+	{
+		if(sliderUpdating)
+		{
+			return;
+		}
+		vlc.SetTime(slider->getValue()*vlc.GetLength()/1000.);
+	}
+	Slider* getSlider()
+	{
+		return slider.get();
 	}
 
 private:
 	VLCWrapper vlc;
+	bool sliderUpdating;
 };
 //==============================================================================
 class MainComponent   : public Component, public FileBrowserListener
@@ -167,12 +194,13 @@ public:
 
 		tree = new BigFileTreeComponent (*fileList);
 		
-
+		
+		videoComponent.getSlider()->setSliderStyle (Slider::LinearBar);
 		
 		
         addAndMakeVisible (&videoComponent);
         addAndMakeVisible (tree);
-		//addToDesktop(ComponentPeer::windowIsTemporary);
+        addAndMakeVisible (videoComponent.getSlider());
 
 		setSize (600, 300);
 		
@@ -239,14 +267,15 @@ public:
 										   true));
 		g.fillRect (0.75*getWidth(), 0, getWidth(), 0.25*getHeight());*/
     }
-#define BORDER 10
+
     void resized()
     {
-		int w =  getWidth() - 2*BORDER;
-		int h =  getHeight() - 2*BORDER;
-        tree->setBounds (3*w/4, BORDER,w/4, h);
+		int w =  getWidth();
+		int h =  getHeight();
+        tree->setBounds (0, 0,w/4, h);
 		
 		videoComponent.setBounds (0, 0, w, h);
+		videoComponent.getSlider()->setBounds (0.1*w, 0.9*h, 0.8*w, 0.05*h);
     }
 
 private:
