@@ -14,3 +14,7 @@ Release/
 vlcfrontendRelease.exe
 vlcfrontendRelease.pdb
 data/
+OptimizedDebug
+vlcfrontendOptimizedDebug.exe
+vlcfrontendOptimizedDebug.ilk
+vlcfrontendOptimizedDebug.pdb

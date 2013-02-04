@@ -246,7 +246,7 @@ public:
 		int h =  getHeight() - 2*BORDER;
         tree->setBounds (3*w/4, BORDER,w/4, h);
 		
-		videoComponent.setBounds (BORDER, BORDER, w-2*BORDER, h-2*BORDER);
+		videoComponent.setBounds (0, 0, w, h);
     }
 
 private:
