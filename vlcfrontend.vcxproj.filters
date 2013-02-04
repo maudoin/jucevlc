@@ -22,6 +22,12 @@
     <Filter Include="Source Files\juce">
       <UniqueIdentifier>{d3ac371c-ec32-4bab-a5e6-245b824e079d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\vf">
+      <UniqueIdentifier>{5362d050-1768-4afc-b44d-e7c38b487c3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\vf">
+      <UniqueIdentifier>{262e25f8-1d35-444b-a26d-5fc6ffd22f94}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Execute.cpp">
@@ -53,6 +59,12 @@
     </ClCompile>
     <ClCompile Include="src\VLCWrapperImpl.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp">
+      <Filter>Source Files\vf</Filter>
+    </ClCompile>
+    <ClCompile Include="vf\modules\vf_core\vf_core.cpp">
+      <Filter>Source Files\vf</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -337,6 +349,12 @@
     </ClInclude>
     <ClInclude Include="juce\juce.h">
       <Filter>Header Files\juce</Filter>
+    </ClInclude>
+    <ClInclude Include="vf\modules\vf_core\vf_core.h">
+      <Filter>Header Files\vf</Filter>
+    </ClInclude>
+    <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h">
+      <Filter>Header Files\vf</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

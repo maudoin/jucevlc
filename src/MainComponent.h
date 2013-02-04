@@ -28,6 +28,7 @@
 #include "VLCWrapper.h"
 #include "juce.h"
 #include <modules\juce_gui_basics\filebrowser\juce_FileBrowserComponent.h>
+#include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
 //[/Headers]
 
@@ -85,7 +86,7 @@ public:
 	void resized()
 	{
 		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
-		img.rescaled(getWidth(), getHeight());
+		img = img.rescaled(getWidth(), getHeight());
 
 		std::ostringstream oss;
 		oss << getWidth()<<"x"<< getHeight();
@@ -124,8 +125,8 @@ public:
 
 	void display(void *id)
 	{
+		vf::MessageThread::getInstance().call (&juce::Component::repaint, this);
 		//MessageManagerLock lock;
-
 		//repaint();
 		jassert(id == NULL);
 	}

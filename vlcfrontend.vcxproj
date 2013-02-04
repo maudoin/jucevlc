@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -69,7 +69,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -93,6 +93,8 @@
     <ClCompile Include="src\VideoVLC.cpp" />
     <ClCompile Include="src\VLCWrapper.cpp" />
     <ClCompile Include="src\VLCWrapperImpl.cpp" />
+    <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp" />
+    <ClCompile Include="vf\modules\vf_core\vf_core.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="juce\AppConfig.h" />
@@ -189,6 +191,8 @@
     <ClInclude Include="src\VideoVLC.h" />
     <ClInclude Include="src\VLCWrapper.h" />
     <ClInclude Include="src\VLCWrapperImpl.h" />
+    <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />
+    <ClInclude Include="vf\modules\vf_core\vf_core.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libvlc\activex\test.html" />

@@ -13,3 +13,4 @@ vlcfrontend.opensdf
 Release/
 vlcfrontendRelease.exe
 vlcfrontendRelease.pdb
+data/
