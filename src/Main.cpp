@@ -46,7 +46,7 @@ public:
 	{
 		setColour(DirectoryContentsDisplayComponent::textColourId, Colours::white);
 		
-		//cFont = loadFont( "ForgottenFuturistShadow.bin");
+		cFont = loadFont( "ForgottenFuturistShadow.bin");
 	}
 		const Typeface::Ptr getTypefaceForFont (const Font &font)
 		{
@@ -127,7 +127,7 @@ void drawFileBrowserRow (Graphics& g, int width, int height,
     }
 	
 	Font f = g.getCurrentFont();
-	f.setTypefaceName("Forgotten Futurist Shadow"/*"Times New Roman"*/);
+	f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
 	f.setStyleFlags(Font::FontStyleFlags::plain);
 	g.setFont(f);
 
@@ -342,6 +342,7 @@ void serializeFont(String fontName, String out, uint32 glyphCount=256)
 	{
 		fontFile = File::getCurrentWorkingDirectory().getChildFile(out);
 	}
+	fontFile.replaceWithData (0,0);
 		
 
 	if (!fontFile.hasWriteAccess ())
@@ -366,6 +367,8 @@ void serializeFont(String fontName, String out, uint32 glyphCount=256)
 		if (systemFonts[i].getTypeface()->getName() == fontName)
 		{
 			CustomTypeface customTypefacePlain;
+			customTypefacePlain.setCharacteristics(systemFonts[i].getTypefaceName(), systemFonts[i].getAscent(),
+                                      systemFonts[i].isBold(), systemFonts[i].isItalic(), ' ');
 
 			customTypefacePlain.addGlyphsFromOtherTypeface (*(systemFonts[i].getTypeface()), 0, glyphCount);
 			
@@ -382,7 +385,7 @@ void serializeFont(String fontName, String out, uint32 glyphCount=256)
 static juce::JUCEApplicationBase* juce_CreateApplication() { return new JUCEHelloWorldApplication(); } 
 extern "C" JUCE_MAIN_FUNCTION 
 { 
-	//serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin", 1024);
+	serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
 
 
     juce::JUCEApplication::createInstance = &juce_CreateApplication; 
