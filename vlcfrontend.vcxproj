@@ -92,7 +92,7 @@
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)/libvlc/lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -131,9 +131,7 @@
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MainComponent.cpp" />
-    <ClCompile Include="src\VideoVLC.cpp" />
     <ClCompile Include="src\VLCWrapper.cpp" />
-    <ClCompile Include="src\VLCWrapperImpl.cpp" />
     <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp" />
     <ClCompile Include="vf\modules\vf_core\vf_core.cpp" />
   </ItemGroup>
@@ -229,14 +227,9 @@
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\MainComponent.h" />
-    <ClInclude Include="src\VideoVLC.h" />
     <ClInclude Include="src\VLCWrapper.h" />
-    <ClInclude Include="src\VLCWrapperImpl.h" />
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />
     <ClInclude Include="vf\modules\vf_core\vf_core.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libvlc\activex\test.html" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

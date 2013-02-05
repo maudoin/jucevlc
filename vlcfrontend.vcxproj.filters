@@ -39,9 +39,6 @@
     <ClCompile Include="src\MainComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\VideoVLC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="juce\amalgamation\juce_amalgamated1.cpp">
       <Filter>Source Files\juce</Filter>
     </ClCompile>
@@ -55,9 +52,6 @@
       <Filter>Source Files\juce</Filter>
     </ClCompile>
     <ClCompile Include="src\VLCWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\VLCWrapperImpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp">
@@ -74,13 +68,7 @@
     <ClInclude Include="src\MainComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\VideoVLC.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\VLCWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VLCWrapperImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libvlc\include\vlc\deprecated.h">
@@ -356,8 +344,5 @@
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h">
       <Filter>Header Files\vf</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libvlc\activex\test.html" />
   </ItemGroup>
 </Project>
