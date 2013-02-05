@@ -19,7 +19,10 @@
 
 #include <memory>
 
-class VLCWrapperImpl;
+struct libvlc_instance_t;
+struct libvlc_media_player_t;
+struct libvlc_media_t;
+struct libvlc_event_manager_t;
 
 // Typedefs for old MS compilers
 typedef unsigned __int32	uint32_t;
@@ -44,7 +47,11 @@ public:
 };
 class VLCWrapper
 {
-	std::auto_ptr<VLCWrapperImpl> pImpl_; ///< VLCWrapper's private Implementation
+    libvlc_instance_t*       pVLCInstance_;        ///< The VLC instance.
+	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
+	libvlc_media_t*          pMedia_;              ///< The media played by the media player.
+    libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
+    VLCEventHandler          eventHandler;         ///< An event handler for the media player.    
 public:
 	VLCWrapper(void);
 	~VLCWrapper(void);
