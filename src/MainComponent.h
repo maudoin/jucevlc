@@ -66,8 +66,8 @@ public:
 		slider->addListener(this);
 		slider->setSliderStyle (Slider::LinearBar);
 		slider->setAlpha(1.f);
-		static LookAndFeel lnf;
-		slider->setLookAndFeel(&lnf);
+		//static LookAndFeel lnf;
+		//slider->setLookAndFeel(&lnf);
 		slider->setOpaque(true);
         slider->setTextBoxStyle (Slider::NoTextBox, false, 0, 0);
 

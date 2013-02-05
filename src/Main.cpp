@@ -66,6 +66,25 @@ public:
 		return f;
 	}
 	
+    virtual void drawLinearSlider (Graphics& g,
+                                   int x, int y,
+                                   int width, int height,
+                                   float sliderPos,
+                                   float minSliderPos,
+                                   float maxSliderPos,
+                                   const Slider::SliderStyle style,
+                                   Slider& slider)
+	{
+		
+		LookAndFeel::drawLinearSlider (g,
+                                   x, y,
+                                   width, height,
+                                   sliderPos,
+                                   minSliderPos,
+                                   maxSliderPos,
+                                   style,
+                                   slider);
+	}
 void drawFileBrowserRow (Graphics& g, int width, int height,
                                       const String& filename, Image* icon,
                                       const String& fileSizeDescription,
