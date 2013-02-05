@@ -1,14 +1,7 @@
-/*
-  ==============================================================================
-
-   Demonstration "Hello World" application in JUCE
-   Copyright 2008 by Julian Storer.
-
-  ==============================================================================
-*/
 
 #include "juce.h"
 #include "MainComponent.h"
+#include "LookNFeel.h"
 
 String getFileNameWithoutExtension(const String& fullPath)
 {
@@ -21,184 +14,17 @@ String getFileNameWithoutExtension(const String& fullPath)
         return fullPath.substring (lastSlash);
 }
 
-Typeface* loadFont( String inPath)
-{
-	File fontFile;
-	if (File::isAbsolutePath (inPath))
-	{
-		fontFile = File(inPath);
-	}
-	else
-	{
-		fontFile = File::getCurrentWorkingDirectory().getChildFile(inPath);
-	}
-
-	FileInputStream ins(fontFile);
-	return (new CustomTypeface (ins));
-
-}
-
-class LnF : public OldSchoolLookAndFeel
-{
-	ScopedPointer<Typeface> cFont;
-public:
-	LnF()
-	{
-		setColour(DirectoryContentsDisplayComponent::textColourId, Colours::white);
-		
-		cFont = loadFont( "ForgottenFuturistShadow.bin");
-	}
-		const Typeface::Ptr getTypefaceForFont (const Font &font)
-		{
-			if (cFont)
-			{
-				return (cFont);
-			}
-			else
-			{
-				return (font.getTypeface());
-			}
-		}
-	const Font getFontForTextButton (TextButton& button)
-	{
-		Font f = LookAndFeel::getFontForTextButton(button);
-		f.setHeight(24);
-		return f;
-	}
-	
-    virtual void drawLinearSlider (Graphics& g,
-                                   int x, int y,
-                                   int width, int height,
-                                   float sliderPos,
-                                   float minSliderPos,
-                                   float maxSliderPos,
-                                   const Slider::SliderStyle style,
-                                   Slider& slider)
-	{
-		
-		LookAndFeel::drawLinearSlider (g,
-                                   x, y,
-                                   width, height,
-                                   sliderPos,
-                                   minSliderPos,
-                                   maxSliderPos,
-                                   style,
-                                   slider);
-	}
-void drawFileBrowserRow (Graphics& g, int width, int height,
-                                      const String& filename, Image* icon,
-                                      const String& fileSizeDescription,
-                                      const String& fileTimeDescription,
-                                      const bool isDirectory,
-                                      const bool isItemSelected,
-                                      const int /*itemIndex*/,
-                                      DirectoryContentsDisplayComponent&)
-{
-	const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
-	
-	const int hborder = 5;
-	const int roundness = 7;
-	
-	
-	
-    if(!isDirectory || isItemSelected)
-	{
-		g.setGradientFill (ColourGradient (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker(),
-										   0, height/2-hborder,
-										   Colour (0x8000),
-										   0.7*filenameWidth-3, height/2-hborder,
-										   false));
-
-		//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
-		g.fillRoundedRectangle(0, hborder, filenameWidth-3, height-2*hborder, roundness);
-	}
-
-    if(!isDirectory)
-	{
-		g.setGradientFill (ColourGradient(Colours::darkgrey,
-										   0, height/2-hborder,
-										   Colour (0x8000),
-										   0.7*filenameWidth-3, height/2-hborder,
-										   false));
-		//g.setColour (Colours::darkgrey);
-		g.drawRoundedRectangle(0, hborder, filenameWidth-3, height-2*hborder, roundness, 2);
-	}
-	
-	const int iconhborder = 12;
-    const int x = 32;
-    const int y = height;
-    g.setColour (Colours::black);
-
-    if (icon != nullptr && icon->isValid() && !isDirectory)
-    {
-        g.drawImageWithin (*icon, 2 + iconhborder, 2, x-4, y-4,
-                           RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize,
-                           false);
-    }
-    else if(isDirectory)
-    {
-        const Drawable* d = isDirectory ? getDefaultFolderImage()
-                                        : getDefaultDocumentFileImage();
-
-        if (d != nullptr)
-            d->drawWithin (g, Rectangle<float> (2.0f  + iconhborder, 2.0f, x - 4.0f, y - 4.0f),
-                           RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
-    }
-	
-	Font f = g.getCurrentFont();
-	f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
-	f.setStyleFlags(Font::FontStyleFlags::plain);
-	g.setFont(f);
-
-    g.setColour (findColour (DirectoryContentsDisplayComponent::textColourId));
-    g.setFont (height * 0.7f);
-
-	
-	int xText = x + 2*iconhborder;
-	/*
-    if (width > 450 && ! isDirectory)
-    {
-        const int sizeX = filenameWidth;
-        const int dateX = roundToInt (width * 0.8f);
-
-        g.drawFittedText (filename,
-                          xText, 0, sizeX - xText, height,
-                          Justification::centredLeft, 1);
-
-        g.setFont (height * 0.5f);
-        g.setColour (Colours::darkgrey);
-
-        if (! isDirectory)
-        {
-            g.drawFittedText (fileSizeDescription,
-                              sizeX, 0, dateX - sizeX - 8, height,
-                              Justification::centredRight, 1);
-
-            g.drawFittedText (fileTimeDescription,
-                              dateX, 0, width - 8 - dateX, height,
-                              Justification::centredRight, 1);
-        }
-    }
-    else*/
-    {
-        g.drawFittedText (filename,
-                          xText, 0, width - xText, height,
-                          Justification::centredLeft, 1);
-
-    }
-}
-};
 //==============================================================================
 /**
     This is the top-level window that we'll pop up. Inside it, we'll create and
     show a component from the MainComponent.cpp file (you can open this file using
     the Jucer to edit it).
 */
-class HelloWorldWindow  : public DocumentWindow , public juce::KeyListener
+class FrontendMainWindow  : public DocumentWindow , public juce::KeyListener
 {
 public:
     //==============================================================================
-    HelloWorldWindow(const String& commandLine)
+    FrontendMainWindow(const String& commandLine)
         : DocumentWindow ("",
                           Colours::lightgrey,
                           DocumentWindow::allButtons,
@@ -225,7 +51,7 @@ public:
         setVisible (true);
     }
 
-    virtual ~HelloWorldWindow()
+    virtual ~FrontendMainWindow()
     {
         // (the content component will be deleted automatically, so no need to do it here)
     }
@@ -239,7 +65,7 @@ public:
     void closeButtonPressed()
     {
         // When the user presses the close button, we'll tell the app to quit. This
-        // HelloWorldWindow object will be deleted by the JUCEHelloWorldApplication class.
+        // FrontendMainWindow object will be deleted by the JUCEHelloWorldApplication class.
         JUCEApplication::quit();
     }
     bool keyPressed (const KeyPress& key,
@@ -296,7 +122,9 @@ public:
         LookAndFeel::setDefaultLookAndFeel (&lnf);
 
         // For this demo, we'll just create the main window...
-        helloWorldWindow = new HelloWorldWindow(commandLine);
+        helloWorldWindow = new FrontendMainWindow(commandLine);
+
+		lnf.setScaleComponent(helloWorldWindow);
 
 		vf::MessageThread::getInstance();
 
@@ -322,7 +150,7 @@ public:
     //==============================================================================
     const String getApplicationName()
     {
-        return "Launch menu";
+        return "JucyVLC";
     }
 
     const String getApplicationVersion()
@@ -342,69 +170,18 @@ public:
     }
 
 private:
-    ScopedPointer<HelloWorldWindow> helloWorldWindow;
+    ScopedPointer<FrontendMainWindow> helloWorldWindow;
 };
 
 
 //==============================================================================
 
 
-void serializeFont(String fontName, String out, uint32 glyphCount=256)
-{
-	
-	File fontFile;
-	if (File::isAbsolutePath (out))
-	{
-		fontFile = File(out);
-	}
-	else
-	{
-		fontFile = File::getCurrentWorkingDirectory().getChildFile(out);
-	}
-	fontFile.replaceWithData (0,0);
-		
-
-	if (!fontFile.hasWriteAccess ())
-	{
-		printf ("initialise ERROR can't write to destination file: %s\n", fontFile.getFullPathName().toUTF8());
-		return;
-	}
-
-	if (fontName == String::empty)
-	{
-		printf ("initialise ERROR no font name given\n");
-		return;
-	}
-
-
-	printf ("Fserialize::serializeFont looking for font in system list [%s]\n", fontName.toUTF8());
-	
-	Array <Font> systemFonts;
-	Font::findFonts (systemFonts);
-	for (int i=0; i<systemFonts.size(); i++)
-	{
-		if (systemFonts[i].getTypeface()->getName() == fontName)
-		{
-			CustomTypeface customTypefacePlain;
-			customTypefacePlain.setCharacteristics(systemFonts[i].getTypefaceName(), systemFonts[i].getAscent(),
-                                      systemFonts[i].isBold(), systemFonts[i].isItalic(), ' ');
-
-			customTypefacePlain.addGlyphsFromOtherTypeface (*(systemFonts[i].getTypeface()), 0, glyphCount);
-			
-			FileOutputStream streamPlain(fontFile);
-			customTypefacePlain.writeToStream (streamPlain);
-		}
-	}
-
-	printf ("Fserialize::serializeFont finished\n");
-
-}
 
 	
 static juce::JUCEApplicationBase* juce_CreateApplication() { return new JUCEHelloWorldApplication(); } 
 extern "C" JUCE_MAIN_FUNCTION 
 { 
-	serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
 
 
     juce::JUCEApplication::createInstance = &juce_CreateApplication; 

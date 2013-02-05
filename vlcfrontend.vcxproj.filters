@@ -60,6 +60,9 @@
     <ClCompile Include="vf\modules\vf_core\vf_core.cpp">
       <Filter>Source Files\vf</Filter>
     </ClCompile>
+    <ClCompile Include="src\BigFileTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
@@ -343,6 +346,15 @@
     </ClInclude>
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h">
       <Filter>Header Files\vf</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LookNFeel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FontSerialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BigFileTree.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

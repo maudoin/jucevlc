@@ -82,17 +82,18 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='OptimizedDebug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(ProjectDir)/libvlc/lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -128,6 +129,7 @@
     <ClCompile Include="juce\amalgamation\juce_amalgamated2.cpp" />
     <ClCompile Include="juce\amalgamation\juce_amalgamated3.cpp" />
     <ClCompile Include="juce\amalgamation\juce_amalgamated4.cpp" />
+    <ClCompile Include="src\BigFileTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\MainComponent.cpp" />
@@ -225,7 +227,10 @@
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xlib.h" />
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xml.h" />
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
+    <ClInclude Include="src\BigFileTree.h" />
     <ClInclude Include="src\Execute.h" />
+    <ClInclude Include="src\FontSerialization.h" />
+    <ClInclude Include="src\LookNFeel.h" />
     <ClInclude Include="src\MainComponent.h" />
     <ClInclude Include="src\VLCWrapper.h" />
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />

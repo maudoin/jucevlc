@@ -1,49 +1,14 @@
-/*
-  ==============================================================================
 
-  This is an automatically generated file created by the Jucer!
+#ifndef MAINCOMPONENT
+#define MAINCOMPONENT
 
-  Creation date:  21 Sep 2012 12:11:41pm
-
-  Be careful when adding custom code to these files, as only the code within
-  the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
-  and re-saved.
-
-  Jucer version: 1.12
-
-  ------------------------------------------------------------------------------
-
-  The Jucer is part of the JUCE library - "Jules' Utility Class Extensions"
-  Copyright 2004-6 by Raw Material Software ltd.
-
-  ==============================================================================
-*/
-
-#ifndef __JUCER_HEADER_MAINCOMPONENT_MAINCOMPONENT_2983595F__
-#define __JUCER_HEADER_MAINCOMPONENT_MAINCOMPONENT_2983595F__
-
-//[Headers]     -- You can add your own extra header files here --
-
+#include "juce.h"
 #include "Execute.h"
 #include "VLCWrapper.h"
-#include "juce.h"
-#include <modules\juce_gui_basics\filebrowser\juce_FileBrowserComponent.h>
+#include "BigFileTree.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
-//[/Headers]
 
-
-namespace juce
-{
-//==============================================================================
-class BigFileTreeComponent : public virtual FileTreeComponent
-{
-public:
-	BigFileTreeComponent(DirectoryContentsList& p);
-	virtual ~BigFileTreeComponent();
-	virtual void refresh();
-};
-}
 
 //==============================================================================
 class VideoComponent   : public Component, public DisplayCallback, juce::Slider::Listener
@@ -100,6 +65,8 @@ public:
 	}
 	void resized()
 	{
+		vlc.Pause();
+
 		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
 		img = img.rescaled(getWidth(), getHeight());
 
@@ -302,4 +269,4 @@ private:
 };
 
 
-#endif   // __JUCER_HEADER_MAINCOMPONENT_MAINCOMPONENT_2983595F__
+#endif //MAINCOMPONENT
