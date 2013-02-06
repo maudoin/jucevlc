@@ -16,10 +16,7 @@ public:
 	virtual ~BigFileTreeComponent();
 	virtual void refresh();
 	
-    virtual void appProportionnalComponentResized()
-	{
-		resized();
-	}
+	void paint (Graphics& g);
 };
 }
 #endif

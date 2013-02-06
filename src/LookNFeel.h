@@ -66,8 +66,8 @@ public:
 		double fontSize =  getFontHeight();
 		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
-		const int hborder = 5;
-		const int roundness = 7;
+		const int hborder = height/8;
+		const int roundness = height/2;
 	
 	
 	
@@ -80,7 +80,7 @@ public:
 											   false));
 
 			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
-			g.fillRoundedRectangle(0, hborder, filenameWidth-3, height-2*hborder, roundness);
+			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness);
 		}
 
 		if(!isDirectory)
@@ -91,11 +91,11 @@ public:
 											   0.7*filenameWidth-3, height/2-hborder,
 											   false));
 			//g.setColour (Colours::darkgrey);
-			g.drawRoundedRectangle(0, hborder, filenameWidth-3, height-2*hborder, roundness, 2);
+			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness, 2);
 		}
 	
-		const int iconhborder = 12;
-		const int x = 32;
+		const int iconhborder = height/2;
+		const int x = height;
 		const int y = height;
 		g.setColour (Colours::black);
 

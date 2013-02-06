@@ -241,5 +241,16 @@ void BigFileTreeComponent::refresh()
 	root->setSubContentsList (&fileList, false);
 	setRootItem (root);
 }
+void BigFileTreeComponent::paint (Graphics& g)
+{
+	int width = getWidth();
+	int height = getHeight();
 
+	int roundness = 10;
+	g.setColour(Colours::darkgrey.withAlpha(0.5f));
+	g.fillRoundedRectangle(0, 0, width, height, roundness);
+			
+	g.setColour(Colours::lightgrey);
+	g.drawRoundedRectangle(0, 0, width, height, roundness, 2);
+}
 }
