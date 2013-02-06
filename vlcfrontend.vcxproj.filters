@@ -356,5 +356,8 @@
     <ClInclude Include="src\BigFileTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\AppProportionnalComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

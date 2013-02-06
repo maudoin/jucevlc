@@ -22,6 +22,7 @@ String getFileNameWithoutExtension(const String& fullPath)
 */
 class FrontendMainWindow  : public DocumentWindow , public juce::KeyListener
 {
+	MainComponent* content;
 public:
     //==============================================================================
     FrontendMainWindow(const String& commandLine)
@@ -33,7 +34,9 @@ public:
 		
 
         // Create an instance of our main content component, and add it to our window..
-        setContentOwned (new MainComponent(commandLine), true);
+		content = new MainComponent(commandLine);
+		content->setScaleComponent(this);
+        setContentOwned (content, true);
 
         // Centre the window on the screen
         centreWithSize (getWidth(), getHeight());
@@ -49,7 +52,7 @@ public:
 
         // And show it!
         setVisible (true);
-    }
+	}
 
     virtual ~FrontendMainWindow()
     {
@@ -122,9 +125,12 @@ public:
         LookAndFeel::setDefaultLookAndFeel (&lnf);
 
         // For this demo, we'll just create the main window...
-        helloWorldWindow = new FrontendMainWindow(commandLine);
+        FrontendMainWindow* frontendMainWindow = new FrontendMainWindow(commandLine);
 
-		lnf.setScaleComponent(helloWorldWindow);
+		mainWindow = frontendMainWindow;
+
+
+		lnf.setScaleComponent(mainWindow);
 
 		vf::MessageThread::getInstance();
 
@@ -142,9 +148,9 @@ public:
         LookAndFeel::setDefaultLookAndFeel (nullptr);
         // This method is where you should clear-up your app's resources..
 
-        // The helloWorldWindow variable is a ScopedPointer, so setting it to a null
+        // The mainWindow variable is a ScopedPointer, so setting it to a null
         // pointer will delete the window.
-        helloWorldWindow = 0;
+        mainWindow = 0;
     }
 
     //==============================================================================
@@ -170,7 +176,7 @@ public:
     }
 
 private:
-    ScopedPointer<FrontendMainWindow> helloWorldWindow;
+    ScopedPointer<FrontendMainWindow> mainWindow;
 };
 
 

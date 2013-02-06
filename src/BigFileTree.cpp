@@ -187,16 +187,20 @@ protected:
 
 class BigFileListTreeItem : public FileListTreeItem2
 {
+	BigFileTreeComponent& bigFileTreeComponent;
 public:
-    BigFileListTreeItem (FileTreeComponent& owner_,
+    BigFileListTreeItem (BigFileTreeComponent& owner_,
                       DirectoryContentsList* const parentContentsList_,
                       const int indexInContentsList_,
                       const File& file_,
 					  TimeSliceThread& thread_) 
-		: FileListTreeItem2(owner_, parentContentsList_, indexInContentsList_, file_, thread_){}
+		: FileListTreeItem2(owner_, parentContentsList_, indexInContentsList_, file_, thread_)
+	, bigFileTreeComponent(owner_)
+	{
+	}
     virtual int getItemHeight() const                               
 	{
-		return 40; 
+		return bigFileTreeComponent.getItemHeight(); 
 	}
 	
     void changeListenerCallback (ChangeBroadcaster*)
@@ -208,7 +212,7 @@ public:
             for (int i = 0; i < subContentsList->getNumFiles(); ++i)
             {
                 BigFileListTreeItem* const item
-                    = new BigFileListTreeItem (owner, subContentsList, i, subContentsList->getFile(i), thread);
+                    = new BigFileListTreeItem (bigFileTreeComponent, subContentsList, i, subContentsList->getFile(i), thread);
 
                 addSubItem (item);
             }

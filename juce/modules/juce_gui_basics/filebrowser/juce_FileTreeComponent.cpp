@@ -73,7 +73,7 @@ public:
         }
     }
 
-    ~FileListTreeItem()
+    virtual ~FileListTreeItem()
     {
         thread.removeTimeSliceClient (this);
         clearSubItems();
@@ -82,7 +82,7 @@ public:
     //==============================================================================
     bool mightContainSubItems()                 { return isDirectory; }
     String getUniqueName() const                { return file.getFullPathName(); }
-    int getItemHeight() const                   { return 72; }
+    virtual int getItemHeight() const                   { return 20; }
 
     var getDragSourceDescription()              { return owner.getDragAndDropDescription(); }
 

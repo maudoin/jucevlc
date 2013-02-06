@@ -3,13 +3,12 @@
 
 #include "juce.h"
 #include "FontSerialization.h"
+#include "AppProportionnalComponent.h"
 
 
-class LnF : public OldSchoolLookAndFeel
+class LnF : public OldSchoolLookAndFeel, public AppProportionnalComponent
 {
 	ScopedPointer<Typeface> cFont;
-	Component* m_scaleComponent;
-	float m_fontHeightFor1000Pixels;
 
 public:
 	LnF()
@@ -19,11 +18,6 @@ public:
 		serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
 #endif
 		cFont = loadFont( "ForgottenFuturistShadow.bin");
-		m_fontHeightFor1000Pixels = 24./1024.;
-	}
-	void setScaleComponent(Component* scaleComponent)
-	{
-		m_scaleComponent = scaleComponent;
 	}
 	const Typeface::Ptr getTypefaceForFont (const Font &font)
 	{
@@ -59,10 +53,6 @@ public:
                                    maxSliderPos,
                                    style,
                                    slider);
-	}
-	float getFontHeight()
-	{
-		return  m_fontHeightFor1000Pixels*m_scaleComponent->getWidth();
 	}
 	void drawFileBrowserRow (Graphics& g, int width, int height,
 										  const String& filename, Image* icon,

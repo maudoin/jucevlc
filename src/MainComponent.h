@@ -172,6 +172,7 @@ public:
 		fileList = new DirectoryContentsList (wildcard, thread);
 
 		tree = new BigFileTreeComponent (*fileList);
+		tree->refresh();
 		
 		
 		
@@ -199,7 +200,13 @@ public:
 		fileList = nullptr;
 		thread.stopThread (10000);
     }
-	    //==============================================================================
+	
+	void setScaleComponent(Component* scaleComponent)
+	{
+		tree->setScaleComponent(scaleComponent);
+	}
+
+	//==============================================================================
     /** Callback when the user selects a different file in the browser. */
     virtual void selectionChanged()
 	{

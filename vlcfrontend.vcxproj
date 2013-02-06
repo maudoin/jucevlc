@@ -227,6 +227,7 @@
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xlib.h" />
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xml.h" />
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
+    <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\BigFileTree.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />
