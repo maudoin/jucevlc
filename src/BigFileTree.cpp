@@ -257,18 +257,21 @@ class BindTreeViewItem  : public TreeViewItem
 	String name;
 	ScopedPointer<AbstractAction> action;
 	BigFileTreeComponent* owner;
+	bool shortcutDisplay;
 public:
 	
     BindTreeViewItem (BigFileTreeComponent* owner, String name, AbstractAction* action)
 		:name(name)
 		,action(action)
 		,owner(owner)
+		,shortcutDisplay(false)
     {
 	}
     BindTreeViewItem (BindTreeViewItem& p, String name, AbstractAction* action)
 		:name(name)
 		,action(action)
 		,owner(p.owner)
+		,shortcutDisplay(false)
     {
 	}
     
@@ -280,7 +283,11 @@ public:
 	{
 		return (int)owner->getItemHeight(); 
 	}
-
+	void setShortcutDisplay(bool shortCut = true)
+	{
+		shortcutDisplay = shortCut;
+		setDrawsInLeftMargin(shortCut);
+	}
     String getUniqueName() const
     {
         return name;
@@ -295,7 +302,7 @@ public:
     {
         owner->getLookAndFeel().drawFileBrowserRow (g, width, height,
                                                   name,
-                                                   nullptr, "", "",false, isSelected(),
+                                                   nullptr, "", "",shortcutDisplay, isSelected(),
                                                    0, *(DirectoryContentsDisplayComponent*)0);
 		/*
         // if this item is selected, fill it with a background colour..
@@ -347,6 +354,9 @@ public:
 BigFileTreeComponent::BigFileTreeComponent(DirectoryContentsList& p) 
 //	: FileTreeComponent(p)
 {
+	//setRootItemVisible(false);
+	setIndentSize(0);
+	setDefaultOpenness(true);
 	refresh();
 }
 BigFileTreeComponent::~BigFileTreeComponent()
@@ -366,39 +376,76 @@ void BigFileTreeComponent::refresh()
 	root->setSubContentsList (&fileList, false);
 	setRootItem (root);*/
 }
+
+void isolate(TreeViewItem* item)
+{
+	if(!item)
+	{
+		return;
+	}
+	TreeViewItem* parent = item->getParentItem();
+	if(parent)
+	{
+		for(int i=0;i<parent->getNumSubItems();++i)
+		{
+			TreeViewItem* sibling = parent->getSubItem(i);
+			if(sibling && sibling!=item )
+			{
+				parent->removeSubItem(i);
+				i--;
+			}
+		}
+	}
+}
+void prepare(BindTreeViewItem& parent)
+{
+	parent.clearSubItems();
+	TreeViewItem* item = &parent;
+	while(item != nullptr)
+	{
+		isolate(item);
+		BindTreeViewItem* bindParent = dynamic_cast<BindTreeViewItem*>(item);
+		if(bindParent)
+		{
+			bindParent->setShortcutDisplay();
+		}
+		item=item->getParentItem();
+	}
+	parent.setShortcutDisplay(false);
+}
 void nop(BindTreeViewItem& parent)
 {
 }
 void pin(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "Pin", ACTION(nop)));
 }
 
 void soundOptions(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "Volume", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Shift", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Mute", ACTION(pin)));
 }
 void crop(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
 }
 void ratio(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
 }
 void videoOptions(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "FullScreen", ACTION(nop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Crop", ACTION(crop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Ratio", ACTION(ratio)));
@@ -409,7 +456,7 @@ void exit(BindTreeViewItem& parent)
 }
 void getRootITems(BindTreeViewItem& parent)
 {
-	parent.clearSubItems();
+	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "Open", ACTION(nop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Select subtitle", ACTION(nop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Add subtitle", ACTION(nop)));
@@ -424,14 +471,11 @@ void BigFileTreeComponent::setInitialMenu()
 	deleteRootItem();
 
 	TreeViewItem* const root
-		= new BindTreeViewItem (this, "root", ACTION(getRootITems));
+		= new BindTreeViewItem (this, "Menu", ACTION(getRootITems));
 
 	setRootItem (root);
 
-	//setRootItemVisible(true);
-	setRootItemVisible(false);
 	root->setSelected(true, true);
-	//root->setOpen(true);
 	
 }
 void BigFileTreeComponent::paint (Graphics& g)
