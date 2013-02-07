@@ -8,7 +8,7 @@
 
 class LnF : public OldSchoolLookAndFeel, public AppProportionnalComponent
 {
-	ScopedPointer<Typeface> cFont;
+	Typeface* cFont;
 
 public:
 	LnF()
@@ -53,6 +53,61 @@ public:
                                    maxSliderPos,
                                    style,
                                    slider);
+	}
+	void drawListRow (Graphics& g, int width, int height,const String& name,
+										  bool isItemSelected)
+	{
+		double fontSize =  getFontHeight();
+		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
+	
+		const int hborder = height/8;
+		const int roundness = height/2;
+	
+	
+	
+		if(isItemSelected)
+		{
+			g.setGradientFill (ColourGradient (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker(),
+											   0, height/2-hborder,
+											   Colour (0x8000),
+											   0.7*filenameWidth-3, height/2-hborder,
+											   false));
+
+			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
+			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness);
+		}
+
+		{
+			g.setGradientFill (ColourGradient(Colours::darkgrey,
+											   0, height/2-hborder,
+											   Colour (0x8000),
+											   0.7*filenameWidth-3, height/2-hborder,
+											   false));
+			//g.setColour (Colours::darkgrey);
+			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness, 2);
+		}
+	
+		const int iconhborder = height/2;
+		const int x = height;
+		const int y = height;
+		g.setColour (Colours::black);
+
+	
+		Font f = g.getCurrentFont().withHeight(fontSize);
+		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+		f.setStyleFlags(Font::FontStyleFlags::plain);
+		g.setFont(f);
+
+		g.setColour (findColour (DirectoryContentsDisplayComponent::textColourId));
+
+	
+		int xText = x + 2*iconhborder;
+		g.drawFittedText (name,
+							xText, 0, width - xText, height,
+							Justification::centredLeft, 
+							1, //1 line
+							1.f//no h scale
+							);
 	}
 	void drawFileBrowserRow (Graphics& g, int width, int height,
 										  const String& filename, Image* icon,

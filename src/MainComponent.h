@@ -41,6 +41,8 @@ public:
 	}
     ~VideoComponent()
     {    
+		slider->removeListener(this);
+		vlc.Stop();
 		slider = nullptr;
 		vlc.SetDisplayCallback(nullptr);
 	}
@@ -172,7 +174,7 @@ public:
 		fileList = new DirectoryContentsList (wildcard, thread);
 
 		tree = new BigFileTreeComponent (*fileList);
-		tree->refresh();
+		//tree->setInitialMenu();
 		
 		
 		
@@ -183,7 +185,7 @@ public:
 
 		setSize (600, 300);
 		
-		tree->addListener (this);
+		//tree->addListener (this);
 		tree->setOpenCloseButtonsVisible(false);
 		tree->setIndentSize(50);
 		

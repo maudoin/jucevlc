@@ -57,6 +57,7 @@ public:
     virtual ~FrontendMainWindow()
     {
         // (the content component will be deleted automatically, so no need to do it here)
+		removeKeyListener(this);
     }
 	
 	void paint (Graphics& g)
@@ -68,7 +69,7 @@ public:
     void closeButtonPressed()
     {
         // When the user presses the close button, we'll tell the app to quit. This
-        // FrontendMainWindow object will be deleted by the JUCEHelloWorldApplication class.
+        // FrontendMainWindow object will be deleted by the JucyVLCApplication class.
         JUCEApplication::quit();
     }
     bool keyPressed (const KeyPress& key,
@@ -104,17 +105,17 @@ public:
 /** This is the application object that is started up when Juce starts. It handles
     the initialisation and shutdown of the whole application.
 */
-class JUCEHelloWorldApplication : public JUCEApplication
+class JucyVLCApplication : public JUCEApplication
 {
 	LnF lnf;
 public:
     //==============================================================================
-    JUCEHelloWorldApplication()
+    JucyVLCApplication()
     {
 
     }
 
-    ~JUCEHelloWorldApplication()
+    ~JucyVLCApplication()
     {
     }
 
@@ -148,9 +149,7 @@ public:
         LookAndFeel::setDefaultLookAndFeel (nullptr);
         // This method is where you should clear-up your app's resources..
 
-        // The mainWindow variable is a ScopedPointer, so setting it to a null
-        // pointer will delete the window.
-        mainWindow = 0;
+        mainWindow = nullptr;
     }
 
     //==============================================================================
@@ -185,7 +184,7 @@ private:
 
 
 	
-static juce::JUCEApplicationBase* juce_CreateApplication() { return new JUCEHelloWorldApplication(); } 
+static juce::JUCEApplicationBase* juce_CreateApplication() { return new JucyVLCApplication(); } 
 extern "C" JUCE_MAIN_FUNCTION 
 { 
 

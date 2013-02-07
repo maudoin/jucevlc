@@ -9,12 +9,13 @@
 namespace juce
 {
 //==============================================================================
-class BigFileTreeComponent : public virtual FileTreeComponent, public AppProportionnalComponent
+class BigFileTreeComponent : public virtual /*FileTreeComponent*/TreeView, public AppProportionnalComponent
 {
 public:
 	BigFileTreeComponent(DirectoryContentsList& p);
 	virtual ~BigFileTreeComponent();
 	virtual void refresh();
+	void setInitialMenu();
 	
 	void paint (Graphics& g);
 };
