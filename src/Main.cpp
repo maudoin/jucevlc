@@ -83,16 +83,18 @@ public:
 
 		if (desktop.getKioskModeComponent() == nullptr)
 		{
-			desktop.setKioskModeComponent (getTopLevelComponent());
-			setTitleBarHeight(0);
 		    setResizable(false, false);
+		    setUsingNativeTitleBar(true);
+			desktop.setKioskModeComponent (getTopLevelComponent());
+			//setTitleBarHeight(0);
 		    //setFullScreen(true);
 		}
 		else
 		{
-			desktop.setKioskModeComponent (nullptr);
-			setTitleBarHeight(20);
 			setResizable(true, false);
+		    setUsingNativeTitleBar(true);
+			desktop.setKioskModeComponent (nullptr);
+			//setTitleBarHeight(20);
 		    //setFullScreen(false);
 			//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
 		}

@@ -18,6 +18,7 @@
 #define __VLCWRAPPER_H__
 
 #include <memory>
+#include <string>
 
 struct libvlc_instance_t;
 struct libvlc_media_player_t;
@@ -111,6 +112,9 @@ public:
     /** Set the actual audio volume.
     *   @param [in] volume New volume level. */
     void SetVolume(int volume);    
+
+	
+	std::string getInfo() const;
 };
 
 #endif // __VLCWRAPPER_H__

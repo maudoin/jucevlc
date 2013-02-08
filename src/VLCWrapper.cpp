@@ -58,7 +58,10 @@ VLCWrapper::VLCWrapper(void)
     // Create an event manager for the player for handling e.g. time change events
     pEventManager_ = libvlc_media_player_event_manager(pMediaPlayer_);
 }
-
+std::string VLCWrapper::getInfo() const
+{
+	return libvlc_get_version();
+}
 VLCWrapper::~VLCWrapper(void)
 {
     // Free the media_player

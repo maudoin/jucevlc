@@ -73,6 +73,7 @@ public:
 		img = img.rescaled(getWidth(), getHeight());
 
 		std::ostringstream oss;
+		oss << "VLC "<< vlc.getInfo()<<"\n";
 		oss << getWidth()<<"x"<< getHeight();
 		Graphics g(img);
 		g.fillAll(Colour::fromRGB(0, 0, 0));
