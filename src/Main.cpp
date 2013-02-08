@@ -14,62 +14,56 @@ String getFileNameWithoutExtension(const String& fullPath)
         return fullPath.substring (lastSlash);
 }
 
+
 //==============================================================================
 /**
     This is the top-level window that we'll pop up. Inside it, we'll create and
     show a component from the MainComponent.cpp file (you can open this file using
     the Jucer to edit it).
 */
-class FrontendMainWindow  : public DocumentWindow , public juce::KeyListener
+class VLCWindow  : public DocumentWindow , public juce::KeyListener
 {
-	MainComponent* content;
+	LnF lnf;
 public:
     //==============================================================================
-    FrontendMainWindow(const String& commandLine)
-        : DocumentWindow ("",
+    VLCWindow()
+        : DocumentWindow ("JucyVLC",
                           Colours::lightgrey,
                           DocumentWindow::allButtons,
                           true)
     {
-		
+        LookAndFeel::setDefaultLookAndFeel (&lnf);
 
         // Create an instance of our main content component, and add it to our window..
-		content = new MainComponent(commandLine);
-		content->setScaleComponent(this);
+		MainComponent* content = new MainComponent();
         setContentOwned (content, true);
+		//content->setScaleComponent(this);
 
         // Centre the window on the screen
         centreWithSize (getWidth(), getHeight());
 
-		//setResizable(true, false);
-		//setTitleBarHeight(20);
-		//setFullScreen(true);
-		//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
 
-		
 		addKeyListener(this);
+
 		switchFullScreen();
 
         // And show it!
         setVisible (true);
-	}
-
-    virtual ~FrontendMainWindow()
-    {
-        // (the content component will be deleted automatically, so no need to do it here)
-		removeKeyListener(this);
     }
-	
-	void paint (Graphics& g)
-	{
-        g.fillAll (Colours::black);
-	}
+
+    ~VLCWindow()
+    {
+		removeKeyListener(this);
+
+		LookAndFeel::setDefaultLookAndFeel (nullptr);
+        // (the content component will be deleted automatically, so no need to do it here)
+    }
 
     //==============================================================================
     void closeButtonPressed()
     {
         // When the user presses the close button, we'll tell the app to quit. This
-        // FrontendMainWindow object will be deleted by the JucyVLCApplication class.
+        // VLCWindow object will be deleted by the VLCApplication class.
         JUCEApplication::quit();
     }
     bool keyPressed (const KeyPress& key,
@@ -91,12 +85,16 @@ public:
 		{
 			desktop.setKioskModeComponent (getTopLevelComponent());
 			setTitleBarHeight(0);
+		    setResizable(false, false);
+		    //setFullScreen(true);
 		}
 		else
 		{
 			desktop.setKioskModeComponent (nullptr);
 			setTitleBarHeight(20);
-			setResizable(true, true);
+			setResizable(true, false);
+		    //setFullScreen(false);
+			//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
 		}
     }
 };
@@ -105,35 +103,23 @@ public:
 /** This is the application object that is started up when Juce starts. It handles
     the initialisation and shutdown of the whole application.
 */
-class JucyVLCApplication : public JUCEApplication
+class VLCApplication : public JUCEApplication
 {
-	LnF lnf;
 public:
     //==============================================================================
-    JucyVLCApplication()
+    VLCApplication()
     {
-
     }
 
-    ~JucyVLCApplication()
+    ~VLCApplication()
     {
     }
 
     //==============================================================================
     void initialise (const String& commandLine)
     {
-
-        LookAndFeel::setDefaultLookAndFeel (&lnf);
-
         // For this demo, we'll just create the main window...
-        FrontendMainWindow* frontendMainWindow = new FrontendMainWindow(commandLine);
-
-		mainWindow = frontendMainWindow;
-
-
-		lnf.setScaleComponent(mainWindow);
-
-		vf::MessageThread::getInstance();
+        helloWorldWindow = new VLCWindow();
 
         /*  ..and now return, which will fall into to the main event
             dispatch loop, and this will run until something calls
@@ -146,10 +132,11 @@ public:
 
     void shutdown()
     {
-        LookAndFeel::setDefaultLookAndFeel (nullptr);
         // This method is where you should clear-up your app's resources..
 
-        mainWindow = nullptr;
+        // The helloWorldWindow variable is a ScopedPointer, so setting it to a null
+        // pointer will delete the window.
+        helloWorldWindow = 0;
     }
 
     //==============================================================================
@@ -175,28 +162,10 @@ public:
     }
 
 private:
-    ScopedPointer<FrontendMainWindow> mainWindow;
+    ScopedPointer<VLCWindow> helloWorldWindow;
 };
 
 
 //==============================================================================
-
-
-
-	
-static juce::JUCEApplicationBase* juce_CreateApplication() { return new JucyVLCApplication(); } 
-extern "C" JUCE_MAIN_FUNCTION 
-{ 
-
-
-    juce::JUCEApplication::createInstance = &juce_CreateApplication; 
-	try
-	{
-		return juce::JUCEApplication::main (JUCE_MAIN_FUNCTION_ARGS); 
-	}
-	catch(std::exception const&e)
-	{
-		std::cerr << e.what() << std::endl;
-		return 1;
-	}
-}
+// This macro creates the application's main() function..
+START_JUCE_APPLICATION (VLCApplication)
