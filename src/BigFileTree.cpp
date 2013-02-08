@@ -224,26 +224,26 @@ public:
 };
 */
 //==============================================================================
-class BindTreeViewItem;
-  class AbstractAction
-  {
-  public:
-    virtual ~AbstractAction () { }
+class SmartTreeViewItem;
+class AbstractAction
+{
+public:
+	virtual ~AbstractAction () { }
 
-    /** Calls the functor.
+	/** Calls the functor.
 
-        This executes during the queue's call to synchronize().
-    */
-    virtual void operator() (BindTreeViewItem& parent) = 0;
-  };
+		This executes during the queue's call to synchronize().
+	*/
+	virtual void operator() (SmartTreeViewItem& parent) = 0;
+};
 //==============================================================================
   //template <class Functor>
   class Action : public AbstractAction
   {
-	  typedef void (*Functor)(BindTreeViewItem&);
+	  typedef void (*Functor)(SmartTreeViewItem&);
   public:
     explicit Action (Functor const& f) : m_f (f) { }
-    void operator() (BindTreeViewItem& parent) { m_f (parent); }
+    void operator() (SmartTreeViewItem& parent) { m_f (parent); }
 
   private:
     Functor m_f;
@@ -252,36 +252,32 @@ class BindTreeViewItem;
 //#define ACTION(f) new Action(std::bind(&f,std::placeholders::_1))
 //==============================================================================
   class BigFileTreeComponent;
-class BindTreeViewItem  : public TreeViewItem
+class SmartTreeViewItem  : public TreeViewItem
 {
-	String name;
-	ScopedPointer<AbstractAction> action;
 	BigFileTreeComponent* owner;
 	bool shortcutDisplay;
 public:
-	
-    BindTreeViewItem (BigFileTreeComponent* owner, String name, AbstractAction* action)
-		:name(name)
-		,action(action)
-		,owner(owner)
+    SmartTreeViewItem (BigFileTreeComponent* owner)
+		:owner(owner)
 		,shortcutDisplay(false)
     {
 	}
-    BindTreeViewItem (BindTreeViewItem& p, String name, AbstractAction* action)
-		:name(name)
-		,action(action)
-		,owner(p.owner)
+    SmartTreeViewItem (SmartTreeViewItem& p)
+		:owner(p.owner)
 		,shortcutDisplay(false)
     {
 	}
     
-	virtual ~BindTreeViewItem()
+	virtual ~SmartTreeViewItem()
 	{
 	}
-	
     virtual int getItemHeight() const                               
 	{
 		return (int)owner->getItemHeight(); 
+	}
+	BigFileTreeComponent* getOwner()
+	{
+		return owner;
 	}
 	void setShortcutDisplay(bool shortCut = true)
 	{
@@ -302,7 +298,7 @@ public:
 		for (TreeViewItem* p = getParentItem(); p != nullptr; p = p->getParentItem())
 		{
 			
-			BindTreeViewItem* bindParent = dynamic_cast<BindTreeViewItem*>(p);
+			SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(p);
 			if(!bindParent || !bindParent->shortcutDisplay)
 			{
 				++x;
@@ -317,20 +313,10 @@ public:
 
 		return x * getOwnerView()->getIndentSize();
 	}
-    String getUniqueName() const
-    {
-        return name;
-    }
-
-    virtual bool mightContainSubItems()
-    {
-        return true;
-    }
-
     void paintItem (Graphics& g, int width, int height)
     {
         owner->getLookAndFeel().drawFileBrowserRow (g, width, height,
-                                                  name,
+                                                  getUniqueName(),
                                                    nullptr, "", "",shortcutDisplay, isSelected(),
                                                    0, *(DirectoryContentsDisplayComponent*)0);
 		/*
@@ -345,15 +331,6 @@ public:
                     4, 0, width - 4, height,
                     Justification::centredLeft, true);*/
     }
-	void itemSelectionChanged(bool isSelected)
-	{
-		if(isSelected)
-		{
-			action->operator()(*this);
-			setOpen(isSelected);
-		}
-		
-	}
     void itemOpennessChanged (bool isNowOpen)
     {
         if (isNowOpen)
@@ -377,10 +354,100 @@ public:
 			clearSubItems();
         }
     }
+};
+class BindTreeViewItem  : public SmartTreeViewItem
+{
+	String name;
+	ScopedPointer<AbstractAction> action;
+public:
+	
+    BindTreeViewItem (BigFileTreeComponent* owner, String name, AbstractAction* action)
+		:SmartTreeViewItem(owner)
+		,name(name)
+		,action(action)
+    {
+	}
+    BindTreeViewItem (SmartTreeViewItem& p, String name, AbstractAction* action)
+		:SmartTreeViewItem(p)
+		,name(name)
+		,action(action)
+    {
+	}
+    
+	virtual ~BindTreeViewItem()
+	{
+	}
+	
+    String getUniqueName() const
+    {
+        return name;
+    }
 
+    virtual bool mightContainSubItems()
+    {
+        return true;
+    }
+
+	void itemSelectionChanged(bool isSelected)
+	{
+		if(isSelected)
+		{
+			action->operator()(*this);
+		}
+		
+	}
+
+};
+class FileTreeViewItem  : public SmartTreeViewItem
+{
+    File const& file;
+public:
+    FileTreeViewItem (BigFileTreeComponent* owner, 
+                      File const& file_)
+		:SmartTreeViewItem(owner)
+		,file(file_)
+    {
+	}
+    FileTreeViewItem (SmartTreeViewItem& p, 
+                      File const& file_)
+		:SmartTreeViewItem(p)
+		,file(file_)
+    {
+	}
+	virtual ~FileTreeViewItem()
+	{
+	}
+    String getUniqueName() const
+    {
+        return file.getFullPathName();
+    }
+	bool mightContainSubItems()                 
+	{ 
+		return file.isDirectory();
+	}
+	File const& getFile() const
+	{
+		return file;
+	}
+    void paintItem (Graphics& g, int width, int height)
+    {
+		getOwner()->getLookAndFeel().drawFileBrowserRow (g, width, height,
+			file.getParentDirectory() == File::nonexistent ?(file.getFileName()+String(" ")+file.getVolumeLabel()):file.getFileName(),
+            nullptr, "", "",file.isDirectory(), isSelected(),
+            0, *(DirectoryContentsDisplayComponent*)0);
+	}
+	void itemSelectionChanged(bool isSelected)
+	{
+		if(isSelected)
+		{
+			//owner->send;
+		}
+		
+	}
 };
 
 BigFileTreeComponent::BigFileTreeComponent(DirectoryContentsList& p) 
+	: thread("FileList")
 //	: FileTreeComponent(p)
 {
 	//setRootItemVisible(false);
@@ -426,14 +493,14 @@ void isolate(TreeViewItem* item)
 		}
 	}
 }
-void prepare(BindTreeViewItem& parent)
+void prepare(SmartTreeViewItem& parent)
 {
 	parent.clearSubItems();
 	TreeViewItem* item = &parent;
 	while(item != nullptr)
 	{
 		isolate(item);
-		BindTreeViewItem* bindParent = dynamic_cast<BindTreeViewItem*>(item);
+		SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(item);
 		if(bindParent)
 		{
 			bindParent->setShortcutDisplay();
@@ -441,53 +508,84 @@ void prepare(BindTreeViewItem& parent)
 		item=item->getParentItem();
 	}
 }
-void nop(BindTreeViewItem& parent)
+void nop(SmartTreeViewItem& parent)
 {
 }
-void pin(BindTreeViewItem& parent)
+void listFiles(SmartTreeViewItem& parent)
+{
+	prepare(parent);
+    FileTreeViewItem* fileParent = dynamic_cast<FileTreeViewItem*>(&parent);
+	if(fileParent)
+	{
+		String filters = "*.*";
+		bool selectsFiles = true;
+		bool selectsDirectories = true;
+
+        WildcardFileFilter* wildcard = new WildcardFileFilter(selectsFiles ? filters : String::empty,
+                                     selectsDirectories ? "*" : String::empty,
+                                     String::empty);
+
+		DirectoryContentsList fileList(wildcard, fileParent->getOwner()->getFilesThread());
+
+		for(int i=0;i<fileList.getNumFiles();++i)
+		{
+			parent.addSubItem(new FileTreeViewItem (parent, fileList.getFile(i)));
+		}
+	}
+	else
+	{
+		Array<File> destArray;
+		File::findFileSystemRoots(destArray);
+		for(int i=0;i<destArray.size();++i)
+		{
+			parent.addSubItem(new FileTreeViewItem (parent, destArray[i]));
+		}
+	}
+}
+void pin(SmartTreeViewItem& parent)
 {
 	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "Pin", ACTION(nop)));
 }
 
-void soundOptions(BindTreeViewItem& parent)
+void soundOptions(SmartTreeViewItem& parent)
 {
 	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "Volume", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Shift", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Mute", ACTION(pin)));
 }
-void crop(BindTreeViewItem& parent)
+void crop(SmartTreeViewItem& parent)
 {
 	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
 }
-void ratio(BindTreeViewItem& parent)
+void ratio(SmartTreeViewItem& parent)
 {
 	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
 	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
 }
-void videoOptions(BindTreeViewItem& parent)
+void videoOptions(SmartTreeViewItem& parent)
 {
 	prepare(parent);
 	parent.addSubItem(new BindTreeViewItem (parent, "FullScreen", ACTION(nop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Crop", ACTION(crop)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Ratio", ACTION(ratio)));
 }
-void exit(BindTreeViewItem& parent)
+void exit(SmartTreeViewItem& parent)
 {
     JUCEApplication::getInstance()->systemRequestedQuit();
 }
-void getRootITems(BindTreeViewItem& parent)
+void getRootITems(SmartTreeViewItem& parent)
 {
 	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "Open", ACTION(nop)));
+	parent.addSubItem(new BindTreeViewItem (parent, "Open", ACTION(listFiles)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Select subtitle", ACTION(nop)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Add subtitle", ACTION(nop)));
+	parent.addSubItem(new BindTreeViewItem (parent, "Add subtitle", ACTION(listFiles)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Video options", ACTION(videoOptions)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Sound options", ACTION(soundOptions)));
 	parent.addSubItem(new BindTreeViewItem (parent, "Exit", ACTION(exit)));

@@ -11,6 +11,7 @@ namespace juce
 //==============================================================================
 class BigFileTreeComponent : public virtual /*FileTreeComponent*/TreeView, public AppProportionnalComponent
 {
+    TimeSliceThread thread;
 public:
 	BigFileTreeComponent(DirectoryContentsList& p);
 	virtual ~BigFileTreeComponent();
@@ -18,6 +19,8 @@ public:
 	void setInitialMenu();
 	
 	void paint (Graphics& g);
+	
+	TimeSliceThread & getFilesThread(){return thread;}
 };
 }
 #endif
