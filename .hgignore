@@ -1,7 +1,6 @@
 syntax: glob
 Debug
 THG.lnk
-data/test7.mp4
 ipch
 vlcfrontend.sdf
 vlcfrontend.suo
@@ -13,10 +12,10 @@ vlcfrontend.opensdf
 Release/
 vlcfrontendRelease.exe
 vlcfrontendRelease.pdb
+vlcfrontendRelease.ilk
 data/
 OptimizedDebug
 vlcfrontendOptimizedDebug.exe
 vlcfrontendOptimizedDebug.ilk
 vlcfrontendOptimizedDebug.pdb
 boost/
-ForgottenFuturistShadow.bin.new

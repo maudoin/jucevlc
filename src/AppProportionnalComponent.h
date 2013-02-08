@@ -33,11 +33,11 @@ public:
 	}
 	float getFontHeight()
 	{
-		return  m_scaleComponent == NULL ? 18 : m_fontHeightFor1000Pixels*m_scaleComponent->getHeight();
+		return 0.9*getItemHeight();
 	}
 	float getItemHeight()
 	{
-		return  m_scaleComponent == NULL ? 20 : m_itemHeightFor1000Pixels*m_scaleComponent->getHeight();
+		return  m_scaleComponent == NULL ? 24 : m_itemHeightFor1000Pixels*m_scaleComponent->getHeight();
 	}
     virtual void componentMovedOrResized (Component& component,
                                           bool wasMoved,

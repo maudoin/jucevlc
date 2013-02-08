@@ -15,9 +15,10 @@ public:
 	{
 		setColour(DirectoryContentsDisplayComponent::textColourId, Colours::white);
 #ifdef _DEBUG
-		serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
+		//serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
+		serializeFont("Teen", "font.bin");
 #endif
-		cFont = loadFont( "ForgottenFuturistShadow.bin");
+		cFont = loadFont( "font.bin");
 	}
 	const Typeface::Ptr getTypefaceForFont (const Font &font)
 	{
