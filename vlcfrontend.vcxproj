@@ -59,7 +59,7 @@
     <GenerateManifest>false</GenerateManifest>
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
     <OutDir>$(SolutionDir)\</OutDir>
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -125,13 +125,19 @@
       <AdditionalLibraryDirectories>$(ProjectDir)/libvlc/lib</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <AdditionalDependencies>libvlccore.lib;libvlc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <PreventDllBinding>
+      </PreventDllBinding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ManifestResourceCompile>
       <ResourceOutputFileName>$(ProjectDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>
     </ManifestResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="juce\modules\juce_core\juce_core.cpp" />
