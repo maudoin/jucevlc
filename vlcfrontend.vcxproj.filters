@@ -39,18 +39,6 @@
     <ClCompile Include="src\MainComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="juce\amalgamation\juce_amalgamated1.cpp">
-      <Filter>Source Files\juce</Filter>
-    </ClCompile>
-    <ClCompile Include="juce\amalgamation\juce_amalgamated2.cpp">
-      <Filter>Source Files\juce</Filter>
-    </ClCompile>
-    <ClCompile Include="juce\amalgamation\juce_amalgamated3.cpp">
-      <Filter>Source Files\juce</Filter>
-    </ClCompile>
-    <ClCompile Include="juce\amalgamation\juce_amalgamated4.cpp">
-      <Filter>Source Files\juce</Filter>
-    </ClCompile>
     <ClCompile Include="src\VLCWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -62,6 +50,24 @@
     </ClCompile>
     <ClCompile Include="src\BigFileTree.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_core\juce_core.cpp">
+      <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_data_structures\juce_data_structures.cpp">
+      <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_events\juce_events.cpp">
+      <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_graphics\juce_graphics.cpp">
+      <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp">
+      <Filter>Source Files\juce</Filter>
+    </ClCompile>
+    <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp">
+      <Filter>Source Files\juce</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

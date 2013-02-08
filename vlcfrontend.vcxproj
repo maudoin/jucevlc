@@ -134,10 +134,12 @@
     </ManifestResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="juce\amalgamation\juce_amalgamated1.cpp" />
-    <ClCompile Include="juce\amalgamation\juce_amalgamated2.cpp" />
-    <ClCompile Include="juce\amalgamation\juce_amalgamated3.cpp" />
-    <ClCompile Include="juce\amalgamation\juce_amalgamated4.cpp" />
+    <ClCompile Include="juce\modules\juce_core\juce_core.cpp" />
+    <ClCompile Include="juce\modules\juce_data_structures\juce_data_structures.cpp" />
+    <ClCompile Include="juce\modules\juce_events\juce_events.cpp" />
+    <ClCompile Include="juce\modules\juce_graphics\juce_graphics.cpp" />
+    <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp" />
+    <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
     <ClCompile Include="src\BigFileTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
