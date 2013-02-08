@@ -5,224 +5,7 @@ namespace juce
 {
 
 Image juce_createIconForFile (const File& file);
-//==============================================================================
 
-/*
-class FileListTreeItem2   : public TreeViewItem,
-                           private TimeSliceClient,
-                           private AsyncUpdater,
-                           private ChangeListener
-{
-public:
-    FileListTreeItem2 (FileTreeComponent& owner_,
-                      DirectoryContentsList* const parentContentsList_,
-                      const int indexInContentsList_,
-                      const File& file_,
-                      TimeSliceThread& thread_)
-        : file (file_),
-          owner (owner_),
-          parentContentsList (parentContentsList_),
-          indexInContentsList (indexInContentsList_),
-          subContentsList (nullptr, false),
-          thread (thread_)
-    {
-        DirectoryContentsList::FileInfo fileInfo;
-
-        if (parentContentsList_ != nullptr
-             && parentContentsList_->getFileInfo (indexInContentsList_, fileInfo))
-        {
-            fileSize = File::descriptionOfSizeInBytes (fileInfo.fileSize);
-            modTime = fileInfo.modificationTime.formatted ("%d %b '%y %H:%M");
-            isDirectory = fileInfo.isDirectory;
-        }
-        else
-        {
-            isDirectory = true;
-        }
-    }
-
-    virtual ~FileListTreeItem2()
-    {
-        thread.removeTimeSliceClient (this);
-        clearSubItems();
-    }
-
-    //==============================================================================
-    bool mightContainSubItems()                 { return isDirectory; }
-    String getUniqueName() const                { return file.getFullPathName(); }
-    virtual int getItemHeight() const                   { return 72; }
-
-    var getDragSourceDescription()              { return owner.getDragAndDropDescription(); }
-
-    void itemOpennessChanged (bool isNowOpen)
-    {
-        if (isNowOpen)
-        {
-            clearSubItems();
-
-            isDirectory = file.isDirectory();
-
-            if (isDirectory)
-            {
-                if (subContentsList == nullptr)
-                {
-                    jassert (parentContentsList != nullptr);
-
-                    DirectoryContentsList* const l = new DirectoryContentsList (parentContentsList->getFilter(), thread);
-                    l->setDirectory (file, true, true);
-
-                    setSubContentsList (l, true);
-                }
-
-                changeListenerCallback (nullptr);
-            }
-        }
-    }
-
-    void setSubContentsList (DirectoryContentsList* newList, const bool canDeleteList)
-    {
-        OptionalScopedPointer<DirectoryContentsList> newPointer (newList, canDeleteList);
-        subContentsList = newPointer;
-        newList->addChangeListener (this);
-    }
-
-    virtual void changeListenerCallback (ChangeBroadcaster*)
-    {
-        clearSubItems();
-
-        if (isOpen() && subContentsList != nullptr)
-        {
-            for (int i = 0; i < subContentsList->getNumFiles(); ++i)
-            {
-                FileListTreeItem2* const item
-                    = new FileListTreeItem2 (owner, subContentsList, i, subContentsList->getFile(i), thread);
-
-                addSubItem (item);
-            }
-        }
-    }
-
-    void paintItem (Graphics& g, int width, int height)
-    {
-        if (file != File::nonexistent)
-        {
-            updateIcon (true);
-
-            if (icon.isNull())
-                thread.addTimeSliceClient (this);
-        }
-
-        owner.getLookAndFeel().drawFileBrowserRow (g, width, height,
-                                                   file.getFileNameWithoutExtension(),
-                                                   &icon, fileSize, modTime,
-                                                   isDirectory, isSelected(),
-                                                   indexInContentsList, owner);
-    }
-
-    void itemClicked (const MouseEvent& e)
-    {
-        owner.sendMouseClickMessage (file, e);
-    }
-
-    void itemDoubleClicked (const MouseEvent& e)
-    {
-        TreeViewItem::itemDoubleClicked (e);
-
-        owner.sendDoubleClickMessage (file);
-    }
-
-    void itemSelectionChanged (bool)
-    {
-        owner.sendSelectionChangeMessage();
-    }
-
-    int useTimeSlice()
-    {
-        updateIcon (false);
-        return -1;
-    }
-
-    void handleAsyncUpdate()
-    {
-        owner.repaint();
-    }
-
-    const File file;
-
-protected:
-    FileTreeComponent& owner;
-    DirectoryContentsList* parentContentsList;
-    int indexInContentsList;
-    OptionalScopedPointer<DirectoryContentsList> subContentsList;
-    bool isDirectory;
-    TimeSliceThread& thread;
-    Image icon;
-    String fileSize, modTime;
-
-    void updateIcon (const bool onlyUpdateIfCached)
-    {
-        if (icon.isNull())
-        {
-            const int hashCode = (file.getFullPathName() + "_iconCacheSalt").hashCode();
-            Image im (ImageCache::getFromHashCode (hashCode));
-
-            if (im.isNull() && ! onlyUpdateIfCached)
-            {
-                im = juce_createIconForFile (file);
-
-                if (im.isValid())
-                    ImageCache::addImageToCache (im, hashCode);
-            }
-
-            if (im.isValid())
-            {
-                icon = im;
-                triggerAsyncUpdate();
-            }
-        }
-    }
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FileListTreeItem2)
-};
-
-class BigFileListTreeItem : public FileListTreeItem2
-{
-	BigFileTreeComponent& bigFileTreeComponent;
-public:
-    BigFileListTreeItem (BigFileTreeComponent& owner_,
-                      DirectoryContentsList* const parentContentsList_,
-                      const int indexInContentsList_,
-                      const File& file_,
-					  TimeSliceThread& thread_) 
-		: FileListTreeItem2(owner_, parentContentsList_, indexInContentsList_, file_, thread_)
-	, bigFileTreeComponent(owner_)
-	{
-	}
-    virtual int getItemHeight() const                               
-	{
-		return (int)bigFileTreeComponent.getItemHeight(); 
-	}
-	
-    void changeListenerCallback (ChangeBroadcaster*)
-    {
-        clearSubItems();
-
-        if (isOpen() && subContentsList != nullptr)
-        {
-            for (int i = 0; i < subContentsList->getNumFiles(); ++i)
-            {
-                BigFileListTreeItem* const item
-                    = new BigFileListTreeItem (bigFileTreeComponent, subContentsList, i, subContentsList->getFile(i), thread);
-
-                addSubItem (item);
-            }
-        }
-    }
-
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BigFileListTreeItem)
-};
-*/
 //==============================================================================
 class SmartTreeViewItem;
 class AbstractAction
@@ -333,21 +116,8 @@ public:
     }
     void itemOpennessChanged (bool isNowOpen)
     {
-        if (isNowOpen)
+        if (!isNowOpen)
         {
-			//only one item expanded at a time
-			TreeViewItem* parent = getParentItem();
-			if(parent)
-			{
-				for(int i=0;i<parent->getNumSubItems();++i)
-				{
-					TreeViewItem* sibling = parent->getSubItem(i);
-					if(sibling && !sibling->isSelected() )
-					{
-						sibling->setOpen(false);
-					}
-				}
-			}
         }
         else
         {
@@ -398,9 +168,11 @@ public:
 	}
 
 };
+
+void listFiles(SmartTreeViewItem& item);
 class FileTreeViewItem  : public SmartTreeViewItem
 {
-    File const& file;
+    File file;
 public:
     FileTreeViewItem (BigFileTreeComponent* owner, 
                       File const& file_)
@@ -431,8 +203,9 @@ public:
 	}
     void paintItem (Graphics& g, int width, int height)
     {
+		File p = file.getParentDirectory();
 		getOwner()->getLookAndFeel().drawFileBrowserRow (g, width, height,
-			file.getParentDirectory() == File::nonexistent ?(file.getFileName()+String(" ")+file.getVolumeLabel()):file.getFileName(),
+			p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+String(" (")+file.getVolumeLabel()+String(")")):file.getFileName(),
             nullptr, "", "",file.isDirectory(), isSelected(),
             0, *(DirectoryContentsDisplayComponent*)0);
 	}
@@ -440,17 +213,23 @@ public:
 	{
 		if(isSelected)
 		{
-			//owner->send;
+			if(file.isDirectory())
+			{
+				listFiles(*this);
+			}
+			else
+			{
+				//owner->send;
+			}
 		}
 		
 	}
+
 };
 
 BigFileTreeComponent::BigFileTreeComponent(DirectoryContentsList& p) 
 	: thread("FileList")
-//	: FileTreeComponent(p)
 {
-	//setRootItemVisible(false);
 	setIndentSize(0);
 	setDefaultOpenness(true);
 	refresh();
@@ -458,19 +237,6 @@ BigFileTreeComponent::BigFileTreeComponent(DirectoryContentsList& p)
 BigFileTreeComponent::~BigFileTreeComponent()
 {
     deleteRootItem();
-}
-void BigFileTreeComponent::refresh()
-{ 
-	setInitialMenu();
-	/*
-	deleteRootItem();
-	
-	BigFileListTreeItem* const root
-		= new BigFileListTreeItem (*this, nullptr, 0, fileList.getDirectory(),
-								fileList.getTimeSliceThread());
-								
-	root->setSubContentsList (&fileList, false);
-	setRootItem (root);*/
 }
 
 void isolate(TreeViewItem* item)
@@ -493,105 +259,99 @@ void isolate(TreeViewItem* item)
 		}
 	}
 }
-void prepare(SmartTreeViewItem& parent)
+void prepare(SmartTreeViewItem& item)
 {
-	parent.clearSubItems();
-	TreeViewItem* item = &parent;
-	while(item != nullptr)
+	item.clearSubItems();
+	TreeViewItem* current = &item;
+	while(current != nullptr)
 	{
-		isolate(item);
-		SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(item);
+		isolate(current);
+		SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(current);
 		if(bindParent)
 		{
 			bindParent->setShortcutDisplay();
 		}
-		item=item->getParentItem();
+		current=current->getParentItem();
 	}
 }
 void nop(SmartTreeViewItem& parent)
 {
 }
-void listFiles(SmartTreeViewItem& parent)
+void listFiles(SmartTreeViewItem& item)
 {
-	prepare(parent);
-    FileTreeViewItem* fileParent = dynamic_cast<FileTreeViewItem*>(&parent);
+	prepare(item);
+
+	Array<File> destArray;
+
+    FileTreeViewItem* fileParent = dynamic_cast<FileTreeViewItem*>(&item);
 	if(fileParent)
 	{
 		String filters = "*.*";
 		bool selectsFiles = true;
 		bool selectsDirectories = true;
 
-        WildcardFileFilter* wildcard = new WildcardFileFilter(selectsFiles ? filters : String::empty,
-                                     selectsDirectories ? "*" : String::empty,
-                                     String::empty);
-
-		DirectoryContentsList fileList(wildcard, fileParent->getOwner()->getFilesThread());
-
-		for(int i=0;i<fileList.getNumFiles();++i)
-		{
-			parent.addSubItem(new FileTreeViewItem (parent, fileList.getFile(i)));
-		}
+		fileParent->getFile().findChildFiles(destArray, File::findFilesAndDirectories, false);
 	}
 	else
 	{
-		Array<File> destArray;
 		File::findFileSystemRoots(destArray);
-		for(int i=0;i<destArray.size();++i)
-		{
-			parent.addSubItem(new FileTreeViewItem (parent, destArray[i]));
-		}
+	}
+
+	for(int i=0;i<destArray.size();++i)
+	{
+		item.addSubItem(new FileTreeViewItem (item, destArray[i]));
 	}
 }
-void pin(SmartTreeViewItem& parent)
+void pin(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "Pin", ACTION(nop)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "Pin", ACTION(nop)));
 }
 
-void soundOptions(SmartTreeViewItem& parent)
+void soundOptions(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "Volume", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Shift", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Mute", ACTION(pin)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "Volume", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "Shift", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "Mute", ACTION(pin)));
 }
-void crop(SmartTreeViewItem& parent)
+void crop(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "free", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "16/9", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "4/3", ACTION(pin)));
 }
-void ratio(SmartTreeViewItem& parent)
+void ratio(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "free", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "16/9", ACTION(pin)));
-	parent.addSubItem(new BindTreeViewItem (parent, "4/3", ACTION(pin)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "free", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "16/9", ACTION(pin)));
+	item.addSubItem(new BindTreeViewItem (item, "4/3", ACTION(pin)));
 }
-void videoOptions(SmartTreeViewItem& parent)
+void videoOptions(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "FullScreen", ACTION(nop)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Crop", ACTION(crop)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Ratio", ACTION(ratio)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "FullScreen", ACTION(nop)));
+	item.addSubItem(new BindTreeViewItem (item, "Crop", ACTION(crop)));
+	item.addSubItem(new BindTreeViewItem (item, "Ratio", ACTION(ratio)));
 }
-void exit(SmartTreeViewItem& parent)
+void exit(SmartTreeViewItem& item)
 {
     JUCEApplication::getInstance()->systemRequestedQuit();
 }
-void getRootITems(SmartTreeViewItem& parent)
+void getRootITems(SmartTreeViewItem& item)
 {
-	prepare(parent);
-	parent.addSubItem(new BindTreeViewItem (parent, "Open", ACTION(listFiles)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Select subtitle", ACTION(nop)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Add subtitle", ACTION(listFiles)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Video options", ACTION(videoOptions)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Sound options", ACTION(soundOptions)));
-	parent.addSubItem(new BindTreeViewItem (parent, "Exit", ACTION(exit)));
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "Open", ACTION(listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Select subtitle", ACTION(nop)));
+	item.addSubItem(new BindTreeViewItem (item, "Add subtitle", ACTION(listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Video options", ACTION(videoOptions)));
+	item.addSubItem(new BindTreeViewItem (item, "Sound options", ACTION(soundOptions)));
+	item.addSubItem(new BindTreeViewItem (item, "Exit", ACTION(exit)));
 
 }
-void BigFileTreeComponent::setInitialMenu()
+void BigFileTreeComponent::refresh()
 {
 
 	deleteRootItem();

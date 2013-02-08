@@ -9,7 +9,7 @@
 namespace juce
 {
 //==============================================================================
-class BigFileTreeComponent : public virtual /*FileTreeComponent*/TreeView, public AppProportionnalComponent
+class BigFileTreeComponent : public virtual TreeView, public AppProportionnalComponent
 {
     TimeSliceThread thread;
 public:
