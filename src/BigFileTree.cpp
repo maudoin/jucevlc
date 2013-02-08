@@ -288,6 +288,35 @@ public:
 		shortcutDisplay = shortCut;
 		setDrawsInLeftMargin(shortCut);
 	}
+    virtual int getIndentX() const noexcept
+	{
+		int x = owner->isRootItemVisible() ? 1 : 0;
+
+		if (! owner->areOpenCloseButtonsVisible())
+			--x;
+		if(shortcutDisplay)
+		{
+			return x;
+		}
+		bool px = 0;
+		for (TreeViewItem* p = getParentItem(); p != nullptr; p = p->getParentItem())
+		{
+			
+			BindTreeViewItem* bindParent = dynamic_cast<BindTreeViewItem*>(p);
+			if(!bindParent || !bindParent->shortcutDisplay)
+			{
+				++x;
+			}
+			else
+			{
+				px = 1;
+			}
+
+		}
+			x+=px;
+
+		return x * getOwnerView()->getIndentSize();
+	}
     String getUniqueName() const
     {
         return name;
@@ -411,7 +440,6 @@ void prepare(BindTreeViewItem& parent)
 		}
 		item=item->getParentItem();
 	}
-	parent.setShortcutDisplay(false);
 }
 void nop(BindTreeViewItem& parent)
 {

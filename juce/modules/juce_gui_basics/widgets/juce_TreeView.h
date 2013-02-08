@@ -535,7 +535,7 @@ private:
     friend class TreeView;
 
     void updatePositions (int newY);
-    int getIndentX() const noexcept;
+    virtual int getIndentX() const noexcept;
     void setOwnerView (TreeView*) noexcept;
     void paintRecursively (Graphics&, int width);
     TreeViewItem* getTopLevelItem() noexcept;
