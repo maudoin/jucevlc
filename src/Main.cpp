@@ -45,7 +45,7 @@ public:
 
 		addKeyListener(this);
 
-		switchFullScreen();
+		setFullScreen();
 
         // And show it!
         setVisible (true);
@@ -71,29 +71,31 @@ public:
 	{
 		if(key.isKeyCurrentlyDown(KeyPress::returnKey) && key.getModifiers().isAltDown())
 		{
-			switchFullScreen();
+			vf::MessageThread::getInstance().queuef(std::bind  (&VLCWindow::switchFullScreen,this));
 			return true;
 		}
 		return false;
 
 	}
+	void setFullScreen()
+	{
+		setResizable(false, false);
+		setUsingNativeTitleBar(true);
+		Desktop::getInstance().setKioskModeComponent (getTopLevelComponent());
+		//setTitleBarHeight(0);
+		//setFullScreen(true);
+	}
 	void switchFullScreen()
 	{
-		Desktop& desktop = Desktop::getInstance();
-
-		if (desktop.getKioskModeComponent() == nullptr)
+		if (Desktop::getInstance().getKioskModeComponent() == nullptr)
 		{
-		    setResizable(false, false);
-		    setUsingNativeTitleBar(true);
-			desktop.setKioskModeComponent (getTopLevelComponent());
-			//setTitleBarHeight(0);
-		    //setFullScreen(true);
+			setFullScreen();
 		}
 		else
 		{
 			setResizable(true, false);
 		    setUsingNativeTitleBar(true);
-			desktop.setKioskModeComponent (nullptr);
+			Desktop::getInstance().setKioskModeComponent (nullptr);
 			//setTitleBarHeight(20);
 		    //setFullScreen(false);
 			//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
