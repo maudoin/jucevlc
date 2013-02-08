@@ -6,7 +6,7 @@
 #include "AppProportionnalComponent.h"
 
 
-class LnF : public OldSchoolLookAndFeel, public AppProportionnalComponent
+class LnF : public OldSchoolLookAndFeel
 {
 	Typeface* cFont;
 
@@ -29,10 +29,6 @@ public:
 		{
 			return (font.getTypeface());
 		}
-	}
-	const Font getFontForTextButton (TextButton& button)
-	{
-		return LookAndFeel::getFontForTextButton(button).withHeight(getFontHeight());
 	}
 	
     virtual void drawLinearSlider (Graphics& g,
@@ -57,7 +53,7 @@ public:
 	void drawListRow (Graphics& g, int width, int height,const String& name,
 										  bool isItemSelected)
 	{
-		double fontSize =  getFontHeight();
+		double fontSize =  0.9*height;
 		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
 		const int hborder = height/8;
@@ -118,7 +114,7 @@ public:
 										  const int /*itemIndex*/,
 										  DirectoryContentsDisplayComponent&)
 	{
-		double fontSize =  getFontHeight();
+		double fontSize =  0.9*height;
 		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
 		const int hborder = height/8;

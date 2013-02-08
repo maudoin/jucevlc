@@ -15,6 +15,10 @@ public:
 		m_fontHeightFor1000Pixels = 24./1000.;
 		m_itemHeightFor1000Pixels = 30./1000.;
 	}
+    virtual ~AppProportionnalComponent()
+	{
+		setScaleComponent(nullptr);
+	}
 	void setScaleComponent(Component* scaleComponent)
 	{
 		if(m_scaleComponent)

@@ -37,7 +37,7 @@ public:
         // Create an instance of our main content component, and add it to our window..
 		MainComponent* content = new MainComponent();
         setContentOwned (content, true);
-		//content->setScaleComponent(this);
+		content->setScaleComponent(this);
 
         // Centre the window on the screen
         centreWithSize (getWidth(), getHeight());
@@ -119,7 +119,7 @@ public:
     void initialise (const String& commandLine)
     {
         // For this demo, we'll just create the main window...
-        helloWorldWindow = new VLCWindow();
+        window = new VLCWindow();
 
         /*  ..and now return, which will fall into to the main event
             dispatch loop, and this will run until something calls
@@ -134,9 +134,9 @@ public:
     {
         // This method is where you should clear-up your app's resources..
 
-        // The helloWorldWindow variable is a ScopedPointer, so setting it to a null
+        // The window variable is a ScopedPointer, so setting it to a null
         // pointer will delete the window.
-        helloWorldWindow = 0;
+        window = 0;
     }
 
     //==============================================================================
@@ -162,7 +162,7 @@ public:
     }
 
 private:
-    ScopedPointer<VLCWindow> helloWorldWindow;
+    ScopedPointer<VLCWindow> window;
 };
 
 
