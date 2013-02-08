@@ -290,16 +290,27 @@ void listFiles(SmartTreeViewItem& item)
 		bool selectsFiles = true;
 		bool selectsDirectories = true;
 
-		fileParent->getFile().findChildFiles(destArray, File::findFilesAndDirectories, false);
+		fileParent->getFile().findChildFiles(destArray, File::findFilesAndDirectories|File::ignoreHiddenFiles, false);
 	}
 	else
 	{
 		File::findFileSystemRoots(destArray);
 	}
-
+	//add folders
 	for(int i=0;i<destArray.size();++i)
 	{
-		item.addSubItem(new FileTreeViewItem (item, destArray[i]));
+		if(destArray[i].isDirectory())
+		{
+			item.addSubItem(new FileTreeViewItem (item, destArray[i]));
+		}
+	}
+	//add files
+	for(int i=0;i<destArray.size();++i)
+	{
+		if(!destArray[i].isDirectory())
+		{
+			item.addSubItem(new FileTreeViewItem (item, destArray[i]));
+		}
 	}
 }
 void pin(SmartTreeViewItem& item)
