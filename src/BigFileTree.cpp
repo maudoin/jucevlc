@@ -209,6 +209,13 @@ public:
             nullptr, "", "",file.isDirectory(), isSelected(),
             0, *(DirectoryContentsDisplayComponent*)0);
 	}
+	void itemClicked(const MouseEvent& e)
+	{
+		if(!file.isDirectory())
+		{
+			getOwner()->getListeners().call(&VLCMenuTreeListener::onOpen, file, e);
+		}
+	}
 	void itemSelectionChanged(bool isSelected)
 	{
 		if(isSelected)
@@ -219,7 +226,7 @@ public:
 			}
 			else
 			{
-				//owner->send;
+				
 			}
 		}
 		

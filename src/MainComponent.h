@@ -11,7 +11,7 @@
 
 
 //==============================================================================
-class VideoComponent   : public Component, public DisplayCallback, juce::Slider::Listener
+class VideoComponent   : public Component, public DisplayCallback, juce::Slider::Listener, public VLCMenuTreeListener
 {
 	juce::Image img;
     juce::CriticalSection imgCriticalSection;
@@ -137,14 +137,37 @@ public:
 	{
 		return slider.get();
 	}
+	//MenuTreeListener
+    virtual void onOpen (const File& file, const MouseEvent& e)
+	{
+		play(file.getFullPathName().getCharPointer().getAddress());
+	}
+    virtual void onOpenSubtitle (const File& file, const MouseEvent& e)
+	{
+	}
+    virtual void onOpenPlaylist (const File& file, const MouseEvent& e)
+	{
+	}
 
+    virtual void onCrop (const String& ratio)
+	{
+	}
+    virtual void onSetAspectRatio(const String& ratio)
+	{
+	}
+    virtual void onShiftAudio(const String& ratio)
+	{
+	}
+    virtual void onShiftSubtitles(const String& ratio)
+	{
+	}
 private:
 	VLCWrapper vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
 };
 //==============================================================================
-class MainComponent   : public Component, public FileBrowserListener
+class MainComponent   : public Component
 {
 public:
     //==============================================================================
@@ -175,7 +198,7 @@ public:
 		fileList = new DirectoryContentsList (wildcard, thread);
 
 		tree = new BigFileTreeComponent (*fileList);
-		//tree->setInitialMenu();
+		tree->getListeners().add(&videoComponent);
 		
 		
 		
@@ -209,39 +232,6 @@ public:
 		tree->setScaleComponent(scaleComponent);
 	}
 
-	//==============================================================================
-    /** Callback when the user selects a different file in the browser. */
-    virtual void selectionChanged()
-	{
-		if (TreeViewItem* const firstSelected = tree->getSelectedItem (0)  )
-			firstSelected->setOpen (! firstSelected->isOpen());
-	}
-
-    /** Callback when the user clicks on a file in the browser. */
-    virtual void fileClicked (const File& file, const MouseEvent& e)
-	{
-		if(e.mods.isRightButtonDown())
-		{
-			resized();
-			videoComponent.setVisible(true);
-			videoComponent.play(file.getFullPathName().getCharPointer().getAddress());
-		}
-	}
-
-    /** Callback when the user double-clicks on a file in the browser. */
-    virtual void fileDoubleClicked (const File& file)
-	{
-		if(file.isDirectory())
-		{
-			return;
-		}
-		execute(file.getFullPathName().getCharPointer().getAddress(), file.getParentDirectory().getFullPathName().getCharPointer().getAddress());
-	}
-
-    /** Callback when the browser's root folder changes. */
-    virtual void browserRootChanged (const File& newRoot)
-	{
-	}
 
     void paint (Graphics& g)
     {/*
