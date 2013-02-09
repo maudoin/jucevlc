@@ -2,12 +2,12 @@
 #include "VideoComponent.h"
 
 
-VideoComponent::VideoComponent():img(Image::PixelFormat::RGB, 160, 160, false)
+VideoComponent::VideoComponent()
+	:img(new juce::Image(Image::PixelFormat::RGB, 2, 2, false))
+	,ptr(new juce::Image::BitmapData(*img, Image::BitmapData::readWrite))
 {    
 	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
-	Graphics g(img);
-	g.setColour(Colour::fromRGB(255, 0, 255));
-	g.drawText("Init", Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
+
 	setOpaque(true);
 		
 
@@ -35,20 +35,24 @@ VideoComponent::VideoComponent():img(Image::PixelFormat::RGB, 160, 160, false)
     addAndMakeVisible (slider);
 		
 
-
-		
 	setSize (600, 300);
+
+	//after set Size
+	vlc.SetDisplayCallback(this);
 		
 }
 VideoComponent::~VideoComponent()
 {    
 	slider->removeListener(this);
 	{
-		vlc.Stop();
+		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+		slider->setValue(1000, sendNotificationSync);
 		vlc.SetDisplayCallback(nullptr);
 	}
 	slider = nullptr;
 	tree = nullptr;
+	ptr = nullptr;
+	img = nullptr;
 }
 	
 void VideoComponent::setScaleComponent(Component* scaleComponent)
@@ -58,22 +62,9 @@ void VideoComponent::setScaleComponent(Component* scaleComponent)
 void VideoComponent::paint (Graphics& g)
 {
 	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
-	g.drawImage(img, 0, 0, getWidth(), getHeight(), 0, 0, img.getWidth(), img.getHeight());
+	g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 }
 	
-int VideoComponent::imageWidth()
-{
-	return img.getWidth();
-}
-int VideoComponent::imageHeight()
-{
-	return img.getHeight();
-}
-int VideoComponent::imageStride()
-{
-	Image::BitmapData ptr(img, Image::BitmapData::readWrite);
-	return ptr.lineStride;
-}
 void VideoComponent::resized()
 {
 	int w =  getWidth();
@@ -84,29 +75,29 @@ void VideoComponent::resized()
 
 	//rebuild buffer
 	bool restart(vlc.isPaused());
-	vlc.Pause();
 
 	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
-	img = img.rescaled(getWidth(), getHeight());
 
 	std::ostringstream oss;
 	oss << "VLC "<< vlc.getInfo()<<"\n";
 	oss << getWidth()<<"x"<< getHeight();
-	Graphics g(img);
+	Graphics g(*img);
 	g.fillAll(Colour::fromRGB(0, 0, 0));
 	g.setColour(Colour::fromRGB(255, 0, 255));
-	g.drawText(oss.str().c_str(), Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
+	g.drawText(oss.str().c_str(), Rectangle<int>(0, 0, img->getWidth(), img->getHeight()/10), Justification::bottomLeft, true);
 
-	if(restart)
-	{
-		vlc.Play();
-	}
 }
 
 
 void VideoComponent::play(char* path)
 {
-	vlc.SetDisplayCallback(this);
+	slider->setValue(1000, sendNotificationSync);
+
+	img = new juce::Image(img->rescaled(getWidth(), getHeight()));
+	ptr = new Image::BitmapData (*img, Image::BitmapData::readWrite);
+	vlc.SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
+
+
 	vlc.OpenMedia(path);
 	vlc.Play();
 
@@ -117,8 +108,7 @@ void VideoComponent::play(char* path)
 void *VideoComponent::lock(void **p_pixels)
 {
 	imgCriticalSection.enter();
-	Image::BitmapData ptr(img, Image::BitmapData::readWrite);
-	*p_pixels = ptr.getLinePointer(0);
+	*p_pixels = ptr->getLinePointer(0);
 	return NULL; /* picture identifier, not needed here */
 }
 

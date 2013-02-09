@@ -74,8 +74,11 @@ void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
 	if(cb)
 	{
 	    libvlc_video_set_callbacks(pMediaPlayer_, lock, unlock, display, cb);
-	    libvlc_video_set_format(pMediaPlayer_, "RV24", cb->imageWidth(), cb->imageHeight(), cb->imageStride());
 	}
+}
+void VLCWrapper::SetBufferFormat(int imageWidth, int imageHeight, int imageStride)
+{
+	libvlc_video_set_format(pMediaPlayer_, "RV24", imageWidth, imageHeight, imageStride);
 }
 void VLCWrapper::SetOutputWindow(void* pHwnd)
 {

@@ -13,7 +13,8 @@
 //==============================================================================
 class VideoComponent   : public Component, public DisplayCallback, juce::Slider::Listener, public VLCMenuTreeListener
 {
-	juce::Image img;
+	ScopedPointer<juce::Image> img;
+	ScopedPointer<juce::Image::BitmapData> ptr;
     juce::CriticalSection imgCriticalSection;
     ScopedPointer<Slider> slider;
     ScopedPointer<VLCMenuTree> tree;
@@ -24,10 +25,7 @@ public:
 	void setScaleComponent(Component* scaleComponent);
     void paint (Graphics& g);
 	
-	int imageWidth();
-	virtual int imageHeight();
-	virtual int imageStride();
-    void resized();
+    virtual void resized();
 
 
 	void play(char* path);

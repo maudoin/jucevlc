@@ -42,9 +42,6 @@ public:
 
 	virtual void display(void *id) = 0;
 	
-	virtual int imageWidth() = 0;
-	virtual int imageHeight() = 0;
-	virtual int imageStride() = 0;
 };
 class VLCWrapper
 {
@@ -61,6 +58,7 @@ public:
     *   @param [in] pHwnd window, on Windows a HWND handle. */
     void SetOutputWindow(void* pHwnd);
     void SetDisplayCallback(DisplayCallback* cb);
+    void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
 
 
 
