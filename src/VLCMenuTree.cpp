@@ -1,4 +1,4 @@
-#include "BigFileTree.h"
+#include "VLCMenuTree.h"
 #include <modules\vf_core\vf_core.h>
 
 namespace juce
@@ -34,13 +34,13 @@ public:
 #define ACTION(f) new Action(&f)
 //#define ACTION(f) new Action(std::bind(&f,std::placeholders::_1))
 //==============================================================================
-  class BigFileTreeComponent;
+  class VLCMenuTree;
 class SmartTreeViewItem  : public TreeViewItem
 {
-	BigFileTreeComponent* owner;
+	VLCMenuTree* owner;
 	bool shortcutDisplay;
 public:
-    SmartTreeViewItem (BigFileTreeComponent* owner)
+    SmartTreeViewItem (VLCMenuTree* owner)
 		:owner(owner)
 		,shortcutDisplay(false)
     {
@@ -58,7 +58,7 @@ public:
 	{
 		return (int)owner->getItemHeight(); 
 	}
-	BigFileTreeComponent* getOwner()
+	VLCMenuTree* getOwner()
 	{
 		return owner;
 	}
@@ -131,7 +131,7 @@ class BindTreeViewItem  : public SmartTreeViewItem
 	ScopedPointer<AbstractAction> action;
 public:
 	
-    BindTreeViewItem (BigFileTreeComponent* owner, String name, AbstractAction* action)
+    BindTreeViewItem (VLCMenuTree* owner, String name, AbstractAction* action)
 		:SmartTreeViewItem(owner)
 		,name(name)
 		,action(action)
@@ -174,7 +174,7 @@ class FileTreeViewItem  : public SmartTreeViewItem
 {
     File file;
 public:
-    FileTreeViewItem (BigFileTreeComponent* owner, 
+    FileTreeViewItem (VLCMenuTree* owner, 
                       File const& file_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
@@ -234,14 +234,13 @@ public:
 
 };
 
-BigFileTreeComponent::BigFileTreeComponent(DirectoryContentsList& p) 
-	: thread("FileList")
+VLCMenuTree::VLCMenuTree() 
 {
 	setIndentSize(0);
 	setDefaultOpenness(true);
 	refresh();
 }
-BigFileTreeComponent::~BigFileTreeComponent()
+VLCMenuTree::~VLCMenuTree()
 {
     deleteRootItem();
 }
@@ -369,7 +368,7 @@ void getRootITems(SmartTreeViewItem& item)
 	item.addSubItem(new BindTreeViewItem (item, "Exit", ACTION(exit)));
 
 }
-void BigFileTreeComponent::refresh()
+void VLCMenuTree::refresh()
 {
 
 	deleteRootItem();
@@ -382,7 +381,7 @@ void BigFileTreeComponent::refresh()
 	root->setSelected(true, true);
 	
 }
-void BigFileTreeComponent::paint (Graphics& g)
+void VLCMenuTree::paint (Graphics& g)
 {
 	int width = getWidth();
 	int height = getHeight();

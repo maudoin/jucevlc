@@ -1,11 +1,11 @@
 
-#ifndef MAINCOMPONENT
-#define MAINCOMPONENT
+#ifndef VIDEO_COMPONENT
+#define VIDEO_COMPONENT
 
 #include "juce.h"
 #include "Execute.h"
 #include "VLCWrapper.h"
-#include "BigFileTree.h"
+#include "VLCMenuTree.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
 
@@ -16,6 +16,7 @@ class VideoComponent   : public Component, public DisplayCallback, juce::Slider:
 	juce::Image img;
     juce::CriticalSection imgCriticalSection;
     ScopedPointer<Slider> slider;
+    ScopedPointer<VLCMenuTree> tree;
 public:
     VideoComponent():img(Image::PixelFormat::RGB, 160, 160, false)
     {    
@@ -23,8 +24,9 @@ public:
 		Graphics g(img);
 		g.setColour(Colour::fromRGB(255, 0, 255));
 		g.drawText("Init", Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
-
 		setOpaque(true);
+		
+
 
 		slider = new Slider();
 		slider->setRange(0, 1000);
@@ -38,13 +40,36 @@ public:
 
 		sliderUpdating = false;
 		videoUpdating = false;
+
+		
+		tree = new VLCMenuTree ();
+		tree->getListeners().add(this);
+		tree->setOpenCloseButtonsVisible(false);
+		tree->setIndentSize(50);
+
+        addAndMakeVisible (tree);
+        addAndMakeVisible (slider);
+		
+
+
+		
+		setSize (600, 300);
+		
 	}
     ~VideoComponent()
     {    
 		slider->removeListener(this);
-		vlc.Stop();
+		{
+			vlc.Stop();
+			vlc.SetDisplayCallback(nullptr);
+		}
 		slider = nullptr;
-		vlc.SetDisplayCallback(nullptr);
+		tree = nullptr;
+    }
+	
+	void setScaleComponent(Component* scaleComponent)
+	{
+		tree->setScaleComponent(scaleComponent);
 	}
     void paint (Graphics& g)
     {
@@ -65,8 +90,16 @@ public:
 		Image::BitmapData ptr(img, Image::BitmapData::readWrite);
 		return ptr.lineStride;
 	}
-	void resized()
-	{
+    void resized()
+    {
+		int w =  getWidth();
+		int h =  getHeight();
+        tree->setBounds (3*w/4, 0,w/4, 0.925*h);
+		
+		slider->setBounds (0.1*w, 0.95*h, 0.8*w, 0.025*h);
+
+		//rebuild buffer
+		bool restart(vlc.isPaused());
 		vlc.Pause();
 
 		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
@@ -80,7 +113,10 @@ public:
 		g.setColour(Colour::fromRGB(255, 0, 255));
 		g.drawText(oss.str().c_str(), Rectangle<int>(0, 0, 160, 16), Justification::bottomLeft, true);
 
-		vlc.SetDisplayCallback(this);
+		if(restart)
+		{
+			vlc.Play();
+		}
 	}
 
 
@@ -140,6 +176,7 @@ public:
 	//MenuTreeListener
     virtual void onOpen (const File& file, const MouseEvent& e)
 	{
+		vf::MessageThread::getInstance();
 		play(file.getFullPathName().getCharPointer().getAddress());
 	}
     virtual void onOpenSubtitle (const File& file, const MouseEvent& e)
@@ -166,107 +203,5 @@ private:
 	bool sliderUpdating;
 	bool videoUpdating;
 };
-//==============================================================================
-class MainComponent   : public Component
-{
-public:
-    //==============================================================================
-    MainComponent(File initialFileOrDirectory = File::nonexistent)
-     : thread ("FileBrowser")
-    {
-		
-		if (initialFileOrDirectory == File::nonexistent)
-		{
-			currentRoot = File::getCurrentWorkingDirectory();
-		}
-		else if (initialFileOrDirectory.isDirectory())
-		{
-			currentRoot = initialFileOrDirectory;
-		}
-		else
-		{
-			currentRoot = initialFileOrDirectory.getParentDirectory();
-		}
-		String filters = "*.*";
-		bool selectsFiles = true;
-		bool selectsDirectories = true;
 
-        wildcard = new WildcardFileFilter(selectsFiles ? filters : String::empty,
-                                     selectsDirectories ? "*" : String::empty,
-                                     String::empty);
-
-		fileList = new DirectoryContentsList (wildcard, thread);
-
-		tree = new BigFileTreeComponent (*fileList);
-		tree->getListeners().add(&videoComponent);
-		
-		
-		
-		
-        addAndMakeVisible (&videoComponent);
-        addAndMakeVisible (tree);
-        addAndMakeVisible (videoComponent.getSlider());
-
-		setSize (600, 300);
-		
-		//tree->addListener (this);
-		tree->setOpenCloseButtonsVisible(false);
-		tree->setIndentSize(50);
-		
-		fileList->setDirectory (currentRoot, true, true);
-		//setRoot(currentRoot);
-		thread.startThread (4);
-
-		
-    }
-
-    ~MainComponent()
-    {    
-		tree = nullptr;
-		fileList = nullptr;
-		thread.stopThread (10000);
-    }
-	
-	void setScaleComponent(Component* scaleComponent)
-	{
-		tree->setScaleComponent(scaleComponent);
-	}
-
-
-    void paint (Graphics& g)
-    {/*
-        g.fillAll (Colours::black);
-		
-
-		g.setGradientFill (ColourGradient (Colour (0xff414553),
-										   getWidth(), 0,
-										   Colours::black,
-										   0.8*getWidth(), 0,
-										   true));
-		g.fillRect (0.75*getWidth(), 0, getWidth(), 0.25*getHeight());*/
-    }
-
-    void resized()
-    {
-		int w =  getWidth();
-		int h =  getHeight();
-        tree->setBounds (3*w/4, 0,w/4, 0.925*h);
-		
-		videoComponent.setBounds (0, 0, w, h);
-		videoComponent.getSlider()->setBounds (0.1*w, 0.95*h, 0.8*w, 0.025*h);
-    }
-
-private:
-
-	File currentRoot;
-    TimeSliceThread thread;
-    ScopedPointer<WildcardFileFilter> wildcard;
-    ScopedPointer<DirectoryContentsList> fileList;
-    ScopedPointer<BigFileTreeComponent> tree;
-	VideoComponent videoComponent;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
-};
-
-
-#endif //MAINCOMPONENT
+#endif //VIDEO_COMPONENT

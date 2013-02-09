@@ -77,6 +77,8 @@ public:
     /** Start playback. */
     void Play();
 
+	bool isPaused();
+
     /** Pause playback. */
     void Pause();
     

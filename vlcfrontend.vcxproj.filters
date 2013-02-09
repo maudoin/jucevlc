@@ -36,9 +36,6 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MainComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\VLCWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,9 +44,6 @@
     </ClCompile>
     <ClCompile Include="vf\modules\vf_core\vf_core.cpp">
       <Filter>Source Files\vf</Filter>
-    </ClCompile>
-    <ClCompile Include="src\BigFileTree.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="juce\modules\juce_core\juce_core.cpp">
       <Filter>Source Files\juce</Filter>
@@ -69,12 +63,15 @@
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp">
       <Filter>Source Files\juce</Filter>
     </ClCompile>
+    <ClCompile Include="src\VLCMenuTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VideoComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MainComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\VLCWrapper.h">
@@ -359,10 +356,13 @@
     <ClInclude Include="src\FontSerialization.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\BigFileTree.h">
+    <ClInclude Include="src\AppProportionnalComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\AppProportionnalComponent.h">
+    <ClInclude Include="src\VLCMenuTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VideoComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

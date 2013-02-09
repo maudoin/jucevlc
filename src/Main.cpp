@@ -1,6 +1,6 @@
 
 #include "juce.h"
-#include "MainComponent.h"
+#include "VideoComponent.h"
 #include "LookNFeel.h"
 
 String getFileNameWithoutExtension(const String& fullPath)
@@ -18,7 +18,7 @@ String getFileNameWithoutExtension(const String& fullPath)
 //==============================================================================
 /**
     This is the top-level window that we'll pop up. Inside it, we'll create and
-    show a component from the MainComponent.cpp file (you can open this file using
+    show a component from the VideoComponent.cpp file (you can open this file using
     the Jucer to edit it).
 */
 class VLCWindow  : public DocumentWindow , public juce::KeyListener
@@ -35,7 +35,7 @@ public:
         LookAndFeel::setDefaultLookAndFeel (&lnf);
 
         // Create an instance of our main content component, and add it to our window..
-		MainComponent* content = new MainComponent();
+		VideoComponent* content = new VideoComponent();
         setContentOwned (content, true);
 		content->setScaleComponent(this);
 

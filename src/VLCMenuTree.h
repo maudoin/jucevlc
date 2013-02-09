@@ -29,19 +29,16 @@ public:
 };
 
 //==============================================================================
-class BigFileTreeComponent : public virtual TreeView, public AppProportionnalComponent
+class VLCMenuTree : public virtual TreeView, public AppProportionnalComponent
 {
-    TimeSliceThread thread;
     ListenerList <VLCMenuTreeListener> listeners;
 public:
-	BigFileTreeComponent(DirectoryContentsList& p);
-	virtual ~BigFileTreeComponent();
+	VLCMenuTree();
+	virtual ~VLCMenuTree();
 	virtual void refresh();
 	void setInitialMenu();
 	
 	void paint (Graphics& g);
-	
-	TimeSliceThread & getFilesThread(){return thread;}
 	
 	ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
 };

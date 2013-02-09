@@ -104,6 +104,12 @@ void VLCWrapper::Pause()
     libvlc_media_player_pause (pMediaPlayer_);
 }
 
+bool VLCWrapper::isPaused()
+{
+	//  playing?
+    return !libvlc_media_player_is_playing (pMediaPlayer_);
+}
+
 void VLCWrapper::Stop()
 {
     // Stop playing
