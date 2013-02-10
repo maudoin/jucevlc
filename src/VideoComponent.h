@@ -27,6 +27,9 @@ class VideoComponent   : public juce::Component, DisplayCallback, juce::Slider::
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
+
+	
+	juce::String getTimeString() const;
 public:
     VideoComponent();
     virtual ~VideoComponent();

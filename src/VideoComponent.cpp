@@ -82,6 +82,7 @@ VideoComponent::~VideoComponent()
 	playPauseButton->removeListener(this);
 	stopButton->removeListener(this);
 	{
+		vlc->Pause();
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 		vlc = nullptr;
 	}
@@ -124,26 +125,79 @@ void VideoComponent::setScaleComponent(juce::Component* scaleComponent)
 }
 void VideoComponent::paint (juce::Graphics& g)
 {
+	
+	if(!vlc || vlc->isPaused())
+	{
+		return;
+	}
+
+	int w =  getWidth();
+	int h =  getHeight();
+	
+
+	int hMargin = 0.025*w;
+	int treeWidth = w/4;
+	int buttonWidth = 0.03*w;
+	int sliderHeight = 0.025*h;
+	int roundness = 2.f;
+
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.darker(),
+										w/2, h-sliderHeight-buttonWidth,
+										juce::Colour (0x8000),
+										w/2, h,
+										false));
+	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight-buttonWidth, roundness);
+
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey,
+										w/2, h-sliderHeight-buttonWidth,
+										juce::Colour (0x8000),
+										w/2, h,
+										false));
+	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight-buttonWidth, roundness,2.f);
+
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
+
+	///////////////// TIME:
+
+	
+	juce::Font f = g.getCurrentFont().withHeight(tree->getFontHeight());
+	f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+	f.setStyleFlags(juce::Font::plain);
+	g.setFont(f);
+
+	g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
+
+	
+
+	g.drawFittedText (getTimeString(),
+						hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth,
+						juce::Justification::topRight, 
+						1, //1 line
+						1.f//no h scale
+						);
 }
 	
 void VideoComponent::resized()
 {
 	int w =  getWidth();
 	int h =  getHeight();
-    tree->setBounds (3*w/4, 0,w/4, 0.925*h);
+
 	
-	int hMargin = 0.05*w;
-	int buttonWidth = std::min(0.05*w, 0.1*h);;
+	int hMargin = 0.025*w;
+	int treeWidth = w/4;
+	int buttonWidth = 0.03*w;
 	int sliderHeight = 0.025*h;
+
+    tree->setBounds (w-2*hMargin-treeWidth, hMargin,treeWidth, h-sliderHeight-buttonWidth-2*hMargin);
+	
 		
 	slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
 
 	playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
 	stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
 
-	mediaTimeLabel->setBounds (hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth);
+	//mediaTimeLabel->setBounds (hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth);
 
 	if(vlc)
 	{
@@ -304,8 +358,11 @@ void VideoComponent::updateTimeAndSlider()
 		slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
 		videoUpdating =false;
 	}
-
-
+	mediaTimeLabel->setText(getTimeString(), true);
+	
+}
+juce::String VideoComponent::getTimeString()const
+{
 	int64_t time = vlc->GetTime();
 	int h = (int)(time/(1000*60*60) );
 	int m = (int)(time/(1000*60) - 60*h );
@@ -315,7 +372,8 @@ void VideoComponent::updateTimeAndSlider()
 	int dh = (int)(len/(1000*60*60) );
 	int dm = (int)(len/(1000*60) - 60*dh );
 	int ds = (int)(len/(1000) - 60*dm - 60*60*dh );
-	mediaTimeLabel->setText(juce::String::formatted("%02d:%02d:%02d/%02d:%02d:%02d", h, m, s, dh, dm, ds), false);
+	
+	return juce::String::formatted("%02d:%02d:%02d/%02d:%02d:%02d", h, m, s, dh, dm, ds);
 }
 void VideoComponent::paused()
 {
