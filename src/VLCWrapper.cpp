@@ -19,29 +19,56 @@
 #include "vlc\libvlc_events.h"
 #include <stdio.h>
 
-static void *lock(void *data, void **p_pixels)
+static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
 {
-	return data?((DisplayCallback*)data)->lock( p_pixels):NULL;
+    EventCallBack* cb = reinterpret_cast<EventCallBack*>(pUserData); 
+	if(!cb)
+	{
+		return;
+	}
+ 
+    switch(pEvent->type)
+    {
+		case libvlc_MediaPlayerTimeChanged:
+		    cb->timeChanged();
+            break;
+	   case libvlc_MediaPlayerPlaying :
+		    cb->started();
+            break;
+	   case libvlc_MediaPlayerPaused:
+		    cb->paused();
+            break;
+	   case libvlc_MediaPlayerStopped:
+		    cb->stopped();
+            break;
+	} 
 }
 
-static void unlock(void *data, void *id, void *const *p_pixels)
+static void *lock(void *pUserData, void **p_pixels)
 {
-	if(data)
-		((DisplayCallback*)data)->unlock( id, p_pixels);
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+	return cb?cb->lock( p_pixels):NULL;
 }
 
-static void display(void *data, void *id)
+static void unlock(void *pUserData, void *id, void *const *p_pixels)
 {
-	if(data)
-		((DisplayCallback*)data)->display(id);
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+	if(cb)
+		cb->unlock( id, p_pixels);
+}
+
+static void display(void *pUserData, void *id)
+{
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+	if(cb)
+		cb->display(id);
 }
 
 VLCWrapper::VLCWrapper(void)
 :	pVLCInstance_(0),
 	pMediaPlayer_(0),
 	pMedia_(0),
-    pEventManager_(0),
-    eventHandler(0)
+    pEventManager_(0)
 {
 	const char * const vlc_args[] = {
 		"-I", "dumy",      // No special interface
@@ -64,6 +91,8 @@ std::string VLCWrapper::getInfo() const
 }
 VLCWrapper::~VLCWrapper(void)
 {
+	SetEventCallBack(0);
+	SetDisplayCallback(0);
     // Free the media_player
     libvlc_media_player_release (pMediaPlayer_);
 	libvlc_release (pVLCInstance_);
@@ -76,6 +105,27 @@ void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
 	    libvlc_video_set_callbacks(pMediaPlayer_, lock, unlock, display, cb);
 	}
 }
+	 	
+ 
+void VLCWrapper::SetEventCallBack(EventCallBack* cb)
+{
+	if(cb)
+	{
+	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerTimeChanged, HandleVLCEvents, cb);
+	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerPlaying, HandleVLCEvents, cb);
+	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerPausableChanged, HandleVLCEvents, cb);
+	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerPaused, HandleVLCEvents, cb);
+	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerStopped, HandleVLCEvents, cb);
+	}
+	else
+	{
+		libvlc_event_detach (pEventManager_, libvlc_MediaPlayerTimeChanged, HandleVLCEvents, cb);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPlaying, HandleVLCEvents, cb);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPausableChanged, HandleVLCEvents, cb);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPaused, HandleVLCEvents, cb);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerStopped, HandleVLCEvents, cb);
+	}
+}
 void VLCWrapper::SetBufferFormat(int imageWidth, int imageHeight, int imageStride)
 {
 	libvlc_video_set_format(pMediaPlayer_, "RV24", imageWidth, imageHeight, imageStride);
@@ -84,15 +134,6 @@ void VLCWrapper::SetOutputWindow(void* pHwnd)
 {
     // Set the output window    
 	libvlc_media_player_set_hwnd(pMediaPlayer_, pHwnd);
-}
-
-void VLCWrapper::SetEventHandler( VLCEventHandler event, void* pUserData )
-{
-    eventHandler = event;
-    libvlc_event_attach(pEventManager_,        
-                        libvlc_MediaPlayerTimeChanged,
-                        eventHandler,
-                        pUserData);
 }
 
 void VLCWrapper::Play()

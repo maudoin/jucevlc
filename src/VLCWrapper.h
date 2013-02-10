@@ -29,9 +29,6 @@ struct libvlc_event_manager_t;
 typedef unsigned __int32	uint32_t;
 typedef __int64             int64_t;
 
-// Typedefs for VLC types
-typedef struct libvlc_event_t           VLCEvent;                     ///< A vlc event.
-typedef void (*VLCEventHandler)         (const VLCEvent *, void *);   ///< Event handler callback.
 
 class DisplayCallback
 {
@@ -43,13 +40,20 @@ public:
 	virtual void display(void *id) = 0;
 	
 };
+class EventCallBack
+{
+public:
+	virtual void timeChanged() = 0;
+	virtual void paused() = 0;
+	virtual void started() = 0;
+	virtual void stopped() = 0;
+};
 class VLCWrapper
 {
     libvlc_instance_t*       pVLCInstance_;        ///< The VLC instance.
 	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
 	libvlc_media_t*          pMedia_;              ///< The media played by the media player.
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
-    VLCEventHandler          eventHandler;         ///< An event handler for the media player.    
 public:
 	VLCWrapper(void);
 	~VLCWrapper(void);
@@ -58,15 +62,11 @@ public:
     *   @param [in] pHwnd window, on Windows a HWND handle. */
     void SetOutputWindow(void* pHwnd);
     void SetDisplayCallback(DisplayCallback* cb);
+    void SetEventCallBack(EventCallBack* cb);
     void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
 
 
 
-    /** Register an event handler for libvlc-events.
-    *   @param [in] event The event handler.
-	*   @param [in] pUserData pointer to user data.
-	*/
-    void SetEventHandler(VLCEventHandler event, void* pUserData);
 
     /** Open a media file.
     *   @param [in] pMediaPathName PathName of the media file. */
