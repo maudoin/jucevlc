@@ -312,6 +312,8 @@ VLCMenuTree::VLCMenuTree()
     folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
     audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
     displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
+    subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
+    exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
 
 	setIndentSize(0);
 	setDefaultOpenness(true);
@@ -430,6 +432,12 @@ void videoOptions(SmartTreeViewItem& item)
 	item.addSubItem(new BindTreeViewItem (item, "Crop", ACTION(crop)));
 	item.addSubItem(new BindTreeViewItem (item, "Ratio", ACTION(ratio)));
 }
+void subtitlesOptions(SmartTreeViewItem& item)
+{
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "Select", ACTION(nop)));
+	item.addSubItem(new BindTreeViewItem (item, "Add", ACTION(listFiles)));
+}
 void exit(SmartTreeViewItem& item)
 {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
@@ -437,12 +445,11 @@ void exit(SmartTreeViewItem& item)
 void getRootITems(SmartTreeViewItem& item)
 {
 	prepare(item);
-	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderImage(), ACTION(listFiles)));
-	item.addSubItem(new BindTreeViewItem (item, "Select subtitle", ACTION(nop)));
-	item.addSubItem(new BindTreeViewItem (item, "Add subtitle", ACTION(listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderShortcutImage(), ACTION(listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Subtitle", item.getOwner()->getSubtitlesImage(), ACTION(subtitlesOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Video options", item.getOwner()->getDisplayImage(), ACTION(videoOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Sound options", item.getOwner()->getAudioImage(), ACTION(soundOptions)));
-	item.addSubItem(new BindTreeViewItem (item, "Exit", ACTION(exit)));
+	item.addSubItem(new BindTreeViewItem (item, "Exit", item.getOwner()->getExitImage(), ACTION(exit)));
 
 }
 void VLCMenuTree::refresh()

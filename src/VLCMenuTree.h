@@ -34,6 +34,8 @@ class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> folderShortcutImage;
     juce::ScopedPointer<juce::Drawable> audioImage;
     juce::ScopedPointer<juce::Drawable> displayImage;
+    juce::ScopedPointer<juce::Drawable> subtitlesImage;
+    juce::ScopedPointer<juce::Drawable> exitImage;
 public:
 	VLCMenuTree();
 	virtual ~VLCMenuTree();
@@ -47,6 +49,8 @@ public:
 	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
 	juce::Drawable const* getAudioImage() const { return audioImage; };
 	juce::Drawable const* getDisplayImage() const { return displayImage; };
+	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
+	juce::Drawable const* getExitImage() const { return exitImage; };
 	
 	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
 };

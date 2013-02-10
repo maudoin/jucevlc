@@ -43,6 +43,10 @@
 	extern const int audio_svgSize;
 	extern const char* display_svg;
 	extern const int display_svgSize;
+	extern const char* sub_svg;
+	extern const int sub_svgSize;
+	extern const char* exit_svg;
+	extern const int exit_svgSize;
 
 
 #endif   // __ICONS__
