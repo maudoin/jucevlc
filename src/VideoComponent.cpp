@@ -27,8 +27,6 @@ VideoComponent::VideoComponent()
 	slider->addListener(this);
 	slider->setSliderStyle (juce::Slider::LinearBar);
 	slider->setAlpha(1.f);
-	//static LookAndFeel lnf;
-	//slider->setLookAndFeel(&lnf);
 	slider->setOpaque(true);
     slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
 
@@ -72,12 +70,11 @@ VideoComponent::VideoComponent()
 }
 VideoComponent::~VideoComponent()
 {    
-	stop();
-
 	slider->removeListener(this);
 	playPauseButton->removeListener(this);
 	stopButton->removeListener(this);
 	{
+		vlc->SetTime(vlc->GetLength());
 		vlc->Pause();
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 		vlc = nullptr;
@@ -130,12 +127,8 @@ void VideoComponent::paint (juce::Graphics& g)
 	int treeWidth = w/4;
 	int buttonWidth = 0.03*w;
 	int sliderHeight = 0.025*h;
-	int roundness = 2.f;
+	int roundness = hMargin/4;
 
-	if(!vlc || vlc->isPaused())
-	{
-		return;
-	}
 	///////////////// VIDEO:
 	
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
@@ -143,21 +136,25 @@ void VideoComponent::paint (juce::Graphics& g)
 		g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 	}
 	
-
+	if(!vlc || vlc->isPaused())
+	{
+		return;
+	}
+	
 	///////////////// CONTROL ZONE:	
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.darker(),
-										w/2, h-sliderHeight-buttonWidth,
-										juce::Colour (0x8000),
-										w/2, h-hMargin/2,
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										juce::Colours::black,
+										w/2, h,
 										false));
-	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth, roundness);
+	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness);
 
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey,
-										w/2, h-sliderHeight-buttonWidth,
-										juce::Colour (0x8000),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										juce::Colours::black,
 										w/2, h-hMargin/2,
 										false));
-	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth, roundness,2.f);
+	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness,2.f);
 	
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(tree->getFontHeight());
@@ -188,15 +185,13 @@ void VideoComponent::resized()
 	int buttonWidth = 0.03*w;
 	int sliderHeight = 0.025*h;
 
-    tree->setBounds (w-2*hMargin-treeWidth, hMargin,treeWidth, h-sliderHeight-buttonWidth-2*hMargin);
+    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-sliderHeight-buttonWidth-hMargin-hMargin/2);
 	
 		
 	slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
 
 	playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
 	stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
-
-	//mediaTimeLabel->setBounds (hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth);
 
 	if(vlc)
 	{

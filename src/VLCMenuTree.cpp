@@ -383,13 +383,25 @@ void VLCMenuTree::refresh()
 }
 void VLCMenuTree::paint (juce::Graphics& g)
 {
-	int width = getWidth();
-	int height = getHeight();
+	int w = getWidth();
+	int h = getHeight();
+	int hMargin = 0.025*getParentWidth();
+	int roundness = hMargin/4;
+	
+	///////////////// TREE ZONE:	
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+										0, h/2,
+										juce::Colours::black,
+										w, h/2,
+										false));
+	g.fillRoundedRectangle(0, 0, w, h, roundness);
 
-	int roundness = 10;
-	g.setColour(juce::Colours::darkgrey.withAlpha(0.5f));
-	g.fillRoundedRectangle(0, 0, width, height, roundness);
-			
-	g.setColour(juce::Colours::lightgrey);
-	g.drawRoundedRectangle(0, 0, width, height, roundness, 2);
+	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+										0, h/2,
+										juce::Colours::black,
+										w, h/2,
+										false));
+	g.drawRoundedRectangle(0, 0, w, h, roundness,2.f);
+	
+
 }
