@@ -188,18 +188,28 @@ public:
 class BindTreeViewItem  : public SmartTreeViewItem
 {
 	juce::String name;
+	const juce::Drawable* icon;
 	juce::ScopedPointer<AbstractAction> action;
 public:
 	
     BindTreeViewItem (VLCMenuTree* owner, juce::String name, AbstractAction* action)
 		:SmartTreeViewItem(owner)
 		,name(name)
+		,icon(nullptr)
 		,action(action)
     {
 	}
     BindTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action)
 		:SmartTreeViewItem(p)
 		,name(name)
+		,icon(nullptr)
+		,action(action)
+    {
+	}
+	BindTreeViewItem (SmartTreeViewItem& p, juce::String name, const juce::Drawable* icon, AbstractAction* action)
+		:SmartTreeViewItem(p)
+		,name(name)
+		,icon(icon)
 		,action(action)
     {
 	}
@@ -208,6 +218,10 @@ public:
 	{
 	}
 	
+	virtual const juce::Drawable* getIcon()
+	{
+		return icon?icon:SmartTreeViewItem::getIcon();
+	}
     juce::String getUniqueName() const
     {
         return name;
@@ -296,6 +310,8 @@ VLCMenuTree::VLCMenuTree()
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
     folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
+    audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
+    displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
 
 	setIndentSize(0);
 	setDefaultOpenness(true);
@@ -421,11 +437,11 @@ void exit(SmartTreeViewItem& item)
 void getRootITems(SmartTreeViewItem& item)
 {
 	prepare(item);
-	item.addSubItem(new BindTreeViewItem (item, "Open", ACTION(listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderImage(), ACTION(listFiles)));
 	item.addSubItem(new BindTreeViewItem (item, "Select subtitle", ACTION(nop)));
 	item.addSubItem(new BindTreeViewItem (item, "Add subtitle", ACTION(listFiles)));
-	item.addSubItem(new BindTreeViewItem (item, "Video options", ACTION(videoOptions)));
-	item.addSubItem(new BindTreeViewItem (item, "Sound options", ACTION(soundOptions)));
+	item.addSubItem(new BindTreeViewItem (item, "Video options", item.getOwner()->getDisplayImage(), ACTION(videoOptions)));
+	item.addSubItem(new BindTreeViewItem (item, "Sound options", item.getOwner()->getAudioImage(), ACTION(soundOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Exit", ACTION(exit)));
 
 }
