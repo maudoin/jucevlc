@@ -107,39 +107,39 @@ public:
 
 		
 		float fontSize =  0.9f*height;
-		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
 		float hborder = height/8.f;
 		float roundness = height/2.f;
 	
 	
-	
-		if(!shortcutDisplay || isItemSelected)
+		const int iconhborder = height/2;
+		const int x = height;
+		const int y = height;
+
+		
+		int xBounds = x + iconhborder;
+		if(isItemSelected)
 		{
-			g.setGradientFill (juce::ColourGradient (isItemSelected?juce::Colours::blue.darker():juce::Colours::darkgrey.darker(),
-											   0.f, height/2.f-hborder,
-											   juce::Colour (0x8000),
-											   0.7f*filenameWidth-3.f, height/2.f-hborder,
+			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.darker(),
+											   xBounds, height/2.f,
+											   juce::Colours::black,
+											   width-xBounds, height/2.f,
 											   false));
 
-			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
-			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3.f-hborder, height-2.f*hborder, roundness);
+			g.fillRoundedRectangle(xBounds, hborder, width-xBounds, height-2.f*hborder, roundness);
 		}
 
 		if(!shortcutDisplay)
 		{
 			g.setGradientFill (juce::ColourGradient(juce::Colours::darkgrey,
-											   0.f, height/2.f-hborder,
-											   juce::Colour (0x8000),
-											   0.7f*filenameWidth-3.f, height/2.f-hborder,
+											   xBounds, height/2.f,
+											   juce::Colours::black,
+											   width-xBounds, height/2.f,
 											   false));
-			//g.setColour (Colours::darkgrey);
-			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2.f*hborder, roundness, 2.f);
+
+			g.drawRoundedRectangle(xBounds, hborder, width-xBounds, height-2.f*hborder, roundness, 2.f);
 		}
 	
-		const int iconhborder = height/2;
-		const int x = height;
-		const int y = height;
 		g.setColour (juce::Colours::black);
 		
 		const juce::Drawable* d = getIcon();
@@ -155,8 +155,7 @@ public:
 		g.setFont(f);
 
 		g.setColour (juce::Colours::white);
-
-	
+		
 		int xText = x + 2*iconhborder;
 		g.drawFittedText (getUniqueName(),
 							xText, 0, width - xText, height,
