@@ -1,10 +1,6 @@
 #include "VLCMenuTree.h"
 #include <modules\vf_core\vf_core.h>
 
-namespace juce
-{
-
-Image juce_createIconForFile (const File& file);
 
 //==============================================================================
 class SmartTreeViewItem;
@@ -33,9 +29,13 @@ public:
   };
 #define ACTION(f) new Action(&f)
 //#define ACTION(f) new Action(std::bind(&f,std::placeholders::_1))
+
+
+
 //==============================================================================
-  class VLCMenuTree;
-class SmartTreeViewItem  : public TreeViewItem
+class VLCMenuTree;
+
+class SmartTreeViewItem  : public juce::TreeViewItem
 {
 	VLCMenuTree* owner;
 	bool shortcutDisplay;
@@ -96,12 +96,12 @@ public:
 
 		return x * getOwnerView()->getIndentSize();
 	}
-    void paintItem (Graphics& g, int width, int height)
+    void paintItem (juce::Graphics& g, int width, int height)
     {
         owner->getLookAndFeel().drawFileBrowserRow (g, width, height,
                                                   getUniqueName(),
                                                    nullptr, "", "",shortcutDisplay, isSelected(),
-                                                   0, *(DirectoryContentsDisplayComponent*)0);
+                                                   0, *(juce::DirectoryContentsDisplayComponent*)0);
 		/*
         // if this item is selected, fill it with a background colour..
         if (isSelected())
@@ -127,17 +127,17 @@ public:
 };
 class BindTreeViewItem  : public SmartTreeViewItem
 {
-	String name;
-	ScopedPointer<AbstractAction> action;
+	juce::String name;
+	juce::ScopedPointer<AbstractAction> action;
 public:
 	
-    BindTreeViewItem (VLCMenuTree* owner, String name, AbstractAction* action)
+    BindTreeViewItem (VLCMenuTree* owner, juce::String name, AbstractAction* action)
 		:SmartTreeViewItem(owner)
 		,name(name)
 		,action(action)
     {
 	}
-    BindTreeViewItem (SmartTreeViewItem& p, String name, AbstractAction* action)
+    BindTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action)
 		:SmartTreeViewItem(p)
 		,name(name)
 		,action(action)
@@ -148,7 +148,7 @@ public:
 	{
 	}
 	
-    String getUniqueName() const
+    juce::String getUniqueName() const
     {
         return name;
     }
@@ -172,16 +172,16 @@ public:
 void listFiles(SmartTreeViewItem& item);
 class FileTreeViewItem  : public SmartTreeViewItem
 {
-    File file;
+    juce::File file;
 public:
     FileTreeViewItem (VLCMenuTree* owner, 
-                      File const& file_)
+                      juce::File const& file_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
     {
 	}
     FileTreeViewItem (SmartTreeViewItem& p, 
-                      File const& file_)
+                      juce::File const& file_)
 		:SmartTreeViewItem(p)
 		,file(file_)
     {
@@ -189,7 +189,7 @@ public:
 	virtual ~FileTreeViewItem()
 	{
 	}
-    String getUniqueName() const
+    juce::String getUniqueName() const
     {
         return file.getFullPathName();
     }
@@ -197,19 +197,19 @@ public:
 	{ 
 		return file.isDirectory();
 	}
-	File const& getFile() const
+	juce::File const& getFile() const
 	{
 		return file;
 	}
-    void paintItem (Graphics& g, int width, int height)
+    void paintItem (juce::Graphics& g, int width, int height)
     {
-		File p = file.getParentDirectory();
+		juce::File p = file.getParentDirectory();
 		getOwner()->getLookAndFeel().drawFileBrowserRow (g, width, height,
-			p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+String(" (")+file.getVolumeLabel()+String(")")):file.getFileName(),
+			p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName(),
             nullptr, "", "",file.isDirectory(), isSelected(),
-            0, *(DirectoryContentsDisplayComponent*)0);
+            0, *(juce::DirectoryContentsDisplayComponent*)0);
 	}
-	void itemClicked(const MouseEvent& e)
+	void itemClicked(const juce::MouseEvent& e)
 	{
 		if(!file.isDirectory())
 		{
@@ -245,18 +245,18 @@ VLCMenuTree::~VLCMenuTree()
     deleteRootItem();
 }
 
-void isolate(TreeViewItem* item)
+void isolate(juce::TreeViewItem* item)
 {
 	if(!item)
 	{
 		return;
 	}
-	TreeViewItem* parent = item->getParentItem();
+	juce::TreeViewItem* parent = item->getParentItem();
 	if(parent)
 	{
 		for(int i=0;i<parent->getNumSubItems();++i)
 		{
-			TreeViewItem* sibling = parent->getSubItem(i);
+			juce::TreeViewItem* sibling = parent->getSubItem(i);
 			if(sibling && sibling!=item )
 			{
 				parent->removeSubItem(i);
@@ -268,7 +268,7 @@ void isolate(TreeViewItem* item)
 void prepare(SmartTreeViewItem& item)
 {
 	item.clearSubItems();
-	TreeViewItem* current = &item;
+	juce::TreeViewItem* current = &item;
 	while(current != nullptr)
 	{
 		isolate(current);
@@ -287,20 +287,20 @@ void listFiles(SmartTreeViewItem& item)
 {
 	prepare(item);
 
-	Array<File> destArray;
+	juce::Array<juce::File> destArray;
 
     FileTreeViewItem* fileParent = dynamic_cast<FileTreeViewItem*>(&item);
 	if(fileParent)
 	{
-		String filters = "*.*";
+		juce::String filters = "*.*";
 		bool selectsFiles = true;
 		bool selectsDirectories = true;
 
-		fileParent->getFile().findChildFiles(destArray, File::findFilesAndDirectories|File::ignoreHiddenFiles, false);
+		fileParent->getFile().findChildFiles(destArray, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false);
 	}
 	else
 	{
-		File::findFileSystemRoots(destArray);
+		juce::File::findFileSystemRoots(destArray);
 	}
 	//add folders
 	for(int i=0;i<destArray.size();++i)
@@ -355,7 +355,7 @@ void videoOptions(SmartTreeViewItem& item)
 }
 void exit(SmartTreeViewItem& item)
 {
-    JUCEApplication::getInstance()->systemRequestedQuit();
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 void getRootITems(SmartTreeViewItem& item)
 {
@@ -373,7 +373,7 @@ void VLCMenuTree::refresh()
 
 	deleteRootItem();
 
-	TreeViewItem* const root
+	juce::TreeViewItem* const root
 		= new BindTreeViewItem (this, "Menu", ACTION(getRootITems));
 
 	setRootItem (root);
@@ -381,16 +381,15 @@ void VLCMenuTree::refresh()
 	root->setSelected(true, true);
 	
 }
-void VLCMenuTree::paint (Graphics& g)
+void VLCMenuTree::paint (juce::Graphics& g)
 {
 	int width = getWidth();
 	int height = getHeight();
 
 	int roundness = 10;
-	g.setColour(Colours::darkgrey.withAlpha(0.5f));
+	g.setColour(juce::Colours::darkgrey.withAlpha(0.5f));
 	g.fillRoundedRectangle(0, 0, width, height, roundness);
 			
-	g.setColour(Colours::lightgrey);
+	g.setColour(juce::Colours::lightgrey);
 	g.drawRoundedRectangle(0, 0, width, height, roundness, 2);
-}
 }

@@ -5,11 +5,8 @@
 #include "juce.h"
 #include "AppProportionnalComponent.h"
 #include <modules\juce_gui_basics\filebrowser\juce_FileBrowserComponent.h>
-
-namespace juce
-{
 	
-class JUCE_API  VLCMenuTreeListener
+class VLCMenuTreeListener
 {
 public:
     //==============================================================================
@@ -18,29 +15,29 @@ public:
 
     //==============================================================================
 	
-    virtual void onOpen (const File& file, const MouseEvent& e) = 0;
-    virtual void onOpenSubtitle (const File& file, const MouseEvent& e) = 0;
-    virtual void onOpenPlaylist (const File& file, const MouseEvent& e) = 0;
+    virtual void onOpen (const juce::File& file, const juce::MouseEvent& e) = 0;
+    virtual void onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e) = 0;
+    virtual void onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e) = 0;
 
-    virtual void onCrop (const String& ratio) = 0;
-    virtual void onSetAspectRatio(const String& ratio) = 0;
-    virtual void onShiftAudio(const String& ratio) = 0;
-    virtual void onShiftSubtitles(const String& ratio) = 0;
+    virtual void onCrop (const juce::String& ratio) = 0;
+    virtual void onSetAspectRatio(const juce::String& ratio) = 0;
+    virtual void onShiftAudio(const juce::String& ratio) = 0;
+    virtual void onShiftSubtitles(const juce::String& ratio) = 0;
 };
 
 //==============================================================================
-class VLCMenuTree : public virtual TreeView, public AppProportionnalComponent
+class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent
 {
-    ListenerList <VLCMenuTreeListener> listeners;
+    juce::ListenerList <VLCMenuTreeListener> listeners;
 public:
 	VLCMenuTree();
 	virtual ~VLCMenuTree();
 	virtual void refresh();
 	void setInitialMenu();
 	
-	void paint (Graphics& g);
+	void paint (juce::Graphics& g);
 	
-	ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
+	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
 };
-}
+
 #endif

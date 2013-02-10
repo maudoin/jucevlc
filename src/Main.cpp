@@ -3,36 +3,24 @@
 #include "VideoComponent.h"
 #include "LookNFeel.h"
 
-String getFileNameWithoutExtension(const String& fullPath)
-{
-    const int lastSlash = fullPath.lastIndexOfChar (File::separator) + 1;
-    const int lastDot   = fullPath.lastIndexOfChar ('.');
-
-    if (lastDot > lastSlash)
-        return fullPath.substring (lastSlash, lastDot);
-    else
-        return fullPath.substring (lastSlash);
-}
-
-
 //==============================================================================
 /**
     This is the top-level window that we'll pop up. Inside it, we'll create and
     show a component from the VideoComponent.cpp file (you can open this file using
     the Jucer to edit it).
 */
-class VLCWindow  : public DocumentWindow , public juce::KeyListener
+class VLCWindow  : public juce::DocumentWindow , public juce::KeyListener
 {
 	LnF lnf;
 public:
     //==============================================================================
     VLCWindow()
         : DocumentWindow ("JucyVLC",
-                          Colours::lightgrey,
+                          juce::Colours::lightgrey,
                           DocumentWindow::allButtons,
                           true)
     {
-        LookAndFeel::setDefaultLookAndFeel (&lnf);
+        juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
 
         // Create an instance of our main content component, and add it to our window..
 		VideoComponent* content = new VideoComponent();
@@ -55,7 +43,7 @@ public:
     {
 		removeKeyListener(this);
 
-		LookAndFeel::setDefaultLookAndFeel (nullptr);
+		juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
         // (the content component will be deleted automatically, so no need to do it here)
     }
 
@@ -64,12 +52,12 @@ public:
     {
         // When the user presses the close button, we'll tell the app to quit. This
         // VLCWindow object will be deleted by the VLCApplication class.
-        JUCEApplication::quit();
+        juce::JUCEApplication::quit();
     }
-    bool keyPressed (const KeyPress& key,
+    bool keyPressed (const juce::KeyPress& key,
                              Component* originatingComponent)
 	{
-		if(key.isKeyCurrentlyDown(KeyPress::returnKey) && key.getModifiers().isAltDown())
+		if(key.isKeyCurrentlyDown(juce::KeyPress::returnKey) && key.getModifiers().isAltDown())
 		{
 			vf::MessageThread::getInstance().queuef(std::bind  (&VLCWindow::switchFullScreen,this));
 			return true;
@@ -81,13 +69,13 @@ public:
 	{
 		setResizable(false, false);
 		setUsingNativeTitleBar(true);
-		Desktop::getInstance().setKioskModeComponent (getTopLevelComponent());
+		juce::Desktop::getInstance().setKioskModeComponent (getTopLevelComponent());
 		//setTitleBarHeight(0);
 		//setFullScreen(true);
 	}
 	void switchFullScreen()
 	{
-		if (Desktop::getInstance().getKioskModeComponent() == nullptr)
+		if (juce::Desktop::getInstance().getKioskModeComponent() == nullptr)
 		{
 			setFullScreen();
 		}
@@ -95,7 +83,7 @@ public:
 		{
 			setResizable(true, false);
 		    setUsingNativeTitleBar(true);
-			Desktop::getInstance().setKioskModeComponent (nullptr);
+			juce::Desktop::getInstance().setKioskModeComponent (nullptr);
 			//setTitleBarHeight(20);
 		    //setFullScreen(false);
 			//setTitleBarButtonsRequired(DocumentWindow::TitleBarButtons::closeButton, false);
@@ -107,7 +95,7 @@ public:
 /** This is the application object that is started up when Juce starts. It handles
     the initialisation and shutdown of the whole application.
 */
-class VLCApplication : public JUCEApplication
+class VLCApplication : public juce::JUCEApplication
 {
 public:
     //==============================================================================
@@ -120,7 +108,7 @@ public:
     }
 
     //==============================================================================
-    void initialise (const String& commandLine)
+    void initialise (const juce::String& commandLine)
     {
         // For this demo, we'll just create the main window...
         window = new VLCWindow();
@@ -144,12 +132,12 @@ public:
     }
 
     //==============================================================================
-    const String getApplicationName()
+    const juce::String getApplicationName()
     {
         return "JucyVLC";
     }
 
-    const String getApplicationVersion()
+    const juce::String getApplicationVersion()
     {
         // The ProjectInfo::versionString value is automatically updated by the Jucer, and
         // can be found in the JuceHeader.h file that it generates for our project.
@@ -161,12 +149,12 @@ public:
         return true;
     }
 
-    void anotherInstanceStarted (const String& commandLine)
+    void anotherInstanceStarted (const juce::String& commandLine)
     {
     }
 
 private:
-    ScopedPointer<VLCWindow> window;
+    juce::ScopedPointer<VLCWindow> window;
 };
 
 

@@ -4,34 +4,34 @@
 
 #include "juce.h"
 
-Typeface* loadFont( String inPath)
+juce::Typeface* loadFont( juce::String inPath)
 {
-	File fontFile;
-	if (File::isAbsolutePath (inPath))
+	juce::File fontFile;
+	if (juce::File::isAbsolutePath (inPath))
 	{
-		fontFile = File(inPath);
+		fontFile = juce::File(inPath);
 	}
 	else
 	{
-		fontFile = File::getCurrentWorkingDirectory().getChildFile(inPath);
+		fontFile = juce::File::getCurrentWorkingDirectory().getChildFile(inPath);
 	}
 
-	FileInputStream ins(fontFile);
-	return (new CustomTypeface (ins));
+	juce::FileInputStream ins(fontFile);
+	return (new juce::CustomTypeface (ins));
 
 }
 
-void serializeFont(String fontName, String out, uint32 glyphCount=256)
+void serializeFont(juce::String fontName, juce::String out, juce::uint32 glyphCount=256)
 {
 	
-	File fontFile;
-	if (File::isAbsolutePath (out))
+	juce::File fontFile;
+	if (juce::File::isAbsolutePath (out))
 	{
-		fontFile = File(out);
+		fontFile = juce::File(out);
 	}
 	else
 	{
-		fontFile = File::getCurrentWorkingDirectory().getChildFile(out);
+		fontFile = juce::File::getCurrentWorkingDirectory().getChildFile(out);
 	}
 	fontFile.replaceWithData (0,0);
 		
@@ -42,7 +42,7 @@ void serializeFont(String fontName, String out, uint32 glyphCount=256)
 		return;
 	}
 
-	if (fontName == String::empty)
+	if (fontName == juce::String::empty)
 	{
 		printf ("initialise ERROR no font name given\n");
 		return;
@@ -51,19 +51,19 @@ void serializeFont(String fontName, String out, uint32 glyphCount=256)
 
 	printf ("Fserialize::serializeFont looking for font in system list [%s]\n", fontName.toUTF8());
 	
-	Array <Font> systemFonts;
-	Font::findFonts (systemFonts);
+	juce::Array <juce::Font> systemFonts;
+	juce::Font::findFonts (systemFonts);
 	for (int i=0; i<systemFonts.size(); i++)
 	{
 		if (systemFonts[i].getTypeface()->getName() == fontName)
 		{
-			CustomTypeface customTypefacePlain;
+			juce::CustomTypeface customTypefacePlain;
 			customTypefacePlain.setCharacteristics(systemFonts[i].getTypefaceName(), systemFonts[i].getAscent(),
                                       systemFonts[i].isBold(), systemFonts[i].isItalic(), ' ');
 
 			customTypefacePlain.addGlyphsFromOtherTypeface (*(systemFonts[i].getTypeface()), 0, glyphCount);
 			
-			FileOutputStream streamPlain(fontFile);
+			juce::FileOutputStream streamPlain(fontFile);
 			customTypefacePlain.writeToStream (streamPlain);
 		}
 	}

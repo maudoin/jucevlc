@@ -3,24 +3,24 @@
 
 
 VideoComponent::VideoComponent()
-	:img(new juce::Image(Image::PixelFormat::RGB, 2, 2, false))
-	,ptr(new juce::Image::BitmapData(*img, Image::BitmapData::readWrite))
+	:img(new juce::Image(juce::Image::PixelFormat::RGB, 2, 2, false))
+	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
 {    
-	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 	setOpaque(true);
 		
 
 
-	slider = new Slider();
+	slider = new juce::Slider();
 	slider->setRange(0, 1000);
 	slider->addListener(this);
-	slider->setSliderStyle (Slider::LinearBar);
+	slider->setSliderStyle (juce::Slider::LinearBar);
 	slider->setAlpha(1.f);
 	//static LookAndFeel lnf;
 	//slider->setLookAndFeel(&lnf);
 	slider->setOpaque(true);
-    slider->setTextBoxStyle (Slider::NoTextBox, false, 0, 0);
+    slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
 
 	sliderUpdating = false;
 	videoUpdating = false;
@@ -30,6 +30,11 @@ VideoComponent::VideoComponent()
 	tree->getListeners().add(this);
 	tree->setOpenCloseButtonsVisible(false);
 	tree->setIndentSize(50);
+	
+    mediaTimeLabel = new juce::Label();
+    playPauseButton = new juce::ImageButton("");
+    stopButton = new juce::ImageButton("");
+
 
     addAndMakeVisible (tree);
     addAndMakeVisible (slider);
@@ -45,8 +50,8 @@ VideoComponent::~VideoComponent()
 {    
 	slider->removeListener(this);
 	{
-		const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
-		slider->setValue(1000, sendNotificationSync);
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
+		slider->setValue(1000, juce::sendNotificationSync);
 		vlc.SetDisplayCallback(nullptr);
 	}
 	slider = nullptr;
@@ -55,13 +60,13 @@ VideoComponent::~VideoComponent()
 	img = nullptr;
 }
 	
-void VideoComponent::setScaleComponent(Component* scaleComponent)
+void VideoComponent::setScaleComponent(juce::Component* scaleComponent)
 {
 	tree->setScaleComponent(scaleComponent);
 }
-void VideoComponent::paint (Graphics& g)
+void VideoComponent::paint (juce::Graphics& g)
 {
-	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 }
 	
@@ -76,25 +81,25 @@ void VideoComponent::resized()
 	//rebuild buffer
 	bool restart(vlc.isPaused());
 
-	const GenericScopedLock<CriticalSection> lock (imgCriticalSection);
+	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 	std::ostringstream oss;
 	oss << "VLC "<< vlc.getInfo()<<"\n";
 	oss << getWidth()<<"x"<< getHeight();
-	Graphics g(*img);
-	g.fillAll(Colour::fromRGB(0, 0, 0));
-	g.setColour(Colour::fromRGB(255, 0, 255));
-	g.drawText(oss.str().c_str(), Rectangle<int>(0, 0, img->getWidth(), img->getHeight()/10), Justification::bottomLeft, true);
+	juce::Graphics g(*img);
+	g.fillAll(juce::Colour::fromRGB(0, 0, 0));
+	g.setColour(juce::Colour::fromRGB(255, 0, 255));
+	g.drawText(oss.str().c_str(), juce::Rectangle<int>(0, 0, img->getWidth(), img->getHeight()/10), juce::Justification::bottomLeft, true);
 
 }
 
 
 void VideoComponent::play(char* path)
 {
-	slider->setValue(1000, sendNotificationSync);
+	slider->setValue(1000, juce::sendNotificationSync);
 
 	img = new juce::Image(img->rescaled(getWidth(), getHeight()));
-	ptr = new Image::BitmapData (*img, Image::BitmapData::readWrite);
+	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
 	vlc.SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
 
 
@@ -130,11 +135,11 @@ void VideoComponent::frameReady()
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
-		slider->setValue(vlc.GetTime()*1000./vlc.GetLength(), sendNotificationSync);
+		slider->setValue(vlc.GetTime()*1000./vlc.GetLength(), juce::sendNotificationSync);
 		videoUpdating =false;
 	}
 }
-void VideoComponent::sliderValueChanged (Slider* slider)
+void VideoComponent::sliderValueChanged (juce::Slider* slider)
 {
 	if(!videoUpdating)
 	{
@@ -143,32 +148,32 @@ void VideoComponent::sliderValueChanged (Slider* slider)
 		sliderUpdating =false;
 	}
 }
-Slider* VideoComponent::getSlider()
+juce::Slider* VideoComponent::getSlider()
 {
 	return slider.get();
 }
 //MenuTreeListener
-void VideoComponent::onOpen (const File& file, const MouseEvent& e)
+void VideoComponent::onOpen (const juce::File& file, const juce::MouseEvent& e)
 {
 	vf::MessageThread::getInstance();
 	play(file.getFullPathName().getCharPointer().getAddress());
 }
-void VideoComponent::onOpenSubtitle (const File& file, const MouseEvent& e)
+void VideoComponent::onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e)
 {
 }
-void VideoComponent::onOpenPlaylist (const File& file, const MouseEvent& e)
+void VideoComponent::onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e)
 {
 }
 
-void VideoComponent::onCrop (const String& ratio)
+void VideoComponent::onCrop (const juce::String& ratio)
 {
 }
-void VideoComponent::onSetAspectRatio(const String& ratio)
+void VideoComponent::onSetAspectRatio(const juce::String& ratio)
 {
 }
-void VideoComponent::onShiftAudio(const String& ratio)
+void VideoComponent::onShiftAudio(const juce::String& ratio)
 {
 }
-void VideoComponent::onShiftSubtitles(const String& ratio)
+void VideoComponent::onShiftSubtitles(const juce::String& ratio)
 {
 }

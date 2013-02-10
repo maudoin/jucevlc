@@ -6,21 +6,21 @@
 #include "AppProportionnalComponent.h"
 
 
-class LnF : public OldSchoolLookAndFeel
+class LnF : public juce::OldSchoolLookAndFeel
 {
-	Typeface* cFont;
+	juce::Typeface* cFont;
 
 public:
 	LnF()
 	{
-		setColour(DirectoryContentsDisplayComponent::textColourId, Colours::white);
+		setColour(juce::DirectoryContentsDisplayComponent::textColourId, juce::Colours::white);
 #ifdef _DEBUG
 		//serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
 		serializeFont("Teen", "font.bin");
 #endif
 		cFont = loadFont( "font.bin");
 	}
-	const Typeface::Ptr getTypefaceForFont (const Font &font)
+	const juce::Typeface::Ptr getTypefaceForFont (const juce::Font &font)
 	{
 		if (cFont)
 		{
@@ -32,14 +32,14 @@ public:
 		}
 	}
 	
-    virtual void drawLinearSlider (Graphics& g,
+    virtual void drawLinearSlider (juce::Graphics& g,
                                    int x, int y,
                                    int width, int height,
                                    float sliderPos,
                                    float minSliderPos,
                                    float maxSliderPos,
-                                   const Slider::SliderStyle style,
-                                   Slider& slider)
+                                   const juce::Slider::SliderStyle style,
+                                   juce::Slider& slider)
 	{
 		
 		LookAndFeel::drawLinearSlider (g,
@@ -51,134 +51,134 @@ public:
                                    style,
                                    slider);
 	}
-	void drawListRow (Graphics& g, int width, int height,const String& name,
+	void drawListRow (juce::Graphics& g, int width, int height,const juce::String& name,
 										  bool isItemSelected)
 	{
-		double fontSize =  0.9*height;
+		float fontSize =  0.9f*height;
 		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
-		const int hborder = height/8;
-		const int roundness = height/2;
+		float hborder = height/8.f;
+		float roundness = height/2.f;
 	
 	
 	
 		if(isItemSelected)
 		{
-			g.setGradientFill (ColourGradient (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker(),
-											   0, height/2-hborder,
-											   Colour (0x8000),
-											   0.7*filenameWidth-3, height/2-hborder,
+			g.setGradientFill (juce::ColourGradient (isItemSelected?findColour (juce::DirectoryContentsDisplayComponent::highlightColourId):juce::Colours::darkgrey.darker(),
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
 											   false));
 
 			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
-			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness);
+			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3.f-hborder, height-2.f*hborder, roundness);
 		}
 
 		{
-			g.setGradientFill (ColourGradient(Colours::darkgrey,
-											   0, height/2-hborder,
-											   Colour (0x8000),
-											   0.7*filenameWidth-3, height/2-hborder,
+			g.setGradientFill (juce::ColourGradient(juce::Colours::darkgrey,
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
 											   false));
 			//g.setColour (Colours::darkgrey);
-			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness, 2);
+			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3.f-hborder, height-2.f*hborder, roundness, 2.f);
 		}
 	
 		const int iconhborder = height/2;
 		const int x = height;
 		const int y = height;
-		g.setColour (Colours::black);
+		g.setColour (juce::Colours::black);
 
 	
-		Font f = g.getCurrentFont().withHeight(fontSize);
+		juce::Font f = g.getCurrentFont().withHeight(fontSize);
 		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
-		f.setStyleFlags(Font::FontStyleFlags::plain);
+		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 
-		g.setColour (findColour (DirectoryContentsDisplayComponent::textColourId));
+		g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
 
 	
 		int xText = x + 2*iconhborder;
 		g.drawFittedText (name,
 							xText, 0, width - xText, height,
-							Justification::centredLeft, 
+							juce::Justification::centredLeft, 
 							1, //1 line
 							1.f//no h scale
 							);
 	}
-	void drawFileBrowserRow (Graphics& g, int width, int height,
-										  const String& filename, Image* icon,
-										  const String& fileSizeDescription,
-										  const String& fileTimeDescription,
-										  const bool isDirectory,
-										  const bool isItemSelected,
-										  const int /*itemIndex*/,
-										  DirectoryContentsDisplayComponent&)
+	void drawFileBrowserRow (juce::Graphics& g, int width, int height,
+										  const juce::String& filename, juce::Image* icon,
+										  const juce::String& fileSizeDescription,
+										  const juce::String& fileTimeDescription,
+										  bool isDirectory,
+										  bool isItemSelected,
+										  int /*itemIndex*/,
+										  juce::DirectoryContentsDisplayComponent&)
 	{
-		double fontSize =  0.9*height;
+		float fontSize =  0.9f*height;
 		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
 	
-		const int hborder = height/8;
-		const int roundness = height/2;
+		float hborder = height/8.f;
+		float roundness = height/2.f;
 	
 	
 	
 		if(!isDirectory || isItemSelected)
 		{
-			g.setGradientFill (ColourGradient (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker(),
-											   0, height/2-hborder,
-											   Colour (0x8000),
-											   0.7*filenameWidth-3, height/2-hborder,
+			g.setGradientFill (juce::ColourGradient (isItemSelected?findColour (juce::DirectoryContentsDisplayComponent::highlightColourId):juce::Colours::darkgrey.darker(),
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
 											   false));
 
 			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
-			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness);
+			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3.f-hborder, height-2.f*hborder, roundness);
 		}
 
 		if(!isDirectory)
 		{
-			g.setGradientFill (ColourGradient(Colours::darkgrey,
-											   0, height/2-hborder,
-											   Colour (0x8000),
-											   0.7*filenameWidth-3, height/2-hborder,
+			g.setGradientFill (juce::ColourGradient(juce::Colours::darkgrey,
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
 											   false));
 			//g.setColour (Colours::darkgrey);
-			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2*hborder, roundness, 2);
+			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2.f*hborder, roundness, 2.f);
 		}
 	
 		const int iconhborder = height/2;
 		const int x = height;
 		const int y = height;
-		g.setColour (Colours::black);
+		g.setColour (juce::Colours::black);
 
 		if (icon != nullptr && icon->isValid() && !isDirectory)
 		{
 			g.drawImageWithin (*icon, 2 + iconhborder, 2, x-4, y-4,
-							   RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize,
+							   juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize,
 							   false);
 		}
 		else if(isDirectory)
 		{
-			const Drawable* d = isDirectory ? getDefaultFolderImage()
+			const juce::Drawable* d = isDirectory ? getDefaultFolderImage()
 											: getDefaultDocumentFileImage();
 
 			if (d != nullptr)
-				d->drawWithin (g, Rectangle<float> (2.0f  + iconhborder, 2.0f, x - 4.0f, y - 4.0f),
-							   RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
+				d->drawWithin (g, juce::Rectangle<float> (2.0f  + iconhborder, 2.0f, x - 4.0f, y - 4.0f),
+							   juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize, 1.0f);
 		}
 	
-		Font f = g.getCurrentFont().withHeight(fontSize);
+		juce::Font f = g.getCurrentFont().withHeight(fontSize);
 		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
-		f.setStyleFlags(Font::FontStyleFlags::plain);
+		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 
-		g.setColour (findColour (DirectoryContentsDisplayComponent::textColourId));
+		g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
 
 	
 		int xText = x + 2*iconhborder;
 		g.drawFittedText (filename,
 							xText, 0, width - xText, height,
-							Justification::centredLeft, 
+							juce::Justification::centredLeft, 
 							1, //1 line
 							1.f//no h scale
 							);

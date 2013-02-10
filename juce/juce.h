@@ -13,7 +13,7 @@
 #ifndef __APPHEADERFILE_TTAKTK1S__
 #define __APPHEADERFILE_TTAKTK1S__
 
-#include "AppConfig.h"
+//#include "AppConfig.h"
 #include "modules/juce_core/juce_core.h"
 #include "modules/juce_data_structures/juce_data_structures.h"
 #include "modules/juce_events/juce_events.h"
@@ -21,15 +21,9 @@
 #include "modules/juce_gui_basics/juce_gui_basics.h"
 #include "modules/juce_gui_extra/juce_gui_extra.h"
 
-#if ! DONT_SET_USING_JUCE_NAMESPACE
- // If your code uses a lot of JUCE classes, then this will obviously save you
- // a lot of typing, but can be disabled by setting DONT_SET_USING_JUCE_NAMESPACE.
- using namespace juce;
-#endif
-
 namespace ProjectInfo
 {
-    const char* const  projectName    = "HelloWorld";
+    const char* const  projectName    = "JucyVLC";
     const char* const  versionString  = "1.0.0";
     const int          versionNumber  = 0x10000;
 }
