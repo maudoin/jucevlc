@@ -18,7 +18,6 @@ class VideoComponent   : public juce::Component, DisplayCallback, juce::Slider::
     juce::CriticalSection imgCriticalSection;
     juce::ScopedPointer<juce::Slider> slider;
     juce::ScopedPointer<VLCMenuTree> tree;
-    juce::ScopedPointer<juce::Label> mediaTimeLabel;
     juce::ScopedPointer<juce::DrawableButton> playPauseButton;
     juce::ScopedPointer<juce::DrawableButton> stopButton;
     juce::ScopedPointer<juce::Drawable> playImage;
