@@ -96,23 +96,74 @@ public:
 
 		return x * getOwnerView()->getIndentSize();
 	}
+	virtual const juce::Drawable* getIcon()
+	{
+		return shortcutDisplay?owner->getLookAndFeel().getDefaultFolderImage():nullptr;
+	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
-        owner->getLookAndFeel().drawFileBrowserRow (g, width, height,
-                                                  getUniqueName(),
-                                                   nullptr, "", "",shortcutDisplay, isSelected(),
-                                                   0, *(juce::DirectoryContentsDisplayComponent*)0);
-		/*
-        // if this item is selected, fill it with a background colour..
-        if (isSelected())
-            g.fillAll (Colours::blue.withAlpha (0.3f));
+		bool isItemSelected=isSelected();
 
-        g.setFont (height * 0.7f);
 
-        // draw the xml element's tag name..
-        g.drawText (name,
-                    4, 0, width - 4, height,
-                    Justification::centredLeft, true);*/
+		
+		float fontSize =  0.9f*height;
+		const int filenameWidth = width;//width > 450 ? roundToInt (width * 0.7f) : width;
+	
+		float hborder = height/8.f;
+		float roundness = height/2.f;
+	
+	
+	
+		if(!shortcutDisplay || isItemSelected)
+		{
+			g.setGradientFill (juce::ColourGradient (isItemSelected?juce::Colours::blue.darker():juce::Colours::darkgrey.darker(),
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
+											   false));
+
+			//g.setColour (isItemSelected?findColour (DirectoryContentsDisplayComponent::highlightColourId):Colours::darkgrey.darker());
+			g.fillRoundedRectangle(hborder, hborder, filenameWidth-3.f-hborder, height-2.f*hborder, roundness);
+		}
+
+		if(!shortcutDisplay)
+		{
+			g.setGradientFill (juce::ColourGradient(juce::Colours::darkgrey,
+											   0.f, height/2.f-hborder,
+											   juce::Colour (0x8000),
+											   0.7f*filenameWidth-3.f, height/2.f-hborder,
+											   false));
+			//g.setColour (Colours::darkgrey);
+			g.drawRoundedRectangle(hborder, hborder, filenameWidth-3-hborder, height-2.f*hborder, roundness, 2.f);
+		}
+	
+		const int iconhborder = height/2;
+		const int x = height;
+		const int y = height;
+		g.setColour (juce::Colours::black);
+		
+		const juce::Drawable* d = getIcon();
+		if (d != nullptr)
+		{
+				d->drawWithin (g, juce::Rectangle<float> (2.0f  + iconhborder, 2.0f, x - 4.0f, y - 4.0f),
+							   juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize, 1.0f);
+		}
+	
+		juce::Font f = g.getCurrentFont().withHeight(fontSize);
+		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+
+		g.setColour (juce::Colours::white);
+
+	
+		int xText = x + 2*iconhborder;
+		g.drawFittedText (getUniqueName(),
+							xText, 0, width - xText, height,
+							juce::Justification::centredLeft, 
+							1, //1 line
+							1.f//no h scale
+							);
     }
     void itemOpennessChanged (bool isNowOpen)
     {
@@ -189,9 +240,14 @@ public:
 	virtual ~FileTreeViewItem()
 	{
 	}
+	virtual const juce::Drawable* getIcon()
+	{
+		return file.isDirectory()?getOwner()->getLookAndFeel().getDefaultFolderImage():nullptr;
+	}
     juce::String getUniqueName() const
     {
-        return file.getFullPathName();
+		juce::File p = file.getParentDirectory();
+		return p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
     }
 	bool mightContainSubItems()                 
 	{ 
@@ -200,14 +256,6 @@ public:
 	juce::File const& getFile() const
 	{
 		return file;
-	}
-    void paintItem (juce::Graphics& g, int width, int height)
-    {
-		juce::File p = file.getParentDirectory();
-		getOwner()->getLookAndFeel().drawFileBrowserRow (g, width, height,
-			p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName(),
-            nullptr, "", "",file.isDirectory(), isSelected(),
-            0, *(juce::DirectoryContentsDisplayComponent*)0);
 	}
 	void itemClicked(const juce::MouseEvent& e)
 	{
@@ -383,23 +431,23 @@ void VLCMenuTree::refresh()
 }
 void VLCMenuTree::paint (juce::Graphics& g)
 {
-	int w = getWidth();
-	int h = getHeight();
-	int hMargin = 0.025*getParentWidth();
-	int roundness = hMargin/4;
+	float w = (float)getWidth();
+	float h = (float)getHeight();
+	float hMargin = 0.025f*getParentWidth();
+	float roundness = hMargin/4.f;
 	
 	///////////////// TREE ZONE:	
 	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
-										0, h/2,
+										0, h/2.f,
 										juce::Colours::black,
-										w, h/2,
+										w, h/2.f,
 										false));
 	g.fillRoundedRectangle(0, 0, w, h, roundness);
 
 	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
-										0, h/2,
+										0, h/2.f,
 										juce::Colours::black,
-										w, h/2,
+										w, h/2.f,
 										false));
 	g.drawRoundedRectangle(0, 0, w, h, roundness,2.f);
 	
