@@ -29,6 +29,9 @@ public:
 class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent
 {
     juce::ListenerList <VLCMenuTreeListener> listeners;
+    juce::ScopedPointer<juce::Drawable> itemImage;
+    juce::ScopedPointer<juce::Drawable> folderImage;
+    juce::ScopedPointer<juce::Drawable> folderShortcutImage;
 public:
 	VLCMenuTree();
 	virtual ~VLCMenuTree();
@@ -36,6 +39,10 @@ public:
 	void setInitialMenu();
 	
 	void paint (juce::Graphics& g);
+
+	juce::Drawable const* getItemImage() const { return itemImage; };
+	juce::Drawable const* getFolderImage() const { return folderImage; };
+	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
 	
 	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
 };

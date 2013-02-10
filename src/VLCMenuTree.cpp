@@ -1,4 +1,5 @@
 #include "VLCMenuTree.h"
+#include "icons.h"
 #include <modules\vf_core\vf_core.h>
 
 
@@ -38,6 +39,7 @@ class VLCMenuTree;
 class SmartTreeViewItem  : public juce::TreeViewItem
 {
 	VLCMenuTree* owner;
+protected:
 	bool shortcutDisplay;
 public:
     SmartTreeViewItem (VLCMenuTree* owner)
@@ -98,7 +100,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return (shortcutDisplay && !isSelected())?owner->getLookAndFeel().getDefaultFolderImage():nullptr;
+		return (shortcutDisplay && !isSelected())?owner->getItemImage():nullptr;
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
@@ -249,7 +251,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return isSelected()?nullptr:(file.isDirectory())?getOwner()->getLookAndFeel().getDefaultFolderImage():nullptr;
+		return file.isDirectory()?shortcutDisplay?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
 	}
     juce::String getUniqueName() const
     {
@@ -291,6 +293,10 @@ public:
 
 VLCMenuTree::VLCMenuTree() 
 {
+    itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
+    folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
+    folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
+
 	setIndentSize(0);
 	setDefaultOpenness(true);
 	refresh();

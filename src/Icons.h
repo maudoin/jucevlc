@@ -30,6 +30,12 @@
     extern const int play_svgSize;
     extern const char* stop_svg;
     extern const int stop_svgSize;
+	extern const char* blue_svg;
+	extern const int blue_svgSize;
+	extern const char* folder_svg;
+	extern const int folder_svgSize;
+	extern const char* folderShortcut_svg;
+	extern const int folderShortcut_svgSize;
 
 
 #endif   // __ICONS__
