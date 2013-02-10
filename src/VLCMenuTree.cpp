@@ -98,7 +98,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return shortcutDisplay?owner->getLookAndFeel().getDefaultFolderImage():nullptr;
+		return (shortcutDisplay && !isSelected())?owner->getLookAndFeel().getDefaultFolderImage():nullptr;
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
@@ -108,36 +108,44 @@ public:
 		
 		float fontSize =  0.9f*height;
 	
-		float hborder = height/8.f;
-		float roundness = height/2.f;
+		float hborder = height/8.f;	
 	
-	
-		const int iconhborder = height/2;
-		const int x = height;
-		const int y = height;
+		float iconhborder = height/2.f;
+		int iconSize = height;
 
 		
-		int xBounds = x + iconhborder;
+		float xBounds = iconSize + iconhborder;
+
+		juce::Rectangle<float> borderBounds(xBounds, hborder, width-xBounds, height-2.f*hborder);
+
 		if(isItemSelected)
 		{
 			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.darker(),
-											   xBounds, height/2.f,
+											   borderBounds.getX(), 0.f,
 											   juce::Colours::black,
-											   width-xBounds, height/2.f,
+											   borderBounds.getRight(), 0.f,
 											   false));
 
-			g.fillRoundedRectangle(xBounds, hborder, width-xBounds, height-2.f*hborder, roundness);
+			g.fillRect(borderBounds);
+
+			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.brighter(),
+											   borderBounds.getX(), 0.f,
+											   juce::Colours::black,
+											   borderBounds.getRight(), 0.f,
+											   false));
+
+			g.drawRect(borderBounds);
 		}
 
 		if(!shortcutDisplay)
 		{
-			g.setGradientFill (juce::ColourGradient(juce::Colours::darkgrey,
-											   xBounds, height/2.f,
+			g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
+											   borderBounds.getX(), 0.f,
 											   juce::Colours::black,
-											   width-xBounds, height/2.f,
+											   borderBounds.getRight(), 0.f,
 											   false));
 
-			g.drawRoundedRectangle(xBounds, hborder, width-xBounds, height-2.f*hborder, roundness, 2.f);
+			g.drawLine(0, 0, (float)width, 0, 2.f);
 		}
 	
 		g.setColour (juce::Colours::black);
@@ -145,7 +153,7 @@ public:
 		const juce::Drawable* d = getIcon();
 		if (d != nullptr)
 		{
-				d->drawWithin (g, juce::Rectangle<float> (2.0f  + iconhborder, 2.0f, x - 4.0f, y - 4.0f),
+				d->drawWithin (g, juce::Rectangle<float> (iconhborder, 0.0f, iconSize, iconSize),
 							   juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize, 1.0f);
 		}
 	
@@ -156,7 +164,7 @@ public:
 
 		g.setColour (juce::Colours::white);
 		
-		int xText = x + 2*iconhborder;
+		int xText = iconSize + 2*(int)iconhborder;
 		g.drawFittedText (getUniqueName(),
 							xText, 0, width - xText, height,
 							juce::Justification::centredLeft, 
@@ -241,7 +249,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return file.isDirectory()?getOwner()->getLookAndFeel().getDefaultFolderImage():nullptr;
+		return isSelected()?nullptr:(file.isDirectory())?getOwner()->getLookAndFeel().getDefaultFolderImage():nullptr;
 	}
     juce::String getUniqueName() const
     {
