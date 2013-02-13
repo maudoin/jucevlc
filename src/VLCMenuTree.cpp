@@ -202,7 +202,35 @@ public:
         }
     }
 };
-class BindTreeViewItem  : public SmartTreeViewItem
+class ActionTreeViewItem  : public SmartTreeViewItem
+{
+	juce::ScopedPointer<AbstractAction> action;
+public:
+	
+    ActionTreeViewItem (VLCMenuTree* owner, AbstractAction* action)
+		:SmartTreeViewItem(owner)
+		,action(action)
+    {
+	}
+    ActionTreeViewItem (SmartTreeViewItem& p, AbstractAction* action)
+		:SmartTreeViewItem(p)
+		,action(action)
+    {
+	}
+    
+	virtual ~ActionTreeViewItem()
+	{
+	}
+	void itemSelectionChanged(bool isSelected)
+	{
+		if(isSelected)
+		{
+			action->operator()(*this);
+		}
+		
+	}
+};
+class BindTreeViewItem  : public ActionTreeViewItem
 {
 	juce::String name;
 	const juce::Drawable* icon;
@@ -210,24 +238,21 @@ class BindTreeViewItem  : public SmartTreeViewItem
 public:
 	
     BindTreeViewItem (VLCMenuTree* owner, juce::String name, AbstractAction* action)
-		:SmartTreeViewItem(owner)
+		:ActionTreeViewItem(owner, action)
 		,name(name)
 		,icon(nullptr)
-		,action(action)
     {
 	}
     BindTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action)
-		:SmartTreeViewItem(p)
+		:ActionTreeViewItem(p, action)
 		,name(name)
 		,icon(nullptr)
-		,action(action)
     {
 	}
 	BindTreeViewItem (SmartTreeViewItem& p, juce::String name, const juce::Drawable* icon, AbstractAction* action)
-		:SmartTreeViewItem(p)
+		:ActionTreeViewItem(p,action)
 		,name(name)
 		,icon(icon)
-		,action(action)
     {
 	}
     
@@ -249,32 +274,27 @@ public:
         return true;
     }
 
-	void itemSelectionChanged(bool isSelected)
-	{
-		if(isSelected)
-		{
-			action->operator()(*this);
-		}
-		
-	}
 
 };
 
-void listFiles(SmartTreeViewItem& item);
+void listFiles(SmartTreeViewItem& item, VLCMenuTreeListener::FileMethod fileMethod);
 class FileTreeViewItem  : public SmartTreeViewItem
 {
     juce::File file;
+	VLCMenuTreeListener::FileMethod fileMethod;
 public:
     FileTreeViewItem (VLCMenuTree* owner, 
-                      juce::File const& file_)
+                      juce::File const& file_, VLCMenuTreeListener::FileMethod fileMethod_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
+		,fileMethod(fileMethod_)
     {
 	}
     FileTreeViewItem (SmartTreeViewItem& p, 
-                      juce::File const& file_)
+                      juce::File const& file_, VLCMenuTreeListener::FileMethod fileMethod_)
 		:SmartTreeViewItem(p)
 		,file(file_)
+		,fileMethod(fileMethod_)
     {
 	}
 	virtual ~FileTreeViewItem()
@@ -296,25 +316,23 @@ public:
 	juce::File const& getFile() const
 	{
 		return file;
-	}
+	}	
+	
 	void itemClicked(const juce::MouseEvent& e)
 	{
 		if(!file.isDirectory())
 		{
-			getOwner()->getListeners().call(&VLCMenuTreeListener::onOpen, file, e);
+			getOwner()->getListeners().call(fileMethod, file);
 		}
 	}
+
 	void itemSelectionChanged(bool isSelected)
 	{
 		if(isSelected)
 		{
 			if(file.isDirectory())
 			{
-				listFiles(*this);
-			}
-			else
-			{
-				
+				listFiles(*this, fileMethod);
 			}
 		}
 		
@@ -376,10 +394,22 @@ void prepare(SmartTreeViewItem& item)
 		current=current->getParentItem();
 	}
 }
+
+template <typename P1>
+void dispatchToListeners (SmartTreeViewItem& item, void (VLCMenuTreeListener::*callbackFunction) (P1), P1 p1)
+{
+	item.getOwner()->getListeners().call(callbackFunction, p1);
+}
+template <typename P1, typename P2>
+void dispatchToListeners (SmartTreeViewItem& item, void (VLCMenuTreeListener::*callbackFunction) (P1, P2), P1 p1, P2 p2)
+{
+	item.getOwner()->getListeners().call(callbackFunction, p1, p2);
+}
+
 void nop(SmartTreeViewItem& parent)
 {
 }
-void listFiles(SmartTreeViewItem& item)
+void listFiles(SmartTreeViewItem& item, VLCMenuTreeListener::FileMethod fileMethod)
 {
 	prepare(item);
 
@@ -403,7 +433,7 @@ void listFiles(SmartTreeViewItem& item)
 	{
 		if(destArray[i].isDirectory())
 		{
-			item.addSubItem(new FileTreeViewItem (item, destArray[i]));
+			item.addSubItem(new FileTreeViewItem (item, destArray[i], fileMethod));
 		}
 	}
 	//add files
@@ -411,21 +441,11 @@ void listFiles(SmartTreeViewItem& item)
 	{
 		if(!destArray[i].isDirectory())
 		{
-			item.addSubItem(new FileTreeViewItem (item, destArray[i]));
+			item.addSubItem(new FileTreeViewItem (item, destArray[i], fileMethod));
 		}
 	}
 }
 
-template <typename P1>
-void dispatchToListeners (SmartTreeViewItem& item, void (VLCMenuTreeListener::*callbackFunction) (P1), P1 p1)
-{
-	item.getOwner()->getListeners().call(callbackFunction, p1);
-}
-template <typename P1, typename P2>
-void dispatchToListeners (SmartTreeViewItem& item, void (VLCMenuTreeListener::*callbackFunction) (P1, P2), P1 p1, P2 p2)
-{
-	item.getOwner()->getListeners().call(callbackFunction, p1, p2);
-}
 
 void pin(SmartTreeViewItem& item)
 {
@@ -446,7 +466,7 @@ void crop(SmartTreeViewItem& item)
 	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<double>, &VLCMenuTreeListener::onCrop, 16./9.)));
-	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&pin)));
+	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&dispatchToListeners<double>, &VLCMenuTreeListener::onCrop, 4./3.)));
 }
 void ratio(SmartTreeViewItem& item)
 {
@@ -466,7 +486,7 @@ void subtitlesOptions(SmartTreeViewItem& item)
 {
 	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "Select", Action::build(&nop)));
-	item.addSubItem(new BindTreeViewItem (item, "Add", Action::build(&listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Add", Action::build(&listFiles, &VLCMenuTreeListener::onOpenSubtitle)));
 }
 void exitVLCFrontend(SmartTreeViewItem& item)
 {
@@ -475,7 +495,7 @@ void exitVLCFrontend(SmartTreeViewItem& item)
 void getRootITems(SmartTreeViewItem& item)
 {
 	prepare(item);
-	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderShortcutImage(), Action::build(&listFiles)));
+	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderShortcutImage(), Action::build(&listFiles, &VLCMenuTreeListener::onOpen)));
 	item.addSubItem(new BindTreeViewItem (item, "Subtitle", item.getOwner()->getSubtitlesImage(), Action::build(&subtitlesOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Video options", item.getOwner()->getDisplayImage(), Action::build(&videoOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Sound options", item.getOwner()->getAudioImage(), Action::build(&soundOptions)));

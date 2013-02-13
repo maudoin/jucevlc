@@ -59,14 +59,14 @@ public:
 
 	juce::Slider* getSlider();
 	//MenuTreeListener
-    virtual void onOpen (const juce::File& file, const juce::MouseEvent& e);
-    virtual void onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e);
-    virtual void onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e);
+    virtual void onOpen (juce::File file);
+    virtual void onOpenSubtitle (juce::File file);
+    virtual void onOpenPlaylist (juce::File file);
 
     virtual void onCrop (double ratio);
-    virtual void onSetAspectRatio(const juce::String& ratio);
-    virtual void onShiftAudio(const juce::String& ratio);
-    virtual void onShiftSubtitles(const juce::String& ratio);
+    virtual void onSetAspectRatio(juce::String ratio);
+    virtual void onShiftAudio(juce::String ratio);
+    virtual void onShiftSubtitles(juce::String ratio);
 	//VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();

@@ -14,40 +14,20 @@ public:
 	virtual ~VLCMenuTreeListener(){}
 
     //==============================================================================
-	
-    virtual void onOpen (const juce::File& file, const juce::MouseEvent& e) = 0;
-    virtual void onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e) = 0;
-    virtual void onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e) = 0;
+	typedef void (VLCMenuTreeListener::*FileMethod)(juce::File);
+
+    virtual void onOpen (juce::File file) = 0;
+    virtual void onOpenSubtitle (juce::File file) = 0;
+    virtual void onOpenPlaylist (juce::File file) = 0;
 
     virtual void onCrop (double ratio) = 0;
-    virtual void onSetAspectRatio(const juce::String& ratio) = 0;
-    virtual void onShiftAudio(const juce::String& ratio) = 0;
-    virtual void onShiftSubtitles(const juce::String& ratio) = 0;
+    virtual void onSetAspectRatio(juce::String ratio) = 0;
+    virtual void onShiftAudio(juce::String ratio) = 0;
+    virtual void onShiftSubtitles(juce::String ratio) = 0;
 };
 
-class VLCMenuTreeListenerDispatcher
-{
-    juce::ListenerList <VLCMenuTreeListener> listeners;
-public:
-    //==============================================================================
-    /** Destructor. */
-	virtual ~VLCMenuTreeListenerDispatcher(){}
-
-    //==============================================================================
-	
-	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
-
-	virtual void onOpen (const juce::File& file, const juce::MouseEvent& e){ listeners.call(&VLCMenuTreeListener::onOpen, file, e);};
-    virtual void onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e){ listeners.call(&VLCMenuTreeListener::onOpenSubtitle, file, e);};
-    virtual void onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e){ listeners.call(&VLCMenuTreeListener::onOpenPlaylist, file, e);};
-
-    virtual void onCrop (double ratio){ listeners.call(&VLCMenuTreeListener::onCrop, ratio);};
-    virtual void onSetAspectRatio(const juce::String& ratio){ listeners.call(&VLCMenuTreeListener::onSetAspectRatio, ratio);};
-    virtual void onShiftAudio(const juce::String& ratio){ listeners.call(&VLCMenuTreeListener::onShiftAudio, ratio);};
-    virtual void onShiftSubtitles(const juce::String& ratio){ listeners.call(&VLCMenuTreeListener::onShiftSubtitles, ratio);};
-};
 //==============================================================================
-class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent, public VLCMenuTreeListenerDispatcher
+class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent
 {
     juce::ScopedPointer<juce::Drawable> itemImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
@@ -56,6 +36,7 @@ class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> displayImage;
     juce::ScopedPointer<juce::Drawable> subtitlesImage;
     juce::ScopedPointer<juce::Drawable> exitImage;
+    juce::ListenerList <VLCMenuTreeListener> listeners;
 public:
 	VLCMenuTree();
 	virtual ~VLCMenuTree();
@@ -63,7 +44,8 @@ public:
 	void setInitialMenu();
 	
 	void paint (juce::Graphics& g);
-
+	
+	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
 	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };

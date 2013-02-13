@@ -313,28 +313,28 @@ juce::Slider* VideoComponent::getSlider()
 	return slider.get();
 }
 //MenuTreeListener
-void VideoComponent::onOpen (const juce::File& file, const juce::MouseEvent& e)
+void VideoComponent::onOpen (juce::File file)
 {
 	vf::MessageThread::getInstance();
 	play(file.getFullPathName().getCharPointer().getAddress());
 }
-void VideoComponent::onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e)
+void VideoComponent::onOpenSubtitle (juce::File file)
 {
 }
-void VideoComponent::onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e)
+void VideoComponent::onOpenPlaylist (juce::File file)
 {
 }
 
 void VideoComponent::onCrop (double ratio)
 {
 }
-void VideoComponent::onSetAspectRatio(const juce::String& ratio)
+void VideoComponent::onSetAspectRatio(juce::String ratio)
 {
 }
-void VideoComponent::onShiftAudio(const juce::String& ratio)
+void VideoComponent::onShiftAudio(juce::String ratio)
 {
 }
-void VideoComponent::onShiftSubtitles(const juce::String& ratio)
+void VideoComponent::onShiftSubtitles(juce::String ratio)
 {
 }
 void VideoComponent::timeChanged()
