@@ -114,6 +114,12 @@ public:
     void SetVolume(int volume);    
 
 	
+	void setCrop (float ratio);
+	void setRate (float rate);
+	void setAspect(const char* ratio);
+    void shiftAudio(float ms);
+    void shiftSubtitles(float ms);
+
 	std::string getInfo() const;
 };
 

@@ -10,11 +10,23 @@
 #include <sstream>
 
 
+#define BUFFER_DISPLAY
+#undef BUFFER_DISPLAY
+
 //==============================================================================
-class VideoComponent   : public juce::Component, DisplayCallback, juce::Slider::Listener, juce::Button::Listener, VLCMenuTreeListener, EventCallBack
+class VideoComponent   : public juce::Component, 
+	
+#ifdef BUFFER_DISPLAY
+	DisplayCallback, 
+#endif
+	juce::Slider::Listener, juce::Button::Listener, VLCMenuTreeListener, EventCallBack
 {
+#ifdef BUFFER_DISPLAY
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
+#else
+    juce::ScopedPointer<juce::Component> videoComponent;
+#endif
     juce::CriticalSection imgCriticalSection;
     juce::ScopedPointer<juce::Slider> slider;
     juce::ScopedPointer<VLCMenuTree> tree;
@@ -44,10 +56,12 @@ public:
 	void pause();
 	void stop();
 	
+#ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
 	void *lock(void **p_pixels);
 	void unlock(void *id, void *const *p_pixels);
 	void display(void *id);
+#endif
 
 	void showPlayingControls();
 	void showPausedControls();
@@ -63,10 +77,12 @@ public:
     virtual void onOpenSubtitle (juce::File file);
     virtual void onOpenPlaylist (juce::File file);
 
-    virtual void onCrop (double ratio);
+    virtual void onCrop (float ratio);
+    virtual void onRate (float rate);
     virtual void onSetAspectRatio(juce::String ratio);
-    virtual void onShiftAudio(juce::String ratio);
-    virtual void onShiftSubtitles(juce::String ratio);
+    virtual void onShiftAudio(float ms);
+    virtual void onShiftSubtitles(float ms);
+    virtual void onAudioVolume(int volume);
 	//VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();

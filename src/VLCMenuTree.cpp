@@ -453,10 +453,23 @@ void pin(SmartTreeViewItem& item)
 	item.addSubItem(new BindTreeViewItem (item, "Pin", Action::build(&nop)));
 }
 
+void volume(SmartTreeViewItem& item)
+{
+	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
+	item.addSubItem(new BindTreeViewItem (item, "25%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 25)));
+	item.addSubItem(new BindTreeViewItem (item, "50%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 50)));
+	item.addSubItem(new BindTreeViewItem (item, "75%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 75)));
+	item.addSubItem(new BindTreeViewItem (item, "100%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 100)));
+	item.addSubItem(new BindTreeViewItem (item, "125%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 125)));
+	item.addSubItem(new BindTreeViewItem (item, "150%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 150)));
+	item.addSubItem(new BindTreeViewItem (item, "175%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 175)));
+	item.addSubItem(new BindTreeViewItem (item, "200%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 200)));
+}
 void soundOptions(SmartTreeViewItem& item)
 {
 	prepare(item);
-	item.addSubItem(new BindTreeViewItem (item, "Volume", Action::build(&pin)));
+	item.addSubItem(new BindTreeViewItem (item, "Volume", Action::build(&volume)));
 	item.addSubItem(new BindTreeViewItem (item, "Shift", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "Mute", Action::build(&pin)));
 }
@@ -465,20 +478,37 @@ void crop(SmartTreeViewItem& item)
 {
 	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
-	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<double>, &VLCMenuTreeListener::onCrop, 16./9.)));
-	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&dispatchToListeners<double>, &VLCMenuTreeListener::onCrop, 4./3.)));
+	item.addSubItem(new BindTreeViewItem (item, "16/10", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onCrop, 16.f/10.f)));
+	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onCrop, 16.f/9.f)));
+	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onCrop, 4.f/3.f)));
 }
 void ratio(SmartTreeViewItem& item)
 {
 	prepare(item);
+	item.addSubItem(new BindTreeViewItem (item, "original", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String(""))));
+	item.addSubItem(new BindTreeViewItem (item, "16/10", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String("16/10"))));
+	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String("16/9"))));
+	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String("4/3"))));
+	
+}
+void rate(SmartTreeViewItem& item)
+{
+	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
-	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&pin)));
-	item.addSubItem(new BindTreeViewItem (item, "4/3", Action::build(&pin)));
+	item.addSubItem(new BindTreeViewItem (item, "50%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, .5f)));
+	item.addSubItem(new BindTreeViewItem (item, "100%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 1.f)));
+	item.addSubItem(new BindTreeViewItem (item, "150%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 1.5f)));
+	item.addSubItem(new BindTreeViewItem (item, "200%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 2.f)));
+	item.addSubItem(new BindTreeViewItem (item, "300%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 3.f)));
+	item.addSubItem(new BindTreeViewItem (item, "400%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 4.f)));
+	item.addSubItem(new BindTreeViewItem (item, "600%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 6.f)));
+	item.addSubItem(new BindTreeViewItem (item, "800%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 8.f)));
 }
 void videoOptions(SmartTreeViewItem& item)
 {
 	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "FullScreen", Action::build(&nop)));
+	item.addSubItem(new BindTreeViewItem (item, "Speed", Action::build(&rate)));
 	item.addSubItem(new BindTreeViewItem (item, "Crop", Action::build(&crop)));
 	item.addSubItem(new BindTreeViewItem (item, "Ratio", Action::build(&ratio)));
 }

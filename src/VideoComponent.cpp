@@ -12,8 +12,10 @@ namespace
 }
 
 VideoComponent::VideoComponent()
+#ifdef BUFFER_DISPLAY
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
+#endif
 {    
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
@@ -59,12 +61,24 @@ VideoComponent::VideoComponent()
     addChildComponent(playPauseButton);
     addChildComponent(stopButton);
 		
-
 	setSize (600, 300);
+#ifndef BUFFER_DISPLAY
+	videoComponent = new juce::Component("video");
+	videoComponent->setOpaque(true);
+	addChildComponent(videoComponent);
+    //videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
+
+#endif
+
 
 	//after set Size
 	vlc = new VLCWrapper();
+#ifdef BUFFER_DISPLAY
 	vlc->SetDisplayCallback(this);
+#else
+	vlc->SetOutputWindow(videoComponent->getWindowHandle());
+	//vlc->SetOutputWindow(videoComponent->getPeer()->getNativeHandle());
+#endif
     vlc->SetEventCallBack(this);
 		
 }
@@ -80,9 +94,13 @@ VideoComponent::~VideoComponent()
 		vlc = nullptr;
 	}
 	slider = nullptr;
-	tree = nullptr;
+	tree = nullptr;;
+#ifdef BUFFER_DISPLAY
 	ptr = nullptr;
 	img = nullptr;
+#else
+	videoComponent = nullptr;
+#endif
 	playImage = nullptr;
 	pauseImage = nullptr;
 	stopImage = nullptr;
@@ -131,10 +149,14 @@ void VideoComponent::paint (juce::Graphics& g)
 
 	///////////////// VIDEO:
 	
+#ifdef BUFFER_DISPLAY
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	{
 		g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 	}
+#else
+    g.fillAll (juce::Colours::black);
+#endif
 	
 	if(!vlc || vlc->isPaused())
 	{
@@ -198,7 +220,8 @@ void VideoComponent::resized()
 		//rebuild buffer
 		bool restart(vlc->isPaused());
 		vlc->Pause();
-
+		
+#ifdef BUFFER_DISPLAY
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 		std::ostringstream oss;
@@ -208,11 +231,13 @@ void VideoComponent::resized()
 		g.fillAll(juce::Colour::fromRGB(0, 0, 0));
 		g.setColour(juce::Colour::fromRGB(255, 0, 255));
 		g.drawText(oss.str().c_str(), juce::Rectangle<int>(0, 0, img->getWidth(), img->getHeight()/10), juce::Justification::bottomLeft, true);
-
 		if(restart)
 		{
 			vlc->Play();
 		}
+#else
+		videoComponent->setBounds(getScreenX(), getScreenY(), w, h);
+#endif
 	}
 	
 }
@@ -249,9 +274,13 @@ void VideoComponent::play(char* path)
 		return;
 	}
 	vlc->OpenMedia(path);
+#ifdef BUFFER_DISPLAY
 	img = new juce::Image(img->rescaled(getWidth(), getHeight()));
 	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
 	vlc->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
+#else
+	videoComponent->getPeer()->toFront(false);
+#endif
 
 	play();
 }
@@ -272,6 +301,8 @@ void VideoComponent::play()
 	setIcon(*playPauseButton, *pauseImage);
 }
 	
+
+#ifdef BUFFER_DISPLAY
 
 void *VideoComponent::lock(void **p_pixels)
 {
@@ -295,6 +326,8 @@ void VideoComponent::display(void *id)
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::repaint,this));
 	jassert(id == NULL);
 }
+#endif
+
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
 {
 	if(!vlc)
@@ -325,17 +358,29 @@ void VideoComponent::onOpenPlaylist (juce::File file)
 {
 }
 
-void VideoComponent::onCrop (double ratio)
+void VideoComponent::onCrop (float ratio)
 {
+	vlc->setCrop(ratio);
+}
+void VideoComponent::onRate (float rate)
+{
+	vlc->setRate(rate);
 }
 void VideoComponent::onSetAspectRatio(juce::String ratio)
 {
+	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
-void VideoComponent::onShiftAudio(juce::String ratio)
+void VideoComponent::onShiftAudio(float ms)
 {
+	vlc->shiftAudio(ms);
 }
-void VideoComponent::onShiftSubtitles(juce::String ratio)
+void VideoComponent::onShiftSubtitles(float ms)
 {
+	vlc->shiftSubtitles(ms);
+}
+void VideoComponent::onAudioVolume(int volume)
+{
+	vlc->SetVolume(volume);
 }
 void VideoComponent::timeChanged()
 {

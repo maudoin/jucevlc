@@ -19,11 +19,13 @@ public:
     virtual void onOpen (juce::File file) = 0;
     virtual void onOpenSubtitle (juce::File file) = 0;
     virtual void onOpenPlaylist (juce::File file) = 0;
-
-    virtual void onCrop (double ratio) = 0;
+	
+    virtual void onCrop (float ratio) = 0;
+    virtual void onRate (float rate) = 0;
     virtual void onSetAspectRatio(juce::String ratio) = 0;
-    virtual void onShiftAudio(juce::String ratio) = 0;
-    virtual void onShiftSubtitles(juce::String ratio) = 0;
+    virtual void onAudioVolume(int volume) = 0;
+    virtual void onShiftAudio(float ratio) = 0;
+    virtual void onShiftSubtitles(float ratio) = 0;
 };
 
 //==============================================================================

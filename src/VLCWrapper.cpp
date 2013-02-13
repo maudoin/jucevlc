@@ -205,3 +205,22 @@ void VLCWrapper::OpenMedia(const char* pMediaPathName)
 	pMedia_ = libvlc_media_new_path(pVLCInstance_, pMediaPathName);
     libvlc_media_player_set_media (pMediaPlayer_, pMedia_);    
 }
+
+void VLCWrapper::setCrop (float ratio)
+{
+	libvlc_video_set_scale(pMediaPlayer_, ratio);
+}
+void VLCWrapper::setRate (float rate)
+{
+	libvlc_media_player_set_rate(pMediaPlayer_, rate);
+}
+void VLCWrapper::setAspect(const char* ratio)
+{
+	libvlc_video_set_aspect_ratio(pMediaPlayer_, ratio);
+}
+void VLCWrapper::shiftAudio(float ratio)
+{
+}
+void VLCWrapper::shiftSubtitles(float ratio)
+{
+}
