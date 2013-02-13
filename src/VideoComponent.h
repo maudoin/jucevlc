@@ -63,7 +63,7 @@ public:
     virtual void onOpenSubtitle (const juce::File& file, const juce::MouseEvent& e);
     virtual void onOpenPlaylist (const juce::File& file, const juce::MouseEvent& e);
 
-    virtual void onCrop (const juce::String& ratio);
+    virtual void onCrop (double ratio);
     virtual void onSetAspectRatio(const juce::String& ratio);
     virtual void onShiftAudio(const juce::String& ratio);
     virtual void onShiftSubtitles(const juce::String& ratio);

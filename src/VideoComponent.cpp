@@ -325,7 +325,7 @@ void VideoComponent::onOpenPlaylist (const juce::File& file, const juce::MouseEv
 {
 }
 
-void VideoComponent::onCrop (const juce::String& ratio)
+void VideoComponent::onCrop (double ratio)
 {
 }
 void VideoComponent::onSetAspectRatio(const juce::String& ratio)
