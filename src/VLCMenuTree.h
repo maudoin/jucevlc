@@ -26,6 +26,8 @@ public:
     virtual void onAudioVolume(int volume) = 0;
     virtual void onShiftAudio(float ratio) = 0;
     virtual void onShiftSubtitles(float ratio) = 0;
+
+    virtual void onFullscreen(bool fs) = 0;
 };
 
 //==============================================================================

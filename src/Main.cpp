@@ -33,8 +33,10 @@ public:
 
 
 		addKeyListener(this);
-
-		setFullScreen();
+		
+	    setResizable(true, false);
+		setUsingNativeTitleBar(true);
+		//setFullScreen();
 
         // And show it!
         setVisible (true);

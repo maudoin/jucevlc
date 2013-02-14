@@ -117,6 +117,8 @@ public:
     virtual void onShiftAudio(float ms);
     virtual void onShiftSubtitles(float ms);
     virtual void onAudioVolume(int volume);
+	
+    virtual void onFullscreen(bool fs);
 	//VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();

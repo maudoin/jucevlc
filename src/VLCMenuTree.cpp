@@ -511,7 +511,8 @@ void rate(SmartTreeViewItem& item)
 void videoOptions(SmartTreeViewItem& item)
 {
 	prepare(item);
-	item.addSubItem(new BindTreeViewItem (item, "FullScreen", Action::build(&nop)));
+	item.addSubItem(new BindTreeViewItem (item, "FullScreen", Action::build(&dispatchToListeners<bool>, &VLCMenuTreeListener::onFullscreen, true)));
+	item.addSubItem(new BindTreeViewItem (item, "Windowed", Action::build(&dispatchToListeners<bool>, &VLCMenuTreeListener::onFullscreen, false)));
 	item.addSubItem(new BindTreeViewItem (item, "Speed", Action::build(&rate)));
 	item.addSubItem(new BindTreeViewItem (item, "Crop", Action::build(&crop)));
 	item.addSubItem(new BindTreeViewItem (item, "Ratio", Action::build(&ratio)));

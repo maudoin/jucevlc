@@ -223,6 +223,8 @@ VideoComponent::VideoComponent()
 	videoComponent->setOpaque(true);
     videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
 
+	
+
 	vlc->SetOutputWindow(videoComponent->getWindowHandle());
 
 #endif
@@ -425,6 +427,8 @@ void VideoComponent::timerCallback()
     {
         videoComponent->setVisible(false);
 		addAndMakeVisible (overlayComponent);
+
+		getPeer()->getComponent().removeComponentListener(this);
         return;
     }
 
@@ -432,6 +436,9 @@ void VideoComponent::timerCallback()
 	{
         videoComponent->setVisible(true);
 		overlayComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+
+		getPeer()->getComponent().removeComponentListener(this);
+		getPeer()->getComponent().addComponentListener(this);
     }
     if(!getPeer()->isMinimised())
 	{
@@ -496,6 +503,12 @@ void VideoComponent::onShiftSubtitles(float ms)
 void VideoComponent::onAudioVolume(int volume)
 {
 	vlc->SetVolume(volume);
+}
+
+void VideoComponent::onFullscreen(bool fs)
+{
+	//getPeer()->setFullScreen(fs);
+	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
 }
 void VideoComponent::timeChanged()
 {
