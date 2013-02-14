@@ -11,7 +11,7 @@
 
 
 #define BUFFER_DISPLAY
-//#undef BUFFER_DISPLAY
+#undef BUFFER_DISPLAY
 
 //==============================================================================
 class VideoComponent;
@@ -31,6 +31,10 @@ public:
     virtual void paint (juce::Graphics& g);
     virtual void resized();
     void setTimeString(juce::String const& s);
+
+	void showPlayingControls();
+	void showPausedControls();
+	void hidePlayingControls();
 
 	friend class VideoComponent;
 };
@@ -56,9 +60,7 @@ class VideoComponent   : public juce::Component,
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
-
-	
-	juce::String getTimeString() const;
+		
 public:
     VideoComponent();
     virtual ~VideoComponent();
@@ -84,16 +86,11 @@ public:
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
 #endif
-
-	void showPlayingControls();
-	void showPausedControls();
-	void hidePlayingControls();
 	void updateTimeAndSlider();
 
     virtual void sliderValueChanged (juce::Slider* slider);
     virtual void buttonClicked (juce::Button* button);
 
-	juce::Slider* getSlider();
 	//MenuTreeListener
     virtual void onOpen (juce::File file);
     virtual void onOpenSubtitle (juce::File file);

@@ -24,6 +24,7 @@ public:
 
         // Create an instance of our main content component, and add it to our window..
 		VideoComponent* content = new VideoComponent();
+		content->setSize(800, 600);
         setContentOwned (content, true);
 		content->setScaleComponent(this);
 

@@ -9,6 +9,19 @@ namespace
 	{
 		but.setImages(&im);
 	}
+	
+	juce::String getTimeString(int64_t time, int64_t len)
+	{
+		int h = (int)(time/(1000*60*60) );
+		int m = (int)(time/(1000*60) - 60*h );
+		int s = (int)(time/(1000) - 60*m - 60*60*h );
+	
+		int dh = (int)(len/(1000*60*60) );
+		int dm = (int)(len/(1000*60) - 60*dh );
+		int ds = (int)(len/(1000) - 60*dm - 60*60*dh );
+	
+		return juce::String::formatted("%02d:%02d:%02d/%02d:%02d:%02d", h, m, s, dh, dm, ds);
+	}
 }
 //////////////////////////////////////////////////////
 ControlComponent::ControlComponent()
@@ -42,11 +55,11 @@ ControlComponent::ControlComponent()
 ControlComponent::~ControlComponent()
 {
 	slider = nullptr;
+	playPauseButton = nullptr;
+	stopButton = nullptr;
 	playImage = nullptr;
 	pauseImage = nullptr;
 	stopImage = nullptr;
-	playPauseButton = nullptr;
-	stopButton = nullptr;
 }
 void ControlComponent::resized()
 {
@@ -110,6 +123,23 @@ void ControlComponent::setTimeString(juce::String const& s)
 {
 	timeString = s;
 }
+
+void ControlComponent::showPausedControls()
+{
+	setIcon(*playPauseButton, *playImage);
+	
+	setVisible(true);
+}
+void ControlComponent::showPlayingControls()
+{
+	setIcon(*playPauseButton, *pauseImage);
+	
+	setVisible(true);
+}
+void ControlComponent::hidePlayingControls()
+{
+	setVisible(false);
+}
 //////////////////////////////////////////////////////
 class EmptyComponent   : public juce::Component
 {
@@ -140,32 +170,30 @@ VideoComponent::VideoComponent()
 	tree->getListeners().add(this);
 	tree->setOpenCloseButtonsVisible(false);
 	tree->setIndentSize(50);
+	tree->setOpaque(false);
 	
 	
 	controlComponent = new ControlComponent();
 	controlComponent->slider->addListener(this);
 	controlComponent->playPauseButton->addListener(this);
-
-#ifdef BUFFER_DISPLAY
+	controlComponent->setOpaque(false);
+	
     addAndMakeVisible (tree);
     addAndMakeVisible (controlComponent);
-#else
-    tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
-    controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
-#endif
-		
-	setSize (600, 300);
+	
 	//after set Size
 	vlc = new VLCWrapper();
 
 #ifdef BUFFER_DISPLAY
 	vlc->SetDisplayCallback(this);
 #else
+
 	videoComponent = new EmptyComponent("video");
 	videoComponent->setOpaque(true);
-	//addChildComponent(videoComponent);
     videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+
 	vlc->SetOutputWindow(videoComponent->getWindowHandle());
+
 #endif
 
     vlc->SetEventCallBack(this);
@@ -229,7 +257,7 @@ void VideoComponent::paint (juce::Graphics& g)
 		g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 	}
 #else
-    g.fillAll (juce::Colours::black);
+	g.fillAll (juce::Colours::black);
 #endif
 	
 }
@@ -244,14 +272,14 @@ void VideoComponent::resized()
 	int treeWidth = w/4;
 	int controlHeight = 0.06*w;
 
-    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
-	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
 		
 
-	if(vlc)
-	{
 		
 #ifdef BUFFER_DISPLAY
+    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
+	if(vlc)
+	{
 		//rebuild buffer
 		bool restart(vlc->isPaused());
 		vlc->Pause();
@@ -269,36 +297,31 @@ void VideoComponent::resized()
 		{
 			vlc->Play();
 		}
-#else
-		videoComponent->setBounds(getScreenX(), getScreenY(), w, h);
-#endif
 	}
+#else
+	int x=controlComponent->getParentComponent()?0:getScreenX();
+	int y=controlComponent->getParentComponent()?0:getScreenY();
+    tree->setBounds (x+w-treeWidth, y+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (x+hMargin, y+h-controlHeight, w-2*hMargin, controlHeight);
+	videoComponent->setBounds(x, y, w, h);
+
+	
+	if(videoComponent->getPeer()!=nullptr)
+	{
+		videoComponent->getPeer()->toFront(false);
+		if(controlComponent->getPeer()!=nullptr)
+		{
+			controlComponent->getPeer()->toBehind(videoComponent->getPeer());
+		}
+		if(tree->getPeer()!=nullptr)
+		{
+			tree->getPeer()->toBehind(videoComponent->getPeer());
+		}
+	}
+#endif
 	
 }
 
-
-void VideoComponent::stop()
-{
-	if(!vlc)
-	{
-		return;
-	}
-	vlc->Pause();
-	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
-	vlc->Stop();
-	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
-}
-
-
-void VideoComponent::pause()
-{
-	if(!vlc)
-	{
-		return;
-	}
-	vlc->Pause();
-	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
-}
 
 
 void VideoComponent::play(char* path)
@@ -314,14 +337,11 @@ void VideoComponent::play(char* path)
 	vlc->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
 #else
     videoComponent->setBounds(getScreenX(),getScreenY(),getWidth(),getHeight());
-	getPeer()->getComponent().removeComponentListener(this);
-	getPeer()->getComponent().addComponentListener(this);
     startTimer(1);
 #endif
 
 	play();
 }
-
 
 void VideoComponent::play()
 {
@@ -338,6 +358,30 @@ void VideoComponent::play()
 	setIcon(*controlComponent->playPauseButton, *controlComponent->pauseImage);
 }
 	
+void VideoComponent::pause()
+{
+	if(!vlc)
+	{
+		return;
+	}
+	vlc->Pause();
+	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
+}
+void VideoComponent::stop()
+{
+	if(!vlc)
+	{
+		return;
+	}
+	vlc->Pause();
+	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
+	vlc->Stop();
+	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
+}
+
+
+
+
 
 #ifdef BUFFER_DISPLAY
 
@@ -365,10 +409,12 @@ void VideoComponent::display(void *id)
 }
 #else
 
-void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized){
+void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized)
+{
     resized();
 }
-void VideoComponent::componentVisibilityChanged(Component &  component){
+void VideoComponent::componentVisibilityChanged(Component &  component)
+{
      resized();
 }
 void VideoComponent::timerCallback()
@@ -377,19 +423,29 @@ void VideoComponent::timerCallback()
     {
         //stopTimer();
         videoComponent->setVisible(false);
-        stop();
         return;
     }
 
-	if(vlc->isPlaying() && !videoComponent->isVisible()){
+	if(vlc->isPlaying() && !videoComponent->isVisible())
+	{
         videoComponent->setVisible(true);
+		tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+		controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
     }
-
-    if(getPeer()->isMinimised()==false){
+    if(!getPeer()->isMinimised())
+	{
       getPeer()->toBehind(videoComponent->getPeer());
     }
-    if(getPeer()->isFocused()==true){
+    if(getPeer()->isFocused())
+	{
       videoComponent->getPeer()->toFront(false);
+      tree->getPeer()->toFront(false);
+      controlComponent->getPeer()->toFront(true);
+	  //controlComponent->getPeer()->toBehind(videoComponent->getPeer());
+      videoComponent->getPeer()->toBehind(tree->getPeer());
+      videoComponent->getPeer()->toBehind(controlComponent->getPeer());
+	  tree->getPeer()->toFront(true);
+	  controlComponent->getPeer()->toFront(true);
     }
 }
 #endif
@@ -406,10 +462,6 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 		vlc->SetTime(controlComponent->slider->getValue()*vlc->GetLength()/1000.);
 		sliderUpdating =false;
 	}
-}
-juce::Slider* VideoComponent::getSlider()
-{
-	return controlComponent->slider.get();
 }
 //MenuTreeListener
 void VideoComponent::onOpen (juce::File file)
@@ -450,68 +502,32 @@ void VideoComponent::onAudioVolume(int volume)
 }
 void VideoComponent::timeChanged()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
-}
-void VideoComponent::updateTimeAndSlider()
-{
 	if(!vlc)
 	{
 		return;
 	}
+	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+}
+void VideoComponent::updateTimeAndSlider()
+{
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
 		controlComponent->slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
-		controlComponent->setTimeString(getTimeString());
+		controlComponent->setTimeString(::getTimeString(vlc->GetTime(), vlc->GetLength()));
 		videoUpdating =false;
 	}
 	
 }
-juce::String VideoComponent::getTimeString()const
-{
-	int64_t time = vlc->GetTime();
-	int h = (int)(time/(1000*60*60) );
-	int m = (int)(time/(1000*60) - 60*h );
-	int s = (int)(time/(1000) - 60*m - 60*60*h );
-	
-	int64_t len = vlc->GetLength();
-	int dh = (int)(len/(1000*60*60) );
-	int dm = (int)(len/(1000*60) - 60*dh );
-	int ds = (int)(len/(1000) - 60*dm - 60*60*dh );
-	
-	return juce::String::formatted("%02d:%02d:%02d/%02d:%02d:%02d", h, m, s, dh, dm, ds);
-}
 void VideoComponent::paused()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::showPausedControls,this));
-}
-void VideoComponent::showPausedControls()
-{
-	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
-
-	controlComponent->slider->setVisible(true);
-	controlComponent->playPauseButton->setVisible(true);
-	controlComponent->stopButton->setVisible(true);
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
 void VideoComponent::started()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::showPlayingControls,this));
-}
-void VideoComponent::showPlayingControls()
-{
-	setIcon(*controlComponent->playPauseButton, *controlComponent->pauseImage);
-
-	controlComponent->slider->setVisible(true);
-	controlComponent->playPauseButton->setVisible(true);
-	controlComponent->stopButton->setVisible(true);
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 }
 void VideoComponent::stopped()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::hidePlayingControls,this));
-}
-void VideoComponent::hidePlayingControls()
-{
-	controlComponent->slider->setVisible(false);
-	controlComponent->playPauseButton->setVisible(false);
-	controlComponent->stopButton->setVisible(false);
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
 }
