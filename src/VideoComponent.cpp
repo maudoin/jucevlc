@@ -10,43 +10,16 @@ namespace
 		but.setImages(&im);
 	}
 }
-
-class EmptyComponent   : public juce::Component
+//////////////////////////////////////////////////////
+ControlComponent::ControlComponent()
 {
-public:
-	EmptyComponent(const juce::String& componentName):juce::Component(componentName){}
-	void paint (juce::Graphics& g){}
-};
-	
-VideoComponent::VideoComponent()
-#ifdef BUFFER_DISPLAY
-	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
-	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
-#endif
-{    
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-
-
-	setOpaque(true);
-		
-
-
 	slider = new juce::Slider("media time");
 	slider->setRange(0, 1000);
-	slider->addListener(this);
 	slider->setSliderStyle (juce::Slider::LinearBar);
 	slider->setAlpha(1.f);
 	slider->setOpaque(true);
     slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
 
-	sliderUpdating = false;
-	videoUpdating = false;
-
-		
-	tree = new VLCMenuTree ();
-	tree->getListeners().add(this);
-	tree->setOpenCloseButtonsVisible(false);
-	tree->setIndentSize(50);
 	
     playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
 	playPauseButton->setOpaque(false);
@@ -60,13 +33,126 @@ VideoComponent::VideoComponent()
 	setIcon(*playPauseButton, *playImage);
 	setIcon(*stopButton, *stopImage);
 
-	playPauseButton->addListener(this);
 
-    addAndMakeVisible (tree);
-
+	
 	addChildComponent(slider);
     addChildComponent(playPauseButton);
     addChildComponent(stopButton);
+}
+ControlComponent::~ControlComponent()
+{
+	slider = nullptr;
+	playImage = nullptr;
+	pauseImage = nullptr;
+	stopImage = nullptr;
+	playPauseButton = nullptr;
+	stopButton = nullptr;
+}
+void ControlComponent::resized()
+{
+	int w =  getWidth();
+	int h =  getHeight();
+
+	
+	int hMargin = 0.025*w;
+	int buttonWidth = 0.03*w;
+	int sliderHeight = 0.3*h;
+	slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
+
+	playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
+	stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
+}
+void ControlComponent::paint(juce::Graphics& g)
+{
+	int w =  getWidth();
+	int h =  getHeight();
+
+	
+	int hMargin = 0.025*w;
+	int buttonWidth = 0.03*w;
+	int sliderHeight = 0.3*h;
+	int roundness = hMargin/4;
+	
+	///////////////// CONTROL ZONE:	
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										juce::Colours::black,
+										w/2, h,
+										false));
+	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness);
+
+	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										juce::Colours::black,
+										w/2, h-hMargin/2,
+										false));
+	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness,2.f);
+	
+	///////////////// TIME:
+	juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
+	f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+	f.setStyleFlags(juce::Font::plain);
+	g.setFont(f);
+
+	g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
+
+	
+
+	g.drawFittedText (timeString,
+						hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth,
+						juce::Justification::topRight, 
+						1, //1 line
+						1.f//no h scale
+						);
+}
+
+void ControlComponent::setTimeString(juce::String const& s)
+{
+	timeString = s;
+}
+//////////////////////////////////////////////////////
+class EmptyComponent   : public juce::Component
+{
+public:
+	EmptyComponent(const juce::String& componentName):juce::Component(componentName){}
+	void paint (juce::Graphics& g){}
+};
+	
+//////////////////////////////////////////////////////
+VideoComponent::VideoComponent()
+#ifdef BUFFER_DISPLAY
+	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
+	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
+#endif
+{    
+	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
+
+
+	setOpaque(true);
+		
+
+
+	sliderUpdating = false;
+	videoUpdating = false;
+
+		
+	tree = new VLCMenuTree ();
+	tree->getListeners().add(this);
+	tree->setOpenCloseButtonsVisible(false);
+	tree->setIndentSize(50);
+	
+	
+	controlComponent = new ControlComponent();
+	controlComponent->slider->addListener(this);
+	controlComponent->playPauseButton->addListener(this);
+
+#ifdef BUFFER_DISPLAY
+    addAndMakeVisible (tree);
+    addAndMakeVisible (controlComponent);
+#else
+    tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+    controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+#endif
 		
 	setSize (600, 300);
 	//after set Size
@@ -87,9 +173,10 @@ VideoComponent::VideoComponent()
 }
 VideoComponent::~VideoComponent()
 {    
-	slider->removeListener(this);
-	playPauseButton->removeListener(this);
-	stopButton->removeListener(this);
+	controlComponent->slider->removeListener(this);
+	controlComponent->playPauseButton->removeListener(this);
+	controlComponent->stopButton->removeListener(this);
+    vlc->SetEventCallBack(NULL);
 #ifdef BUFFER_DISPLAY
 	{
 		vlc->SetTime(vlc->GetLength());
@@ -104,13 +191,7 @@ VideoComponent::~VideoComponent()
 	getPeer()->getComponent().removeComponentListener(this);
 	videoComponent = nullptr;
 #endif
-	slider = nullptr;
-	tree = nullptr;;
-	playImage = nullptr;
-	pauseImage = nullptr;
-	stopImage = nullptr;
-	playPauseButton = nullptr;
-	stopButton = nullptr;
+	tree = nullptr;
 }
 	
 void VideoComponent::buttonClicked (juce::Button* button)
@@ -119,7 +200,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		return;
 	}
-	if(button == playPauseButton)
+	if(button == controlComponent->playPauseButton)
 	{
 		if(vlc->isPaused())
 		{
@@ -130,7 +211,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
 			vlc->Pause();
 		}
 	}
-	if(button == stopButton)
+	if(button == controlComponent->stopButton)
 	{
 		vlc->Stop();
 	}
@@ -138,22 +219,10 @@ void VideoComponent::buttonClicked (juce::Button* button)
 void VideoComponent::setScaleComponent(juce::Component* scaleComponent)
 {
 	tree->setScaleComponent(scaleComponent);
+	controlComponent->setScaleComponent(scaleComponent);
 }
 void VideoComponent::paint (juce::Graphics& g)
 {
-	
-	int w =  getWidth();
-	int h =  getHeight();
-	
-
-	int hMargin = 0.025*w;
-	int treeWidth = w/4;
-	int buttonWidth = 0.03*w;
-	int sliderHeight = 0.025*h;
-	int roundness = hMargin/4;
-
-	///////////////// VIDEO:
-	
 #ifdef BUFFER_DISPLAY
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	{
@@ -163,42 +232,6 @@ void VideoComponent::paint (juce::Graphics& g)
     g.fillAll (juce::Colours::black);
 #endif
 	
-	if(!vlc || vlc->isPaused())
-	{
-		return;
-	}
-	
-	///////////////// CONTROL ZONE:	
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonWidth-hMargin/2,
-										juce::Colours::black,
-										w/2, h,
-										false));
-	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness);
-
-	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonWidth-hMargin/2,
-										juce::Colours::black,
-										w/2, h-hMargin/2,
-										false));
-	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness,2.f);
-	
-	///////////////// TIME:
-	juce::Font f = g.getCurrentFont().withHeight(tree->getFontHeight());
-	f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
-	f.setStyleFlags(juce::Font::plain);
-	g.setFont(f);
-
-	g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
-
-	
-
-	g.drawFittedText (getTimeString(),
-						hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth,
-						juce::Justification::topRight, 
-						1, //1 line
-						1.f//no h scale
-						);
 }
 	
 void VideoComponent::resized()
@@ -209,16 +242,11 @@ void VideoComponent::resized()
 	
 	int hMargin = 0.025*w;
 	int treeWidth = w/4;
-	int buttonWidth = 0.03*w;
-	int sliderHeight = 0.025*h;
+	int controlHeight = 0.06*w;
 
-    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-sliderHeight-buttonWidth-hMargin-hMargin/2);
-	
+    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
 		
-	slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
-
-	playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
-	stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
 
 	if(vlc)
 	{
@@ -256,9 +284,9 @@ void VideoComponent::stop()
 		return;
 	}
 	vlc->Pause();
-	slider->setValue(1000, juce::sendNotificationSync);
+	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
 	vlc->Stop();
-	setIcon(*playPauseButton, *playImage);
+	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
 }
 
 
@@ -269,7 +297,7 @@ void VideoComponent::pause()
 		return;
 	}
 	vlc->Pause();
-	setIcon(*playPauseButton, *playImage);
+	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
 }
 
 
@@ -301,13 +329,13 @@ void VideoComponent::play()
 	{
 		return;
 	}
-	slider->setValue(1000, juce::sendNotificationSync);
+	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
 
 	vlc->Play();
 
-	slider->setValue(0);
+	controlComponent->slider->setValue(0);
 	
-	setIcon(*playPauseButton, *pauseImage);
+	setIcon(*controlComponent->playPauseButton, *controlComponent->pauseImage);
 }
 	
 
@@ -375,13 +403,13 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		vlc->SetTime(slider->getValue()*vlc->GetLength()/1000.);
+		vlc->SetTime(controlComponent->slider->getValue()*vlc->GetLength()/1000.);
 		sliderUpdating =false;
 	}
 }
 juce::Slider* VideoComponent::getSlider()
 {
-	return slider.get();
+	return controlComponent->slider.get();
 }
 //MenuTreeListener
 void VideoComponent::onOpen (juce::File file)
@@ -433,7 +461,8 @@ void VideoComponent::updateTimeAndSlider()
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
-		slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
+		controlComponent->slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
+		controlComponent->setTimeString(getTimeString());
 		videoUpdating =false;
 	}
 	
@@ -458,11 +487,11 @@ void VideoComponent::paused()
 }
 void VideoComponent::showPausedControls()
 {
-	setIcon(*playPauseButton, *playImage);
+	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
 
-	slider->setVisible(true);
-	playPauseButton->setVisible(true);
-	stopButton->setVisible(true);
+	controlComponent->slider->setVisible(true);
+	controlComponent->playPauseButton->setVisible(true);
+	controlComponent->stopButton->setVisible(true);
 }
 void VideoComponent::started()
 {
@@ -470,11 +499,11 @@ void VideoComponent::started()
 }
 void VideoComponent::showPlayingControls()
 {
-	setIcon(*playPauseButton, *pauseImage);
+	setIcon(*controlComponent->playPauseButton, *controlComponent->pauseImage);
 
-	slider->setVisible(true);
-	playPauseButton->setVisible(true);
-	stopButton->setVisible(true);
+	controlComponent->slider->setVisible(true);
+	controlComponent->playPauseButton->setVisible(true);
+	controlComponent->stopButton->setVisible(true);
 }
 void VideoComponent::stopped()
 {
@@ -482,7 +511,7 @@ void VideoComponent::stopped()
 }
 void VideoComponent::hidePlayingControls()
 {
-	slider->setVisible(false);
-	playPauseButton->setVisible(false);
-	stopButton->setVisible(false);
+	controlComponent->slider->setVisible(false);
+	controlComponent->playPauseButton->setVisible(false);
+	controlComponent->stopButton->setVisible(false);
 }

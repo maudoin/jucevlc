@@ -11,9 +11,30 @@
 
 
 #define BUFFER_DISPLAY
-#undef BUFFER_DISPLAY
+//#undef BUFFER_DISPLAY
 
 //==============================================================================
+class VideoComponent;
+
+class ControlComponent   : public juce::Component, public AppProportionnalComponent
+{
+    juce::ScopedPointer<juce::Slider> slider;
+    juce::ScopedPointer<juce::DrawableButton> playPauseButton;
+    juce::ScopedPointer<juce::DrawableButton> stopButton;
+    juce::ScopedPointer<juce::Drawable> playImage;
+    juce::ScopedPointer<juce::Drawable> pauseImage;
+    juce::ScopedPointer<juce::Drawable> stopImage;
+	juce::String timeString;
+public:
+	ControlComponent();
+	virtual ~ControlComponent();
+    virtual void paint (juce::Graphics& g);
+    virtual void resized();
+    void setTimeString(juce::String const& s);
+
+	friend class VideoComponent;
+};
+
 class VideoComponent   : public juce::Component, 
 	
 #ifdef BUFFER_DISPLAY
@@ -30,13 +51,8 @@ class VideoComponent   : public juce::Component,
     juce::ScopedPointer<juce::Component> videoComponent;
 #endif
     juce::CriticalSection imgCriticalSection;
-    juce::ScopedPointer<juce::Slider> slider;
+    juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<VLCMenuTree> tree;
-    juce::ScopedPointer<juce::DrawableButton> playPauseButton;
-    juce::ScopedPointer<juce::DrawableButton> stopButton;
-    juce::ScopedPointer<juce::Drawable> playImage;
-    juce::ScopedPointer<juce::Drawable> pauseImage;
-    juce::ScopedPointer<juce::Drawable> stopImage;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
