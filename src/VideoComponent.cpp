@@ -48,9 +48,12 @@ ControlComponent::ControlComponent()
 
 
 	
-	addChildComponent(slider);
-    addChildComponent(playPauseButton);
-    addChildComponent(stopButton);
+	addAndMakeVisible(slider);
+    addAndMakeVisible(playPauseButton);
+    addAndMakeVisible(stopButton);
+
+	
+	setOpaque(false);
 }
 ControlComponent::~ControlComponent()
 {
@@ -141,6 +144,39 @@ void ControlComponent::hidePlayingControls()
 	setVisible(false);
 }
 //////////////////////////////////////////////////////
+
+OverlayComponent::OverlayComponent()
+: controlComponent( new ControlComponent () )
+, tree( new VLCMenuTree () )
+{
+	
+    addAndMakeVisible (tree);
+    addChildComponent(controlComponent);
+}
+void OverlayComponent::setScaleComponent(juce::Component* scaleComponent)
+{
+	tree->setScaleComponent(scaleComponent);
+	controlComponent->setScaleComponent(scaleComponent);
+}
+OverlayComponent::~OverlayComponent()
+{
+	tree = nullptr;
+	controlComponent = nullptr;
+}
+void OverlayComponent::resized()
+{
+	int w =  getWidth();
+	int h =  getHeight();
+
+	
+	int hMargin = 0.025*w;
+	int treeWidth = w/4;
+	int controlHeight = 0.06*w;
+
+    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
+}
+//////////////////////////////////////////////////////
 class EmptyComponent   : public juce::Component
 {
 public:
@@ -160,31 +196,26 @@ VideoComponent::VideoComponent()
 
 	setOpaque(true);
 		
-
+	
+	overlayComponent = new OverlayComponent();
+	overlayComponent->tree->getListeners().add(this);
+	overlayComponent->controlComponent->slider->addListener(this);
+	overlayComponent->controlComponent->playPauseButton->addListener(this);
+	overlayComponent->controlComponent->stopButton->addListener(this);
 
 	sliderUpdating = false;
 	videoUpdating = false;
 
 		
-	tree = new VLCMenuTree ();
-	tree->getListeners().add(this);
-	tree->setOpenCloseButtonsVisible(false);
-	tree->setIndentSize(50);
-	tree->setOpaque(false);
 	
+    addAndMakeVisible (overlayComponent);
 	
-	controlComponent = new ControlComponent();
-	controlComponent->slider->addListener(this);
-	controlComponent->playPauseButton->addListener(this);
-	controlComponent->setOpaque(false);
-	
-    addAndMakeVisible (tree);
-    addAndMakeVisible (controlComponent);
 	
 	//after set Size
 	vlc = new VLCWrapper();
 
 #ifdef BUFFER_DISPLAY
+
 	vlc->SetDisplayCallback(this);
 #else
 
@@ -201,9 +232,9 @@ VideoComponent::VideoComponent()
 }
 VideoComponent::~VideoComponent()
 {    
-	controlComponent->slider->removeListener(this);
-	controlComponent->playPauseButton->removeListener(this);
-	controlComponent->stopButton->removeListener(this);
+	overlayComponent->controlComponent->slider->removeListener(this);
+	overlayComponent->controlComponent->playPauseButton->removeListener(this);
+	overlayComponent->controlComponent->stopButton->removeListener(this);
     vlc->SetEventCallBack(NULL);
 #ifdef BUFFER_DISPLAY
 	{
@@ -219,7 +250,7 @@ VideoComponent::~VideoComponent()
 	getPeer()->getComponent().removeComponentListener(this);
 	videoComponent = nullptr;
 #endif
-	tree = nullptr;
+	overlayComponent = nullptr;
 }
 	
 void VideoComponent::buttonClicked (juce::Button* button)
@@ -228,7 +259,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		return;
 	}
-	if(button == controlComponent->playPauseButton)
+	if(button == overlayComponent->controlComponent->playPauseButton)
 	{
 		if(vlc->isPaused())
 		{
@@ -239,15 +270,10 @@ void VideoComponent::buttonClicked (juce::Button* button)
 			vlc->Pause();
 		}
 	}
-	if(button == controlComponent->stopButton)
+	if(button == overlayComponent->controlComponent->stopButton)
 	{
 		vlc->Stop();
 	}
-}
-void VideoComponent::setScaleComponent(juce::Component* scaleComponent)
-{
-	tree->setScaleComponent(scaleComponent);
-	controlComponent->setScaleComponent(scaleComponent);
 }
 void VideoComponent::paint (juce::Graphics& g)
 {
@@ -266,18 +292,9 @@ void VideoComponent::resized()
 {
 	int w =  getWidth();
 	int h =  getHeight();
-
-	
-	int hMargin = 0.025*w;
-	int treeWidth = w/4;
-	int controlHeight = 0.06*w;
-
-		
-
 		
 #ifdef BUFFER_DISPLAY
-    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
-	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
+	overlayComponent->setBounds(0, 0, w, h);
 	if(vlc)
 	{
 		//rebuild buffer
@@ -299,25 +316,10 @@ void VideoComponent::resized()
 		}
 	}
 #else
-	int x=controlComponent->getParentComponent()?0:getScreenX();
-	int y=controlComponent->getParentComponent()?0:getScreenY();
-    tree->setBounds (x+w-treeWidth, y+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
-	controlComponent->setBounds (x+hMargin, y+h-controlHeight, w-2*hMargin, controlHeight);
+	int x=overlayComponent->getParentComponent()?0:getScreenX();
+	int y=overlayComponent->getParentComponent()?0:getScreenY();
 	videoComponent->setBounds(x, y, w, h);
-
-	
-	if(videoComponent->getPeer()!=nullptr)
-	{
-		videoComponent->getPeer()->toFront(false);
-		if(controlComponent->getPeer()!=nullptr)
-		{
-			controlComponent->getPeer()->toBehind(videoComponent->getPeer());
-		}
-		if(tree->getPeer()!=nullptr)
-		{
-			tree->getPeer()->toBehind(videoComponent->getPeer());
-		}
-	}
+	overlayComponent->setBounds(x, y, w, h);
 #endif
 	
 }
@@ -336,7 +338,7 @@ void VideoComponent::play(char* path)
 	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
 	vlc->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
 #else
-    videoComponent->setBounds(getScreenX(),getScreenY(),getWidth(),getHeight());
+    resized();
     startTimer(1);
 #endif
 
@@ -349,13 +351,13 @@ void VideoComponent::play()
 	{
 		return;
 	}
-	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
+	overlayComponent->controlComponent->slider->setValue(1000, juce::sendNotificationSync);
 
 	vlc->Play();
 
-	controlComponent->slider->setValue(0);
+	overlayComponent->controlComponent->slider->setValue(0);
 	
-	setIcon(*controlComponent->playPauseButton, *controlComponent->pauseImage);
+	setIcon(*overlayComponent->controlComponent->playPauseButton, *overlayComponent->controlComponent->pauseImage);
 }
 	
 void VideoComponent::pause()
@@ -365,7 +367,7 @@ void VideoComponent::pause()
 		return;
 	}
 	vlc->Pause();
-	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
+	setIcon(*overlayComponent->controlComponent->playPauseButton, *overlayComponent->controlComponent->playImage);
 }
 void VideoComponent::stop()
 {
@@ -374,9 +376,9 @@ void VideoComponent::stop()
 		return;
 	}
 	vlc->Pause();
-	controlComponent->slider->setValue(1000, juce::sendNotificationSync);
+	overlayComponent->controlComponent->slider->setValue(1000, juce::sendNotificationSync);
 	vlc->Stop();
-	setIcon(*controlComponent->playPauseButton, *controlComponent->playImage);
+	setIcon(*overlayComponent->controlComponent->playPauseButton, *overlayComponent->controlComponent->playImage);
 }
 
 
@@ -421,16 +423,15 @@ void VideoComponent::timerCallback()
 {
 	if (vlc->isStopping() || vlc->isStopped() )
     {
-        //stopTimer();
         videoComponent->setVisible(false);
+		addAndMakeVisible (overlayComponent);
         return;
     }
 
 	if(vlc->isPlaying() && !videoComponent->isVisible())
 	{
         videoComponent->setVisible(true);
-		tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
-		controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+		overlayComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
     }
     if(!getPeer()->isMinimised())
 	{
@@ -438,14 +439,10 @@ void VideoComponent::timerCallback()
     }
     if(getPeer()->isFocused())
 	{
-      videoComponent->getPeer()->toFront(false);
-      tree->getPeer()->toFront(false);
-      controlComponent->getPeer()->toFront(true);
-	  //controlComponent->getPeer()->toBehind(videoComponent->getPeer());
-      videoComponent->getPeer()->toBehind(tree->getPeer());
-      videoComponent->getPeer()->toBehind(controlComponent->getPeer());
-	  tree->getPeer()->toFront(true);
-	  controlComponent->getPeer()->toFront(true);
+      //videoComponent->getPeer()->toFront(false);
+      //overlayComponent->toFront(true);
+      videoComponent->getPeer()->toBehind(overlayComponent->getPeer());
+	  overlayComponent->toFront(true);
     }
 }
 #endif
@@ -459,7 +456,7 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		vlc->SetTime(controlComponent->slider->getValue()*vlc->GetLength()/1000.);
+		vlc->SetTime(overlayComponent->controlComponent->slider->getValue()*vlc->GetLength()/1000.);
 		sliderUpdating =false;
 	}
 }
@@ -513,21 +510,22 @@ void VideoComponent::updateTimeAndSlider()
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
-		controlComponent->slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
-		controlComponent->setTimeString(::getTimeString(vlc->GetTime(), vlc->GetLength()));
+		overlayComponent->controlComponent->slider->setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
+		overlayComponent->controlComponent->setTimeString(::getTimeString(vlc->GetTime(), vlc->GetLength()));
+		vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::repaint,overlayComponent->controlComponent.get()));
 		videoUpdating =false;
 	}
 	
 }
 void VideoComponent::paused()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPausedControls,overlayComponent->controlComponent.get()));
 }
 void VideoComponent::started()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,overlayComponent->controlComponent.get()));
 }
 void VideoComponent::stopped()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,overlayComponent->controlComponent.get()));
 }

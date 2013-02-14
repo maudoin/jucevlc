@@ -15,6 +15,7 @@
 
 //==============================================================================
 class VideoComponent;
+class OverlayComponent;
 
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
@@ -37,6 +38,21 @@ public:
 	void hidePlayingControls();
 
 	friend class VideoComponent;
+	friend class OverlayComponent;
+};
+
+class OverlayComponent   : public juce::Component
+{
+    juce::ScopedPointer<ControlComponent> controlComponent;
+    juce::ScopedPointer<VLCMenuTree> tree;
+public:
+	OverlayComponent();
+	virtual ~OverlayComponent();
+
+	void setScaleComponent(juce::Component* scaleComponent);
+    virtual void resized();
+	
+	friend class VideoComponent;
 };
 
 class VideoComponent   : public juce::Component, 
@@ -54,9 +70,8 @@ class VideoComponent   : public juce::Component,
 #else
     juce::ScopedPointer<juce::Component> videoComponent;
 #endif
+    juce::ScopedPointer<OverlayComponent> overlayComponent;
     juce::CriticalSection imgCriticalSection;
-    juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<VLCMenuTree> tree;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
@@ -65,7 +80,7 @@ public:
     VideoComponent();
     virtual ~VideoComponent();
 	
-	void setScaleComponent(juce::Component* scaleComponent);
+	void setScaleComponent(juce::Component* scaleComponent){overlayComponent->setScaleComponent(scaleComponent);};
     void paint (juce::Graphics& g);
 	
     virtual void resized();

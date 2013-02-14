@@ -352,6 +352,10 @@ VLCMenuTree::VLCMenuTree()
 
 	setIndentSize(0);
 	setDefaultOpenness(true);
+	setOpenCloseButtonsVisible(false);
+	setIndentSize(50);
+	setOpaque(false);
+
 	refresh();
 }
 VLCMenuTree::~VLCMenuTree()
