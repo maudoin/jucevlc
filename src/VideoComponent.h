@@ -18,6 +18,8 @@ class VideoComponent   : public juce::Component,
 	
 #ifdef BUFFER_DISPLAY
 	DisplayCallback, 
+#else
+	juce::Timer, juce::ComponentListener,
 #endif
 	juce::Slider::Listener, juce::Button::Listener, VLCMenuTreeListener, EventCallBack
 {
@@ -61,6 +63,10 @@ public:
 	void *lock(void **p_pixels);
 	void unlock(void *id, void *const *p_pixels);
 	void display(void *id);
+#else
+	void timerCallback();
+    void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
+    void componentVisibilityChanged(Component& component);
 #endif
 
 	void showPlayingControls();

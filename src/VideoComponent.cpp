@@ -11,6 +11,13 @@ namespace
 	}
 }
 
+class EmptyComponent   : public juce::Component
+{
+public:
+	EmptyComponent(const juce::String& componentName):juce::Component(componentName){}
+	void paint (juce::Graphics& g){}
+};
+	
 VideoComponent::VideoComponent()
 #ifdef BUFFER_DISPLAY
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
@@ -62,23 +69,19 @@ VideoComponent::VideoComponent()
     addChildComponent(stopButton);
 		
 	setSize (600, 300);
-#ifndef BUFFER_DISPLAY
-	videoComponent = new juce::Component("video");
-	videoComponent->setOpaque(true);
-	addChildComponent(videoComponent);
-    //videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
-
-#endif
-
-
 	//after set Size
 	vlc = new VLCWrapper();
+
 #ifdef BUFFER_DISPLAY
 	vlc->SetDisplayCallback(this);
 #else
+	videoComponent = new EmptyComponent("video");
+	videoComponent->setOpaque(true);
+	//addChildComponent(videoComponent);
+    videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
 	vlc->SetOutputWindow(videoComponent->getWindowHandle());
-	//vlc->SetOutputWindow(videoComponent->getPeer()->getNativeHandle());
 #endif
+
     vlc->SetEventCallBack(this);
 		
 }
@@ -87,20 +90,22 @@ VideoComponent::~VideoComponent()
 	slider->removeListener(this);
 	playPauseButton->removeListener(this);
 	stopButton->removeListener(this);
+#ifdef BUFFER_DISPLAY
 	{
 		vlc->SetTime(vlc->GetLength());
 		vlc->Pause();
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 		vlc = nullptr;
 	}
-	slider = nullptr;
-	tree = nullptr;;
-#ifdef BUFFER_DISPLAY
 	ptr = nullptr;
 	img = nullptr;
 #else
+	stopTimer();
+	getPeer()->getComponent().removeComponentListener(this);
 	videoComponent = nullptr;
 #endif
+	slider = nullptr;
+	tree = nullptr;;
 	playImage = nullptr;
 	pauseImage = nullptr;
 	stopImage = nullptr;
@@ -180,7 +185,7 @@ void VideoComponent::paint (juce::Graphics& g)
 	
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(tree->getFontHeight());
-	f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+	f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 
@@ -217,11 +222,12 @@ void VideoComponent::resized()
 
 	if(vlc)
 	{
+		
+#ifdef BUFFER_DISPLAY
 		//rebuild buffer
 		bool restart(vlc->isPaused());
 		vlc->Pause();
-		
-#ifdef BUFFER_DISPLAY
+
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 		std::ostringstream oss;
@@ -279,7 +285,10 @@ void VideoComponent::play(char* path)
 	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
 	vlc->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
 #else
-	videoComponent->getPeer()->toFront(false);
+    videoComponent->setBounds(getScreenX(),getScreenY(),getWidth(),getHeight());
+	getPeer()->getComponent().removeComponentListener(this);
+	getPeer()->getComponent().addComponentListener(this);
+    startTimer(1);
 #endif
 
 	play();
@@ -325,6 +334,35 @@ void VideoComponent::display(void *id)
 {
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::repaint,this));
 	jassert(id == NULL);
+}
+#else
+
+void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized){
+    resized();
+}
+void VideoComponent::componentVisibilityChanged(Component &  component){
+     resized();
+}
+void VideoComponent::timerCallback()
+{
+	if (vlc->isStopping() || vlc->isStopped() )
+    {
+        //stopTimer();
+        videoComponent->setVisible(false);
+        stop();
+        return;
+    }
+
+	if(vlc->isPlaying() && !videoComponent->isVisible()){
+        videoComponent->setVisible(true);
+    }
+
+    if(getPeer()->isMinimised()==false){
+      getPeer()->toBehind(videoComponent->getPeer());
+    }
+    if(getPeer()->isFocused()==true){
+      videoComponent->getPeer()->toFront(false);
+    }
 }
 #endif
 

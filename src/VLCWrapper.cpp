@@ -148,10 +148,34 @@ void VLCWrapper::Pause()
     libvlc_media_player_pause (pMediaPlayer_);
 }
 
+    enum{
+    STATE_IDLE_CLOSE,
+    STATE_OPENING,
+    STATE_BUFFERING,
+    STATE_PLAYING,
+    STATE_PAUSED,
+    STATE_STOPPING,
+    STATE_ENDED,
+    STATE_ERROR,
+    };
 bool VLCWrapper::isPaused()
 {
+    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Paused;
+}
+bool VLCWrapper::isPlaying()
+{
+    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Playing;
+}
+
+bool VLCWrapper::isStopping()
+{
 	//  playing?
-    return !libvlc_media_player_is_playing (pMediaPlayer_);
+    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Stopped;
+}
+bool VLCWrapper::isStopped()
+{
+	//  playing?
+    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Ended;
 }
 
 void VLCWrapper::Stop()
