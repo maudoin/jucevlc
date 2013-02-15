@@ -455,6 +455,8 @@ void VideoComponent::timerCallback()
 
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
+
+		resized();
     }
     if(!getPeer()->isMinimised())
 	{
