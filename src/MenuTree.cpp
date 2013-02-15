@@ -2,11 +2,6 @@
 
 #include <modules\vf_core\vf_core.h>
 
-#include "icons.h"
-#include "VLCMenu.h"
-
-
-
 
 //==============================================================================
 class MenuTree;
@@ -191,16 +186,16 @@ public:
         }
     }
     void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    void addFile(juce::File const& file_, MenuTreeListener::FileMethod fileMethod_);
+    void addFile(juce::File const& file_, AbstractFileAction* fileMethod_);
 	
-	void addFiles(juce::Array<juce::File> const& destArray, MenuTreeListener::FileMethod fileMethod)
+	void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* fileMethod)
 	{
 		//add folders
 		for(int i=0;i<destArray.size();++i)
 		{
 			if(destArray[i].isDirectory())
 			{
-				addFile(destArray[i], fileMethod);
+				addFile(destArray[i], fileMethod->clone());
 			}
 		}
 		//add files
@@ -208,23 +203,28 @@ public:
 		{
 			if(!destArray[i].isDirectory())
 			{
-				addFile(destArray[i], fileMethod);
+				addFile(destArray[i], fileMethod->clone());
 			}
 		}
 	}
 };
 class ActionTreeViewItem  : public SmartTreeViewItem
 {
+	juce::String name;
+	const juce::Drawable* icon;
 	juce::ScopedPointer<AbstractAction> action;
 public:
-	
-    ActionTreeViewItem (MenuTree* owner, AbstractAction* action)
+    ActionTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
 		:SmartTreeViewItem(owner)
+		,name(name)
+		,icon(icon)
 		,action(action)
     {
 	}
-    ActionTreeViewItem (SmartTreeViewItem& p, AbstractAction* action)
+    ActionTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
 		:SmartTreeViewItem(p)
+		,name(name)
+		,icon(icon)
 		,action(action)
     {
 	}
@@ -237,33 +237,14 @@ public:
 		if(isSelected)
 		{
 			focusItemAsMenuShortcut();
-			action->operator()(*this);
+			if(action)
+			{
+				action->operator()(*this);
+			}
 		}
 		
 	}
-};
-class BindTreeViewItem  : public ActionTreeViewItem
-{
-	juce::String name;
-	const juce::Drawable* icon;
-public:
-	
-    BindTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action)
-		:ActionTreeViewItem(owner, action)
-		,name(name)
-		,icon(nullptr)
-    {
-	}
-	BindTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
-		:ActionTreeViewItem(p,action)
-		,name(name)
-		,icon(icon)
-    {
-	}
     
-	virtual ~BindTreeViewItem()
-	{
-	}
 	
 	virtual const juce::Drawable* getIcon()
 	{
@@ -285,17 +266,17 @@ public:
 class FileTreeViewItem  : public SmartTreeViewItem
 {
     juce::File file;
-	MenuTreeListener::FileMethod fileMethod;
+	juce::ScopedPointer<AbstractFileAction> fileMethod;
 public:
     FileTreeViewItem (MenuTree* owner, 
-                      juce::File const& file_, MenuTreeListener::FileMethod fileMethod_)
+                      juce::File const& file_, AbstractFileAction* fileMethod_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
 		,fileMethod(fileMethod_)
     {
 	}
     FileTreeViewItem (SmartTreeViewItem& p, 
-                      juce::File const& file_, MenuTreeListener::FileMethod fileMethod_)
+                      juce::File const& file_, AbstractFileAction* fileMethod_)
 		:SmartTreeViewItem(p)
 		,file(file_)
 		,fileMethod(fileMethod_)
@@ -324,9 +305,10 @@ public:
 	
 	void itemClicked(const juce::MouseEvent& e)
 	{
-		if(!file.isDirectory())
+		if(!file.isDirectory() && fileMethod)
 		{
-			getOwner()->getListeners().call(fileMethod, file);
+			focusItemAsMenuShortcut();
+			fileMethod->operator()(*this, file);
 		}
 	}
 
@@ -353,23 +335,16 @@ public:
 };
 void SmartTreeViewItem::addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon)
 {
-	addSubItem(new BindTreeViewItem(*this, name, action, icon));
+	addSubItem(new ActionTreeViewItem(*this, name, action, icon));
 }
 
-void SmartTreeViewItem::addFile(juce::File const& file, MenuTreeListener::FileMethod fileMethod)
+void SmartTreeViewItem::addFile(juce::File const& file, AbstractFileAction* fileMethod)
 {
 	addSubItem(new FileTreeViewItem(*this, file, fileMethod));
 }
 
-MenuTree::MenuTree() 
+MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
 {
-    itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
-    folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
-    folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
-    audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
-    displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
-    subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
-    exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
 
 	setIndentSize(0);
 	setDefaultOpenness(true);
@@ -390,12 +365,15 @@ void MenuTree::refresh()
 
 	deleteRootItem();
 
-	juce::TreeViewItem* const root
-		= new BindTreeViewItem (this, "Menu", Action::build(*this, &getRootITems));
+	if(rootAction)
+	{
+		juce::TreeViewItem* const root
+			= new ActionTreeViewItem (this, "Menu", rootAction);
 
-	setRootItem (root);
+		setRootItem (root);
 
-	root->setSelected(true, true);
+		root->setSelected(true, true);
+	}
 	
 }
 void MenuTree::paint (juce::Graphics& g)

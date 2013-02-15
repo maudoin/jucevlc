@@ -2,6 +2,7 @@
 #include "VideoComponent.h"
 #include "Icons.h"
 #include "MenuTree.h"
+#include "VLCMenu.h"
 
 namespace
 {
@@ -192,6 +193,15 @@ VideoComponent::VideoComponent()
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
 #endif
 {    
+    itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
+    folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
+    folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
+    audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
+    displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
+    subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
+    exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
+
+
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 
@@ -199,7 +209,10 @@ VideoComponent::VideoComponent()
 		
 	
 	overlayComponent = new OverlayComponent();
-	overlayComponent->tree->getListeners().add(this);
+	overlayComponent->tree->setItemImage(getItemImage());
+	overlayComponent->tree->setFolderImage(getFolderImage());
+	overlayComponent->tree->setFolderShortcutImage(getFolderShortcutImage());
+
 	overlayComponent->controlComponent->slider->addListener(this);
 	overlayComponent->controlComponent->playPauseButton->addListener(this);
 	overlayComponent->controlComponent->stopButton->addListener(this);
@@ -231,6 +244,8 @@ VideoComponent::VideoComponent()
 #endif
 
     vlc->SetEventCallBack(this);
+
+	overlayComponent->tree->setRootAction(getVideoRootMenu(*this));
 		
 }
 VideoComponent::~VideoComponent()
@@ -469,45 +484,45 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	}
 }
 //MenuTreeListener
-void VideoComponent::onOpen (juce::File file)
+void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
 	vf::MessageThread::getInstance();
 	play(file.getFullPathName().toUTF8().getAddress());
 }
-void VideoComponent::onOpenSubtitle (juce::File file)
+void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
 	vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 }
-void VideoComponent::onOpenPlaylist (juce::File file)
+void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 {
 }
 
-void VideoComponent::onCrop (float ratio)
+void VideoComponent::onCrop (MenuTreeItem& item, float ratio)
 {
 	vlc->setCrop(ratio);
 }
-void VideoComponent::onRate (float rate)
+void VideoComponent::onRate (MenuTreeItem& item, float rate)
 {
 	vlc->setRate(rate);
 }
-void VideoComponent::onSetAspectRatio(juce::String ratio)
+void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 {
 	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
-void VideoComponent::onShiftAudio(float ms)
+void VideoComponent::onShiftAudio(MenuTreeItem& item, float ms)
 {
 	vlc->shiftAudio(ms);
 }
-void VideoComponent::onShiftSubtitles(float ms)
+void VideoComponent::onShiftSubtitles(MenuTreeItem& item, float ms)
 {
 	vlc->shiftSubtitles(ms);
 }
-void VideoComponent::onAudioVolume(int volume)
+void VideoComponent::onAudioVolume(MenuTreeItem& item, int volume)
 {
 	vlc->SetVolume(volume);
 }
 
-void VideoComponent::onFullscreen(bool fs)
+void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
 	//getPeer()->setFullScreen(fs);
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);

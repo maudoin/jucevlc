@@ -63,7 +63,7 @@ class VideoComponent   : public juce::Component,
 #else
 	juce::Timer, juce::ComponentListener,
 #endif
-	juce::Slider::Listener, juce::Button::Listener, MenuTreeListener, EventCallBack
+	juce::Slider::Listener, juce::Button::Listener, EventCallBack
 {
 #ifdef BUFFER_DISPLAY
 	juce::ScopedPointer<juce::Image> img;
@@ -76,6 +76,13 @@ class VideoComponent   : public juce::Component,
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
+    juce::ScopedPointer<juce::Drawable> itemImage;
+    juce::ScopedPointer<juce::Drawable> folderImage;
+    juce::ScopedPointer<juce::Drawable> folderShortcutImage;
+    juce::ScopedPointer<juce::Drawable> audioImage;
+    juce::ScopedPointer<juce::Drawable> displayImage;
+    juce::ScopedPointer<juce::Drawable> subtitlesImage;
+    juce::ScopedPointer<juce::Drawable> exitImage;
 		
 public:
     VideoComponent();
@@ -107,24 +114,33 @@ public:
     virtual void sliderValueChanged (juce::Slider* slider);
     virtual void buttonClicked (juce::Button* button);
 
-	//MenuTreeListener
-    virtual void onOpen (juce::File file);
-    virtual void onOpenSubtitle (juce::File file);
-    virtual void onOpenPlaylist (juce::File file);
+	//MenuTree
+    virtual void onOpen (MenuTreeItem& item, juce::File const& file);
+    virtual void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
+    virtual void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 
-    virtual void onCrop (float ratio);
-    virtual void onRate (float rate);
-    virtual void onSetAspectRatio(juce::String ratio);
-    virtual void onShiftAudio(float ms);
-    virtual void onShiftSubtitles(float ms);
-    virtual void onAudioVolume(int volume);
+    virtual void onCrop (MenuTreeItem& item, float ratio);
+    virtual void onRate (MenuTreeItem& item, float rate);
+    virtual void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
+    virtual void onShiftAudio(MenuTreeItem& item, float ms);
+    virtual void onShiftSubtitles(MenuTreeItem& item, float ms);
+    virtual void onAudioVolume(MenuTreeItem& item, int volume);
 	
-    virtual void onFullscreen(bool fs);
+    virtual void onFullscreen(MenuTreeItem& item, bool fs);
 	//VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();
 	virtual void started();
 	virtual void stopped();
+
+	
+	juce::Drawable const* getItemImage() const { return itemImage; };
+	juce::Drawable const* getFolderImage() const { return folderImage; };
+	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
+	juce::Drawable const* getAudioImage() const { return audioImage; };
+	juce::Drawable const* getDisplayImage() const { return displayImage; };
+	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
+	juce::Drawable const* getExitImage() const { return exitImage; };
 };
 
 #endif //VIDEO_COMPONENT
