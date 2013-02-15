@@ -31,10 +31,13 @@ public:
 };
 
 //==============================================================================
+class AbstractAction;
 class VLCMenuTreeItem
 {
 public:
-
+	virtual ~VLCMenuTreeItem(){}
+    virtual void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
+	virtual void addFiles(juce::Array<juce::File> const& destArray, VLCMenuTreeListener::FileMethod fileMethod) = 0;
 };
 
 //==============================================================================
