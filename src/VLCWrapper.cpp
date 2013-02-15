@@ -230,6 +230,13 @@ void VLCWrapper::OpenMedia(const char* pMediaPathName)
     libvlc_media_player_set_media (pMediaPlayer_, pMedia_);    
 }
 
+
+void VLCWrapper::loadSubtitle(const char* pSubPathName)
+{
+	// Load a new item
+    libvlc_video_set_subtitle_file (pMediaPlayer_, pSubPathName);    
+}
+
 void VLCWrapper::setCrop (float ratio)
 {
 	libvlc_video_set_scale(pMediaPlayer_, ratio);

@@ -471,10 +471,11 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 void VideoComponent::onOpen (juce::File file)
 {
 	vf::MessageThread::getInstance();
-	play(file.getFullPathName().getCharPointer().getAddress());
+	play(file.getFullPathName().toUTF8().getAddress());
 }
 void VideoComponent::onOpenSubtitle (juce::File file)
 {
+	vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 }
 void VideoComponent::onOpenPlaylist (juce::File file)
 {

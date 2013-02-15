@@ -71,6 +71,7 @@ public:
     /** Open a media file.
     *   @param [in] pMediaPathName PathName of the media file. */
     void OpenMedia(const char* pMediaPathName);
+	void loadSubtitle(const char* pSubPathName);
 
     /** Start playback. */
     void Play();
