@@ -73,6 +73,37 @@ public:
 	virtual ~SmartTreeViewItem()
 	{
 	}
+	void isolate()
+	{
+		juce::TreeViewItem* parent = getParentItem();
+		if(parent)
+		{
+			for(int i=0;i<parent->getNumSubItems();++i)
+			{
+				juce::TreeViewItem* sibling = parent->getSubItem(i);
+				if(sibling && sibling!=this )
+				{
+					parent->removeSubItem(i);
+					i--;
+				}
+			}
+		}
+	}
+	void focusItemAsMenuShortcut()
+	{
+		clearSubItems();
+		juce::TreeViewItem* current = this;
+		while(current != nullptr)
+		{
+			SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(current);
+			if(bindParent)
+			{
+				bindParent->isolate();
+				bindParent->setShortcutDisplay();
+			}
+			current=current->getParentItem();
+		}
+	}
     virtual int getItemHeight() const                               
 	{
 		return (int)owner->getItemHeight(); 
@@ -225,6 +256,7 @@ public:
 	{
 		if(isSelected)
 		{
+			focusItemAsMenuShortcut();
 			action->operator()(*this);
 		}
 		
@@ -234,7 +266,6 @@ class BindTreeViewItem  : public ActionTreeViewItem
 {
 	juce::String name;
 	const juce::Drawable* icon;
-	juce::ScopedPointer<AbstractAction> action;
 public:
 	
     BindTreeViewItem (VLCMenuTree* owner, juce::String name, AbstractAction* action)
@@ -332,6 +363,7 @@ public:
 		{
 			if(file.isDirectory())
 			{
+				focusItemAsMenuShortcut();
 				listFiles(*this, fileMethod);
 			}
 		}
@@ -363,41 +395,6 @@ VLCMenuTree::~VLCMenuTree()
     deleteRootItem();
 }
 
-void isolate(juce::TreeViewItem* item)
-{
-	if(!item)
-	{
-		return;
-	}
-	juce::TreeViewItem* parent = item->getParentItem();
-	if(parent)
-	{
-		for(int i=0;i<parent->getNumSubItems();++i)
-		{
-			juce::TreeViewItem* sibling = parent->getSubItem(i);
-			if(sibling && sibling!=item )
-			{
-				parent->removeSubItem(i);
-				i--;
-			}
-		}
-	}
-}
-void prepare(SmartTreeViewItem& item)
-{
-	item.clearSubItems();
-	juce::TreeViewItem* current = &item;
-	while(current != nullptr)
-	{
-		isolate(current);
-		SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(current);
-		if(bindParent)
-		{
-			bindParent->setShortcutDisplay();
-		}
-		current=current->getParentItem();
-	}
-}
 
 template <typename P1>
 void dispatchToListeners (SmartTreeViewItem& item, void (VLCMenuTreeListener::*callbackFunction) (P1), P1 p1)
@@ -415,7 +412,6 @@ void nop(SmartTreeViewItem& parent)
 }
 void listFiles(SmartTreeViewItem& item, VLCMenuTreeListener::FileMethod fileMethod)
 {
-	prepare(item);
 
 	juce::Array<juce::File> destArray;
 
@@ -453,13 +449,11 @@ void listFiles(SmartTreeViewItem& item, VLCMenuTreeListener::FileMethod fileMeth
 
 void pin(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "Pin", Action::build(&nop)));
 }
 
 void volume(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "25%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 25)));
 	item.addSubItem(new BindTreeViewItem (item, "50%", Action::build(&dispatchToListeners<int>, &VLCMenuTreeListener::onAudioVolume, 50)));
@@ -472,7 +466,6 @@ void volume(SmartTreeViewItem& item)
 }
 void soundOptions(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "Volume", Action::build(&volume)));
 	item.addSubItem(new BindTreeViewItem (item, "Shift", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "Mute", Action::build(&pin)));
@@ -480,7 +473,6 @@ void soundOptions(SmartTreeViewItem& item)
 
 void crop(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "16/10", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onCrop, 16.f/10.f)));
 	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onCrop, 16.f/9.f)));
@@ -488,7 +480,6 @@ void crop(SmartTreeViewItem& item)
 }
 void ratio(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "original", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String(""))));
 	item.addSubItem(new BindTreeViewItem (item, "16/10", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String("16/10"))));
 	item.addSubItem(new BindTreeViewItem (item, "16/9", Action::build(&dispatchToListeners<juce::String>, &VLCMenuTreeListener::onSetAspectRatio, juce::String("16/9"))));
@@ -497,7 +488,6 @@ void ratio(SmartTreeViewItem& item)
 }
 void rate(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "free", Action::build(&pin)));
 	item.addSubItem(new BindTreeViewItem (item, "50%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, .5f)));
 	item.addSubItem(new BindTreeViewItem (item, "100%", Action::build(&dispatchToListeners<float>, &VLCMenuTreeListener::onRate, 1.f)));
@@ -510,7 +500,6 @@ void rate(SmartTreeViewItem& item)
 }
 void videoOptions(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "FullScreen", Action::build(&dispatchToListeners<bool>, &VLCMenuTreeListener::onFullscreen, true)));
 	item.addSubItem(new BindTreeViewItem (item, "Windowed", Action::build(&dispatchToListeners<bool>, &VLCMenuTreeListener::onFullscreen, false)));
 	item.addSubItem(new BindTreeViewItem (item, "Speed", Action::build(&rate)));
@@ -519,7 +508,6 @@ void videoOptions(SmartTreeViewItem& item)
 }
 void subtitlesOptions(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "Select", Action::build(&nop)));
 	item.addSubItem(new BindTreeViewItem (item, "Add", Action::build(&listFiles, &VLCMenuTreeListener::onOpenSubtitle)));
 }
@@ -529,7 +517,6 @@ void exitVLCFrontend(SmartTreeViewItem& item)
 }
 void getRootITems(SmartTreeViewItem& item)
 {
-	prepare(item);
 	item.addSubItem(new BindTreeViewItem (item, "Open", item.getOwner()->getFolderShortcutImage(), Action::build(&listFiles, &VLCMenuTreeListener::onOpen)));
 	item.addSubItem(new BindTreeViewItem (item, "Subtitle", item.getOwner()->getSubtitlesImage(), Action::build(&subtitlesOptions)));
 	item.addSubItem(new BindTreeViewItem (item, "Video options", item.getOwner()->getDisplayImage(), Action::build(&videoOptions)));

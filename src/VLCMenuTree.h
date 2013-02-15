@@ -31,6 +31,13 @@ public:
 };
 
 //==============================================================================
+class VLCMenuTreeItem
+{
+public:
+
+};
+
+//==============================================================================
 class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent
 {
     juce::ScopedPointer<juce::Drawable> itemImage;
