@@ -5,7 +5,8 @@
 #include "juce.h"
 #include "Execute.h"
 #include "VLCWrapper.h"
-#include "VLCMenuTree.h"
+#include "MenuTree.h"
+#include "AppProportionnalComponent.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
 
@@ -44,7 +45,7 @@ public:
 class OverlayComponent   : public juce::Component
 {
     juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<VLCMenuTree> tree;
+    juce::ScopedPointer<MenuTree> tree;
 public:
 	OverlayComponent();
 	virtual ~OverlayComponent();
@@ -62,7 +63,7 @@ class VideoComponent   : public juce::Component,
 #else
 	juce::Timer, juce::ComponentListener,
 #endif
-	juce::Slider::Listener, juce::Button::Listener, VLCMenuTreeListener, EventCallBack
+	juce::Slider::Listener, juce::Button::Listener, MenuTreeListener, EventCallBack
 {
 #ifdef BUFFER_DISPLAY
 	juce::ScopedPointer<juce::Image> img;

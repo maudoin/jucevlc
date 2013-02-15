@@ -66,9 +66,6 @@
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp">
       <Filter>Source Files\juce</Filter>
     </ClCompile>
-    <ClCompile Include="src\VLCMenuTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\VideoComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,6 +76,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\VLCMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MenuTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -369,9 +369,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\AppProportionnalComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VLCMenuTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\VideoComponent.h">
@@ -729,6 +726,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\VLCMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MenuTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

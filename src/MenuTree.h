@@ -5,15 +5,15 @@
 #include "juce.h"
 #include "AppProportionnalComponent.h"
 	
-class VLCMenuTreeListener
+class MenuTreeListener
 {
 public:
     //==============================================================================
     /** Destructor. */
-	virtual ~VLCMenuTreeListener(){}
+	virtual ~MenuTreeListener(){}
 
     //==============================================================================
-	typedef void (VLCMenuTreeListener::*FileMethod)(juce::File);
+	typedef void (MenuTreeListener::*FileMethod)(juce::File);
 
     virtual void onOpen (juce::File file) = 0;
     virtual void onOpenSubtitle (juce::File file) = 0;
@@ -30,7 +30,7 @@ public:
 };
 
 //==============================================================================
-class VLCMenuTreeItem;
+class MenuTreeItem;
 class AbstractAction
 {
 public:
@@ -40,19 +40,19 @@ public:
 
 		This executes during the queue's call to synchronize().
 	*/
-	virtual void operator() (VLCMenuTreeItem& parent) = 0;
+	virtual void operator() (MenuTreeItem& parent) = 0;
 };
 //==============================================================================
-class VLCMenuTreeItem
+class MenuTreeItem
 {
 public:
-	virtual ~VLCMenuTreeItem(){}
+	virtual ~MenuTreeItem(){}
     virtual void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
-	virtual void addFiles(juce::Array<juce::File> const& destArray, VLCMenuTreeListener::FileMethod fileMethod) = 0;
+	virtual void addFiles(juce::Array<juce::File> const& destArray, MenuTreeListener::FileMethod fileMethod) = 0;
 };
 
 //==============================================================================
-class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalComponent
+class MenuTree : public virtual juce::TreeView, public AppProportionnalComponent
 {
     juce::ScopedPointer<juce::Drawable> itemImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
@@ -61,16 +61,16 @@ class VLCMenuTree : public virtual juce::TreeView, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> displayImage;
     juce::ScopedPointer<juce::Drawable> subtitlesImage;
     juce::ScopedPointer<juce::Drawable> exitImage;
-    juce::ListenerList <VLCMenuTreeListener> listeners;
+    juce::ListenerList <MenuTreeListener> listeners;
 public:
-	VLCMenuTree();
-	virtual ~VLCMenuTree();
+	MenuTree();
+	virtual ~MenuTree();
 	virtual void refresh();
 	void setInitialMenu();
 	
 	void paint (juce::Graphics& g);
 	
-	juce::ListenerList <VLCMenuTreeListener>& getListeners (){return listeners;}
+	juce::ListenerList <MenuTreeListener>& getListeners (){return listeners;}
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
 	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };

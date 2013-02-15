@@ -1,6 +1,7 @@
 
 #include "VideoComponent.h"
 #include "Icons.h"
+#include "MenuTree.h"
 
 namespace
 {
@@ -147,7 +148,7 @@ void ControlComponent::hidePlayingControls()
 
 OverlayComponent::OverlayComponent()
 : controlComponent( new ControlComponent () )
-, tree( new VLCMenuTree () )
+, tree( new MenuTree () )
 {
 	
     addAndMakeVisible (tree);

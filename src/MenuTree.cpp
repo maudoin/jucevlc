@@ -1,4 +1,4 @@
-#include "VLCMenuTree.h"
+#include "MenuTree.h"
 
 #include <modules\vf_core\vf_core.h>
 
@@ -9,15 +9,15 @@
 
 
 //==============================================================================
-class VLCMenuTree;
+class MenuTree;
 
-class SmartTreeViewItem  : public juce::TreeViewItem, public VLCMenuTreeItem
+class SmartTreeViewItem  : public juce::TreeViewItem, public MenuTreeItem
 {
-	VLCMenuTree* owner;
+	MenuTree* owner;
 protected:
 	bool shortcutDisplay;
 public:
-    SmartTreeViewItem (VLCMenuTree* owner)
+    SmartTreeViewItem (MenuTree* owner)
 		:owner(owner)
 		,shortcutDisplay(false)
     {
@@ -66,7 +66,7 @@ public:
 	{
 		return (int)owner->getItemHeight(); 
 	}
-	VLCMenuTree* getOwner()
+	MenuTree* getOwner()
 	{
 		return owner;
 	}
@@ -191,9 +191,9 @@ public:
         }
     }
     void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    void addFile(juce::File const& file_, VLCMenuTreeListener::FileMethod fileMethod_);
+    void addFile(juce::File const& file_, MenuTreeListener::FileMethod fileMethod_);
 	
-	void addFiles(juce::Array<juce::File> const& destArray, VLCMenuTreeListener::FileMethod fileMethod)
+	void addFiles(juce::Array<juce::File> const& destArray, MenuTreeListener::FileMethod fileMethod)
 	{
 		//add folders
 		for(int i=0;i<destArray.size();++i)
@@ -218,7 +218,7 @@ class ActionTreeViewItem  : public SmartTreeViewItem
 	juce::ScopedPointer<AbstractAction> action;
 public:
 	
-    ActionTreeViewItem (VLCMenuTree* owner, AbstractAction* action)
+    ActionTreeViewItem (MenuTree* owner, AbstractAction* action)
 		:SmartTreeViewItem(owner)
 		,action(action)
     {
@@ -248,7 +248,7 @@ class BindTreeViewItem  : public ActionTreeViewItem
 	const juce::Drawable* icon;
 public:
 	
-    BindTreeViewItem (VLCMenuTree* owner, juce::String name, AbstractAction* action)
+    BindTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action)
 		:ActionTreeViewItem(owner, action)
 		,name(name)
 		,icon(nullptr)
@@ -285,17 +285,17 @@ public:
 class FileTreeViewItem  : public SmartTreeViewItem
 {
     juce::File file;
-	VLCMenuTreeListener::FileMethod fileMethod;
+	MenuTreeListener::FileMethod fileMethod;
 public:
-    FileTreeViewItem (VLCMenuTree* owner, 
-                      juce::File const& file_, VLCMenuTreeListener::FileMethod fileMethod_)
+    FileTreeViewItem (MenuTree* owner, 
+                      juce::File const& file_, MenuTreeListener::FileMethod fileMethod_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
 		,fileMethod(fileMethod_)
     {
 	}
     FileTreeViewItem (SmartTreeViewItem& p, 
-                      juce::File const& file_, VLCMenuTreeListener::FileMethod fileMethod_)
+                      juce::File const& file_, MenuTreeListener::FileMethod fileMethod_)
 		:SmartTreeViewItem(p)
 		,file(file_)
 		,fileMethod(fileMethod_)
@@ -356,12 +356,12 @@ void SmartTreeViewItem::addAction(juce::String name, AbstractAction* action, con
 	addSubItem(new BindTreeViewItem(*this, name, action, icon));
 }
 
-void SmartTreeViewItem::addFile(juce::File const& file, VLCMenuTreeListener::FileMethod fileMethod)
+void SmartTreeViewItem::addFile(juce::File const& file, MenuTreeListener::FileMethod fileMethod)
 {
 	addSubItem(new FileTreeViewItem(*this, file, fileMethod));
 }
 
-VLCMenuTree::VLCMenuTree() 
+MenuTree::MenuTree() 
 {
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
@@ -379,13 +379,13 @@ VLCMenuTree::VLCMenuTree()
 
 	refresh();
 }
-VLCMenuTree::~VLCMenuTree()
+MenuTree::~MenuTree()
 {
     deleteRootItem();
 }
 
 
-void VLCMenuTree::refresh()
+void MenuTree::refresh()
 {
 
 	deleteRootItem();
@@ -398,7 +398,7 @@ void VLCMenuTree::refresh()
 	root->setSelected(true, true);
 	
 }
-void VLCMenuTree::paint (juce::Graphics& g)
+void MenuTree::paint (juce::Graphics& g)
 {
 	float w = (float)getWidth();
 	float h = (float)getHeight();

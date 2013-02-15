@@ -151,7 +151,7 @@
     <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\VLCMenu.cpp" />
-    <ClCompile Include="src\VLCMenuTree.cpp" />
+    <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\VideoComponent.cpp" />
@@ -368,7 +368,7 @@
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\VLCMenu.h" />
-    <ClInclude Include="src\VLCMenuTree.h" />
+    <ClInclude Include="src\MenuTree.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />
     <ClInclude Include="src\LookNFeel.h" />
