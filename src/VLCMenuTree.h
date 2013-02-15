@@ -4,7 +4,6 @@
 
 #include "juce.h"
 #include "AppProportionnalComponent.h"
-#include <modules\juce_gui_basics\filebrowser\juce_FileBrowserComponent.h>
 	
 class VLCMenuTreeListener
 {
@@ -31,7 +30,19 @@ public:
 };
 
 //==============================================================================
-class AbstractAction;
+class VLCMenuTreeItem;
+class AbstractAction
+{
+public:
+	virtual ~AbstractAction () { }
+
+	/** Calls the functor.
+
+		This executes during the queue's call to synchronize().
+	*/
+	virtual void operator() (VLCMenuTreeItem& parent) = 0;
+};
+//==============================================================================
 class VLCMenuTreeItem
 {
 public:
