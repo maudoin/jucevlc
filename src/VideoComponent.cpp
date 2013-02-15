@@ -181,9 +181,26 @@ void OverlayComponent::resized()
 //////////////////////////////////////////////////////
 class EmptyComponent   : public juce::Component
 {
+	VideoComponent &m_video;
+	OverlayComponent &m_overlayComponent;
 public:
-	EmptyComponent(const juce::String& componentName):juce::Component(componentName){}
+	EmptyComponent(VideoComponent &video, OverlayComponent &overlayComponent, const juce::String& componentName)
+		:juce::Component(componentName)
+		,m_video(video)
+		,m_overlayComponent(overlayComponent)
+	{
+		setInterceptsMouseClicks(false, false);
+	}
 	void paint (juce::Graphics& g){}
+	bool hitTest (int x, int y)
+	{
+		return false;
+	}
+	void broughtToFront ()   
+	{
+		m_video.getPeer()->toBehind(m_overlayComponent.getPeer());
+		m_overlayComponent.toFront(true);
+	}
 };
 	
 //////////////////////////////////////////////////////
@@ -233,7 +250,7 @@ VideoComponent::VideoComponent()
 	vlc->SetDisplayCallback(this);
 #else
 
-	videoComponent = new EmptyComponent("video");
+	videoComponent = new EmptyComponent(*this, *overlayComponent, "video");
 	videoComponent->setOpaque(true);
     videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
 
@@ -270,7 +287,6 @@ VideoComponent::~VideoComponent()
 #endif
 	overlayComponent = nullptr;
 }
-	
 void VideoComponent::buttonClicked (juce::Button* button)
 {
 	if(!vlc)
@@ -439,36 +455,48 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 }
 void VideoComponent::timerCallback()
 {
-	if (vlc->isStopping() || vlc->isStopped() )
-    {
-        videoComponent->setVisible(false);
+	if (vlc->isStopping() || vlc->isStopped() && videoComponent->isVisible() )
+	{
+		videoComponent->setVisible(false);
 		addAndMakeVisible (overlayComponent);
 
 		getPeer()->getComponent().removeComponentListener(this);
-        return;
-    }
+		return;
+	}
 
 	if(vlc->isPlaying() && !videoComponent->isVisible())
 	{
-        videoComponent->setVisible(true);
+		videoComponent->setVisible(true);
 		overlayComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
 
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
+		
+		getPeer()->toBehind(videoComponent->getPeer());
+		videoComponent->getPeer()->toBehind(overlayComponent->getPeer());
+		overlayComponent->toFront(true);
 
 		resized();
-    }
-    if(!getPeer()->isMinimised())
+	}
+	if(!getPeer()->isMinimised())
 	{
-      getPeer()->toBehind(videoComponent->getPeer());
-    }
-    if(getPeer()->isFocused())
+		getPeer()->toBehind(videoComponent->getPeer());
+	}/*
+	if(getPeer()->isFocused())
 	{
-      //videoComponent->getPeer()->toFront(false);
-      //overlayComponent->toFront(true);
-      videoComponent->getPeer()->toBehind(overlayComponent->getPeer());
-	  overlayComponent->toFront(true);
-    }
+		if(videoComponent->isVisible())
+		{
+			videoComponent->getPeer()->toBehind(overlayComponent->getPeer());
+		}
+		overlayComponent->toFront(true);
+	}*/
+}
+	
+void VideoComponent::broughtToFront ()   
+{
+	getPeer()->toBehind(videoComponent->getPeer());
+	videoComponent->getPeer()->toBehind(overlayComponent->getPeer());
+	overlayComponent->toFront(true);
 }
 #endif
 

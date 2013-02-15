@@ -108,6 +108,7 @@ public:
 	void timerCallback();
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
+	void broughtToFront ()  ;
 #endif
 	void updateTimeAndSlider();
 
