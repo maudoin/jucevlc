@@ -4,6 +4,7 @@
 #include "juce.h"
 #include "FontSerialization.h"
 #include "AppProportionnalComponent.h"
+#include "FontResource.h"
 
 
 class LnF : public juce::OldSchoolLookAndFeel
@@ -16,9 +17,10 @@ public:
 		setColour(juce::DirectoryContentsDisplayComponent::textColourId, juce::Colours::white);
 #ifdef _DEBUG
 		//serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
-		serializeFont("Teen", "font.bin");
+		serializeFont("Teen", "FontResource.cpp", "FontResource.h");
 #endif
-		cFont = loadFont( "font.bin");
+		//cFont = loadFont( "font.bin");
+		cFont = loadFont( TeenData, TeenSize);
 	}
 	const juce::Typeface::Ptr getTypefaceForFont (const juce::Font &font)
 	{

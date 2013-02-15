@@ -148,6 +148,7 @@
     <ClCompile Include="juce\modules\juce_graphics\juce_graphics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
+    <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\VLCMenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
@@ -363,6 +364,7 @@
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xml.h" />
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
     <ClInclude Include="src\AppProportionnalComponent.h" />
+    <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\VLCMenuTree.h" />
     <ClInclude Include="src\Execute.h" />
