@@ -149,6 +149,7 @@
     <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
     <ClCompile Include="src\FontResource.cpp" />
+    <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\VLCMenu.cpp" />
     <ClCompile Include="src\MenuTree.cpp" />

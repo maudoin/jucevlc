@@ -9,6 +9,7 @@
 #include "AppProportionnalComponent.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
+#include "LookNFeel.h"
 
 
 #define BUFFER_DISPLAY
@@ -16,7 +17,6 @@
 
 //==============================================================================
 class VideoComponent;
-class OverlayComponent;
 
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
@@ -32,31 +32,19 @@ public:
 	virtual ~ControlComponent();
     virtual void paint (juce::Graphics& g);
     virtual void resized();
-    void setTimeString(juce::String const& s);
+    void setTime(int64_t time, int64_t len);
 
 	void showPlayingControls();
 	void showPausedControls();
 	void hidePlayingControls();
 
-	friend class VideoComponent;
-	friend class OverlayComponent;
-};
+	juce::Slider& getSlider(){return *slider.get();}
 
-class OverlayComponent   : public juce::Component
-{
-    juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<MenuTree> tree;
-public:
-	OverlayComponent();
-	virtual ~OverlayComponent();
-
-	void setScaleComponent(juce::Component* scaleComponent);
-    virtual void resized();
-	
 	friend class VideoComponent;
 };
 
-class VideoComponent   : public juce::Component, 
+
+class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
 #ifdef BUFFER_DISPLAY
 	DisplayCallback, 
@@ -69,9 +57,11 @@ class VideoComponent   : public juce::Component,
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 #else
-    juce::ScopedPointer<juce::Component> videoComponent;
+    //juce::ScopedPointer<juce::Component> videoComponent;
+    juce::Component* videoComponent;
 #endif
-    juce::ScopedPointer<OverlayComponent> overlayComponent;
+    juce::ScopedPointer<ControlComponent> controlComponent;
+    juce::ScopedPointer<MenuTree> tree;
     juce::CriticalSection imgCriticalSection;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
@@ -83,12 +73,15 @@ class VideoComponent   : public juce::Component,
     juce::ScopedPointer<juce::Drawable> displayImage;
     juce::ScopedPointer<juce::Drawable> subtitlesImage;
     juce::ScopedPointer<juce::Drawable> exitImage;
+	LnF lnf;
+	juce::ComponentDragger dragger;
+    juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
+    juce::ComponentBoundsConstrainer defaultConstrainer;
 		
 public:
     VideoComponent();
     virtual ~VideoComponent();
 	
-	void setScaleComponent(juce::Component* scaleComponent){overlayComponent->setScaleComponent(scaleComponent);};
     void paint (juce::Graphics& g);
 	
     virtual void resized();
@@ -109,6 +102,7 @@ public:
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
 	void broughtToFront ()  ;
+    void mouseMove (const juce::MouseEvent& event);
 #endif
 	void updateTimeAndSlider();
 
@@ -142,6 +136,15 @@ public:
 	juce::Drawable const* getDisplayImage() const { return displayImage; };
 	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
 	juce::Drawable const* getExitImage() const { return exitImage; };
+
+	///////////////
+	void userTriedToCloseWindow();
+	bool keyPressed (const juce::KeyPress& key,
+								juce::Component* originatingComponent);
+    void mouseDown (const juce::MouseEvent& e);
+	void mouseDrag (const juce::MouseEvent& e);
+	bool isFullScreen() const;
+	void switchFullScreen();
 };
 
 #endif //VIDEO_COMPONENT
