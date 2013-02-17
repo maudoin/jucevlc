@@ -35,7 +35,7 @@ public:
 	}
 	float getItemHeight()
 	{
-		return  m_scaleComponent == NULL ? 24 : m_itemHeightFor1000Pixels*m_scaleComponent->getWidth();
+		return  m_scaleComponent == NULL ? 24 : m_itemHeightFor1000Pixels*m_scaleComponent->getHeight();
 	}
     virtual void componentMovedOrResized (juce::Component& component,
                                           bool wasMoved,

@@ -11,6 +11,7 @@ class AlternateControlComponent   : public juce::Slider, public juce::SliderList
 {
     typedef boost::function<void (double)> Functor;
 	Functor m_f;
+	juce::String m_format;
 	void nop(double)
 	{
 	}
@@ -18,7 +19,7 @@ public:
 	AlternateControlComponent():m_f(boost::bind(&AlternateControlComponent::nop, this, _1))
 	{
 		setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
-		setSliderStyle (juce::Slider::LinearHorizontal );//LinearBar);
+		setSliderStyle (juce::Slider::LinearBar);
 		setAlpha(1.f);
 		setOpaque(true);
 		addListener(this);
@@ -26,16 +27,16 @@ public:
 	virtual ~AlternateControlComponent(){}
 	void resetCallback(){m_f = boost::bind(&AlternateControlComponent::nop, this, _1);}
 	void setCallback(Functor f){m_f = f;}
+	void setLabelFormat(juce::String const& f){m_format = f;}
 	void paint(juce::Graphics& g)
 	{
 		juce::Slider::paint(g);
-		juce::String timeString;
-		timeString << "Audio Volume: " << (int)getValue() << "%";
+		
 		juce::Font f = g.getCurrentFont().withHeight(getHeight());
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		g.setColour (juce::Colours::black);
-		g.drawFittedText (timeString,
+		g.drawFittedText (juce::String::formatted(m_format,getValue()),
 							0, 0, getWidth(), getHeight(),
 							juce::Justification::centred, 
 							1, //1 line
@@ -45,6 +46,15 @@ public:
     virtual void sliderValueChanged (juce::Slider* slider)
 	{
 		m_f(slider->getValue());
+	}
+	
+	void show(juce::String const& label, Functor f, double value, double volumeMin, double volumeMax, double step)
+	{
+		setRange(volumeMin, volumeMax, step);
+		setValue(value);
+		setLabelFormat(label);
+		setCallback(f);
+		setVisible(true);
 	}
 };
 //////////////////////////////////////////////////////
@@ -609,12 +619,9 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 }
 void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item, double volumeMin, double volumeMax)
 {
-	controlComponent->alternateControlComponent().setVisible(true);
-	controlComponent->alternateControlComponent().setRange(volumeMin, volumeMax, .1);
-	controlComponent->alternateControlComponent().setValue(vlc->GetVolume());
-	controlComponent->alternateControlComponent().setSliderStyle (juce::Slider::LinearBar);
-	
-	controlComponent->alternateControlComponent().setCallback(boost::bind<void>(&VideoComponent::onAudioVolume, boost::ref(*this), boost::ref(item), _1));
+	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
+		boost::bind<void>(&VideoComponent::onAudioVolume, boost::ref(*this), boost::ref(item), _1),
+		vlc->GetVolume(), volumeMin, volumeMax, .1);
 }
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
