@@ -91,7 +91,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 
-	g.setColour (findColour (juce::DirectoryContentsDisplayComponent::textColourId));
+	g.setColour (juce::Colours::white);
 
 	
 
@@ -143,22 +143,18 @@ public:
 	{
 		setOpaque(true);
 		addToDesktop(juce::ComponentPeer::windowIsTemporary);  
-		//setInterceptsMouseClicks(false, false);
+		setMouseClickGrabsKeyboardFocus(false);
 	}
 	void paint (juce::Graphics& g){}
-	/*bool hitTest (int x, int y)
-	{
-		return false;
-	}
-	void broughtToFront ()   
-	{
-		getPeer()->toBehind(m_overlayComponent.getPeer());
-		m_overlayComponent.toFront(true);
-	}*/
-    virtual void mouseMove (const juce::MouseEvent& event)
+    virtual void mouseEnter (const juce::MouseEvent& event)
 	{
 		getPeer()->toBehind(m_video.getPeer());
-		//m_video.toFront(true);
+		m_video.toFront(true);
+	}
+    virtual void focusGained (FocusChangeType cause)
+	{
+		getPeer()->toBehind(m_video.getPeer());
+		m_video.toFront(true);
 	}
 };
 	
@@ -183,7 +179,6 @@ VideoComponent::VideoComponent()
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 
-	setOpaque(false);
 		
 	controlComponent = new ControlComponent ();
     addChildComponent(controlComponent);
