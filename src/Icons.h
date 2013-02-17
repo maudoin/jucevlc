@@ -30,6 +30,11 @@
     extern const int play_svgSize;
     extern const char* stop_svg;
     extern const int stop_svgSize;
+	
+	extern const char* left_svg;
+	extern const int left_svgSize;
+	extern const char* right_svg;
+	extern const int right_svgSize;
 
 	extern const char* blue_svg;
 	extern const int blue_svgSize;
