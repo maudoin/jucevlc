@@ -43,6 +43,8 @@ public:
                                    const juce::Slider::SliderStyle style,
                                    juce::Slider& slider)
 	{
+		g.setColour (juce::Colours::grey);
+		g.fillRect(x, y, width, height);
 		LookAndFeel::drawLinearSlider (g,
                                    x, y,
                                    width, height,
