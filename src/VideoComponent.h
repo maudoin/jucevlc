@@ -90,6 +90,7 @@ public:
 	void stop();
 	bool isFullScreen() const;
 	void switchFullScreen();
+	void switchPlayPause();
 	void showVolumeSlider();
 
 	juce::Drawable const* getItemImage() const { return itemImage; };

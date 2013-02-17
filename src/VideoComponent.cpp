@@ -419,6 +419,11 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 		vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::switchFullScreen,this));
 		return true;
 	}
+	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
+	{
+		switchPlayPause();
+		return true;
+	}
 	return false;
 	
 }
@@ -426,6 +431,18 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 bool VideoComponent::isFullScreen()const
 {
 	return juce::Desktop::getInstance().getKioskModeComponent() == getTopLevelComponent();
+}
+
+void VideoComponent::switchPlayPause()
+{
+	if(vlc->isPlaying())
+	{
+		vlc->Pause();
+	}
+	else if(vlc->isPaused())
+	{
+		vlc->Play();
+	}
 }
 
 void VideoComponent::switchFullScreen()
