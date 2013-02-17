@@ -593,13 +593,16 @@ void VideoComponent::onCropSlider (MenuTreeItem& item, float min, float max)
 {
 	//todo
 }
-void VideoComponent::onRate (MenuTreeItem& item, int rate)
+void VideoComponent::onRate (MenuTreeItem& item, double rate)
 {
 	vlc->setRate(0.01f*(float)rate);
 }
-void VideoComponent::onRateSlider (MenuTreeItem& item, int minRate, int maxRate)
+void VideoComponent::onRateSlider (MenuTreeItem& item, double minRate, double maxRate)
 {
-	//todo
+	controlComponent->alternateControlComponent().show("Speed: %.f%%",
+		boost::bind<void>(&VideoComponent::onRate, boost::ref(*this), boost::ref(item), _1),
+		vlc->getRate(), minRate, maxRate, .1);
+
 }
 void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 {

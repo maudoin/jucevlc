@@ -245,6 +245,10 @@ void VLCWrapper::setRate (float rate)
 {
 	libvlc_media_player_set_rate(pMediaPlayer_, rate);
 }
+float VLCWrapper::getRate () const
+{
+	return libvlc_media_player_get_rate(pMediaPlayer_);
+}
 void VLCWrapper::setAspect(const char* ratio)
 {
 	libvlc_video_set_aspect_ratio(pMediaPlayer_, ratio);

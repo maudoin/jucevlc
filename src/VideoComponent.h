@@ -112,8 +112,8 @@ public:
 
     virtual void onCrop (MenuTreeItem& item, float ratio);
     virtual void onCropSlider (MenuTreeItem& item, float min, float max);
-    virtual void onRate (MenuTreeItem& item, int rate);
-    virtual void onRateSlider (MenuTreeItem& item, int minRate, int maxRate);
+    virtual void onRate (MenuTreeItem& item, double rate);
+    virtual void onRateSlider (MenuTreeItem& item, double minRate, double maxRate);
     virtual void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
     virtual void onShiftAudio(MenuTreeItem& item, float ms);
     virtual void onShiftSubtitles(MenuTreeItem& item, float ms);

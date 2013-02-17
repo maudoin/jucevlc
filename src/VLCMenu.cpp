@@ -143,16 +143,16 @@ void ratio(VideoComponent &video, MenuTreeItem& item)
 }
 void rate(VideoComponent &video, MenuTreeItem& item)
 {
-	item.addAction( "original", Action::build(video, &VideoComponent::onRate, 100));
-	item.addAction( "free", Action::build(video, &VideoComponent::onRateSlider, 1, 800));
-	item.addAction( "50%", Action::build(video, &VideoComponent::onRate, 50));
-	item.addAction( "125%", Action::build(video, &VideoComponent::onRate, 125));
-	item.addAction( "150%", Action::build(video, &VideoComponent::onRate, 150));
-	item.addAction( "200%", Action::build(video, &VideoComponent::onRate, 200));
-	item.addAction( "300%", Action::build(video, &VideoComponent::onRate, 300));
-	item.addAction( "400%", Action::build(video, &VideoComponent::onRate, 400));
-	item.addAction( "600%", Action::build(video, &VideoComponent::onRate, 600));
-	item.addAction( "800%", Action::build(video, &VideoComponent::onRate, 800));
+	item.addAction( "original", Action::build(video, &VideoComponent::onRate, 100.));
+	item.addAction( "free", Action::build(video, &VideoComponent::onRateSlider, 1., 800.));
+	item.addAction( "50%", Action::build(video, &VideoComponent::onRate, 50.));
+	item.addAction( "125%", Action::build(video, &VideoComponent::onRate, 125.));
+	item.addAction( "150%", Action::build(video, &VideoComponent::onRate, 150.));
+	item.addAction( "200%", Action::build(video, &VideoComponent::onRate, 200.));
+	item.addAction( "300%", Action::build(video, &VideoComponent::onRate, 300.));
+	item.addAction( "400%", Action::build(video, &VideoComponent::onRate, 400.));
+	item.addAction( "600%", Action::build(video, &VideoComponent::onRate, 600.));
+	item.addAction( "800%", Action::build(video, &VideoComponent::onRate, 800.));
 }
 void videoOptions(VideoComponent &video, MenuTreeItem& item)
 {

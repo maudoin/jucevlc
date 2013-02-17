@@ -122,6 +122,7 @@ public:
 	
 	void setCrop (float ratio);
 	void setRate (float rate);
+	float getRate () const;
 	void setAspect(const char* ratio);
     void shiftAudio(float ms);
     void shiftSubtitles(float ms);
