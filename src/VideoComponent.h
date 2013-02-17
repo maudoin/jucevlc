@@ -43,7 +43,6 @@ public:
 
 };
 
-
 class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
 #ifdef BUFFER_DISPLAY
@@ -76,7 +75,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ComponentDragger dragger;
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
-		
+
 public:
     VideoComponent();
     virtual ~VideoComponent();
@@ -85,7 +84,6 @@ public:
 	
     virtual void resized();
 
-	
 	void play(char* path);
 	void play();
 	void pause();
@@ -99,7 +97,6 @@ public:
 #else
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
-    void mouseMove (const juce::MouseEvent& event);
 #endif
 	void updateTimeAndSlider();
 

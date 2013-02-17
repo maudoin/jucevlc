@@ -145,16 +145,18 @@ public:
 		addToDesktop(juce::ComponentPeer::windowIsTemporary);  
 		setMouseClickGrabsKeyboardFocus(false);
 	}
-	void paint (juce::Graphics& g){}
+	void paint (juce::Graphics& g)
+	{
+	}
     virtual void mouseEnter (const juce::MouseEvent& event)
 	{
-		getPeer()->toBehind(m_video.getPeer());
-		m_video.toFront(true);
+		//getPeer()->toBehind(m_video.getPeer());
+		//m_video.toFront(true);
 	}
     virtual void focusGained (FocusChangeType cause)
 	{
-		getPeer()->toBehind(m_video.getPeer());
-		m_video.toFront(true);
+		//getPeer()->toBehind(m_video.getPeer());
+		//m_video.toFront(true);
 	}
 };
 	
@@ -179,8 +181,10 @@ VideoComponent::VideoComponent()
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 
-		
 	controlComponent = new ControlComponent ();
+	controlComponent->slider().addListener(this);
+	controlComponent->playPauseButton().addListener(this);
+	controlComponent->stopButton().addListener(this);
     addChildComponent(controlComponent);
 
 	tree = new MenuTree ();
@@ -189,9 +193,6 @@ VideoComponent::VideoComponent()
 	tree->setFolderShortcutImage(getFolderShortcutImage());
     addAndMakeVisible (tree);
 
-	controlComponent->slider().addListener(this);
-	controlComponent->playPauseButton().addListener(this);
-	controlComponent->stopButton().addListener(this);
 
 	sliderUpdating = false;
 	videoUpdating = false;
@@ -340,6 +341,10 @@ void VideoComponent::paint (juce::Graphics& g)
 	{
 		g.fillAll (juce::Colours::black);
 	}
+	else
+	{
+		g.fillAll(juce::Colours::black.withAlpha((juce::uint8)1));
+	}
 #endif
 	
 }
@@ -484,49 +489,7 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 {
      resized();
 }
-/*
-void VideoComponent::timerCallback()
-{
-	if (vlc->isStopping() || vlc->isStopped() && videoComponent->isVisible() )
-	{
-		videoComponent->setVisible(false);
 
-		getPeer()->getComponent().removeComponentListener(this);
-		return;
-	}
-
-	if(vlc->isPlaying() && !videoComponent->isVisible())
-	{
-		videoComponent->setVisible(true);
-
-		getPeer()->getComponent().removeComponentListener(this);
-		getPeer()->getComponent().addComponentListener(this);
-		
-		//getPeer()->toBehind(videoComponent->getPeer());
-		videoComponent->getPeer()->toBehind(getPeer());
-		toFront(true);
-
-		resized();
-	}
-	if(!getPeer()->isMinimised())
-	{
-		getPeer()->toBehind(videoComponent->getPeer());
-	}
-	if(getPeer()->isFocused())
-	{
-		if(videoComponent->isVisible())
-		{
-			videoComponent->getPeer()->toBehind(getPeer());
-		}
-		toFront(true);
-	}
-}
-*/
-
-void VideoComponent::mouseMove (const juce::MouseEvent& event)
-{
-	getPeer()->toBehind(videoComponent->getPeer());
-}
 #endif
 
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
