@@ -531,7 +531,7 @@ void VideoComponent::resized()
     }
 
 	int hMargin = 0.025*w;
-	int treeWidth = w/4;
+	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 0.06*w;
 
     tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
@@ -675,9 +675,17 @@ void VideoComponent::showVolumeSlider()
 // MENU TREE CALLBACKS
 //
 ////////////////////////////////////////////////////////////
-
+void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
+{
+	if(browsingFiles != newBrowsingFiles)
+	{
+		browsingFiles = newBrowsingFiles;
+		resized();
+	}
+}
 void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
+	setBrowsingFiles();
 	item.focusItemAsMenuShortcut();
 	juce::Array<juce::File> destArray;
 	juce::File::findFileSystemRoots(destArray);
@@ -686,11 +694,13 @@ void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMet
 
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
+	setBrowsingFiles(false);
 	vf::MessageThread::getInstance();
 	play(file.getFullPathName().toUTF8().getAddress());
 }
 void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	int cnt = vlc->getSubtitlesCount();
 	int current = vlc->getCurrentSubtitleIndex();
@@ -704,10 +714,12 @@ void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
 }
 void VideoComponent::onSubtitleSelect(MenuTreeItem& item, int i)
 {
+	setBrowsingFiles(false);
 	vlc->setSubtitleIndex(i);
 }
 void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
+	setBrowsingFiles(false);
 	vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 }
 void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
@@ -716,10 +728,12 @@ void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 
 void VideoComponent::onCrop (MenuTreeItem& item, double ratio)
 {
+	setBrowsingFiles(false);
 	vlc->setScale(0.01f*(float)ratio);
 }
 void VideoComponent::onCropSlider (MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
 		boost::bind<void>(&VideoComponent::onCrop, boost::ref(*this), boost::ref(item), _1),
 		vlc->getScale()*100., 50., 500., .1);
@@ -731,10 +745,12 @@ void VideoComponent::onCropSlider (MenuTreeItem& item)
 }
 void VideoComponent::onRate (MenuTreeItem& item, double rate)
 {
+	setBrowsingFiles(false);
 	vlc->setRate(0.01f*(float)rate);
 }
 void VideoComponent::onRateSlider (MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Speed: %.f%%",
 		boost::bind<void>(&VideoComponent::onRate, boost::ref(*this), boost::ref(item), _1),
 		vlc->getRate()*100., 50., 800., .1);
@@ -753,30 +769,36 @@ void VideoComponent::onRateSlider (MenuTreeItem& item)
 }
 void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 {
+	setBrowsingFiles(false);
 	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
 void VideoComponent::onShiftAudio(MenuTreeItem& item, double s)
 {
+	setBrowsingFiles(false);
 	vlc->setAudioDelay((int64_t)(s*1000000.));
 }
 void VideoComponent::onShiftAudioSlider(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
 		boost::bind<void>(&VideoComponent::onShiftAudio, boost::ref(*this), boost::ref(item), _1),
 		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
 }
 void VideoComponent::onShiftSubtitles(MenuTreeItem& item, double s)
 {
+	setBrowsingFiles(false);
 	vlc->setSubtitleDelay((int64_t)(s*1000000.));
 }
 void VideoComponent::onShiftSubtitlesSlider(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
 		boost::bind<void>(&VideoComponent::onShiftSubtitles, boost::ref(*this), boost::ref(item), _1),
 		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
 }
 void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 {
+	setBrowsingFiles(false);
 	vlc->setVolume(volume);
 
 	showVolumeSlider();
@@ -784,6 +806,7 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 
 void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	showVolumeSlider();
 	
 	item.focusItemAsMenuShortcut();
@@ -800,11 +823,13 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
+	setBrowsingFiles(false);
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
 }
 
 void VideoComponent::onSoundOptions(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "Volume", Action::build(*this, &VideoComponent::onAudioVolumeSlider));
 	item.addAction( "Delay", Action::build(*this, &VideoComponent::onShiftAudioSlider));
@@ -812,6 +837,7 @@ void VideoComponent::onSoundOptions(MenuTreeItem& item)
 
 void VideoComponent::onRatio(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "original", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("")));
 	item.addAction( "16/10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16/10")));
@@ -821,6 +847,7 @@ void VideoComponent::onRatio(MenuTreeItem& item)
 }
 void VideoComponent::onVideoOptions(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onFullscreen, true));
 	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onFullscreen, false));
@@ -834,6 +861,7 @@ void VideoComponent::onExit(MenuTreeItem& item)
 }
 void VideoComponent::getRootITems(MenuTreeItem& item)
 {
+	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "Open", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpen)), getFolderShortcutImage());
 	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onSubtitleMenu), getSubtitlesImage());

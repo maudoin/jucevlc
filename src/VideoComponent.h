@@ -77,6 +77,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ComponentDragger dragger;
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
+	bool browsingFiles;
 
 public:
     VideoComponent();
@@ -160,6 +161,9 @@ public:
 								juce::Component* originatingComponent);
     void mouseDown (const juce::MouseEvent& e);
 	void mouseDrag (const juce::MouseEvent& e);
+private:
+	
+	void setBrowsingFiles(bool newBrowsingFiles = true);
 };
 
 #endif //VIDEO_COMPONENT
