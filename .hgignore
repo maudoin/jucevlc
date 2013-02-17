@@ -19,3 +19,6 @@ vlcfrontendOptimizedDebug.exe
 vlcfrontendOptimizedDebug.ilk
 vlcfrontendOptimizedDebug.pdb
 boost/
+syntax: regexp
+FontResource.cpp
+FontResource.h
