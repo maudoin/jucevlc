@@ -16,16 +16,15 @@
 #undef BUFFER_DISPLAY
 
 //==============================================================================
-class VideoComponent;
 
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
-    juce::ScopedPointer<juce::Slider> slider;
-    juce::ScopedPointer<juce::DrawableButton> playPauseButton;
-    juce::ScopedPointer<juce::DrawableButton> stopButton;
-    juce::ScopedPointer<juce::Drawable> playImage;
-    juce::ScopedPointer<juce::Drawable> pauseImage;
-    juce::ScopedPointer<juce::Drawable> stopImage;
+    juce::ScopedPointer<juce::Slider> m_slider;
+    juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
+    juce::ScopedPointer<juce::DrawableButton> m_stopButton;
+    juce::ScopedPointer<juce::Drawable> m_playImage;
+    juce::ScopedPointer<juce::Drawable> m_pauseImage;
+    juce::ScopedPointer<juce::Drawable> m_stopImage;
 	juce::String timeString;
 public:
 	ControlComponent();
@@ -37,10 +36,11 @@ public:
 	void showPlayingControls();
 	void showPausedControls();
 	void hidePlayingControls();
+	
+	juce::Slider& slider(){return *m_slider.get();}
+	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
+	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 
-	juce::Slider& getSlider(){return *slider.get();}
-
-	friend class VideoComponent;
 };
 
 
@@ -49,7 +49,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #ifdef BUFFER_DISPLAY
 	DisplayCallback, 
 #else
-	juce::Timer, juce::ComponentListener,
+	juce::ComponentListener,
 #endif
 	juce::Slider::Listener, juce::Button::Listener, EventCallBack
 {
@@ -57,8 +57,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 #else
-    //juce::ScopedPointer<juce::Component> videoComponent;
-    juce::Component* videoComponent;
+    juce::ScopedPointer<juce::Component> videoComponent;
 #endif
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<MenuTree> tree;
@@ -98,10 +97,8 @@ public:
 	void unlock(void *id, void *const *p_pixels);
 	void display(void *id);
 #else
-	void timerCallback();
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
-	void broughtToFront ()  ;
     void mouseMove (const juce::MouseEvent& event);
 #endif
 	void updateTimeAndSlider();
@@ -127,7 +124,9 @@ public:
 	virtual void paused();
 	virtual void started();
 	virtual void stopped();
-
+	
+	void startedSynchronous();
+	void stoppedSynchronous();
 	
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
