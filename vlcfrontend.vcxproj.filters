@@ -75,9 +75,6 @@
     <ClCompile Include="src\FontResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\VLCMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\MenuTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -726,9 +723,6 @@
       <Filter>Header Files\boost</Filter>
     </ClInclude>
     <ClInclude Include="src\FontResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VLCMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\MenuTree.h">

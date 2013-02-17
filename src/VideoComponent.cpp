@@ -2,7 +2,6 @@
 #include "VideoComponent.h"
 #include "Icons.h"
 #include "MenuTree.h"
-#include "VLCMenu.h"
 #include "MenuTreeAction.h"
 
 ////////////////////////////////////////////////////////////
@@ -348,7 +347,7 @@ VideoComponent::VideoComponent()
 
     vlc->SetEventCallBack(this);
 
-	tree->setRootAction(getVideoRootMenu(*this));
+	tree->setRootAction(Action::build(*this, &VideoComponent::getRootITems));
 		
 	////////////////
 	tree->setScaleComponent(this);
@@ -804,6 +803,45 @@ void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
 }
 
+void VideoComponent::onSoundOptions(MenuTreeItem& item)
+{
+	item.focusItemAsMenuShortcut();
+	item.addAction( "Volume", Action::build(*this, &VideoComponent::onAudioVolumeSlider));
+	item.addAction( "Delay", Action::build(*this, &VideoComponent::onShiftAudioSlider));
+}
+
+void VideoComponent::onRatio(MenuTreeItem& item)
+{
+	item.focusItemAsMenuShortcut();
+	item.addAction( "original", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("")));
+	item.addAction( "16/10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16/10")));
+	item.addAction( "16/9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16/9")));
+	item.addAction( "4/3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4/3")));
+	
+}
+void VideoComponent::onVideoOptions(MenuTreeItem& item)
+{
+	item.focusItemAsMenuShortcut();
+	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onFullscreen, true));
+	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onFullscreen, false));
+	item.addAction( "Speed", Action::build(*this, &VideoComponent::onRateSlider));
+	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onCropSlider));
+	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onRatio));
+}
+void VideoComponent::onExit(MenuTreeItem& item)
+{
+    juce::JUCEApplication::getInstance()->systemRequestedQuit();
+}
+void VideoComponent::getRootITems(MenuTreeItem& item)
+{
+	item.focusItemAsMenuShortcut();
+	item.addAction( "Open", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpen)), getFolderShortcutImage());
+	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onSubtitleMenu), getSubtitlesImage());
+	item.addAction( "Video options", Action::build(*this, &VideoComponent::onVideoOptions), getDisplayImage());
+	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onSoundOptions), getAudioImage());
+	item.addAction( "Exit", Action::build(*this, &VideoComponent::onExit), getExitImage());
+
+}
 ////////////////////////////////////////////////////////////
 //
 // VLC CALLBACKS

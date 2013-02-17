@@ -131,6 +131,12 @@ public:
     void onAudioVolumeSlider (MenuTreeItem& item);
 	
     void onFullscreen(MenuTreeItem& item, bool fs);
+	
+	void onExit(MenuTreeItem& item);
+	void onSoundOptions(MenuTreeItem& item);
+	void onRatio(MenuTreeItem& item);
+	void onVideoOptions(MenuTreeItem& item);
+	void getRootITems(MenuTreeItem& item);
 	/////////////// VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();

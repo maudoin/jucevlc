@@ -349,6 +349,7 @@ MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
 	setOpenCloseButtonsVisible(false);
 	setIndentSize(50);
 	setOpaque(false);
+	setRootItemVisible(false);
 
 	refresh();
 }

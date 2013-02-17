@@ -151,7 +151,6 @@
     <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\Icons.cpp" />
-    <ClCompile Include="src\VLCMenu.cpp" />
     <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -369,7 +368,6 @@
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\MenuTreeAction.h" />
-    <ClInclude Include="src\VLCMenu.h" />
     <ClInclude Include="src\MenuTree.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />
