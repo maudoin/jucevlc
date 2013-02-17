@@ -1,14 +1,11 @@
 #include "VideoComponent.h"
 #include "MenuTreeAction.h"
-void nop(VideoComponent &video, MenuTreeItem& parent)
-{
-}
 
 void soundOptions(VideoComponent &video, MenuTreeItem& item)
 {
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Volume", Action::build(video, &VideoComponent::onAudioVolumeSlider, 1., 200.));
-	item.addAction( "Shift", Action::build(video, &nop));
+	item.addAction( "Volume", Action::build(video, &VideoComponent::onAudioVolumeSlider));
+	item.addAction( "Delay", Action::build(video, &VideoComponent::onShiftAudioSlider));
 }
 
 void ratio(VideoComponent &video, MenuTreeItem& item)
@@ -25,8 +22,8 @@ void videoOptions(VideoComponent &video, MenuTreeItem& item)
 	item.focusItemAsMenuShortcut();
 	item.addAction( "FullScreen", Action::build(video, &VideoComponent::onFullscreen, true));
 	item.addAction( "Windowed", Action::build(video, &VideoComponent::onFullscreen, false));
-	item.addAction( "Speed", Action::build(video, &VideoComponent::onRateSlider, 1., 800.));
-	item.addAction( "Zoom", Action::build(video, &VideoComponent::onCropSlider, 50., 200.));
+	item.addAction( "Speed", Action::build(video, &VideoComponent::onRateSlider));
+	item.addAction( "Zoom", Action::build(video, &VideoComponent::onCropSlider));
 	item.addAction( "Aspect Ratio", Action::build(video, &ratio));
 }
 void exitVLCFrontend(VideoComponent &video, MenuTreeItem& item)

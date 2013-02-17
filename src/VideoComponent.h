@@ -118,14 +118,16 @@ public:
 	void onSubtitleSelect(MenuTreeItem& item, int i);
     void onSubtitleMenu (MenuTreeItem& item);
     void onCrop (MenuTreeItem& item, double ratio);
-    void onCropSlider (MenuTreeItem& item, double min, double max);
+    void onCropSlider (MenuTreeItem& item);
     void onRate (MenuTreeItem& item, double rate);
-    void onRateSlider (MenuTreeItem& item, double minRate, double maxRate);
+    void onRateSlider (MenuTreeItem& item);
     void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
     void onShiftAudio(MenuTreeItem& item, double s);
+    void onShiftAudioSlider(MenuTreeItem& item);
     void onShiftSubtitles(MenuTreeItem& item, double s);
+    void onShiftSubtitlesSlider(MenuTreeItem& item);
     void onAudioVolume(MenuTreeItem& item, double volume);
-    void onAudioVolumeSlider (MenuTreeItem& item, double min, double max);
+    void onAudioVolumeSlider (MenuTreeItem& item);
 	
     void onFullscreen(MenuTreeItem& item, bool fs);
 	/////////////// VLC EvtListener

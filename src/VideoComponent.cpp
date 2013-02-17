@@ -12,16 +12,21 @@
 ////////////////////////////////////////////////////////////
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
-class AlternateControlComponent   : public juce::Slider, public juce::SliderListener
+
+class ActionSlider   : public juce::Slider, public juce::SliderListener
 {
+public:
     typedef boost::function<void (double)> Functor;
+private:
 	Functor m_f;
 	juce::String m_format;
 	void nop(double)
 	{
 	}
 public:
-	AlternateControlComponent():m_f(boost::bind(&AlternateControlComponent::nop, this, _1))
+	ActionSlider(juce::String const& name="")
+		:juce::Slider(name)
+		,m_f(boost::bind(&ActionSlider::nop, this, _1))
 	{
 		setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
 		setSliderStyle (juce::Slider::LinearBar);
@@ -29,12 +34,12 @@ public:
 		setOpaque(true);
 		addListener(this);
 	}
-	virtual ~AlternateControlComponent(){}
-	void resetCallback(){m_f = boost::bind(&AlternateControlComponent::nop, this, _1);}
+	virtual ~ActionSlider(){}
+	void resetCallback(){m_f = boost::bind(&ActionSlider::nop, this, _1);}
 	void setCallback(Functor f){m_f = f;}
 	void setLabelFormat(juce::String const& f){m_format = f;}
 	void paint(juce::Graphics& g)
-	{
+	{		
 		juce::Slider::paint(g);
 		
 		juce::Font f = g.getCurrentFont().withHeight(getHeight());
@@ -52,13 +57,65 @@ public:
 	{
 		m_f(slider->getValue());
 	}
-	
-	void show(juce::String const& label, Functor f, double value, double volumeMin, double volumeMax, double step)
+	void setup(juce::String const& label, ActionSlider::Functor f, double value, double volumeMin, double volumeMax, double step)
 	{
 		setRange(volumeMin, volumeMax, step);
 		setValue(value);
 		setLabelFormat(label);
 		setCallback(f);
+	}
+};
+class AlternateControlComponent   : public juce::Component
+{
+    juce::ScopedPointer<ActionSlider> m_slider;
+    juce::ScopedPointer<juce::DrawableButton> m_leftButton;
+    juce::ScopedPointer<juce::DrawableButton> m_rightButton;
+    juce::ScopedPointer<juce::Drawable> m_leftImage;
+    juce::ScopedPointer<juce::Drawable> m_rightImage;
+	double m_buttonsStep;
+public:
+	AlternateControlComponent()
+		:m_buttonsStep(0.)
+	{
+		setOpaque(true);
+		m_leftImage = juce::Drawable::createFromImageData (left_svg, left_svgSize);
+		m_rightImage = juce::Drawable::createFromImageData (right_svg, right_svgSize);
+
+		m_leftButton = new juce::DrawableButton("m_leftButton", juce::DrawableButton::ImageFitted);
+		m_leftButton->setOpaque(false);
+		m_leftButton->setImages(m_leftImage);
+		m_rightButton = new juce::DrawableButton("m_rightButton", juce::DrawableButton::ImageFitted);
+		m_rightButton->setOpaque(false);
+		m_rightButton->setImages(m_rightImage);
+
+		m_slider = new ActionSlider("AlternateControlComponentSlider");
+		addAndMakeVisible(m_slider);
+
+		addChildComponent(m_leftButton);
+		addChildComponent(m_rightButton);
+	}
+	virtual ~AlternateControlComponent()
+	{
+	}
+	virtual void resized()
+	{
+		bool showButtons = m_buttonsStep>0.;
+		int buttonSize = showButtons?getHeight():0;
+		m_slider->setBounds(buttonSize, 0, getWidth()-2*buttonSize, getHeight());
+		m_leftButton->setBounds(0, 0, buttonSize, getHeight());
+		m_rightButton->setBounds(getWidth()-buttonSize, 0, buttonSize, getHeight());
+	}
+	
+	void paint(juce::Graphics& g)
+	{
+	}
+	void show(juce::String const& label, ActionSlider::Functor f, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f)
+	{
+		m_buttonsStep = buttonsStep;
+		bool showButtons = m_buttonsStep>0.;
+		m_leftButton->setVisible(showButtons);
+		m_rightButton->setVisible(showButtons);
+		m_slider->setup(label, f, value, volumeMin, volumeMax, step);
 		setVisible(true);
 	}
 };
@@ -77,17 +134,18 @@ ControlComponent::ControlComponent()
     m_slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
 
 	
-    m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
-	m_playPauseButton->setOpaque(false);
-    m_stopButton = new juce::DrawableButton("stop", juce::DrawableButton::ImageFitted);
-	m_stopButton->setOpaque(false);
 	
     m_playImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
     m_pauseImage = juce::Drawable::createFromImageData (pause_svg, pause_svgSize);
     m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
-	
+
+    m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
+	m_playPauseButton->setOpaque(false);
 	m_playPauseButton->setImages(m_playImage);
+    m_stopButton = new juce::DrawableButton("stop", juce::DrawableButton::ImageFitted);
+	m_stopButton->setOpaque(false);
 	m_stopButton->setImages(m_stopImage);
+	
 
 	
 
@@ -634,6 +692,7 @@ void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
 		item.addAction( juce::String::formatted("Slot %d", i+1), Action::build(*this, &VideoComponent::onSubtitleSelect, i), i==current?getItemImage():nullptr);
 	}
 	item.addAction( "Add...", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpenSubtitle)));
+	item.addAction( "Delay", Action::build(*this, &VideoComponent::onShiftSubtitlesSlider));
 }
 void VideoComponent::onSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -651,11 +710,11 @@ void VideoComponent::onCrop (MenuTreeItem& item, double ratio)
 {
 	vlc->setScale(0.01f*(float)ratio);
 }
-void VideoComponent::onCropSlider (MenuTreeItem& item, double min, double max)
+void VideoComponent::onCropSlider (MenuTreeItem& item)
 {
 	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
 		boost::bind<void>(&VideoComponent::onCrop, boost::ref(*this), boost::ref(item), _1),
-		vlc->getScale(), min, max, .1);
+		vlc->getScale()*100., 50., 500., .1);
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "16/10", Action::build(*this, &VideoComponent::onCrop, 100.*16./10.));
@@ -666,11 +725,11 @@ void VideoComponent::onRate (MenuTreeItem& item, double rate)
 {
 	vlc->setRate(0.01f*(float)rate);
 }
-void VideoComponent::onRateSlider (MenuTreeItem& item, double minRate, double maxRate)
+void VideoComponent::onRateSlider (MenuTreeItem& item)
 {
 	controlComponent->alternateControlComponent().show("Speed: %.f%%",
 		boost::bind<void>(&VideoComponent::onRate, boost::ref(*this), boost::ref(item), _1),
-		vlc->getRate(), minRate, maxRate, .1);
+		vlc->getRate()*100., 50., 800., .1);
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "50%", Action::build(*this, &VideoComponent::onRate, 50.));
@@ -690,21 +749,33 @@ void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 }
 void VideoComponent::onShiftAudio(MenuTreeItem& item, double s)
 {
-	vlc->setAudioDelay((int64_t)(s*1000.));
+	vlc->setAudioDelay((int64_t)(s*1000000.));
+}
+void VideoComponent::onShiftAudioSlider(MenuTreeItem& item)
+{
+	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
+		boost::bind<void>(&VideoComponent::onShiftAudio, boost::ref(*this), boost::ref(item), _1),
+		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
 }
 void VideoComponent::onShiftSubtitles(MenuTreeItem& item, double s)
 {
-	vlc->setSubtitleDelay((int64_t)(s*1000.));
+	vlc->setSubtitleDelay((int64_t)(s*1000000.));
+}
+void VideoComponent::onShiftSubtitlesSlider(MenuTreeItem& item)
+{
+	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
+		boost::bind<void>(&VideoComponent::onShiftSubtitles, boost::ref(*this), boost::ref(item), _1),
+		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
 }
 void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 {
 	vlc->SetVolume(volume);
 }
-void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item, double volumeMin, double volumeMax)
+void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 {
 	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
 		boost::bind<void>(&VideoComponent::onAudioVolume, boost::ref(*this), boost::ref(item), _1),
-		vlc->GetVolume(), volumeMin, volumeMax, .1);
+		vlc->GetVolume(), 1., 200., .1);
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.));
