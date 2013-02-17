@@ -33,6 +33,7 @@ typedef __int64             int64_t;
 class DisplayCallback
 {
 public:
+	virtual ~DisplayCallback(){}
 	virtual void *lock(void **p_pixels) = 0;
 
 	virtual void unlock(void *id, void *const *p_pixels) = 0;
@@ -43,6 +44,7 @@ public:
 class EventCallBack
 {
 public:
+	virtual ~EventCallBack(){}
 	virtual void timeChanged() = 0;
 	virtual void paused() = 0;
 	virtual void started() = 0;

@@ -629,7 +629,9 @@ void VideoComponent::startedSynchronous()
 {
 	
 	if(!videoComponent->isVisible())
-	{
+	{		
+		setOpaque(false);
+
 		videoComponent->setVisible(true);
 
 		getPeer()->getComponent().removeComponentListener(this);
@@ -646,6 +648,7 @@ void VideoComponent::stoppedSynchronous()
 	
 	if(videoComponent->isVisible())
 	{
+		setOpaque(true);
 		videoComponent->setVisible(false);
 		getPeer()->getComponent().removeComponentListener(this);
 	}

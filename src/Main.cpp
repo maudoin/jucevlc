@@ -40,7 +40,7 @@ public:
 
         // The window variable is a ScopedPointer, so setting it to a null
         // pointer will delete the window.
-        window = 0;
+        delete window;
     }
 
     //==============================================================================
@@ -66,7 +66,7 @@ public:
     }
 
 private:
-    juce::ScopedPointer<VideoComponent> window;
+    VideoComponent* window;
 };
 
 
