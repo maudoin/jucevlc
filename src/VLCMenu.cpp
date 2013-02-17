@@ -107,33 +107,28 @@ void listFiles(VideoComponent &video, MenuTreeItem& item, AbstractFileAction* fi
 }
 
 
-void pin(VideoComponent &video, MenuTreeItem& item)
-{
-	item.addAction ("Pin", Action::build(video, &nop));
-}
-
 void volume(VideoComponent &video, MenuTreeItem& item)
 {
-	item.addAction( "free", Action::build(video, &pin));
-	item.addAction( "25%", Action::build(video, &VideoComponent::onAudioVolume, 25));
-	item.addAction( "50%", Action::build(video, &VideoComponent::onAudioVolume, 50));
-	item.addAction( "75%", Action::build(video, &VideoComponent::onAudioVolume, 75));
-	item.addAction( "100%", Action::build(video, &VideoComponent::onAudioVolume, 100));
-	item.addAction( "125%", Action::build(video, &VideoComponent::onAudioVolume, 125));
-	item.addAction( "150%", Action::build(video, &VideoComponent::onAudioVolume, 150));
-	item.addAction( "175%", Action::build(video, &VideoComponent::onAudioVolume, 175));
-	item.addAction( "200%", Action::build(video, &VideoComponent::onAudioVolume, 200));
+	item.addAction( "free", Action::build(video, &VideoComponent::onAudioVolumeSlider, 1., 200.));
+	item.addAction( "10%", Action::build(video, &VideoComponent::onAudioVolume, 10.));
+	item.addAction( "25%", Action::build(video, &VideoComponent::onAudioVolume, 25.));
+	item.addAction( "50%", Action::build(video, &VideoComponent::onAudioVolume, 50.));
+	item.addAction( "75%", Action::build(video, &VideoComponent::onAudioVolume, 75.));
+	item.addAction( "100%", Action::build(video, &VideoComponent::onAudioVolume, 100.));
+	item.addAction( "125%", Action::build(video, &VideoComponent::onAudioVolume, 125.));
+	item.addAction( "150%", Action::build(video, &VideoComponent::onAudioVolume, 150.));
+	item.addAction( "175%", Action::build(video, &VideoComponent::onAudioVolume, 175.));
+	item.addAction( "200%", Action::build(video, &VideoComponent::onAudioVolume, 200.));
 }
 void soundOptions(VideoComponent &video, MenuTreeItem& item)
 {
 	item.addAction( "Volume", Action::build(video, &volume));
-	item.addAction( "Shift", Action::build(video, &pin));
-	item.addAction( "Mute", Action::build(video, &pin));
+	item.addAction( "Shift", Action::build(video, &nop));
 }
 
 void crop(VideoComponent &video, MenuTreeItem& item)
 {
-	item.addAction( "free", Action::build(video, &pin));
+	item.addAction( "free", Action::build(video, &VideoComponent::onCropSlider, 0.5f, 2.f));
 	item.addAction( "16/10", Action::build(video, &VideoComponent::onCrop, 16.f/10.f));
 	item.addAction( "16/9", Action::build(video, &VideoComponent::onCrop, 16.f/9.f));
 	item.addAction( "4/3", Action::build(video, &VideoComponent::onCrop, 4.f/3.f));
@@ -148,15 +143,16 @@ void ratio(VideoComponent &video, MenuTreeItem& item)
 }
 void rate(VideoComponent &video, MenuTreeItem& item)
 {
-	item.addAction( "free", Action::build(video, &pin));
-	item.addAction( "50%", Action::build(video, &VideoComponent::onRate, .5f));
-	item.addAction( "100%", Action::build(video, &VideoComponent::onRate, 1.f));
-	item.addAction( "150%", Action::build(video, &VideoComponent::onRate, 1.5f));
-	item.addAction( "200%", Action::build(video, &VideoComponent::onRate, 2.f));
-	item.addAction( "300%", Action::build(video, &VideoComponent::onRate, 3.f));
-	item.addAction( "400%", Action::build(video, &VideoComponent::onRate, 4.f));
-	item.addAction( "600%", Action::build(video, &VideoComponent::onRate, 6.f));
-	item.addAction( "800%", Action::build(video, &VideoComponent::onRate, 8.f));
+	item.addAction( "original", Action::build(video, &VideoComponent::onRate, 100));
+	item.addAction( "free", Action::build(video, &VideoComponent::onRateSlider, 1, 800));
+	item.addAction( "50%", Action::build(video, &VideoComponent::onRate, 50));
+	item.addAction( "125%", Action::build(video, &VideoComponent::onRate, 125));
+	item.addAction( "150%", Action::build(video, &VideoComponent::onRate, 150));
+	item.addAction( "200%", Action::build(video, &VideoComponent::onRate, 200));
+	item.addAction( "300%", Action::build(video, &VideoComponent::onRate, 300));
+	item.addAction( "400%", Action::build(video, &VideoComponent::onRate, 400));
+	item.addAction( "600%", Action::build(video, &VideoComponent::onRate, 600));
+	item.addAction( "800%", Action::build(video, &VideoComponent::onRate, 800));
 }
 void videoOptions(VideoComponent &video, MenuTreeItem& item)
 {

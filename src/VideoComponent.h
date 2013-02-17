@@ -17,6 +17,7 @@
 
 //==============================================================================
 
+class AlternateControlComponent;
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
     juce::ScopedPointer<juce::Slider> m_slider;
@@ -25,6 +26,7 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> m_playImage;
     juce::ScopedPointer<juce::Drawable> m_pauseImage;
     juce::ScopedPointer<juce::Drawable> m_stopImage;
+    juce::ScopedPointer<AlternateControlComponent> m_alternateControlComponent;
 	juce::String timeString;
 public:
 	ControlComponent();
@@ -40,9 +42,9 @@ public:
 	juce::Slider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
+	AlternateControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}
 
 };
-
 class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
 #ifdef BUFFER_DISPLAY
@@ -109,11 +111,14 @@ public:
     virtual void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 
     virtual void onCrop (MenuTreeItem& item, float ratio);
-    virtual void onRate (MenuTreeItem& item, float rate);
+    virtual void onCropSlider (MenuTreeItem& item, float min, float max);
+    virtual void onRate (MenuTreeItem& item, int rate);
+    virtual void onRateSlider (MenuTreeItem& item, int minRate, int maxRate);
     virtual void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
     virtual void onShiftAudio(MenuTreeItem& item, float ms);
     virtual void onShiftSubtitles(MenuTreeItem& item, float ms);
-    virtual void onAudioVolume(MenuTreeItem& item, int volume);
+    virtual void onAudioVolume(MenuTreeItem& item, double volume);
+    virtual void onAudioVolumeSlider (MenuTreeItem& item, double min, double max);
 	
     virtual void onFullscreen(MenuTreeItem& item, bool fs);
 	//VLC EvtListener
