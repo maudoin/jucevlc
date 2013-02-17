@@ -212,15 +212,14 @@ bool VLCWrapper::GetMute()
     return bMuteState;
 }
 
-int VLCWrapper::GetVolume()
+double VLCWrapper::getVolume()
 {
-    int volume = libvlc_audio_get_volume(pMediaPlayer_);
-    return volume;
+    return (double) libvlc_audio_get_volume(pMediaPlayer_);
 }
 
-void VLCWrapper::SetVolume( int volume )
+void VLCWrapper::setVolume( double volume )
 {
-    libvlc_audio_set_volume(pMediaPlayer_, volume);
+    libvlc_audio_set_volume(pMediaPlayer_, (int)volume);
 }
 
 void VLCWrapper::OpenMedia(const char* pMediaPathName)

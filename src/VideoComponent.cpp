@@ -360,10 +360,13 @@ VideoComponent::VideoComponent()
 
 	addKeyListener(this);
 		
-
     // And show it!
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
-    addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar|juce::ComponentPeer::windowIsResizable|juce::ComponentPeer::windowIgnoresKeyPresses);  
+
+	
+	showVolumeSlider();
+
+	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar|juce::ComponentPeer::windowIsResizable|juce::ComponentPeer::windowIgnoresKeyPresses);  
 	setAlwaysOnTop(true);
     setVisible (true);
 
@@ -662,6 +665,12 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 
 #endif
 
+void VideoComponent::showVolumeSlider()
+{
+	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
+		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
+		vlc->getVolume(), 1., 200., .1);
+}
 ////////////////////////////////////////////////////////////
 //
 // MENU TREE CALLBACKS
@@ -769,13 +778,14 @@ void VideoComponent::onShiftSubtitlesSlider(MenuTreeItem& item)
 }
 void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 {
-	vlc->SetVolume(volume);
+	vlc->setVolume(volume);
+
+	showVolumeSlider();
 }
+
 void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 {
-	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
-		boost::bind<void>(&VideoComponent::onAudioVolume, boost::ref(*this), boost::ref(item), _1),
-		vlc->GetVolume(), 1., 200., .1);
+	showVolumeSlider();
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.));

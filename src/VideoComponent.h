@@ -89,6 +89,7 @@ public:
 	void stop();
 	bool isFullScreen() const;
 	void switchFullScreen();
+	void showVolumeSlider();
 
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };

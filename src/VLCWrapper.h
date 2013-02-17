@@ -111,13 +111,8 @@ public:
     *   @return True or false. */
     bool GetMute();
 
-    /** Returns the actual audio volume.
-    *   @return The actual audio volume. */
-    int  GetVolume();
-
-    /** Set the actual audio volume.
-    *   @param [in] volume New volume level. */
-    void SetVolume(int volume);    
+    double getVolume();
+    void setVolume(double volume);    
 
 	
 	void setScale (float ratio);
