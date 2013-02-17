@@ -207,6 +207,14 @@ public:
 			}
 		}
 	}
+	virtual void focusParent()
+	{
+		juce::TreeViewItem* p = getParentItem();
+		if(p)
+		{
+			p->setSelected(true, true);
+		}
+	}
 };
 class ActionTreeViewItem  : public SmartTreeViewItem
 {

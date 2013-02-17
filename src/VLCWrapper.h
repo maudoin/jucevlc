@@ -117,8 +117,8 @@ public:
 	
 	void setScale (float ratio);
 	float getScale () const;
-	void setRate (float rate);
-	float getRate () const;
+	void setRate (double rate);
+	double getRate () const;
 	void setAspect(const char* ratio);
 	void setAudioDelay(int64_t delay);
 	int64_t getAudioDelay();

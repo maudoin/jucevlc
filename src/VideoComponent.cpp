@@ -687,6 +687,12 @@ void VideoComponent::showVolumeSlider()
 		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
 		vlc->getVolume(), 1., 200., .1);
 }
+void VideoComponent::showPlaybackSpeedSlider ()
+{
+	controlComponent->alternateControlComponent().show("Speed: %.f%%",
+		boost::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
+		vlc->getRate(), 50., 800., .1);
+}
 ////////////////////////////////////////////////////////////
 //
 // MENU TREE CALLBACKS
@@ -763,25 +769,26 @@ void VideoComponent::onCropSlider (MenuTreeItem& item)
 void VideoComponent::onRate (MenuTreeItem& item, double rate)
 {
 	setBrowsingFiles(false);
-	vlc->setRate(0.01f*(float)rate);
+	vlc->setRate(rate);
+
+	showPlaybackSpeedSlider();
+
+	item.focusParent();
 }
 void VideoComponent::onRateSlider (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show("Speed: %.f%%",
-		boost::bind<void>(&VideoComponent::onRate, boost::ref(*this), boost::ref(item), _1),
-		vlc->getRate()*100., 50., 800., .1);
 	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "50%", Action::build(*this, &VideoComponent::onRate, 50.));
-	item.addAction( "100%", Action::build(*this, &VideoComponent::onRate, 100.));
-	item.addAction( "125%", Action::build(*this, &VideoComponent::onRate, 125.));
-	item.addAction( "150%", Action::build(*this, &VideoComponent::onRate, 150.));
-	item.addAction( "200%", Action::build(*this, &VideoComponent::onRate, 200.));
-	item.addAction( "300%", Action::build(*this, &VideoComponent::onRate, 300.));
-	item.addAction( "400%", Action::build(*this, &VideoComponent::onRate, 400.));
-	item.addAction( "600%", Action::build(*this, &VideoComponent::onRate, 600.));
-	item.addAction( "800%", Action::build(*this, &VideoComponent::onRate, 800.));
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onRate, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onRate, 100.), 100==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onRate, 125.), 125==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onRate, 150.), 150==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onRate, 200.), 200==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "300%", Action::build(*this, &VideoComponent::onRate, 300.), 300==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "400%", Action::build(*this, &VideoComponent::onRate, 400.), 400==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "600%", Action::build(*this, &VideoComponent::onRate, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "800%", Action::build(*this, &VideoComponent::onRate, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
 
 }
 void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
@@ -819,6 +826,8 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 	vlc->setVolume(volume);
 
 	showVolumeSlider();
+
+	item.focusParent();
 }
 
 void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
@@ -827,21 +836,22 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 	showVolumeSlider();
 	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.));
-	item.addAction( "25%", Action::build(*this, &VideoComponent::onAudioVolume, 25.));
-	item.addAction( "50%", Action::build(*this, &VideoComponent::onAudioVolume, 50.));
-	item.addAction( "75%", Action::build(*this, &VideoComponent::onAudioVolume, 75.));
-	item.addAction( "100%", Action::build(*this, &VideoComponent::onAudioVolume, 100.));
-	item.addAction( "125%", Action::build(*this, &VideoComponent::onAudioVolume, 125.));
-	item.addAction( "150%", Action::build(*this, &VideoComponent::onAudioVolume, 150.));
-	item.addAction( "175%", Action::build(*this, &VideoComponent::onAudioVolume, 175.));
-	item.addAction( "200%", Action::build(*this, &VideoComponent::onAudioVolume, 200.));
+	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "25%", Action::build(*this, &VideoComponent::onAudioVolume, 25.), 25==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onAudioVolume, 50.), 50==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "75%", Action::build(*this, &VideoComponent::onAudioVolume, 75.), 75==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onAudioVolume, 100.), 100==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onAudioVolume, 125.), 125==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onAudioVolume, 150.), 150==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "175%", Action::build(*this, &VideoComponent::onAudioVolume, 175.), 175==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onAudioVolume, 200.), 200==(int)(vlc->getVolume())?getItemImage():nullptr);
 }
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
 	setBrowsingFiles(false);
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
+	item.focusParent();
 }
 
 void VideoComponent::onSoundOptions(MenuTreeItem& item)
@@ -866,8 +876,8 @@ void VideoComponent::onVideoOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onFullscreen, true));
-	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onFullscreen, false));
+	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onFullscreen, true), isFullScreen()?getItemImage():nullptr);
+	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onFullscreen, false), isFullScreen()?nullptr:getItemImage());
 	item.addAction( "Speed", Action::build(*this, &VideoComponent::onRateSlider));
 	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onCropSlider));
 	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onRatio));

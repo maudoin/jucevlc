@@ -28,6 +28,7 @@ public:
     virtual void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
 	virtual void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* action) = 0;
 	virtual void focusItemAsMenuShortcut() = 0;
+	virtual void focusParent() = 0;
 };
 
 //==============================================================================

@@ -92,6 +92,7 @@ public:
 	void switchFullScreen();
 	void switchPlayPause();
 	void showVolumeSlider();
+	void showPlaybackSpeedSlider();
 
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };

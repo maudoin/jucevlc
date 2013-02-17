@@ -244,13 +244,13 @@ float VLCWrapper::getScale() const
 {
 	return libvlc_video_get_scale(pMediaPlayer_);
 }
-void VLCWrapper::setRate (float rate)
+void VLCWrapper::setRate (double rate)
 {
-	libvlc_media_player_set_rate(pMediaPlayer_, rate);
+	libvlc_media_player_set_rate(pMediaPlayer_, rate/100.f);
 }
-float VLCWrapper::getRate () const
+double VLCWrapper::getRate () const
 {
-	return libvlc_media_player_get_rate(pMediaPlayer_);
+	return 100.*libvlc_media_player_get_rate(pMediaPlayer_);
 }
 void VLCWrapper::setAspect(const char* ratio)
 {
