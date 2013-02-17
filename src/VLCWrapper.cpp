@@ -243,7 +243,7 @@ void VLCWrapper::setScale (float ratio)
 }
 float VLCWrapper::getScale() const
 {
-	return libvlc_media_player_get_scale(pMediaPlayer_);
+	return libvlc_video_get_scale(pMediaPlayer_);
 }
 void VLCWrapper::setRate (float rate)
 {
@@ -257,9 +257,31 @@ void VLCWrapper::setAspect(const char* ratio)
 {
 	libvlc_video_set_aspect_ratio(pMediaPlayer_, ratio);
 }
-void VLCWrapper::shiftAudio(float ratio)
+void VLCWrapper::setAudioDelay(int64_t delay)
 {
+	libvlc_audio_set_delay(pMediaPlayer_, delay);
 }
-void VLCWrapper::shiftSubtitles(float ratio)
+int64_t VLCWrapper::getAudioDelay()
 {
+	return libvlc_audio_get_delay(pMediaPlayer_);
+}
+void VLCWrapper::setSubtitleDelay(int64_t delay)
+{
+	libvlc_video_set_spu_delay(pMediaPlayer_, delay);
+}
+int64_t VLCWrapper::getSubtitleDelay()
+{
+	return libvlc_video_get_spu_delay(pMediaPlayer_);
+}
+int VLCWrapper::getSubtitlesCount()
+{
+	return libvlc_video_get_spu_count(pMediaPlayer_);
+}
+int VLCWrapper::getCurrentSubtitleIndex()
+{
+	return libvlc_video_get_spu(pMediaPlayer_);
+}
+void VLCWrapper::setSubtitleIndex(int i)
+{
+	libvlc_video_set_spu(pMediaPlayer_, i);
 }

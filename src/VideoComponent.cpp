@@ -609,10 +609,35 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 // MENU TREE CALLBACKS
 //
 ////////////////////////////////////////////////////////////
+
+void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+{
+	item.focusItemAsMenuShortcut();
+	juce::Array<juce::File> destArray;
+	juce::File::findFileSystemRoots(destArray);
+	item.addFiles(destArray, fileMethod);
+}
+
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
 	vf::MessageThread::getInstance();
 	play(file.getFullPathName().toUTF8().getAddress());
+}
+void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
+{
+	item.focusItemAsMenuShortcut();
+	int cnt = vlc->getSubtitlesCount();
+	int current = vlc->getCurrentSubtitleIndex();
+	item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onSubtitleSelect, -1), -1==current?getItemImage():nullptr);
+	for(int i = 0;i<cnt;++i)
+	{
+		item.addAction( juce::String::formatted("Slot %d", i+1), Action::build(*this, &VideoComponent::onSubtitleSelect, i), i==current?getItemImage():nullptr);
+	}
+	item.addAction( "Add...", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpenSubtitle)));
+}
+void VideoComponent::onSubtitleSelect(MenuTreeItem& item, int i)
+{
+	vlc->setSubtitleIndex(i);
 }
 void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
@@ -663,13 +688,13 @@ void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 {
 	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
-void VideoComponent::onShiftAudio(MenuTreeItem& item, float ms)
+void VideoComponent::onShiftAudio(MenuTreeItem& item, double s)
 {
-	vlc->shiftAudio(ms);
+	vlc->setAudioDelay((int64_t)(s*1000.));
 }
-void VideoComponent::onShiftSubtitles(MenuTreeItem& item, float ms)
+void VideoComponent::onShiftSubtitles(MenuTreeItem& item, double s)
 {
-	vlc->shiftSubtitles(ms);
+	vlc->setSubtitleDelay((int64_t)(s*1000.));
 }
 void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 {

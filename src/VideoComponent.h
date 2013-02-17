@@ -82,14 +82,21 @@ public:
     VideoComponent();
     virtual ~VideoComponent();
 	
-    void paint (juce::Graphics& g);
-	
-    virtual void resized();
 
 	void play(char* path);
 	void play();
 	void pause();
 	void stop();
+	bool isFullScreen() const;
+	void switchFullScreen();
+
+	juce::Drawable const* getItemImage() const { return itemImage; };
+	juce::Drawable const* getFolderImage() const { return folderImage; };
+	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
+	juce::Drawable const* getAudioImage() const { return audioImage; };
+	juce::Drawable const* getDisplayImage() const { return displayImage; };
+	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
+	juce::Drawable const* getExitImage() const { return exitImage; };
 	
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
@@ -100,28 +107,28 @@ public:
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
 #endif
-	void updateTimeAndSlider();
 
-    virtual void sliderValueChanged (juce::Slider* slider);
-    virtual void buttonClicked (juce::Button* button);
+	/////////////// MenuTree
+	void onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
 
-	//MenuTree
-    virtual void onOpen (MenuTreeItem& item, juce::File const& file);
-    virtual void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
-    virtual void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
-
-    virtual void onCrop (MenuTreeItem& item, double ratio);
-    virtual void onCropSlider (MenuTreeItem& item, double min, double max);
-    virtual void onRate (MenuTreeItem& item, double rate);
-    virtual void onRateSlider (MenuTreeItem& item, double minRate, double maxRate);
-    virtual void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
-    virtual void onShiftAudio(MenuTreeItem& item, float ms);
-    virtual void onShiftSubtitles(MenuTreeItem& item, float ms);
-    virtual void onAudioVolume(MenuTreeItem& item, double volume);
-    virtual void onAudioVolumeSlider (MenuTreeItem& item, double min, double max);
+    void onOpen (MenuTreeItem& item, juce::File const& file);
+    void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
+    void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
-    virtual void onFullscreen(MenuTreeItem& item, bool fs);
-	//VLC EvtListener
+	void onSubtitleSelect(MenuTreeItem& item, int i);
+    void onSubtitleMenu (MenuTreeItem& item);
+    void onCrop (MenuTreeItem& item, double ratio);
+    void onCropSlider (MenuTreeItem& item, double min, double max);
+    void onRate (MenuTreeItem& item, double rate);
+    void onRateSlider (MenuTreeItem& item, double minRate, double maxRate);
+    void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
+    void onShiftAudio(MenuTreeItem& item, double s);
+    void onShiftSubtitles(MenuTreeItem& item, double s);
+    void onAudioVolume(MenuTreeItem& item, double volume);
+    void onAudioVolumeSlider (MenuTreeItem& item, double min, double max);
+	
+    void onFullscreen(MenuTreeItem& item, bool fs);
+	/////////////// VLC EvtListener
 	virtual void timeChanged();
 	virtual void paused();
 	virtual void started();
@@ -130,22 +137,20 @@ public:
 	void startedSynchronous();
 	void stoppedSynchronous();
 	
-	juce::Drawable const* getItemImage() const { return itemImage; };
-	juce::Drawable const* getFolderImage() const { return folderImage; };
-	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
-	juce::Drawable const* getAudioImage() const { return audioImage; };
-	juce::Drawable const* getDisplayImage() const { return displayImage; };
-	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
-	juce::Drawable const* getExitImage() const { return exitImage; };
 
-	///////////////
+	/////////////// GUI CALLBACKS
+    void paint (juce::Graphics& g);
+	
+    virtual void resized();
+	void updateTimeAndSlider();
+
+    virtual void sliderValueChanged (juce::Slider* slider);
+    virtual void buttonClicked (juce::Button* button);
 	void userTriedToCloseWindow();
 	bool keyPressed (const juce::KeyPress& key,
 								juce::Component* originatingComponent);
     void mouseDown (const juce::MouseEvent& e);
 	void mouseDrag (const juce::MouseEvent& e);
-	bool isFullScreen() const;
-	void switchFullScreen();
 };
 
 #endif //VIDEO_COMPONENT

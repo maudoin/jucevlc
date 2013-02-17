@@ -125,8 +125,13 @@ public:
 	void setRate (float rate);
 	float getRate () const;
 	void setAspect(const char* ratio);
-    void shiftAudio(float ms);
-    void shiftSubtitles(float ms);
+	void setAudioDelay(int64_t delay);
+	int64_t getAudioDelay();
+	void setSubtitleDelay(int64_t delay);
+	int64_t getSubtitleDelay();
+    int getSubtitlesCount();
+    int getCurrentSubtitleIndex();
+    void setSubtitleIndex(int i);
 
 	std::string getInfo() const;
 };

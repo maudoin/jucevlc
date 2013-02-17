@@ -3,14 +3,6 @@
 void nop(VideoComponent &video, MenuTreeItem& parent)
 {
 }
-void listFiles(VideoComponent &video, MenuTreeItem& item, AbstractFileAction* fileMethod)
-{
-	item.focusItemAsMenuShortcut();
-	juce::Array<juce::File> destArray;
-	juce::File::findFileSystemRoots(destArray);
-	item.addFiles(destArray, fileMethod);
-}
-
 
 void soundOptions(VideoComponent &video, MenuTreeItem& item)
 {
@@ -37,12 +29,6 @@ void videoOptions(VideoComponent &video, MenuTreeItem& item)
 	item.addAction( "Zoom", Action::build(video, &VideoComponent::onCropSlider, 50., 200.));
 	item.addAction( "Aspect Ratio", Action::build(video, &ratio));
 }
-void subtitlesOptions(VideoComponent &video, MenuTreeItem& item)
-{
-	item.focusItemAsMenuShortcut();
-	item.addAction( "Select", Action::build(video, &nop));
-	item.addAction( "Add...", Action::build(video, &listFiles, FileAction::build(video, &VideoComponent::onOpenSubtitle)));
-}
 void exitVLCFrontend(VideoComponent &video, MenuTreeItem& item)
 {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
@@ -50,8 +36,8 @@ void exitVLCFrontend(VideoComponent &video, MenuTreeItem& item)
 void getRootITems(VideoComponent &video, MenuTreeItem& item)
 {
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Open", Action::build(video, &listFiles, FileAction::build(video, &VideoComponent::onOpen)), video.getFolderShortcutImage());
-	item.addAction( "Subtitle", Action::build(video, &subtitlesOptions), video.getSubtitlesImage());
+	item.addAction( "Open", Action::build(video, &VideoComponent::onListFiles, FileAction::build(video, &VideoComponent::onOpen)), video.getFolderShortcutImage());
+	item.addAction( "Subtitle", Action::build(video, &VideoComponent::onSubtitleMenu), video.getSubtitlesImage());
 	item.addAction( "Video options", Action::build(video, &videoOptions), video.getDisplayImage());
 	item.addAction( "Sound options", Action::build(video, &soundOptions), video.getAudioImage());
 	item.addAction( "Exit", Action::build(video, &exitVLCFrontend), video.getExitImage());
