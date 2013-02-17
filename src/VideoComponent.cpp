@@ -299,12 +299,18 @@ void VideoComponent::switchFullScreen()
 }
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
-    dragger.startDraggingComponent (this, e);
+	if(!isFullScreen())
+	{
+		dragger.startDraggingComponent (this, e);
+	}
 }
 
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
-    dragger.dragComponent (this, e, 0);
+	if(!isFullScreen())
+	{
+		dragger.dragComponent (this, e, 0);
+	}
 }
 //==============================================================================
 void VideoComponent::buttonClicked (juce::Button* button)
