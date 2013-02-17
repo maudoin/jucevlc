@@ -237,9 +237,13 @@ void VLCWrapper::loadSubtitle(const char* pSubPathName)
     libvlc_video_set_subtitle_file (pMediaPlayer_, pSubPathName);    
 }
 
-void VLCWrapper::setCrop (float ratio)
+void VLCWrapper::setScale (float ratio)
 {
 	libvlc_video_set_scale(pMediaPlayer_, ratio);
+}
+float VLCWrapper::getScale() const
+{
+	return libvlc_media_player_get_scale(pMediaPlayer_);
 }
 void VLCWrapper::setRate (float rate)
 {

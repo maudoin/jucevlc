@@ -236,7 +236,6 @@ public:
 	{
 		if(isSelected)
 		{
-			focusItemAsMenuShortcut();
 			if(action)
 			{
 				action->operator()(*this);
@@ -307,7 +306,6 @@ public:
 	{
 		if(!file.isDirectory() && fileMethod)
 		{
-			focusItemAsMenuShortcut();
 			fileMethod->operator()(*this, file);
 		}
 	}

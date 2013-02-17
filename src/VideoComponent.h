@@ -110,8 +110,8 @@ public:
     virtual void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
     virtual void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 
-    virtual void onCrop (MenuTreeItem& item, float ratio);
-    virtual void onCropSlider (MenuTreeItem& item, float min, float max);
+    virtual void onCrop (MenuTreeItem& item, double ratio);
+    virtual void onCropSlider (MenuTreeItem& item, double min, double max);
     virtual void onRate (MenuTreeItem& item, double rate);
     virtual void onRateSlider (MenuTreeItem& item, double minRate, double maxRate);
     virtual void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);

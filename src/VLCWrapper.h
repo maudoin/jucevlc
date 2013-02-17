@@ -120,7 +120,8 @@ public:
     void SetVolume(int volume);    
 
 	
-	void setCrop (float ratio);
+	void setScale (float ratio);
+	float getScale () const;
 	void setRate (float rate);
 	float getRate () const;
 	void setAspect(const char* ratio);

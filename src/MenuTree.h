@@ -1,5 +1,5 @@
-#ifndef BIGFILETREE
-#define BIGFILETREE
+#ifndef MENU_TREE_H
+#define MENU_TREE_H
 
 
 #include "juce.h"
@@ -27,6 +27,7 @@ public:
 	virtual ~MenuTreeItem(){}
     virtual void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
 	virtual void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* action) = 0;
+	virtual void focusItemAsMenuShortcut() = 0;
 };
 
 //==============================================================================
@@ -54,4 +55,4 @@ public:
 	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
 };
 
-#endif
+#endif //MENU_TREE_H

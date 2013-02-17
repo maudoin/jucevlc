@@ -734,5 +734,8 @@
     <ClInclude Include="src\MenuTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\MenuTreeAction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

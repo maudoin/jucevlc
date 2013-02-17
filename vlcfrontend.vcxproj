@@ -368,6 +368,7 @@
     <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
+    <ClInclude Include="src\MenuTreeAction.h" />
     <ClInclude Include="src\VLCMenu.h" />
     <ClInclude Include="src\MenuTree.h" />
     <ClInclude Include="src\Execute.h" />

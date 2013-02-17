@@ -3,8 +3,13 @@
 #include "Icons.h"
 #include "MenuTree.h"
 #include "VLCMenu.h"
+#include "MenuTreeAction.h"
 
-//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+//
+// 2ND SLIDER
+//
+////////////////////////////////////////////////////////////
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
 class AlternateControlComponent   : public juce::Slider, public juce::SliderListener
@@ -57,7 +62,11 @@ public:
 		setVisible(true);
 	}
 };
-//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+//
+// CONTROL COMPONENT
+//
+////////////////////////////////////////////////////////////
 ControlComponent::ControlComponent()
 {
 	m_slider = new juce::Slider("media time");
@@ -190,7 +199,11 @@ void ControlComponent::hidePlayingControls()
 {
 	setVisible(false);
 }
-//////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+//
+// NATIVE VLC COMPONENT
+//
+////////////////////////////////////////////////////////////
 class EmptyComponent   : public juce::Component
 {
 	VideoComponent &m_video;
@@ -219,7 +232,12 @@ public:
 	}
 };
 	
-//////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////
+//
+// MAIN COMPONENT
+//
+////////////////////////////////////////////////////////////
 VideoComponent::VideoComponent()
 #ifdef BUFFER_DISPLAY
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
@@ -323,7 +341,11 @@ VideoComponent::~VideoComponent()
     // (the content component will be deleted automatically, so no need to do it here)
 }
 
-//==============================================================================
+////////////////////////////////////////////////////////////
+//
+// GUI CALLBACKS
+//
+////////////////////////////////////////////////////////////
 
 void VideoComponent::userTriedToCloseWindow()
 {
@@ -372,7 +394,19 @@ void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 		dragger.dragComponent (this, e, 0);
 	}
 }
-//==============================================================================
+void VideoComponent::sliderValueChanged (juce::Slider* slider)
+{
+	if(!vlc)
+	{
+		return;
+	}
+	if(!videoUpdating)
+	{
+		sliderUpdating = true;
+		vlc->SetTime(controlComponent->slider().getValue()*vlc->GetLength()/1000.);
+		sliderUpdating =false;
+	}
+}
 void VideoComponent::buttonClicked (juce::Button* button)
 {
 	if(!vlc)
@@ -395,6 +429,13 @@ void VideoComponent::buttonClicked (juce::Button* button)
 		vlc->Stop();
 	}
 }
+
+////////////////////////////////////////////////////////////
+//
+// DISPLAY
+//
+////////////////////////////////////////////////////////////
+
 void VideoComponent::paint (juce::Graphics& g)
 {
 #ifdef BUFFER_DISPLAY
@@ -465,6 +506,11 @@ void VideoComponent::resized()
 }
 
 
+////////////////////////////////////////////////////////////
+//
+// MEDIA PLAYER METHODS
+//
+////////////////////////////////////////////////////////////
 
 void VideoComponent::play(char* path)
 {
@@ -558,20 +604,11 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 
 #endif
 
-void VideoComponent::sliderValueChanged (juce::Slider* slider)
-{
-	if(!vlc)
-	{
-		return;
-	}
-	if(!videoUpdating)
-	{
-		sliderUpdating = true;
-		vlc->SetTime(controlComponent->slider().getValue()*vlc->GetLength()/1000.);
-		sliderUpdating =false;
-	}
-}
-//MenuTreeListener
+////////////////////////////////////////////////////////////
+//
+// MENU TREE CALLBACKS
+//
+////////////////////////////////////////////////////////////
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
 	vf::MessageThread::getInstance();
@@ -585,13 +622,20 @@ void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 {
 }
 
-void VideoComponent::onCrop (MenuTreeItem& item, float ratio)
+void VideoComponent::onCrop (MenuTreeItem& item, double ratio)
 {
-	vlc->setCrop(ratio);
+	vlc->setScale(0.01f*(float)ratio);
 }
-void VideoComponent::onCropSlider (MenuTreeItem& item, float min, float max)
+void VideoComponent::onCropSlider (MenuTreeItem& item, double min, double max)
 {
-	//todo
+	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
+		boost::bind<void>(&VideoComponent::onCrop, boost::ref(*this), boost::ref(item), _1),
+		vlc->getScale(), min, max, .1);
+	
+	item.focusItemAsMenuShortcut();
+	item.addAction( "16/10", Action::build(*this, &VideoComponent::onCrop, 100.*16./10.));
+	item.addAction( "16/9", Action::build(*this, &VideoComponent::onCrop, 100.*16./9.));
+	item.addAction( "4/3", Action::build(*this, &VideoComponent::onCrop, 100.*4./3.));
 }
 void VideoComponent::onRate (MenuTreeItem& item, double rate)
 {
@@ -602,6 +646,17 @@ void VideoComponent::onRateSlider (MenuTreeItem& item, double minRate, double ma
 	controlComponent->alternateControlComponent().show("Speed: %.f%%",
 		boost::bind<void>(&VideoComponent::onRate, boost::ref(*this), boost::ref(item), _1),
 		vlc->getRate(), minRate, maxRate, .1);
+	
+	item.focusItemAsMenuShortcut();
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onRate, 50.));
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onRate, 100.));
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onRate, 125.));
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onRate, 150.));
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onRate, 200.));
+	item.addAction( "300%", Action::build(*this, &VideoComponent::onRate, 300.));
+	item.addAction( "400%", Action::build(*this, &VideoComponent::onRate, 400.));
+	item.addAction( "600%", Action::build(*this, &VideoComponent::onRate, 600.));
+	item.addAction( "800%", Action::build(*this, &VideoComponent::onRate, 800.));
 
 }
 void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
@@ -625,12 +680,29 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item, double volumeMin, d
 	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
 		boost::bind<void>(&VideoComponent::onAudioVolume, boost::ref(*this), boost::ref(item), _1),
 		vlc->GetVolume(), volumeMin, volumeMax, .1);
+	
+	item.focusItemAsMenuShortcut();
+	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.));
+	item.addAction( "25%", Action::build(*this, &VideoComponent::onAudioVolume, 25.));
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onAudioVolume, 50.));
+	item.addAction( "75%", Action::build(*this, &VideoComponent::onAudioVolume, 75.));
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onAudioVolume, 100.));
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onAudioVolume, 125.));
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onAudioVolume, 150.));
+	item.addAction( "175%", Action::build(*this, &VideoComponent::onAudioVolume, 175.));
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onAudioVolume, 200.));
 }
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
 }
+
+////////////////////////////////////////////////////////////
+//
+// VLC CALLBACKS
+//
+////////////////////////////////////////////////////////////
 void VideoComponent::timeChanged()
 {
 	if(!vlc)
