@@ -583,6 +583,19 @@ void VideoComponent::resized()
     tree->setBounds (x+w-treeWidth, y+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
 	controlComponent->setBounds (x+hMargin, y+h-controlHeight, w-2*hMargin, controlHeight);
 	
+#ifndef BUFFER_DISPLAY
+	if(videoComponent->getPeer())
+	{
+		//videoComponent->toFront(false);
+		if(controlComponent->getPeer())videoComponent->getPeer()->toBehind(controlComponent->getPeer());
+		if(tree->getPeer())videoComponent->getPeer()->toBehind(tree->getPeer());
+		if(getPeer())getPeer()->toBehind(videoComponent->getPeer());
+		//tree->toFront(false);
+		//controlComponent->toFront(false);
+		toFront(false);
+	}
+#endif
+	
 }
 
 
@@ -977,11 +990,11 @@ void VideoComponent::startedSynchronous()
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
 		
-		videoComponent->getPeer()->toBehind(controlComponent->getPeer());
-		videoComponent->getPeer()->toBehind(tree->getPeer());
-		tree->toFront(true);
-		controlComponent->toFront(true);
-		getPeer()->toBehind(videoComponent->getPeer());
+		//videoComponent->getPeer()->toBehind(controlComponent->getPeer());
+		//videoComponent->getPeer()->toBehind(tree->getPeer());
+		//tree->toFront(true);
+		//controlComponent->toFront(true);
+		//getPeer()->toBehind(videoComponent->getPeer());
 
 		resized();
 	}
