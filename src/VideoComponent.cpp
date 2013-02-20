@@ -875,9 +875,14 @@ void VideoComponent::onRatio(MenuTreeItem& item)
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "original", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("")));
-	item.addAction( "16/10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:10")));
-	item.addAction( "16/9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:9")));
-	item.addAction( "4/3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4:3")));
+	item.addAction( "1:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("1:1")));
+	item.addAction( "4:3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4:3")));
+	item.addAction( "16:10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:10")));
+	item.addAction( "16:9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:9")));
+	item.addAction( "2.21:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.21:1")));
+	item.addAction( "2.35:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.35:1")));
+	item.addAction( "2.39:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.39:1")));
+	item.addAction( "5:4", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("5:4")));
 	
 }
 void VideoComponent::onVideoOptions(MenuTreeItem& item)
