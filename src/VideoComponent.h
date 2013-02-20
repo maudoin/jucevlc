@@ -79,6 +79,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
 	bool mousehookset;
+	uint64_t lastMouseMoveMovieTime;
 
 public:
     VideoComponent();

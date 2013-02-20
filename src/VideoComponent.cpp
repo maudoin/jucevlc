@@ -3,6 +3,10 @@
 #include "Icons.h"
 #include "MenuTree.h"
 #include "MenuTreeAction.h"
+#include <algorithm>
+
+#define DISAPEAR_DELAY_MS 6000
+#define DISAPEAR_SPEED_MS 500
 
 ////////////////////////////////////////////////////////////
 //
@@ -541,7 +545,6 @@ void VideoComponent::resized()
 	int w =  getWidth();
 	int h =  getHeight();
 	
-
 	int hMargin = 0.025*w;
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 0.06*w;
@@ -626,6 +629,7 @@ void VideoComponent::play()
 	vlc->Play();
 
 	controlComponent->slider().setValue(0);
+	lastMouseMoveMovieTime = 0;
 	
 }
 	
@@ -927,6 +931,7 @@ void VideoComponent::timeChanged()
 	}
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
 }
+
 void VideoComponent::updateTimeAndSlider()
 {
 	if(!sliderUpdating)
@@ -936,6 +941,26 @@ void VideoComponent::updateTimeAndSlider()
 		controlComponent->setTime(vlc->GetTime(), vlc->GetLength());
 		vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
+	}
+	uint64_t timeFromLastMouseMove = vlc->GetTime() - lastMouseMoveMovieTime;
+	if(timeFromLastMouseMove<(DISAPEAR_DELAY_MS+DISAPEAR_SPEED_MS))
+	{
+		if(timeFromLastMouseMove<DISAPEAR_DELAY_MS)
+		{
+			setAlpha(1.f);
+		}
+		else
+		{
+			setAlpha(1.f-(float)(timeFromLastMouseMove-DISAPEAR_DELAY_MS)/(float)DISAPEAR_SPEED_MS );
+		}
+		DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
+		tree->setVisible(true);
+		controlComponent->setVisible(vlc->isPlaying());
+	}
+	else
+	{
+		tree->setVisible(false);
+		controlComponent->setVisible(false);
 	}
 	
 }
@@ -966,7 +991,7 @@ void VideoComponent::vlcFullScreenControlCallback()
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
-
+	lastMouseMoveMovieTime = vlc->GetTime();
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)
 {
@@ -977,6 +1002,7 @@ void VideoComponent::startedSynchronous()
 	
 	if(!videoComponent->isVisible())
 	{		
+		setAlpha(1.f);
 		setOpaque(false);
 		videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary); 
 		controlComponent->setVisible(true);
@@ -993,6 +1019,7 @@ void VideoComponent::stoppedSynchronous()
 	
 	if(videoComponent->isVisible())
 	{
+		setAlpha(1.f);
 		setOpaque(true);
 		videoComponent->setVisible(false);
 		getPeer()->getComponent().removeComponentListener(this);
