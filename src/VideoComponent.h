@@ -107,9 +107,9 @@ public:
 	
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
-	void *lock(void **p_pixels);
-	void unlock(void *id, void *const *p_pixels);
-	void display(void *id);
+	void *vlcLock(void **p_pixels);
+	void vlcUnlock(void *id, void *const *p_pixels);
+	void vlcDisplay(void *id);
 #else
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
@@ -144,10 +144,10 @@ public:
 	void onVideoOptions(MenuTreeItem& item);
 	void getRootITems(MenuTreeItem& item);
 	/////////////// VLC EvtListener
-	virtual void timeChanged();
-	virtual void paused();
-	virtual void started();
-	virtual void stopped();
+	virtual void vlcTimeChanged();
+	virtual void vlcPaused();
+	virtual void vlcStarted();
+	virtual void vlcStopped();
 	virtual void vlcPopupCallback(bool show);
 	virtual void vlcFullScreenControlCallback();
 	virtual void vlcMouseMove(int x, int y, int button);

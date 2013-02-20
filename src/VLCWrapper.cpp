@@ -35,38 +35,38 @@ static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
     switch(pEvent->type)
     {
 		case libvlc_MediaPlayerTimeChanged:
-		    cb->timeChanged();
+		    cb->vlcTimeChanged();
             break;
 	   case libvlc_MediaPlayerPlaying :
-		    cb->started();
+		    cb->vlcStarted();
             break;
 	   case libvlc_MediaPlayerPaused:
-		    cb->paused();
+		    cb->vlcPaused();
             break;
 	   case libvlc_MediaPlayerStopped:
-		    cb->stopped();
+		    cb->vlcStopped();
             break;
 	} 
 }
 
-static void *lock(void *pUserData, void **p_pixels)
+static void *vlcLock(void *pUserData, void **p_pixels)
 {
     DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
-	return cb?cb->lock( p_pixels):NULL;
+	return cb?cb->vlcLock( p_pixels):NULL;
 }
 
-static void unlock(void *pUserData, void *id, void *const *p_pixels)
+static void vlcUnlock(void *pUserData, void *id, void *const *p_pixels)
 {
     DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
 	if(cb)
-		cb->unlock( id, p_pixels);
+		cb->vlcUnlock( id, p_pixels);
 }
 
-static void display(void *pUserData, void *id)
+static void vlcDisplay(void *pUserData, void *id)
 {
     DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
 	if(cb)
-		cb->display(id);
+		cb->vlcDisplay(id);
 }
 
 static int popupCallback(vlc_object_t *p_this, const char *psz_variable,
@@ -156,7 +156,7 @@ void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
 {
 	if(cb)
 	{
-	    libvlc_video_set_callbacks(pMediaPlayer_, lock, unlock, display, cb);
+	    libvlc_video_set_callbacks(pMediaPlayer_, vlcLock, vlcUnlock, vlcDisplay, cb);
 	}
 }
 	 	

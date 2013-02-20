@@ -34,11 +34,11 @@ class DisplayCallback
 {
 public:
 	virtual ~DisplayCallback(){}
-	virtual void *lock(void **p_pixels) = 0;
+	virtual void *vlcLock(void **p_pixels) = 0;
 
-	virtual void unlock(void *id, void *const *p_pixels) = 0;
+	virtual void vlcUnlock(void *id, void *const *p_pixels) = 0;
 
-	virtual void display(void *id) = 0;
+	virtual void vlcDisplay(void *id) = 0;
 	
 };
 class InputCallBack
@@ -59,10 +59,10 @@ class EventCallBack
 {
 public:
 	virtual ~EventCallBack(){}
-	virtual void timeChanged() = 0;
-	virtual void paused() = 0;
-	virtual void started() = 0;
-	virtual void stopped() = 0;
+	virtual void vlcTimeChanged() = 0;
+	virtual void vlcPaused() = 0;
+	virtual void vlcStarted() = 0;
+	virtual void vlcStopped() = 0;
 };
 class VLCWrapper
 {

@@ -660,7 +660,7 @@ void VideoComponent::stop()
 
 #ifdef BUFFER_DISPLAY
 
-void *VideoComponent::lock(void **p_pixels)
+void *VideoComponent::vlcLock(void **p_pixels)
 {
 	imgCriticalSection.enter();
 	if(ptr)
@@ -670,14 +670,14 @@ void *VideoComponent::lock(void **p_pixels)
 	return NULL; /* picture identifier, not needed here */
 }
 
-void VideoComponent::unlock(void *id, void *const *p_pixels)
+void VideoComponent::vlcUnlock(void *id, void *const *p_pixels)
 {
 	imgCriticalSection.exit();
 
 	jassert(id == NULL); /* picture identifier, not needed here */
 }
 
-void VideoComponent::display(void *id)
+void VideoComponent::vlcDisplay(void *id)
 {
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::repaint,this));
 	jassert(id == NULL);
@@ -921,7 +921,7 @@ void VideoComponent::getRootITems(MenuTreeItem& item)
 // VLC CALLBACKS
 //
 ////////////////////////////////////////////////////////////
-void VideoComponent::timeChanged()
+void VideoComponent::vlcTimeChanged()
 {
 	if(!vlc)
 	{
@@ -965,17 +965,17 @@ void VideoComponent::updateTimeAndSlider()
 	}
 	
 }
-void VideoComponent::paused()
+void VideoComponent::vlcPaused()
 {
 	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
-void VideoComponent::started()
+void VideoComponent::vlcStarted()
 {
 		
 	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::startedSynchronous,this));
 }
-void VideoComponent::stopped()
+void VideoComponent::vlcStopped()
 {
 	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
