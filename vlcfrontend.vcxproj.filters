@@ -31,6 +31,9 @@
     <Filter Include="Header Files\boost">
       <UniqueIdentifier>{bc51eac5-de2e-4b3b-8850-af4ad72a1381}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\msinttypes">
+      <UniqueIdentifier>{98459761-1471-479f-93b3-a83588658b04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Execute.cpp">
@@ -730,6 +733,15 @@
     </ClInclude>
     <ClInclude Include="src\MenuTreeAction.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="msinttypes-r26\inttypes.h">
+      <Filter>Header Files\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="msinttypes-r26\stdint.h">
+      <Filter>Header Files\msinttypes</Filter>
+    </ClInclude>
+    <ClInclude Include="libvlc\include\vlc\libvlc_internal.h">
+      <Filter>Header Files\vlc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

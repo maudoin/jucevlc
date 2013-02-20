@@ -52,7 +52,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #else
 	juce::ComponentListener,
 #endif
-	juce::Slider::Listener, juce::Button::Listener, EventCallBack
+	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack
 {
 #ifdef BUFFER_DISPLAY
 	juce::ScopedPointer<juce::Image> img;
@@ -78,6 +78,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
+	bool mousehookset;
 
 public:
     VideoComponent();
@@ -145,6 +146,10 @@ public:
 	virtual void paused();
 	virtual void started();
 	virtual void stopped();
+	virtual void vlcPopupCallback(bool show);
+	virtual void vlcFullScreenControlCallback();
+	virtual void vlcMouseMove(int x, int y, int button);
+	virtual void vlcMouseClick(int x, int y, int button);
 	
 	void startedSynchronous();
 	void stoppedSynchronous();

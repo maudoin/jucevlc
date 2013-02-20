@@ -68,7 +68,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/msinttypes-r26;$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/libvlc/include/vlc/plugins;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -89,7 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/msinttypes-r26;$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/libvlc/include/vlc/plugins;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -112,7 +112,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/msinttypes-r26;$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/libvlc/include/vlc/plugins;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
@@ -280,6 +280,7 @@
     <ClInclude Include="libvlc\include\vlc\deprecated.h" />
     <ClInclude Include="libvlc\include\vlc\libvlc.h" />
     <ClInclude Include="libvlc\include\vlc\libvlc_events.h" />
+    <ClInclude Include="libvlc\include\vlc\libvlc_internal.h" />
     <ClInclude Include="libvlc\include\vlc\libvlc_media.h" />
     <ClInclude Include="libvlc\include\vlc\libvlc_media_discoverer.h" />
     <ClInclude Include="libvlc\include\vlc\libvlc_media_library.h" />
@@ -364,6 +365,8 @@
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xlib.h" />
     <ClInclude Include="libvlc\include\vlc\plugins\vlc_xml.h" />
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
+    <ClInclude Include="msinttypes-r26\inttypes.h" />
+    <ClInclude Include="msinttypes-r26\stdint.h" />
     <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />

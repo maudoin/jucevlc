@@ -41,6 +41,20 @@ public:
 	virtual void display(void *id) = 0;
 	
 };
+class InputCallBack
+{
+public:
+	virtual ~InputCallBack(){}
+	virtual void vlcPopupCallback(bool show) = 0;
+	virtual void vlcFullScreenControlCallback() = 0;
+};
+class MouseInputCallBack
+{
+public:
+	virtual ~MouseInputCallBack(){}
+	virtual void vlcMouseMove(int x, int y, int button) = 0;
+	virtual void vlcMouseClick(int x, int y, int button) = 0;
+};
 class EventCallBack
 {
 public:
@@ -66,7 +80,8 @@ public:
     void SetDisplayCallback(DisplayCallback* cb);
     void SetEventCallBack(EventCallBack* cb);
     void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
-
+    void SetInputCallBack(InputCallBack* cb);
+    bool setMouseInputCallBack(MouseInputCallBack* cb);
 
 
 

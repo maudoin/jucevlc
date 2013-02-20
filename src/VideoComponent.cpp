@@ -319,14 +319,14 @@ VideoComponent::VideoComponent()
 	controlComponent->slider().addListener(this);
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
-    addChildComponent(controlComponent);
 
 	tree = new MenuTree ();
 	tree->setItemImage(getItemImage());
 	tree->setFolderImage(getFolderImage());
 	tree->setFolderShortcutImage(getFolderShortcutImage());
+	
+    addChildComponent(controlComponent);
     addAndMakeVisible (tree);
-
 
 	sliderUpdating = false;
 	videoUpdating = false;
@@ -339,12 +339,11 @@ VideoComponent::VideoComponent()
 
 	vlc->SetDisplayCallback(this);
 #else
-
 	videoComponent = new EmptyComponent(*this, "video");
 	vlc->SetOutputWindow(videoComponent->getWindowHandle());
 
 #endif
-
+	
     vlc->SetEventCallBack(this);
 
 	tree->setRootAction(Action::build(*this, &VideoComponent::getRootITems));
@@ -362,11 +361,13 @@ VideoComponent::VideoComponent()
     // And show it!
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
 
+	vlc->SetInputCallBack(this);
+	mousehookset=  false;
+
 	
 	showVolumeSlider();
 
-	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar|juce::ComponentPeer::windowIsResizable|juce::ComponentPeer::windowIgnoresKeyPresses);  
-	setAlwaysOnTop(true);
+	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);  
     setVisible (true);
 
 }
@@ -527,7 +528,7 @@ void VideoComponent::paint (juce::Graphics& g)
 	}
 	else
 	{
-		g.fillAll(juce::Colours::black.withAlpha((juce::uint8)1));
+		//g.fillAll (juce::Colours::black);
 	}
 #endif
 	
@@ -551,8 +552,6 @@ void VideoComponent::resized()
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 0.06*w;
 
-    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
-	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
 #ifdef BUFFER_DISPLAY
 	if(vlc)
 	{
@@ -574,11 +573,15 @@ void VideoComponent::resized()
 			vlc->Play();
 		}
 	}
+	int x=0;
+	int y=0;
 #else
-	int x=getParentComponent()?0:getScreenX();
-	int y=getParentComponent()?0:getScreenY();
+	int x=tree->getParentComponent()?0:getScreenX();
+	int y=tree->getParentComponent()?0:getScreenY();
 	videoComponent->setBounds(x, y, w, h);
 #endif
+    tree->setBounds (x+w-treeWidth, y+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (x+hMargin, y+h-controlHeight, w-2*hMargin, controlHeight);
 	
 }
 
@@ -867,9 +870,9 @@ void VideoComponent::onRatio(MenuTreeItem& item)
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "original", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("")));
-	item.addAction( "16/10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16/10")));
-	item.addAction( "16/9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16/9")));
-	item.addAction( "4/3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4/3")));
+	item.addAction( "16/10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:10")));
+	item.addAction( "16/9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:9")));
+	item.addAction( "4/3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4:3")));
 	
 }
 void VideoComponent::onVideoOptions(MenuTreeItem& item)
@@ -908,6 +911,10 @@ void VideoComponent::timeChanged()
 	{
 		return;
 	}
+	if(!mousehookset)
+	{
+		mousehookset = vlc->setMouseInputCallBack(this);
+	}
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
 }
 void VideoComponent::updateTimeAndSlider()
@@ -928,6 +935,7 @@ void VideoComponent::paused()
 }
 void VideoComponent::started()
 {
+		
 	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::startedSynchronous,this));
 }
@@ -937,20 +945,43 @@ void VideoComponent::stopped()
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
 }
 
+void VideoComponent::vlcPopupCallback(bool show)
+{
+	vf::MessageThread::getInstance().queuef(std::bind  (show?&ControlComponent::showPlayingControls:&ControlComponent::hidePlayingControls,controlComponent.get()));
+	
+}
+void VideoComponent::vlcFullScreenControlCallback()
+{
+	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
+}
+void VideoComponent::vlcMouseMove(int x, int y, int button)
+{
+
+}
+void VideoComponent::vlcMouseClick(int x, int y, int button)
+{
+
+}
 void VideoComponent::startedSynchronous()
 {
 	
 	if(!videoComponent->isVisible())
 	{		
-		setOpaque(false);
+		//setOpaque(false);
 
+		controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+		tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+		controlComponent->setVisible(true);
 		videoComponent->setVisible(true);
 
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
 		
-		videoComponent->getPeer()->toBehind(getPeer());
-		toFront(true);
+		videoComponent->getPeer()->toBehind(controlComponent->getPeer());
+		videoComponent->getPeer()->toBehind(tree->getPeer());
+		tree->toFront(true);
+		controlComponent->toFront(true);
+		getPeer()->toBehind(videoComponent->getPeer());
 
 		resized();
 	}
@@ -960,6 +991,8 @@ void VideoComponent::stoppedSynchronous()
 	
 	if(videoComponent->isVisible())
 	{
+		addChildComponent(controlComponent);
+		addChildComponent(tree);
 		setOpaque(true);
 		videoComponent->setVisible(false);
 		getPeer()->getComponent().removeComponentListener(this);
