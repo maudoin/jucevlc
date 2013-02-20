@@ -953,8 +953,7 @@ void VideoComponent::updateTimeAndSlider()
 		{
 			setAlpha(1.f-(float)(timeFromLastMouseMove-DISAPEAR_DELAY_MS)/(float)DISAPEAR_SPEED_MS );
 		}
-		DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
-		tree->setVisible(true);
+		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
 		controlComponent->setVisible(vlc->isPlaying());
 	}
 	else
@@ -980,22 +979,30 @@ void VideoComponent::stopped()
 	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
 }
 
-void VideoComponent::vlcPopupCallback(bool show)
+void VideoComponent::vlcPopupCallback(bool rightClick)
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (show?&ControlComponent::showPlayingControls:&ControlComponent::hidePlayingControls,controlComponent.get()));
+	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
+	//tree->setVisible(rightClick);
+	vf::MessageThread::getInstance().queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
 	
 }
 void VideoComponent::vlcFullScreenControlCallback()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
+	DBG("vlcFullScreenControlCallback");
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
+	bool controlsExpired = (vlc->GetTime() - lastMouseMoveMovieTime) - DISAPEAR_DELAY_MS - DISAPEAR_SPEED_MS > 0;
 	lastMouseMoveMovieTime = vlc->GetTime();
+	if(controlsExpired)
+	{
+		//reactivateControls
+		vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+	}
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)
 {
-
+	vlcMouseMove(x, y, button);
 }
 void VideoComponent::startedSynchronous()
 {
