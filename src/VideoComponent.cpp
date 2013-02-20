@@ -487,7 +487,9 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		vlc->SetTime(controlComponent->slider().getValue()*vlc->GetLength()/1000.);
+		int64_t time = controlComponent->slider().getValue()*vlc->GetLength()/1000.;
+		vlc->SetTime(time);
+		lastMouseMoveMovieTime = time;
 		sliderUpdating =false;
 	}
 }
