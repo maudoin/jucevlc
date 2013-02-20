@@ -56,10 +56,10 @@
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <GenerateManifest>false</GenerateManifest>
+    <GenerateManifest>true</GenerateManifest>
     <TargetName>$(ProjectName)$(Configuration)</TargetName>
     <OutDir>$(SolutionDir)\</OutDir>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -379,6 +379,12 @@
     <ClInclude Include="src\VLCWrapper.h" />
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />
     <ClInclude Include="vf\modules\vf_core\vf_core.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\vlc.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resources.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,9 +14,9 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName",  "Papa de Victor et Louis\0"
-      VALUE "FileDescription",  "Menu\0"
+      VALUE "FileDescription",  "JucyVLC\0"
       VALUE "FileVersion",  "1.0.0\0"
-      VALUE "ProductName",  "Menu\0"
+      VALUE "ProductName",  "JucyVLC\0"
       VALUE "ProductVersion",  "1.0.0\0"
     END
   END
@@ -28,6 +28,6 @@ BEGIN
 END
 
 
-IDI_ICON1 ICON DISCARDABLE "icon.ico"
-IDI_ICON2 ICON DISCARDABLE "icon.ico"
+IDI_ICON1 ICON DISCARDABLE "vlc.ico"
+IDI_ICON2 ICON DISCARDABLE "vlc.ico"
 #endif
