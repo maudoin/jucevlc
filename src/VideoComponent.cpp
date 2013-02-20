@@ -354,7 +354,7 @@ VideoComponent::VideoComponent()
 
 	
     defaultConstrainer.setMinimumSize (100, 100);
-    Component::addChildComponent (resizableBorder = new juce::ResizableBorderComponent (this, &defaultConstrainer));
+    addChildComponent (resizableBorder = new juce::ResizableBorderComponent (this, &defaultConstrainer));
 
 	addKeyListener(this);
 		
@@ -446,16 +446,18 @@ void VideoComponent::switchPlayPause()
 	}
 }
 
+void VideoComponent::setFullScreen(bool fs)
+{
+	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
+	if(!fs)
+	{
+		resized();
+	}
+}
+
 void VideoComponent::switchFullScreen()
 {
-	if (juce::Desktop::getInstance().getKioskModeComponent() == nullptr)
-	{
-		juce::Desktop::getInstance().setKioskModeComponent (getTopLevelComponent());
-	}
-	else
-	{
-		juce::Desktop::getInstance().setKioskModeComponent (nullptr);
-	}
+	setFullScreen(juce::Desktop::getInstance().getKioskModeComponent() == nullptr);
 }
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
@@ -539,18 +541,13 @@ void VideoComponent::resized()
 	int w =  getWidth();
 	int h =  getHeight();
 	
-    if (resizableBorder != nullptr)
-    {
-        resizableBorder->setVisible (! (isFullScreen() ));
-
-        resizableBorder->setBorderThickness (juce::BorderSize<int> (2));
-        resizableBorder->setSize (w, h);
-        resizableBorder->toBack();
-    }
 
 	int hMargin = 0.025*w;
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 0.06*w;
+	
+    tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
 
 #ifdef BUFFER_DISPLAY
 	if(vlc)
@@ -573,28 +570,23 @@ void VideoComponent::resized()
 			vlc->Play();
 		}
 	}
-	int x=0;
-	int y=0;
 #else
-	int x=tree->getParentComponent()?0:getScreenX();
-	int y=tree->getParentComponent()?0:getScreenY();
-	videoComponent->setBounds(x, y, w, h);
-#endif
-    tree->setBounds (x+w-treeWidth, y+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
-	controlComponent->setBounds (x+hMargin, y+h-controlHeight, w-2*hMargin, controlHeight);
-	
-#ifndef BUFFER_DISPLAY
-	if(videoComponent->getPeer())
+	videoComponent->setBounds(getScreenX(), getScreenY(), w, h);
+
+	if(videoComponent->getPeer() && getPeer())
 	{
-		//videoComponent->toFront(false);
-		if(controlComponent->getPeer())videoComponent->getPeer()->toBehind(controlComponent->getPeer());
-		if(tree->getPeer())videoComponent->getPeer()->toBehind(tree->getPeer());
 		if(getPeer())getPeer()->toBehind(videoComponent->getPeer());
-		//tree->toFront(false);
-		//controlComponent->toFront(false);
 		toFront(false);
 	}
 #endif
+    if (resizableBorder != nullptr)
+    {
+        resizableBorder->setVisible (! (isFullScreen() ));
+
+        resizableBorder->setBorderThickness (juce::BorderSize<int> (2));
+        resizableBorder->setSize (w, h);
+		resizableBorder->toFront(false);
+    }
 	
 }
 
@@ -692,7 +684,7 @@ void VideoComponent::componentMovedOrResized(Component &  component,bool wasMove
 }
 void VideoComponent::componentVisibilityChanged(Component &  component)
 {
-     resized();
+    resized();
 }
 
 #endif
@@ -866,7 +858,7 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
 	setBrowsingFiles(false);
-	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
+	setFullScreen(fs);
 	item.focusParent();
 }
 
@@ -980,21 +972,13 @@ void VideoComponent::startedSynchronous()
 	
 	if(!videoComponent->isVisible())
 	{		
-		//setOpaque(false);
-
-		controlComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
-		tree->addToDesktop(juce::ComponentPeer::windowIsTemporary);  
+		setOpaque(false);
+		videoComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary); 
 		controlComponent->setVisible(true);
 		videoComponent->setVisible(true);
 
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
-		
-		//videoComponent->getPeer()->toBehind(controlComponent->getPeer());
-		//videoComponent->getPeer()->toBehind(tree->getPeer());
-		//tree->toFront(true);
-		//controlComponent->toFront(true);
-		//getPeer()->toBehind(videoComponent->getPeer());
 
 		resized();
 	}
@@ -1004,8 +988,6 @@ void VideoComponent::stoppedSynchronous()
 	
 	if(videoComponent->isVisible())
 	{
-		addChildComponent(controlComponent);
-		addChildComponent(tree);
 		setOpaque(true);
 		videoComponent->setVisible(false);
 		getPeer()->getComponent().removeComponentListener(this);

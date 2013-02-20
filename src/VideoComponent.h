@@ -90,6 +90,7 @@ public:
 	void pause();
 	void stop();
 	bool isFullScreen() const;
+	void setFullScreen(bool fs = true);
 	void switchFullScreen();
 	void switchPlayPause();
 	void showVolumeSlider();
