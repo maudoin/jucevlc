@@ -130,8 +130,8 @@ public:
     void setVolume(double volume);    
 
 	
-	void setScale (float ratio);
-	float getScale () const;
+	void setScale (double ratio);
+	double getScale () const;
 	void setRate (double rate);
 	double getRate () const;
 	void setAspect(const char* ratio);

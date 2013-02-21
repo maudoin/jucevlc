@@ -8,6 +8,23 @@
 #define DISAPEAR_DELAY_MS 6000
 #define DISAPEAR_SPEED_MS 500
 
+#define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
+#define SETTINGS_VOLUME "SETTINGS_VOLUME"
+#define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
+#define SHORTCUTS_FILE "shortcuts.list"
+
+juce::PropertiesFile::Options options()
+{
+	juce::PropertiesFile::Options opts;
+	opts.applicationName = "JucyVLC";
+	opts.commonToAllUsers = false;
+	opts.filenameSuffix = "xml";
+	opts.ignoreCaseOfKeyNames = true;
+	opts.millisecondsBeforeSaving = 1000;
+	opts.storageFormat = juce::PropertiesFile::storeAsXML;
+	return opts;
+}
+
 ////////////////////////////////////////////////////////////
 //
 // 2ND SLIDER
@@ -304,7 +321,9 @@ VideoComponent::VideoComponent()
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
 #else
+	:juce::Component("MainFrame")
 #endif
+	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 {    
 
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
@@ -372,6 +391,10 @@ VideoComponent::VideoComponent()
 	showVolumeSlider();
 
 	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);  
+	
+
+	initFromSettings();
+
     setVisible (true);
 
 }
@@ -707,6 +730,12 @@ void VideoComponent::showPlaybackSpeedSlider ()
 		boost::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
 		vlc->getRate(), 50., 800., .1);
 }
+void VideoComponent::showZoomSlider ()
+{
+	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
+		boost::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
+		vlc->getScale(), 50., 500., .1);
+}
 ////////////////////////////////////////////////////////////
 //
 // MENU TREE CALLBACKS
@@ -722,18 +751,80 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 }
 void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
+	//sdf use last path
+
 	setBrowsingFiles();
 	item.focusItemAsMenuShortcut();
-	juce::Array<juce::File> destArray;
-	juce::File::findFileSystemRoots(destArray);
-	item.addFiles(destArray, fileMethod);
+	item.addAction( "Favorites", Action::build(*this, &VideoComponent::onListFavorites, fileMethod), getItemImage());
+	item.addRootFiles(fileMethod);
+	
+	//sdf use last path
+}
+
+void VideoComponent::onListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
+{
+	item.focusItemAsMenuShortcut();
+	for(int i=0;i<m_shortcuts.size();++i)
+	{
+		juce::File path(m_shortcuts[i]);
+		item.addFile(path.getVolumeLabel() + "-" + path.getFileName(), path, fileMethod->clone());
+	}
+}
+
+void VideoComponent::onOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+{
+	onListFiles(item, fileMethod);
+}
+
+void VideoComponent::writeFavorites()
+{
+	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
+	m_shortcuts.removeDuplicates(true);
+	m_shortcuts.removeEmptyStrings();
+	shortcuts.replaceWithText(m_shortcuts.joinIntoString("\n"));
+}
+
+void VideoComponent::addFavorite(MenuTreeItem& item, juce::String path)
+{
+	m_shortcuts.add(path);
+	writeFavorites();
+
+	vf::MessageThread::getInstance().queuef(std::bind  (&MenuTreeItem::focusParent,&item));
+}
+void VideoComponent::removeFavorite(MenuTreeItem& item, juce::String path)
+{
+	m_shortcuts.removeString(path);
+	writeFavorites();
+	
+	vf::MessageThread::getInstance().queuef(std::bind  (&MenuTreeItem::focusParent,&item));
 }
 
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
-	setBrowsingFiles(false);
-	vf::MessageThread::getInstance();
-	play(file.getFullPathName().toUTF8().getAddress());
+	if(file.isDirectory())
+	{
+		item.focusItemAsMenuShortcut();
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+
+		if(!m_shortcuts.contains(file.getFullPathName()))
+		{
+			item.addAction("Add to favorites", Action::build(*this, &VideoComponent::addFavorite, 
+				file.getFullPathName()), getItemImage());
+		}
+		else
+		{
+			item.addAction("Remove from favorites", Action::build(*this, &VideoComponent::removeFavorite, 
+				file.getFullPathName()), getItemImage());
+		}
+		
+	}
+	else
+	{
+		setBrowsingFiles(false);
+		vf::MessageThread::getInstance();
+		play(file.getFullPathName().toUTF8().getAddress());
+	}
 }
 void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
 {
@@ -756,8 +847,17 @@ void VideoComponent::onSubtitleSelect(MenuTreeItem& item, int i)
 }
 void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
-	setBrowsingFiles(false);
-	vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
+	if(file.isDirectory())
+	{
+		item.focusItemAsMenuShortcut();
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+	}
+	else
+	{
+		setBrowsingFiles(false);
+		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
+	}
 }
 void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 {
@@ -766,14 +866,15 @@ void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 void VideoComponent::onCrop (MenuTreeItem& item, double ratio)
 {
 	setBrowsingFiles(false);
-	vlc->setScale(0.01f*(float)ratio);
+	vlc->setScale(ratio);
+
+	showZoomSlider();
 }
 void VideoComponent::onCropSlider (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
-		boost::bind<void>(&VideoComponent::onCrop, boost::ref(*this), boost::ref(item), _1),
-		vlc->getScale()*100., 50., 500., .1);
+	
+	showZoomSlider();
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "16/10", Action::build(*this, &VideoComponent::onCrop, 100.*16./10.));
@@ -842,6 +943,8 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 	showVolumeSlider();
 
 	item.focusParent();
+
+	m_settings.setValue(SETTINGS_VOLUME, vlc->getVolume());
 }
 
 void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
@@ -863,6 +966,8 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
+	m_settings.setValue(SETTINGS_FULLSCREEN, fs);
+
 	setBrowsingFiles(false);
 	setFullScreen(fs);
 	item.focusParent();
@@ -909,7 +1014,7 @@ void VideoComponent::getRootITems(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Open", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpen)), getFolderShortcutImage());
+	item.addAction( "Open", Action::build(*this, &VideoComponent::onOpenFiles, FileAction::build(*this, &VideoComponent::onOpen)), getFolderShortcutImage());
 	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onSubtitleMenu), getSubtitlesImage());
 	item.addAction( "Video options", Action::build(*this, &VideoComponent::onVideoOptions), getDisplayImage());
 	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onSoundOptions), getAudioImage());
@@ -1034,3 +1139,15 @@ void VideoComponent::stoppedSynchronous()
 		getPeer()->getComponent().removeComponentListener(this);
 	}
 }
+
+void VideoComponent::initFromSettings()
+{
+	setFullScreen(m_settings.getBoolValue(SETTINGS_FULLSCREEN, true));
+	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
+	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
+	if(shortcuts.exists())
+	{
+		shortcuts.readLines(m_shortcuts);
+	}
+}
+

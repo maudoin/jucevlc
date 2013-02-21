@@ -80,6 +80,8 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	bool browsingFiles;
 	bool mousehookset;
 	uint64_t lastMouseMoveMovieTime;
+	juce::PropertiesFile m_settings;
+	juce::StringArray m_shortcuts;
 
 public:
     VideoComponent();
@@ -96,6 +98,7 @@ public:
 	void switchPlayPause();
 	void showVolumeSlider();
 	void showPlaybackSpeedSlider();
+	void showZoomSlider();
 
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
@@ -117,7 +120,12 @@ public:
 
 	/////////////// MenuTree
 	void onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-
+	void onOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	
+	void addFavorite (MenuTreeItem& item, juce::String path);
+	void removeFavorite (MenuTreeItem& item, juce::String path);
+	void writeFavorites();
     void onOpen (MenuTreeItem& item, juce::File const& file);
     void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
     void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
@@ -176,6 +184,8 @@ public:
 private:
 	
 	void setBrowsingFiles(bool newBrowsingFiles = true);
+	void initFromSettings();
+
 };
 
 #endif //VIDEO_COMPONENT

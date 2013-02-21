@@ -25,8 +25,13 @@ class MenuTreeItem
 {
 public:
 	virtual ~MenuTreeItem(){}
-    virtual void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
-	virtual void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* action) = 0;
+    virtual void addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
+    virtual void addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_) = 0;
+	virtual void addRootFiles(AbstractFileAction* fileMethod) = 0;
+	virtual void addChildrenFiles(juce::File const& parent, AbstractFileAction* fileMethod, 
+		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
+        const juce::String& wildCardPattern = "*",
+        bool searchRecursively = false) = 0;
 	virtual void focusItemAsMenuShortcut() = 0;
 	virtual void focusParent() = 0;
 };

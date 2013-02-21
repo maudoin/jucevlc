@@ -185,26 +185,35 @@ public:
 			clearSubItems();
         }
     }
-    void addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    void addFile(juce::File const& file_, AbstractFileAction* fileMethod_);
+    void addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr);
+    void addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_);
+	
+	void addRootFiles(AbstractFileAction* fileMethod)
+	{
+		juce::Array<juce::File> destArray;
+		juce::File::findFileSystemRoots(destArray);
+		addFiles(destArray, fileMethod);
+	}
+	
+	void addChildrenFiles(juce::File const& parent, AbstractFileAction* fileMethod,
+		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
+        const juce::String& wildCardPattern = "*",
+        bool searchRecursively = false)
+	{
+		juce::Array<juce::File> destArray;
+		parent.findChildFiles(destArray, whatToLookFor, searchRecursively, wildCardPattern);
+		addFiles(destArray, fileMethod);
+	}
 	
 	void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* fileMethod)
 	{
-		//add folders
 		for(int i=0;i<destArray.size();++i)
 		{
-			if(destArray[i].isDirectory())
-			{
-				addFile(destArray[i], fileMethod->clone());
-			}
-		}
-		//add files
-		for(int i=0;i<destArray.size();++i)
-		{
-			if(!destArray[i].isDirectory())
-			{
-				addFile(destArray[i], fileMethod->clone());
-			}
+			juce::File const& file(destArray[i]);
+			juce::File p = file.getParentDirectory();
+			juce::String name = p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
+
+			addFile(name, file, fileMethod->clone());
 		}
 	}
 	virtual void focusParent()
@@ -273,19 +282,22 @@ public:
 class FileTreeViewItem  : public SmartTreeViewItem
 {
     juce::File file;
+	juce::String name;
 	juce::ScopedPointer<AbstractFileAction> fileMethod;
 public:
     FileTreeViewItem (MenuTree* owner, 
-                      juce::File const& file_, AbstractFileAction* fileMethod_)
+                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_)
 		:SmartTreeViewItem(owner)
 		,file(file_)
+		,name(name_)
 		,fileMethod(fileMethod_)
     {
 	}
     FileTreeViewItem (SmartTreeViewItem& p, 
-                      juce::File const& file_, AbstractFileAction* fileMethod_)
+                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_)
 		:SmartTreeViewItem(p)
 		,file(file_)
+		,name(name_)
 		,fileMethod(fileMethod_)
     {
 	}
@@ -298,8 +310,7 @@ public:
 	}
     juce::String getUniqueName() const
     {
-		juce::File p = file.getParentDirectory();
-		return p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
+		return name;
     }
 	bool mightContainSubItems()                 
 	{ 
@@ -312,41 +323,26 @@ public:
 	
 	void itemClicked(const juce::MouseEvent& e)
 	{
-		if(!file.isDirectory() && fileMethod)
-		{
-			fileMethod->operator()(*this, file);
-		}
 	}
 
 	void itemSelectionChanged(bool isSelected)
 	{
-		if(isSelected)
+		if(isSelected && fileMethod)
 		{
-			if(file.isDirectory())
-			{
-				focusItemAsMenuShortcut();
-				
-				const juce::String filters = "*.*";
-				const bool selectsFiles = true;
-				const bool selectsDirectories = true;
-		
-				juce::Array<juce::File> destArray;
-				getFile().findChildFiles(destArray, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false);
-				addFiles(destArray, fileMethod);
-			}
+			fileMethod->operator()(*this, file);
 		}
 		
 	}
 	
 };
-void SmartTreeViewItem::addAction(juce::String name, AbstractAction* action, const juce::Drawable* icon)
+void SmartTreeViewItem::addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon)
 {
 	addSubItem(new ActionTreeViewItem(*this, name, action, icon));
 }
 
-void SmartTreeViewItem::addFile(juce::File const& file, AbstractFileAction* fileMethod)
+void SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod)
 {
-	addSubItem(new FileTreeViewItem(*this, file, fileMethod));
+	addSubItem(new FileTreeViewItem(*this, name, file, fileMethod));
 }
 
 MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
