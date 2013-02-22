@@ -82,6 +82,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::int64 lastMouseMoveMovieTime;
 	juce::PropertiesFile m_settings;
 	juce::StringArray m_shortcuts;
+    juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
 
 public:
     VideoComponent();

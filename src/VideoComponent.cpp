@@ -398,10 +398,14 @@ VideoComponent::VideoComponent()
 
     setVisible (true);
 
+	invokeLater = new vf::GuiCallQueue();
+
 }
 
 VideoComponent::~VideoComponent()
 {    
+	invokeLater = nullptr;
+
 	controlComponent->slider().removeListener(this);
 	controlComponent->playPauseButton().removeListener(this);
 	controlComponent->stopButton().removeListener(this);
@@ -445,7 +449,7 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 {
 	if(key.isKeyCurrentlyDown(juce::KeyPress::returnKey) && key.getModifiers().isAltDown())
 	{
-		vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::switchFullScreen,this));
+		if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::switchFullScreen,this));
 		return true;
 	}
 	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
@@ -705,7 +709,7 @@ void VideoComponent::vlcUnlock(void *id, void *const *p_pixels)
 
 void VideoComponent::vlcDisplay(void *id)
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::repaint,this));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::repaint,this));
 	jassert(id == NULL);
 }
 #else
@@ -754,11 +758,12 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 }
 void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
+	setBrowsingFiles();
+
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
 	if(path.isEmpty() || !f.exists())
 	{
-		setBrowsingFiles();
 		item.focusItemAsMenuShortcut();
 		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onListFavorites, fileMethod), getItemImage());
 		item.addRootFiles(fileMethod);
@@ -821,20 +826,21 @@ void VideoComponent::addFavorite(MenuTreeItem& item, juce::String path)
 	m_shortcuts.add(path);
 	writeFavorites();
 
-	vf::MessageThread::getInstance().queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::removeFavorite(MenuTreeItem& item, juce::String path)
 {
 	m_shortcuts.removeString(path);
 	writeFavorites();
 	
-	vf::MessageThread::getInstance().queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
+		setBrowsingFiles();
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
@@ -856,7 +862,7 @@ void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 	else
 	{
 		setBrowsingFiles(false);
-		vf::MessageThread::getInstance();
+		invokeLater;
 		play(file.getFullPathName().toUTF8().getAddress());
 	}
 }
@@ -883,6 +889,7 @@ void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
+		setBrowsingFiles();
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
@@ -1070,7 +1077,7 @@ void VideoComponent::vlcTimeChanged()
 	{
 		mousehookset = vlc->setMouseInputCallBack(this);
 	}
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
 }
 
 void VideoComponent::updateTimeAndSlider()
@@ -1080,7 +1087,7 @@ void VideoComponent::updateTimeAndSlider()
 		videoUpdating = true;
 		controlComponent->slider().setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
 		controlComponent->setTime(vlc->GetTime(), vlc->GetLength());
-		vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
+		if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
 	}
 	juce::int64 timeFromLastMouseMove = juce::Time::currentTimeMillis () - lastMouseMoveMovieTime;
@@ -1106,25 +1113,25 @@ void VideoComponent::updateTimeAndSlider()
 }
 void VideoComponent::vlcPaused()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
 void VideoComponent::vlcStarted()
 {
 		
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::startedSynchronous,this));
+	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::startedSynchronous,this));
 }
 void VideoComponent::vlcStopped()
 {
-	vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
-	vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
+	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
 }
 
 void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
 	//tree->setVisible(rightClick);
-	vf::MessageThread::getInstance().queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
 	
 }
 void VideoComponent::vlcFullScreenControlCallback()
@@ -1138,7 +1145,7 @@ void VideoComponent::vlcMouseMove(int x, int y, int button)
 	if(controlsExpired)
 	{
 		//reactivateControls
-		vf::MessageThread::getInstance().queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+		invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
 	}
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)
