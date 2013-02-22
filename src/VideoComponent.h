@@ -103,8 +103,9 @@ public:
 	
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
     void onMenuSubtitleMenu (MenuTreeItem& item);
-    void onMenuCrop (MenuTreeItem& item, double ratio);
-    void onMenuCropSlider (MenuTreeItem& item);
+    void onMenuZoom (MenuTreeItem& item, double ratio);
+    void onMenuCrop (MenuTreeItem& item, juce::String  crop);
+    void onMenuCropList (MenuTreeItem& item);
     void onMenuRate (MenuTreeItem& item, double rate);
     void onMenuRateSlider (MenuTreeItem& item);
     void onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio);
@@ -157,6 +158,7 @@ private:
 	
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void initFromSettings();
+	void initFromMediaDependantSettings();
 
 };
 

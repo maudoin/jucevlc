@@ -644,23 +644,32 @@ void VideoComponent::onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& f
 {
 }
 
-void VideoComponent::onMenuCrop (MenuTreeItem& item, double ratio)
+void VideoComponent::onMenuZoom(MenuTreeItem& item, double ratio)
 {
 	setBrowsingFiles(false);
 	vlc->setScale(ratio);
 
 	showZoomSlider();
 }
-void VideoComponent::onMenuCropSlider (MenuTreeItem& item)
+void VideoComponent::onMenuCrop (MenuTreeItem& item, juce::String ratio)
+{
+	setBrowsingFiles(false);
+	vlc->setCrop(std::string(ratio.getCharPointer().getAddress()));
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onMenuCropList (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	
-	showZoomSlider();
-	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "16/10", Action::build(*this, &VideoComponent::onMenuCrop, 100.*16./10.));
-	item.addAction( "16/9", Action::build(*this, &VideoComponent::onMenuCrop, 100.*16./9.));
-	item.addAction( "4/3", Action::build(*this, &VideoComponent::onMenuCrop, 100.*4./3.));
+	std::string current = vlc->getCrop();
+	std::vector<std::string> list = vlc->getCropList();
+	for(std::vector<std::string>::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		juce::String ratio(it->c_str());
+		item.addAction( ratio.isEmpty()?"Original":ratio, Action::build(*this, &VideoComponent::onMenuCrop, ratio), *it==current?getItemImage():nullptr);
+	}
 }
 void VideoComponent::onMenuRate (MenuTreeItem& item, double rate)
 {
@@ -669,7 +678,7 @@ void VideoComponent::onMenuRate (MenuTreeItem& item, double rate)
 
 	showPlaybackSpeedSlider();
 
-	item.forceParentSelection();
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuRateSlider (MenuTreeItem& item)
 {
@@ -686,11 +695,6 @@ void VideoComponent::onMenuRateSlider (MenuTreeItem& item)
 	item.addAction( "600%", Action::build(*this, &VideoComponent::onMenuRate, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
 	item.addAction( "800%", Action::build(*this, &VideoComponent::onMenuRate, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
 
-}
-void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio)
-{
-	setBrowsingFiles(false);
-	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
 void VideoComponent::onMenuShiftAudio(MenuTreeItem& item, double s)
 {
@@ -723,9 +727,10 @@ void VideoComponent::onMenuAudioVolume(MenuTreeItem& item, double volume)
 
 	showVolumeSlider();
 
-	item.forceParentSelection();
-
 	m_settings.setValue(SETTINGS_VOLUME, vlc->getVolume());
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+
 }
 
 void VideoComponent::onMenuAudioVolumeSlider(MenuTreeItem& item)
@@ -749,7 +754,8 @@ void VideoComponent::onMenuFullscreen(MenuTreeItem& item, bool fs)
 {
 	setBrowsingFiles(false);
 	setFullScreen(fs);
-	item.forceParentSelection();
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
 void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
@@ -760,6 +766,13 @@ void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
 	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
 }
 
+void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio)
+{
+	setBrowsingFiles(false);
+	vlc->setAspect(ratio.getCharPointer().getAddress());
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
 void VideoComponent::onMenuRatio(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -782,7 +795,7 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
 	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
 	item.addAction( "Speed", Action::build(*this, &VideoComponent::onMenuRateSlider));
-	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onMenuCropSlider));
+	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onMenuCropList));
 	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onMenuRatio));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
@@ -868,7 +881,7 @@ void VideoComponent::vlcStopped()
 void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
-	//tree->setVisible(rightClick);
+
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
 	
 }
@@ -895,6 +908,8 @@ void VideoComponent::startedSynchronous()
 	
 	if(!vlcNativePopupComponent->isVisible())
 	{		
+		initFromMediaDependantSettings();
+
 		setAlpha(1.f);
 		setOpaque(false);
 		vlcNativePopupComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary); 
@@ -919,10 +934,14 @@ void VideoComponent::stoppedSynchronous()
 	}
 }
 
+void VideoComponent::initFromMediaDependantSettings()
+{
+	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
+}
+
 void VideoComponent::initFromSettings()
 {
 	setFullScreen(m_settings.getBoolValue(SETTINGS_FULLSCREEN, true));
-	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
 	if(shortcuts.exists())
 	{

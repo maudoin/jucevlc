@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 struct libvlc_instance_t;
 struct libvlc_media_player_t;
@@ -142,6 +143,10 @@ public:
     int getSubtitlesCount();
     int getCurrentSubtitleIndex();
     void setSubtitleIndex(int i);
+	
+	std::vector<std::string> getCropList();
+	void setCrop(std::string const& ratio);
+	std::string getCrop();
 
 	std::string getInfo() const;
 };

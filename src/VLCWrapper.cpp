@@ -448,3 +448,48 @@ bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
 
 
 	
+std::vector<std::string> VLCWrapper::getCropList()
+{
+	std::vector<std::string> list;
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+        vlc_value_t val_list, text_list;
+		var_Change( p_vout, "crop", VLC_VAR_GETLIST,
+									&val_list, &text_list );
+        for( int i = 0; i < val_list.p_list->i_count; i++ )
+        {
+			list.push_back( val_list.p_list->p_values[i].psz_string );
+        }
+        var_FreeList( &val_list, &text_list );
+
+		vlc_object_release (p_vout);
+	}
+	return list;
+
+}
+void VLCWrapper::setCrop(std::string const& ratio)
+{
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+        var_SetString( p_vout, "crop",ratio.c_str());
+
+		vlc_object_release (p_vout);
+	}
+}
+
+std::string VLCWrapper::getCrop()
+{
+	std::string crop;
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+		char* str = var_GetString( p_vout, "crop" );
+		crop = str;
+		//free( str );
+
+		vlc_object_release (p_vout);
+	}
+	return crop;
+}
