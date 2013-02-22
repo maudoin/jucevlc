@@ -4,7 +4,7 @@
 #include "MenuTree.h"
 #include <boost/bind/bind.hpp>
 #include <boost/function.hpp>
-
+class VideoComponent;
 class Action : public AbstractAction
 {
     typedef boost::function<void (MenuTreeItem&)> Functor;

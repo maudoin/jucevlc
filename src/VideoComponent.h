@@ -3,8 +3,8 @@
 #define VIDEO_COMPONENT
 
 #include "juce.h"
-#include "Execute.h"
 #include "VLCWrapper.h"
+#include "ControlComponent.h"
 #include "MenuTree.h"
 #include "AppProportionnalComponent.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
@@ -15,36 +15,6 @@
 #define BUFFER_DISPLAY
 #undef BUFFER_DISPLAY
 
-//==============================================================================
-
-class AlternateControlComponent;
-class ControlComponent   : public juce::Component, public AppProportionnalComponent
-{
-    juce::ScopedPointer<juce::Slider> m_slider;
-    juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
-    juce::ScopedPointer<juce::DrawableButton> m_stopButton;
-    juce::ScopedPointer<juce::Drawable> m_playImage;
-    juce::ScopedPointer<juce::Drawable> m_pauseImage;
-    juce::ScopedPointer<juce::Drawable> m_stopImage;
-    juce::ScopedPointer<AlternateControlComponent> m_alternateControlComponent;
-	juce::String timeString;
-public:
-	ControlComponent();
-	virtual ~ControlComponent();
-    virtual void paint (juce::Graphics& g);
-    virtual void resized();
-    void setTime(int64_t time, int64_t len);
-
-	void showPlayingControls();
-	void showPausedControls();
-	void hidePlayingControls();
-	
-	juce::Slider& slider(){return *m_slider.get();}
-	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
-	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
-	AlternateControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}
-
-};
 class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
 #ifdef BUFFER_DISPLAY
@@ -58,7 +28,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 #else
-    juce::ScopedPointer<juce::Component> videoComponent;
+    juce::ScopedPointer<juce::Component> vlcNativePopupComponent;
 #endif
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<MenuTree> tree;

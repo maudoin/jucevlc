@@ -148,6 +148,7 @@
     <ClCompile Include="juce\modules\juce_graphics\juce_graphics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
+    <ClCompile Include="src\ControlComponent.cpp" />
     <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\Icons.cpp" />
@@ -368,6 +369,7 @@
     <ClInclude Include="msinttypes-r26\inttypes.h" />
     <ClInclude Include="msinttypes-r26\stdint.h" />
     <ClInclude Include="src\AppProportionnalComponent.h" />
+    <ClInclude Include="src\ControlComponent.h" />
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\MenuTreeAction.h" />
