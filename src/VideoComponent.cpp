@@ -17,6 +17,7 @@ juce::PropertiesFile::Options options()
 {
 	juce::PropertiesFile::Options opts;
 	opts.applicationName = "JucyVLC";
+	opts.folderName = "JucyVLC";
 	opts.commonToAllUsers = false;
 	opts.filenameSuffix = "xml";
 	opts.ignoreCaseOfKeyNames = true;
@@ -751,14 +752,43 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 }
 void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
-	//sdf use last path
+	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+	juce::File f(path);
+	if(path.isEmpty() || !f.exists())
+	{
+		setBrowsingFiles();
+		item.focusItemAsMenuShortcut();
+		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onListFavorites, fileMethod), getItemImage());
+		item.addRootFiles(fileMethod);
+	}
+	else
+	{
+		if(!f.isDirectory())
+		{
+			f = f.getParentDirectory();
+		}
+		juce::Array<juce::File> lifo;
+		juce::File p = f.getParentDirectory();
+		while(p.getFullPathName() != f.getFullPathName())
+		{
+			lifo.add(f);
+			f = p;
+			p = f.getParentDirectory();
+		}
+		lifo.add(f);
 
-	setBrowsingFiles();
-	item.focusItemAsMenuShortcut();
-	item.addAction( "Favorites", Action::build(*this, &VideoComponent::onListFavorites, fileMethod), getItemImage());
-	item.addRootFiles(fileMethod);
-	
-	//sdf use last path
+		MenuTreeItem* last =&item;
+		for(int i=lifo.size()-1;i>=0;--i)
+		{
+			last = last->addFile(lifo[i], fileMethod->clone());
+		}
+		if(last)
+		{
+			last->forceSelection();
+		}
+
+
+	}
 }
 
 void VideoComponent::onListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
@@ -789,20 +819,22 @@ void VideoComponent::addFavorite(MenuTreeItem& item, juce::String path)
 	m_shortcuts.add(path);
 	writeFavorites();
 
-	vf::MessageThread::getInstance().queuef(std::bind  (&MenuTreeItem::focusParent,&item));
+	vf::MessageThread::getInstance().queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::removeFavorite(MenuTreeItem& item, juce::String path)
 {
 	m_shortcuts.removeString(path);
 	writeFavorites();
 	
-	vf::MessageThread::getInstance().queuef(std::bind  (&MenuTreeItem::focusParent,&item));
+	vf::MessageThread::getInstance().queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
 void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
+		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
+
 		item.focusItemAsMenuShortcut();
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
@@ -849,6 +881,8 @@ void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
+		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
+
 		item.focusItemAsMenuShortcut();
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findFiles|juce::File::ignoreHiddenFiles);
@@ -888,7 +922,7 @@ void VideoComponent::onRate (MenuTreeItem& item, double rate)
 
 	showPlaybackSpeedSlider();
 
-	item.focusParent();
+	item.forceParentSelection();
 }
 void VideoComponent::onRateSlider (MenuTreeItem& item)
 {
@@ -942,7 +976,7 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 
 	showVolumeSlider();
 
-	item.focusParent();
+	item.forceParentSelection();
 
 	m_settings.setValue(SETTINGS_VOLUME, vlc->getVolume());
 }
@@ -970,7 +1004,7 @@ void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 
 	setBrowsingFiles(false);
 	setFullScreen(fs);
-	item.focusParent();
+	item.forceParentSelection();
 }
 
 void VideoComponent::onSoundOptions(MenuTreeItem& item)

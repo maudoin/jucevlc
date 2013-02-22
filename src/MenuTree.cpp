@@ -185,8 +185,15 @@ public:
 			clearSubItems();
         }
     }
-    void addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    void addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_);
+    MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr);
+    MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_);
+    MenuTreeItem* addFile(juce::File const& file, AbstractFileAction* fileMethod)
+	{
+		juce::File p = file.getParentDirectory();
+		juce::String name = p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
+
+		return addFile(name, file, fileMethod);
+	}
 	
 	void addRootFiles(AbstractFileAction* fileMethod)
 	{
@@ -209,19 +216,23 @@ public:
 	{
 		for(int i=0;i<destArray.size();++i)
 		{
-			juce::File const& file(destArray[i]);
-			juce::File p = file.getParentDirectory();
-			juce::String name = p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
-
-			addFile(name, file, fileMethod->clone());
+			addFile( destArray[i], fileMethod->clone());
 		}
 	}
-	virtual void focusParent()
+	virtual MenuTreeItem* getMenuTreeItemParent()
 	{
-		juce::TreeViewItem* p = getParentItem();
-		if(p)
+		return dynamic_cast<SmartTreeViewItem*>(getParentItem());;
+	}
+	virtual void forceSelection(bool force)
+	{
+		setSelected(force, true);
+	}
+	virtual void forceParentSelection(bool force)
+	{
+		juce::TreeViewItem* parent = getParentItem();
+		if(parent)
 		{
-			p->setSelected(true, true);
+			parent->setSelected(force, true);
 		}
 	}
 };
@@ -335,14 +346,18 @@ public:
 	}
 	
 };
-void SmartTreeViewItem::addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon)
+MenuTreeItem* SmartTreeViewItem::addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon)
 {
-	addSubItem(new ActionTreeViewItem(*this, name, action, icon));
+	ActionTreeViewItem* item = new ActionTreeViewItem(*this, name, action, icon);
+	addSubItem(item);
+	return item;
 }
 
-void SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod)
+MenuTreeItem* SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod)
 {
-	addSubItem(new FileTreeViewItem(*this, name, file, fileMethod));
+	FileTreeViewItem* item = new FileTreeViewItem(*this, name, file, fileMethod);
+	addSubItem(item);
+	return item;
 }
 
 MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
