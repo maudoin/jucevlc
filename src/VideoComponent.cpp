@@ -481,11 +481,16 @@ void VideoComponent::setFullScreen(bool fs)
 	{
 		resized();
 	}
+	m_settings.setValue(SETTINGS_FULLSCREEN, fs);
 }
 
 void VideoComponent::switchFullScreen()
 {
 	setFullScreen(juce::Desktop::getInstance().getKioskModeComponent() == nullptr);
+}
+void VideoComponent::mouseMove (const juce::MouseEvent& e)
+{
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 }
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
@@ -511,9 +516,7 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		int64_t time = controlComponent->slider().getValue()*vlc->GetLength()/1000.;
-		vlc->SetTime(time);
-		lastMouseMoveMovieTime = time;
+		vlc->SetTime(controlComponent->slider().getValue()*vlc->GetLength()/1000.);
 		sliderUpdating =false;
 	}
 }
@@ -655,7 +658,6 @@ void VideoComponent::play()
 	vlc->Play();
 
 	controlComponent->slider().setValue(0);
-	lastMouseMoveMovieTime = 0;
 	
 }
 	
@@ -1000,8 +1002,6 @@ void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
 
 void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
 {
-	m_settings.setValue(SETTINGS_FULLSCREEN, fs);
-
 	setBrowsingFiles(false);
 	setFullScreen(fs);
 	item.forceParentSelection();
@@ -1083,7 +1083,7 @@ void VideoComponent::updateTimeAndSlider()
 		vf::MessageThread::getInstance().queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
 	}
-	uint64_t timeFromLastMouseMove = vlc->GetTime() - lastMouseMoveMovieTime;
+	juce::int64 timeFromLastMouseMove = juce::Time::currentTimeMillis () - lastMouseMoveMovieTime;
 	if(timeFromLastMouseMove<(DISAPEAR_DELAY_MS+DISAPEAR_SPEED_MS))
 	{
 		if(timeFromLastMouseMove<DISAPEAR_DELAY_MS)
@@ -1133,8 +1133,8 @@ void VideoComponent::vlcFullScreenControlCallback()
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
-	bool controlsExpired = (vlc->GetTime() - lastMouseMoveMovieTime) - DISAPEAR_DELAY_MS - DISAPEAR_SPEED_MS > 0;
-	lastMouseMoveMovieTime = vlc->GetTime();
+	bool controlsExpired = (juce::Time::currentTimeMillis () - lastMouseMoveMovieTime) - DISAPEAR_DELAY_MS - DISAPEAR_SPEED_MS > 0;
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 	if(controlsExpired)
 	{
 		//reactivateControls

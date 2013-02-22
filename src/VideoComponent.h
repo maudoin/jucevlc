@@ -79,7 +79,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
 	bool mousehookset;
-	uint64_t lastMouseMoveMovieTime;
+	juce::int64 lastMouseMoveMovieTime;
 	juce::PropertiesFile m_settings;
 	juce::StringArray m_shortcuts;
 
@@ -178,6 +178,7 @@ public:
 								juce::Component* originatingComponent);
     void mouseDown (const juce::MouseEvent& e);
 	void mouseDrag (const juce::MouseEvent& e);
+    void mouseMove (const juce::MouseEvent& event);
 	
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
     //void broughtToFront(){resized();}
