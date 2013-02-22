@@ -106,7 +106,7 @@ VideoComponent::VideoComponent()
 	
     vlc->SetEventCallBack(this);
 
-	tree->setRootAction(Action::build(*this, &VideoComponent::getRootITems));
+	tree->setRootAction(Action::build(*this, &VideoComponent::onMenuRoot));
 		
 	////////////////
 	tree->setScaleComponent(this);
@@ -256,7 +256,7 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		vlc->SetTime(controlComponent->slider().getValue()*vlc->GetLength()/1000.);
+		vlc->SetTime((int64_t)(controlComponent->slider().getValue()*vlc->GetLength()/1000.));
 		sliderUpdating =false;
 	}
 }
@@ -492,7 +492,7 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 		resized();
 	}
 }
-void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
 	setBrowsingFiles();
 
@@ -501,7 +501,7 @@ void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMet
 	if(path.isEmpty() || !f.exists())
 	{
 		item.focusItemAsMenuShortcut();
-		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onListFavorites, fileMethod), getItemImage());
+		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod), getItemImage());
 		item.addRootFiles(fileMethod);
 	}
 	else
@@ -534,7 +534,7 @@ void VideoComponent::onListFiles(MenuTreeItem& item, AbstractFileAction* fileMet
 	}
 }
 
-void VideoComponent::onListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
 	item.focusItemAsMenuShortcut();
 	for(int i=0;i<m_shortcuts.size();++i)
@@ -544,9 +544,9 @@ void VideoComponent::onListFavorites(MenuTreeItem& item, AbstractFileAction* fil
 	}
 }
 
-void VideoComponent::onOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
-	onListFiles(item, fileMethod);
+	onMenuListFiles(item, fileMethod);
 }
 
 void VideoComponent::writeFavorites()
@@ -557,14 +557,14 @@ void VideoComponent::writeFavorites()
 	shortcuts.replaceWithText(m_shortcuts.joinIntoString("\n"));
 }
 
-void VideoComponent::addFavorite(MenuTreeItem& item, juce::String path)
+void VideoComponent::onMenuAddFavorite(MenuTreeItem& item, juce::String path)
 {
 	m_shortcuts.add(path);
 	writeFavorites();
 
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
-void VideoComponent::removeFavorite(MenuTreeItem& item, juce::String path)
+void VideoComponent::onMenuRemoveFavorite(MenuTreeItem& item, juce::String path)
 {
 	m_shortcuts.removeString(path);
 	writeFavorites();
@@ -572,7 +572,7 @@ void VideoComponent::removeFavorite(MenuTreeItem& item, juce::String path)
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
-void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
@@ -580,17 +580,17 @@ void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
-			item.addAction("Add to favorites", Action::build(*this, &VideoComponent::addFavorite, 
+			item.addAction("Add to favorites", Action::build(*this, &VideoComponent::onMenuAddFavorite, 
 				file.getFullPathName()), getItemImage());
 		}
 		else
 		{
-			item.addAction("Remove from favorites", Action::build(*this, &VideoComponent::removeFavorite, 
+			item.addAction("Remove from favorites", Action::build(*this, &VideoComponent::onMenuRemoveFavorite, 
 				file.getFullPathName()), getItemImage());
 		}
 		
@@ -602,26 +602,26 @@ void VideoComponent::onOpen (MenuTreeItem& item, juce::File const& file)
 		play(file.getFullPathName().toUTF8().getAddress());
 	}
 }
-void VideoComponent::onSubtitleMenu(MenuTreeItem& item)
+void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	int cnt = vlc->getSubtitlesCount();
 	int current = vlc->getCurrentSubtitleIndex();
-	item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onSubtitleSelect, -1), -1==current?getItemImage():nullptr);
+	item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
 	for(int i = 0;i<cnt;++i)
 	{
-		item.addAction( juce::String::formatted("Slot %d", i+1), Action::build(*this, &VideoComponent::onSubtitleSelect, i), i==current?getItemImage():nullptr);
+		item.addAction( juce::String::formatted("Slot %d", i+1), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, i), i==current?getItemImage():nullptr);
 	}
-	item.addAction( "Add...", Action::build(*this, &VideoComponent::onListFiles, FileAction::build(*this, &VideoComponent::onOpenSubtitle)));
-	item.addAction( "Delay", Action::build(*this, &VideoComponent::onShiftSubtitlesSlider));
+	item.addAction( "Add...", Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
+	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 }
-void VideoComponent::onSubtitleSelect(MenuTreeItem& item, int i)
+void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
 	setBrowsingFiles(false);
 	vlc->setSubtitleIndex(i);
 }
-void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
 	{
@@ -629,8 +629,8 @@ void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onOpenSubtitle), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle), juce::File::findFiles|juce::File::ignoreHiddenFiles);
 	}
 	else
 	{
@@ -638,29 +638,29 @@ void VideoComponent::onOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 	}
 }
-void VideoComponent::onOpenPlaylist (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file)
 {
 }
 
-void VideoComponent::onCrop (MenuTreeItem& item, double ratio)
+void VideoComponent::onMenuCrop (MenuTreeItem& item, double ratio)
 {
 	setBrowsingFiles(false);
 	vlc->setScale(ratio);
 
 	showZoomSlider();
 }
-void VideoComponent::onCropSlider (MenuTreeItem& item)
+void VideoComponent::onMenuCropSlider (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	
 	showZoomSlider();
 	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "16/10", Action::build(*this, &VideoComponent::onCrop, 100.*16./10.));
-	item.addAction( "16/9", Action::build(*this, &VideoComponent::onCrop, 100.*16./9.));
-	item.addAction( "4/3", Action::build(*this, &VideoComponent::onCrop, 100.*4./3.));
+	item.addAction( "16/10", Action::build(*this, &VideoComponent::onMenuCrop, 100.*16./10.));
+	item.addAction( "16/9", Action::build(*this, &VideoComponent::onMenuCrop, 100.*16./9.));
+	item.addAction( "4/3", Action::build(*this, &VideoComponent::onMenuCrop, 100.*4./3.));
 }
-void VideoComponent::onRate (MenuTreeItem& item, double rate)
+void VideoComponent::onMenuRate (MenuTreeItem& item, double rate)
 {
 	setBrowsingFiles(false);
 	vlc->setRate(rate);
@@ -669,52 +669,52 @@ void VideoComponent::onRate (MenuTreeItem& item, double rate)
 
 	item.forceParentSelection();
 }
-void VideoComponent::onRateSlider (MenuTreeItem& item)
+void VideoComponent::onMenuRateSlider (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "50%", Action::build(*this, &VideoComponent::onRate, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "100%", Action::build(*this, &VideoComponent::onRate, 100.), 100==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "125%", Action::build(*this, &VideoComponent::onRate, 125.), 125==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "150%", Action::build(*this, &VideoComponent::onRate, 150.), 150==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "200%", Action::build(*this, &VideoComponent::onRate, 200.), 200==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "300%", Action::build(*this, &VideoComponent::onRate, 300.), 300==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "400%", Action::build(*this, &VideoComponent::onRate, 400.), 400==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "600%", Action::build(*this, &VideoComponent::onRate, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "800%", Action::build(*this, &VideoComponent::onRate, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onMenuRate, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onMenuRate, 100.), 100==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onMenuRate, 125.), 125==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onMenuRate, 150.), 150==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onMenuRate, 200.), 200==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "300%", Action::build(*this, &VideoComponent::onMenuRate, 300.), 300==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "400%", Action::build(*this, &VideoComponent::onMenuRate, 400.), 400==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "600%", Action::build(*this, &VideoComponent::onMenuRate, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "800%", Action::build(*this, &VideoComponent::onMenuRate, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
 
 }
-void VideoComponent::onSetAspectRatio(MenuTreeItem& item, juce::String ratio)
+void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio)
 {
 	setBrowsingFiles(false);
 	vlc->setAspect(ratio.getCharPointer().getAddress());
 }
-void VideoComponent::onShiftAudio(MenuTreeItem& item, double s)
+void VideoComponent::onMenuShiftAudio(MenuTreeItem& item, double s)
 {
 	setBrowsingFiles(false);
 	vlc->setAudioDelay((int64_t)(s*1000000.));
 }
-void VideoComponent::onShiftAudioSlider(MenuTreeItem& item)
+void VideoComponent::onMenuShiftAudioSlider(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
-		boost::bind<void>(&VideoComponent::onShiftAudio, boost::ref(*this), boost::ref(item), _1),
+		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), boost::ref(item), _1),
 		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
 }
-void VideoComponent::onShiftSubtitles(MenuTreeItem& item, double s)
+void VideoComponent::onMenuShiftSubtitles(MenuTreeItem& item, double s)
 {
 	setBrowsingFiles(false);
 	vlc->setSubtitleDelay((int64_t)(s*1000000.));
 }
-void VideoComponent::onShiftSubtitlesSlider(MenuTreeItem& item)
+void VideoComponent::onMenuShiftSubtitlesSlider(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
-		boost::bind<void>(&VideoComponent::onShiftSubtitles, boost::ref(*this), boost::ref(item), _1),
+		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), boost::ref(item), _1),
 		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
 }
-void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
+void VideoComponent::onMenuAudioVolume(MenuTreeItem& item, double volume)
 {
 	setBrowsingFiles(false);
 	vlc->setVolume(volume);
@@ -726,76 +726,76 @@ void VideoComponent::onAudioVolume(MenuTreeItem& item, double volume)
 	m_settings.setValue(SETTINGS_VOLUME, vlc->getVolume());
 }
 
-void VideoComponent::onAudioVolumeSlider(MenuTreeItem& item)
+void VideoComponent::onMenuAudioVolumeSlider(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	showVolumeSlider();
 	
 	item.focusItemAsMenuShortcut();
-	item.addAction( "10%", Action::build(*this, &VideoComponent::onAudioVolume, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "25%", Action::build(*this, &VideoComponent::onAudioVolume, 25.), 25==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "50%", Action::build(*this, &VideoComponent::onAudioVolume, 50.), 50==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "75%", Action::build(*this, &VideoComponent::onAudioVolume, 75.), 75==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "100%", Action::build(*this, &VideoComponent::onAudioVolume, 100.), 100==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "125%", Action::build(*this, &VideoComponent::onAudioVolume, 125.), 125==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "150%", Action::build(*this, &VideoComponent::onAudioVolume, 150.), 150==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "175%", Action::build(*this, &VideoComponent::onAudioVolume, 175.), 175==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "200%", Action::build(*this, &VideoComponent::onAudioVolume, 200.), 200==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "10%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "25%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 25.), 25==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "50%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 50.), 50==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "75%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 75.), 75==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "100%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 100.), 100==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "125%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 125.), 125==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "150%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 150.), 150==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "175%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 175.), 175==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "200%", Action::build(*this, &VideoComponent::onMenuAudioVolume, 200.), 200==(int)(vlc->getVolume())?getItemImage():nullptr);
 }
 
-void VideoComponent::onFullscreen(MenuTreeItem& item, bool fs)
+void VideoComponent::onMenuFullscreen(MenuTreeItem& item, bool fs)
 {
 	setBrowsingFiles(false);
 	setFullScreen(fs);
 	item.forceParentSelection();
 }
 
-void VideoComponent::onSoundOptions(MenuTreeItem& item)
+void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Volume", Action::build(*this, &VideoComponent::onAudioVolumeSlider));
-	item.addAction( "Delay", Action::build(*this, &VideoComponent::onShiftAudioSlider));
+	item.addAction( "Volume", Action::build(*this, &VideoComponent::onMenuAudioVolumeSlider));
+	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
 }
 
-void VideoComponent::onRatio(MenuTreeItem& item)
+void VideoComponent::onMenuRatio(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "original", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("")));
-	item.addAction( "1:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("1:1")));
-	item.addAction( "4:3", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("4:3")));
-	item.addAction( "16:10", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:10")));
-	item.addAction( "16:9", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("16:9")));
-	item.addAction( "2.21:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.21:1")));
-	item.addAction( "2.35:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.35:1")));
-	item.addAction( "2.39:1", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("2.39:1")));
-	item.addAction( "5:4", Action::build(*this, &VideoComponent::onSetAspectRatio, juce::String("5:4")));
+	item.addAction( "original", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("")));
+	item.addAction( "1:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("1:1")));
+	item.addAction( "4:3", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("4:3")));
+	item.addAction( "16:10", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:10")));
+	item.addAction( "16:9", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:9")));
+	item.addAction( "2.21:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.21:1")));
+	item.addAction( "2.35:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.35:1")));
+	item.addAction( "2.39:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.39:1")));
+	item.addAction( "5:4", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("5:4")));
 	
 }
-void VideoComponent::onVideoOptions(MenuTreeItem& item)
+void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onFullscreen, true), isFullScreen()?getItemImage():nullptr);
-	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onFullscreen, false), isFullScreen()?nullptr:getItemImage());
-	item.addAction( "Speed", Action::build(*this, &VideoComponent::onRateSlider));
-	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onCropSlider));
-	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onRatio));
+	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
+	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
+	item.addAction( "Speed", Action::build(*this, &VideoComponent::onMenuRateSlider));
+	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onMenuCropSlider));
+	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onMenuRatio));
 }
-void VideoComponent::onExit(MenuTreeItem& item)
+void VideoComponent::onMenuExit(MenuTreeItem& item)
 {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
-void VideoComponent::getRootITems(MenuTreeItem& item)
+void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Open", Action::build(*this, &VideoComponent::onOpenFiles, FileAction::build(*this, &VideoComponent::onOpen)), getFolderShortcutImage());
-	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onSubtitleMenu), getSubtitlesImage());
-	item.addAction( "Video options", Action::build(*this, &VideoComponent::onVideoOptions), getDisplayImage());
-	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onSoundOptions), getAudioImage());
-	item.addAction( "Exit", Action::build(*this, &VideoComponent::onExit), getExitImage());
+	item.addAction( "Open", Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
+	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
+	item.addAction( "Video options", Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
+	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
+	item.addAction( "Exit", Action::build(*this, &VideoComponent::onMenuExit), getExitImage());
 
 }
 ////////////////////////////////////////////////////////////

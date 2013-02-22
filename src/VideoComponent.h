@@ -90,38 +90,38 @@ public:
 #endif
 
 	/////////////// MenuTree
-	void onListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-	void onOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-	void onListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	
-	void addFavorite (MenuTreeItem& item, juce::String path);
-	void removeFavorite (MenuTreeItem& item, juce::String path);
+	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
+	void onMenuRemoveFavorite (MenuTreeItem& item, juce::String path);
 	void writeFavorites();
-    void onOpen (MenuTreeItem& item, juce::File const& file);
-    void onOpenSubtitle (MenuTreeItem& item, juce::File const& file);
-    void onOpenPlaylist (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpen (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
-	void onSubtitleSelect(MenuTreeItem& item, int i);
-    void onSubtitleMenu (MenuTreeItem& item);
-    void onCrop (MenuTreeItem& item, double ratio);
-    void onCropSlider (MenuTreeItem& item);
-    void onRate (MenuTreeItem& item, double rate);
-    void onRateSlider (MenuTreeItem& item);
-    void onSetAspectRatio(MenuTreeItem& item, juce::String ratio);
-    void onShiftAudio(MenuTreeItem& item, double s);
-    void onShiftAudioSlider(MenuTreeItem& item);
-    void onShiftSubtitles(MenuTreeItem& item, double s);
-    void onShiftSubtitlesSlider(MenuTreeItem& item);
-    void onAudioVolume(MenuTreeItem& item, double volume);
-    void onAudioVolumeSlider (MenuTreeItem& item);
+	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
+    void onMenuSubtitleMenu (MenuTreeItem& item);
+    void onMenuCrop (MenuTreeItem& item, double ratio);
+    void onMenuCropSlider (MenuTreeItem& item);
+    void onMenuRate (MenuTreeItem& item, double rate);
+    void onMenuRateSlider (MenuTreeItem& item);
+    void onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio);
+    void onMenuShiftAudio(MenuTreeItem& item, double s);
+    void onMenuShiftAudioSlider(MenuTreeItem& item);
+    void onMenuShiftSubtitles(MenuTreeItem& item, double s);
+    void onMenuShiftSubtitlesSlider(MenuTreeItem& item);
+    void onMenuAudioVolume(MenuTreeItem& item, double volume);
+    void onMenuAudioVolumeSlider (MenuTreeItem& item);
 	
-    void onFullscreen(MenuTreeItem& item, bool fs);
+    void onMenuFullscreen(MenuTreeItem& item, bool fs);
 	
-	void onExit(MenuTreeItem& item);
-	void onSoundOptions(MenuTreeItem& item);
-	void onRatio(MenuTreeItem& item);
-	void onVideoOptions(MenuTreeItem& item);
-	void getRootITems(MenuTreeItem& item);
+	void onMenuExit(MenuTreeItem& item);
+	void onMenuSoundOptions(MenuTreeItem& item);
+	void onMenuRatio(MenuTreeItem& item);
+	void onMenuVideoOptions(MenuTreeItem& item);
+	void onMenuRoot(MenuTreeItem& item);
 	/////////////// VLC EvtListener
 	virtual void vlcTimeChanged();
 	virtual void vlcPaused();
