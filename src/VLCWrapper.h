@@ -147,6 +147,17 @@ public:
 	std::vector<std::string> getCropList();
 	void setCrop(std::string const& ratio);
 	std::string getCrop();
+	
+	std::vector< std::pair<int, std::string> > getVideoTrackList();
+	void setVideoTrack(int n);
+	int getVideoTrack();
+
+	std::vector< std::pair<int, std::string> > getAudioTrackList();
+	void setAudioTrack(int n);
+	int getAudioTrack();
+
+	void setAutoCrop(bool autoCrop);
+	bool isAutoCrop();
 
 	std::string getInfo() const;
 };

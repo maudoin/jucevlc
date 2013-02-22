@@ -654,7 +654,16 @@ void VideoComponent::onMenuZoom(MenuTreeItem& item, double ratio)
 void VideoComponent::onMenuCrop (MenuTreeItem& item, juce::String ratio)
 {
 	setBrowsingFiles(false);
+
+	vlc->setAutoCrop(false);
 	vlc->setCrop(std::string(ratio.getCharPointer().getAddress()));
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onMenuAutoCrop (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	vlc->setAutoCrop(true);
 
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
@@ -663,6 +672,8 @@ void VideoComponent::onMenuCropList (MenuTreeItem& item)
 	setBrowsingFiles(false);
 	
 	item.focusItemAsMenuShortcut();
+
+	//item.addAction( "Auto", Action::build(*this, &VideoComponent::onMenuAutoCrop), vlc->isAutoCrop()?getItemImage():nullptr);
 	std::string current = vlc->getCrop();
 	std::vector<std::string> list = vlc->getCropList();
 	for(std::vector<std::string>::const_iterator it = list.begin();it != list.end();++it)
@@ -758,12 +769,49 @@ void VideoComponent::onMenuFullscreen(MenuTreeItem& item, bool fs)
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
+void VideoComponent::onMenuAudioTrack (MenuTreeItem& item, int id)
+{
+	setBrowsingFiles(false);
+	vlc->setAudioTrack(id);
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onMenuAudioTrackList (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	int current = vlc->getAudioTrack();
+	std::vector<std::pair<int, std::string> > list = vlc->getAudioTrackList();
+	for(std::vector<std::pair<int, std::string> >::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		item.addAction(it->second.c_str(), Action::build(*this, &VideoComponent::onMenuAudioTrack, it->first), it->first==current?getItemImage():nullptr);
+	}
+}
+void VideoComponent::onMenuVideoTrack (MenuTreeItem& item, int id)
+{
+	setBrowsingFiles(false);
+	vlc->setVideoTrack(id);
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onMenuVideoTrackList (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	int current = vlc->getVideoTrack();
+	std::vector<std::pair<int, std::string> > list = vlc->getVideoTrackList();
+	for(std::vector<std::pair<int, std::string> >::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		item.addAction(it->second.c_str(), Action::build(*this, &VideoComponent::onMenuVideoTrack, it->first), it->first==current?getItemImage():nullptr);
+	}
+}
 void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "Volume", Action::build(*this, &VideoComponent::onMenuAudioVolumeSlider));
 	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
+	item.addAction( "Select Track", Action::build(*this, &VideoComponent::onMenuAudioTrackList));
 }
 
 void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio)
@@ -797,6 +845,7 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 	item.addAction( "Speed", Action::build(*this, &VideoComponent::onMenuRateSlider));
 	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onMenuCropList));
 	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onMenuRatio));
+	item.addAction( "Select Track", Action::build(*this, &VideoComponent::onMenuVideoTrackList));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
 {

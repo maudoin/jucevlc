@@ -105,6 +105,7 @@ public:
     void onMenuSubtitleMenu (MenuTreeItem& item);
     void onMenuZoom (MenuTreeItem& item, double ratio);
     void onMenuCrop (MenuTreeItem& item, juce::String  crop);
+    void onMenuAutoCrop (MenuTreeItem& item);
     void onMenuCropList (MenuTreeItem& item);
     void onMenuRate (MenuTreeItem& item, double rate);
     void onMenuRateSlider (MenuTreeItem& item);
@@ -116,6 +117,11 @@ public:
     void onMenuAudioVolume(MenuTreeItem& item, double volume);
     void onMenuAudioVolumeSlider (MenuTreeItem& item);
 	
+    void onMenuAudioTrack (MenuTreeItem& item, int id);
+    void onMenuAudioTrackList (MenuTreeItem& item);
+    void onMenuVideoTrack (MenuTreeItem& item, int id);
+    void onMenuVideoTrackList (MenuTreeItem& item);
+
     void onMenuFullscreen(MenuTreeItem& item, bool fs);
 	
 	void onMenuExit(MenuTreeItem& item);

@@ -121,14 +121,17 @@ VLCWrapper::VLCWrapper(void)
 	pMedia_(0),
     pEventManager_(0)
 {
-	const char * const vlc_args[] = {
-		"-I", "dumy",      // No special interface
-		"--ignore-config", // Don't use VLC's config
-        "--no-video-title-show",
-		"--plugin-path=./plugins" };
+	static const char * const vlc_args[] = {
+		"-I", "dumy"      // No special interface
+		,"--ignore-config" // Don't use VLC's config
+        ,"--no-video-title-show"
+		,"--plugin-path=./plugins"
+		//,"--video-filter=crop"
+	};
 
 	// init vlc modules, should be done only once
-	pVLCInstance_ = libvlc_new (0, NULL);//sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+	//pVLCInstance_ = libvlc_new (sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+	pVLCInstance_ = libvlc_new (0, NULL);
      
     // Create a media player playing environement
     pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_);
@@ -492,4 +495,70 @@ std::string VLCWrapper::getCrop()
 		vlc_object_release (p_vout);
 	}
 	return crop;
+}
+void VLCWrapper::setAutoCrop(bool autoCrop)
+{
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+        var_SetString( p_vout, "video-filter", "crop" );
+        var_SetBool( p_vout, "autocrop",autoCrop);
+
+		vlc_object_release (p_vout);
+	}
+}
+
+bool VLCWrapper::isAutoCrop()
+{
+	bool autoCrop = false;
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+		autoCrop = var_GetBool( p_vout, "autocrop" );
+		vlc_object_release (p_vout);
+	}
+	return autoCrop;
+}
+
+
+std::vector< std::pair<int, std::string> > VLCWrapper::getVideoTrackList()
+{
+	std::vector< std::pair<int, std::string> > list;
+	libvlc_track_description_t *desc =libvlc_video_get_track_description(pMediaPlayer_);
+	for(libvlc_track_description_t *it=desc;it;it=it->p_next)
+	{
+		list.push_back(std::pair<int, std::string>(it->i_id, it->psz_name));
+	}
+	libvlc_free(desc);
+	return list;
+}
+void VLCWrapper::setVideoTrack(int n)
+{
+	libvlc_video_set_track(pMediaPlayer_, n);
+}
+int VLCWrapper::getVideoTrack()
+{
+	return libvlc_video_get_track(pMediaPlayer_);
+}
+
+std::vector< std::pair<int, std::string> > VLCWrapper::getAudioTrackList()
+{
+	std::vector< std::pair<int, std::string> > list;
+	libvlc_track_description_t *desc =libvlc_audio_get_track_description(pMediaPlayer_);
+	for(libvlc_track_description_t *it=desc;it;it=it->p_next)
+	{
+		list.push_back(std::pair<int, std::string>(it->i_id, it->psz_name));
+	}
+	libvlc_free(desc);
+	return list;
+}
+
+void VLCWrapper::setAudioTrack(int n)
+{
+	libvlc_audio_set_track(pMediaPlayer_, n);
+}
+
+int VLCWrapper::getAudioTrack()
+{
+	return libvlc_audio_get_track(pMediaPlayer_);
 }
