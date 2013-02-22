@@ -86,7 +86,7 @@ public:
 		setCallback(f);
 	}
 };
-class AlternateControlComponent   : public juce::Component
+class AlternateControlComponent   : public juce::Component, public juce::Button::Listener
 {
     juce::ScopedPointer<ActionSlider> m_slider;
     juce::ScopedPointer<juce::DrawableButton> m_leftButton;
@@ -105,15 +105,20 @@ public:
 		m_leftButton = new juce::DrawableButton("m_leftButton", juce::DrawableButton::ImageFitted);
 		m_leftButton->setOpaque(false);
 		m_leftButton->setImages(m_leftImage);
+		m_leftButton->addListener(this);
+
 		m_rightButton = new juce::DrawableButton("m_rightButton", juce::DrawableButton::ImageFitted);
 		m_rightButton->setOpaque(false);
 		m_rightButton->setImages(m_rightImage);
+		m_rightButton->addListener(this);
 
 		m_slider = new ActionSlider("AlternateControlComponentSlider");
 		addAndMakeVisible(m_slider);
 
 		addChildComponent(m_leftButton);
 		addChildComponent(m_rightButton);
+
+		setOpaque(false);
 	}
 	virtual ~AlternateControlComponent()
 	{
@@ -122,9 +127,20 @@ public:
 	{
 		bool showButtons = m_buttonsStep>0.;
 		int buttonSize = showButtons?getHeight():0;
-		m_slider->setBounds(buttonSize, 0, getWidth()-2*buttonSize, getHeight());
-		m_leftButton->setBounds(0, 0, buttonSize, getHeight());
-		m_rightButton->setBounds(getWidth()-buttonSize, 0, buttonSize, getHeight());
+
+		int leftButtonSize=0;
+		if(m_leftButton->isVisible())
+		{
+			leftButtonSize=buttonSize;
+			m_leftButton->setBounds(0, 0, buttonSize, getHeight());
+		}
+		int rightButtonSize=0;
+		if(m_rightButton->isVisible())
+		{
+			rightButtonSize=buttonSize;
+			m_rightButton->setBounds(getWidth()-buttonSize, 0, buttonSize, getHeight());
+		}
+		m_slider->setBounds(leftButtonSize, 0, getWidth()-leftButtonSize-rightButtonSize, getHeight());
 	}
 	
 	void paint(juce::Graphics& g)
@@ -137,7 +153,27 @@ public:
 		m_leftButton->setVisible(showButtons);
 		m_rightButton->setVisible(showButtons);
 		m_slider->setup(label, f, value, volumeMin, volumeMax, step);
+		resized();
 		setVisible(true);
+	}
+	
+	void buttonClicked (juce::Button* button)
+	{
+		double value = m_slider->getValue();
+		double min = m_slider->getMinimum();
+		double max = m_slider->getMaximum();
+		double step = m_slider->getInterval();
+
+		if( button == m_leftButton.get() )
+		{
+			m_slider->setRange(min-m_buttonsStep, max-m_buttonsStep, step);
+			m_slider->setValue(value-m_buttonsStep);
+		}
+		else if( button == m_rightButton.get() )
+		{
+			m_slider->setRange(min+m_buttonsStep, max+m_buttonsStep, step);
+			m_slider->setValue(value+m_buttonsStep);
+		}
 	}
 };
 ////////////////////////////////////////////////////////////
