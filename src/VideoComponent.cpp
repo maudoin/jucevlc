@@ -234,6 +234,14 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 }
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
+	if(e.mods.isRightButtonDown())
+	{
+		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), true));
+	}
+	if(e.mods.isLeftButtonDown())
+	{
+		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), false));
+	}
 	if(!isFullScreen())
 	{
 		dragger.startDraggingComponent (this, e);
