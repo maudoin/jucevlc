@@ -37,6 +37,7 @@ public:
 	virtual MenuTreeItem* getMenuTreeItemParent() = 0;
 	virtual void forceSelection(bool force = true) = 0;
 	virtual void forceParentSelection(bool force = true) = 0;
+	virtual bool isMenuShortcut() = 0;
 };
 
 //==============================================================================

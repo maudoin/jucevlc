@@ -10,16 +10,16 @@ class SmartTreeViewItem  : public juce::TreeViewItem, public MenuTreeItem
 {
 	MenuTree* owner;
 protected:
-	bool shortcutDisplay;
+	bool m_isShortcut;
 public:
     SmartTreeViewItem (MenuTree* owner)
 		:owner(owner)
-		,shortcutDisplay(false)
+		,m_isShortcut(false)
     {
 	}
     SmartTreeViewItem (SmartTreeViewItem& p)
 		:owner(p.owner)
-		,shortcutDisplay(false)
+		,m_isShortcut(false)
     {
 	}
     
@@ -67,7 +67,7 @@ public:
 	}
 	void setShortcutDisplay(bool shortCut = true)
 	{
-		shortcutDisplay = shortCut;
+		m_isShortcut = shortCut;
 		setDrawsInLeftMargin(shortCut);
 	}
     virtual int getIndentX() const noexcept
@@ -76,7 +76,7 @@ public:
 
 		if (! owner->areOpenCloseButtonsVisible())
 			--x;
-		if(shortcutDisplay)
+		if(m_isShortcut)
 		{
 			return x;
 		}
@@ -85,7 +85,7 @@ public:
 		{
 			
 			SmartTreeViewItem* bindParent = dynamic_cast<SmartTreeViewItem*>(p);
-			if(!bindParent || !bindParent->shortcutDisplay)
+			if(!bindParent || !bindParent->m_isShortcut)
 			{
 				++x;
 			}
@@ -101,7 +101,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return (shortcutDisplay && !isSelected())?owner->getItemImage():nullptr;
+		return (m_isShortcut && !isSelected())?owner->getItemImage():nullptr;
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
@@ -140,7 +140,7 @@ public:
 			g.drawRect(borderBounds);
 		}
 
-		if(!shortcutDisplay)
+		if(!m_isShortcut)
 		{
 			g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
 											   borderBounds.getX(), 0.f,
@@ -235,6 +235,10 @@ public:
 			parent->setSelected(force, true);
 		}
 	}
+	virtual bool isMenuShortcut()
+	{
+		return m_isShortcut;
+	}
 };
 class ActionTreeViewItem  : public SmartTreeViewItem
 {
@@ -317,7 +321,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return file.isDirectory()?shortcutDisplay?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
+		return file.isDirectory()?m_isShortcut?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
 	}
     juce::String getUniqueName() const
     {
