@@ -155,7 +155,7 @@ TimeSlider::TimeSlider()
 	: juce::Slider("Time slider")
 	,mouseOverTimeStringPos(-1)
 {
-	setRange(0, 1000);
+	setRange(0, 10000);
 	setSliderStyle (juce::Slider::LinearBar);
 	setAlpha(1.f);
 	setOpaque(true);

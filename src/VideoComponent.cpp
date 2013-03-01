@@ -244,7 +244,9 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 
 	if(e.eventComponent == &controlComponent->slider())
 	{
-		double mouseMoveValue = e.x/(double)controlComponent->slider().getWidth();
+		float min = controlComponent->slider().getPositionOfValue(controlComponent->slider().getMinimum());
+		float w = controlComponent->slider().getPositionOfValue(controlComponent->slider().getMaximum()) - min;
+		double mouseMoveValue = (e.x - min)/w;
 		controlComponent->slider().setMouseOverTime(e.x, mouseMoveValue*vlc->GetLength());
 		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
 	}
@@ -294,7 +296,7 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	if(!videoUpdating)
 	{
 		sliderUpdating = true;
-		vlc->SetTime((int64_t)(controlComponent->slider().getValue()*vlc->GetLength()/1000.));
+		vlc->SetTime((int64_t)(controlComponent->slider().getValue()*vlc->GetLength()/10000.));
 		sliderUpdating =false;
 	}
 }
@@ -431,7 +433,7 @@ void VideoComponent::play()
 	{
 		return;
 	}
-	controlComponent->slider().setValue(1000, juce::sendNotificationSync);
+	controlComponent->slider().setValue(10000, juce::sendNotificationSync);
 
 	vlc->Play();
 
@@ -454,7 +456,7 @@ void VideoComponent::stop()
 		return;
 	}
 	vlc->Pause();
-	controlComponent->slider().setValue(1000, juce::sendNotificationSync);
+	controlComponent->slider().setValue(10000, juce::sendNotificationSync);
 	vlc->Stop();
 }
 
@@ -923,7 +925,7 @@ void VideoComponent::updateTimeAndSlider()
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
-		controlComponent->slider().setValue(vlc->GetTime()*1000./vlc->GetLength(), juce::sendNotificationSync);
+		controlComponent->slider().setValue(vlc->GetTime()*10000./vlc->GetLength(), juce::sendNotificationSync);
 		controlComponent->setTime(vlc->GetTime(), vlc->GetLength());
 		if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
