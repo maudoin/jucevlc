@@ -650,10 +650,17 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	item.focusItemAsMenuShortcut();
 	int cnt = vlc->getSubtitlesCount();
 	int current = vlc->getCurrentSubtitleIndex();
-	item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
-	for(int i = 0;i<cnt;++i)
+	if(cnt)
 	{
-		item.addAction( juce::String::formatted("Slot %d", i+1), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, i), i==current?getItemImage():nullptr);
+		item.addAction( juce::String::formatted("Disable"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, 0), (0==current||-1==current)?getItemImage():nullptr);
+		for(int i = 1;i<cnt;++i)
+		{
+			item.addAction( juce::String::formatted("Slot %d", i), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, i), i==current?getItemImage():nullptr);
+		}
+	}
+	else
+	{
+		item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
 	}
 	item.addAction( "Add...", Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
 	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
@@ -662,6 +669,8 @@ void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
 	setBrowsingFiles(false);
 	vlc->setSubtitleIndex(i);
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file)
 {
@@ -734,6 +743,8 @@ void VideoComponent::onMenuRate (MenuTreeItem& item, double rate)
 void VideoComponent::onMenuRateSlider (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
+
+	showPlaybackSpeedSlider();
 	
 	item.focusItemAsMenuShortcut();
 	item.addAction( "50%", Action::build(*this, &VideoComponent::onMenuRate, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
