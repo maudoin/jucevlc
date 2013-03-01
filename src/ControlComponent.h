@@ -9,6 +9,8 @@
 
 //==============================================================================
 
+juce::String toString(juce::int64 time);
+
 class ActionSlider;
 
 typedef boost::function<void (double)> ActionSliderCallback;
@@ -24,17 +26,35 @@ class SecondaryControlComponent   : public juce::Component, public juce::Button:
 public:
 	SecondaryControlComponent();
 	virtual ~SecondaryControlComponent();
+
+	//juce GUI overrides
 	virtual void resized();
+	void buttonClicked (juce::Button* button);
 	
 	void paint(juce::Graphics& g);
 	void show(juce::String const& label, ActionSliderCallback const& f, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
 	
-	void buttonClicked (juce::Button* button);
+};
+
+class TimeSlider   : public juce::Slider, public AppProportionnalComponent
+{
+	juce::String mouseOverTimeString;
+	int mouseOverTimeStringPos;
+public:
+	TimeSlider();
+	virtual ~TimeSlider();
+
+	
+    void setMouseOverTime(int pos, juce::int64 time);
+	void resetMouseOverTime();
+	
+	//juce GUI overrides
+    virtual void paint (juce::Graphics& g);
 };
 
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
-    juce::ScopedPointer<juce::Slider> m_slider;
+    juce::ScopedPointer<TimeSlider> m_slider;
     juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
     juce::ScopedPointer<juce::DrawableButton> m_stopButton;
     juce::ScopedPointer<juce::Drawable> m_playImage;
@@ -45,15 +65,18 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
 public:
 	ControlComponent();
 	virtual ~ControlComponent();
+
+	//juce GUI overrides
     virtual void paint (juce::Graphics& g);
     virtual void resized();
+
     void setTime(juce::int64 time, juce::int64 len);
 
 	void showPlayingControls();
 	void showPausedControls();
 	void hidePlayingControls();
 	
-	juce::Slider& slider(){return *m_slider.get();}
+	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 	SecondaryControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}

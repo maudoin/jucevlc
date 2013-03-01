@@ -147,18 +147,85 @@ void SecondaryControlComponent::buttonClicked (juce::Button* button)
 }
 ////////////////////////////////////////////////////////////
 //
+// TimeSlider
+//
+////////////////////////////////////////////////////////////
+
+TimeSlider::TimeSlider()
+	: juce::Slider("Time slider")
+	,mouseOverTimeStringPos(-1)
+{
+	setRange(0, 1000);
+	setSliderStyle (juce::Slider::LinearBar);
+	setAlpha(1.f);
+	setOpaque(true);
+    setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+	//setPopupDisplayEnabled(true, this);//useless as it shows seconds and not on mouse over!
+	//setChangeNotificationOnlyOnRelease(true);//if we use this vlc callback make the slider "forget" the dragged position...
+
+}
+TimeSlider::~TimeSlider()
+{
+}
+
+	
+void TimeSlider::setMouseOverTime(int pos, juce::int64 time)
+{
+	mouseOverTimeString = toString(time);
+	mouseOverTimeStringPos = pos;
+	repaint();
+}
+void TimeSlider::resetMouseOverTime()
+{
+	mouseOverTimeString = juce::String::empty;
+	mouseOverTimeStringPos = -1;
+	repaint();
+}
+	
+//juce GUI overrides
+void TimeSlider::paint (juce::Graphics& g)
+{
+	juce::Slider::paint(g);
+	
+	if(mouseOverTimeStringPos>0)
+	{
+		juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
+		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+
+		g.setColour (juce::Colours::black);
+
+		int xText = mouseOverTimeStringPos + 3;//add some margin from caret
+		int widthText = getWidth()-xText;
+		int textSize = f.getStringWidth(mouseOverTimeString);
+		juce::Justification justification = juce::Justification::centredLeft;
+		if(xText+textSize>getWidth())
+		{
+			widthText = mouseOverTimeStringPos - 3;
+			xText = 0;
+			justification = juce::Justification::centredRight;
+		}
+		g.drawFittedText (mouseOverTimeString,
+							xText, 0,widthText,getHeight(),
+							justification, 
+							1, //1 line
+							1.f//no h scale
+							);
+
+		g.drawLine(mouseOverTimeStringPos, 0, mouseOverTimeStringPos, getHeight(), 2);
+	}
+
+	
+}
+////////////////////////////////////////////////////////////
+//
 // CONTROL COMPONENT
 //
 ////////////////////////////////////////////////////////////
 ControlComponent::ControlComponent()
 {
-	m_slider = new juce::Slider("media time");
-	m_slider->setRange(0, 1000);
-	m_slider->setSliderStyle (juce::Slider::LinearBar);
-	m_slider->setAlpha(1.f);
-	m_slider->setOpaque(true);
-    m_slider->setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
-
+	m_slider = new TimeSlider();
 	
 	
     m_playImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
@@ -252,19 +319,21 @@ void ControlComponent::paint(juce::Graphics& g)
 						1, //1 line
 						1.f//no h scale
 						);
+	
 }
 
-void ControlComponent::setTime(juce::int64 time, juce::int64 len)
+juce::String toString(juce::int64 time)
 {
 	int h = (int)(time/(1000*60*60) );
 	int m = (int)(time/(1000*60) - 60*h );
 	int s = (int)(time/(1000) - 60*m - 60*60*h );
 	
-	int dh = (int)(len/(1000*60*60) );
-	int dm = (int)(len/(1000*60) - 60*dh );
-	int ds = (int)(len/(1000) - 60*dm - 60*60*dh );
-	
-	timeString = juce::String::formatted("%02d:%02d:%02d/%02d:%02d:%02d", h, m, s, dh, dm, ds);
+	return juce::String::formatted("%02d:%02d:%02d", h, m, s);
+}
+
+void ControlComponent::setTime(juce::int64 time, juce::int64 len)
+{
+	timeString = toString(time) + "/" + toString(len);
 }
 
 void ControlComponent::showPausedControls()

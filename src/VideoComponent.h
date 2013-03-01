@@ -156,7 +156,8 @@ public:
 								juce::Component* originatingComponent);
     void mouseDown (const juce::MouseEvent& e);
 	void mouseDrag (const juce::MouseEvent& e);
-    void mouseMove (const juce::MouseEvent& event);
+    void mouseMove (const juce::MouseEvent& e);
+    void mouseExit (const juce::MouseEvent& e);
 	
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
     //void broughtToFront(){resized();}

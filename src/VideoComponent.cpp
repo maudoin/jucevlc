@@ -113,6 +113,7 @@ VideoComponent::VideoComponent()
 	////////////////
 	tree->setScaleComponent(this);
 	controlComponent->setScaleComponent(this);
+	controlComponent->slider().setScaleComponent(this);
 
 	
     defaultConstrainer.setMinimumSize (100, 100);
@@ -148,6 +149,7 @@ VideoComponent::VideoComponent()
 
 VideoComponent::~VideoComponent()
 {    
+	invokeLater->close();
 	invokeLater = nullptr;
 
 	controlComponent->slider().removeListener(this);
@@ -239,7 +241,24 @@ void VideoComponent::switchFullScreen()
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
 {
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+
+	if(e.eventComponent == &controlComponent->slider())
+	{
+		double mouseMoveValue = e.x/(double)controlComponent->slider().getWidth();
+		controlComponent->slider().setMouseOverTime(e.x, mouseMoveValue*vlc->GetLength());
+		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
+	}
 }
+
+void VideoComponent::mouseExit (const juce::MouseEvent& e)
+{
+	if(e.eventComponent == &controlComponent->slider())
+	{
+		controlComponent->slider().resetMouseOverTime();
+		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
+	}
+}
+
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
 	if(e.eventComponent == this)
