@@ -875,18 +875,20 @@ void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio
 void VideoComponent::onMenuRatio(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
+	std::string current = vlc->getAspect();
 	item.focusItemAsMenuShortcut();
-	item.addAction( "original", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("")));
-	item.addAction( "1:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("1:1")));
-	item.addAction( "4:3", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("4:3")));
-	item.addAction( "16:10", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:10")));
-	item.addAction( "16:9", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:9")));
-	item.addAction( "2.21:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.21:1")));
-	item.addAction( "2.35:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.35:1")));
-	item.addAction( "2.39:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.39:1")));
-	item.addAction( "5:4", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("5:4")));
+	item.addAction( "Original", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("")), current==""?getItemImage():nullptr);
+	item.addAction( "1:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("1:1")), current=="1:1"?getItemImage():nullptr);
+	item.addAction( "4:3", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("4:3")), current=="4:3"?getItemImage():nullptr);
+	item.addAction( "16:10", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:10")), current=="16:10"?getItemImage():nullptr);
+	item.addAction( "16:9", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:9")), current=="16:9"?getItemImage():nullptr);
+	item.addAction( "2.21:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.21:1")), current=="2.21:1"?getItemImage():nullptr);
+	item.addAction( "2.35:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.35:1")), current=="2.35:1"?getItemImage():nullptr);
+	item.addAction( "2.39:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("2.39:1")), current=="2.39:1"?getItemImage():nullptr);
+	item.addAction( "5:4", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("5:4")), current=="5:4"?getItemImage():nullptr);
 	
 }
+
 void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);

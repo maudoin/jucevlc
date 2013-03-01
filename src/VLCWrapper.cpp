@@ -300,6 +300,11 @@ void VLCWrapper::setAspect(const char* ratio)
 {
 	libvlc_video_set_aspect_ratio(pMediaPlayer_, ratio);
 }
+std::string VLCWrapper::getAspect() const
+{
+	char* aspect = libvlc_video_get_aspect_ratio(pMediaPlayer_);
+	return std::string(aspect?aspect:"");
+}
 void VLCWrapper::setAudioDelay(int64_t delay)
 {
 	libvlc_audio_set_delay(pMediaPlayer_, delay);

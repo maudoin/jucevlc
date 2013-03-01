@@ -136,6 +136,7 @@ public:
 	void setRate (double rate);
 	double getRate () const;
 	void setAspect(const char* ratio);
+	std::string getAspect()const;
 	void setAudioDelay(int64_t delay);
 	int64_t getAudioDelay();
 	void setSubtitleDelay(int64_t delay);
