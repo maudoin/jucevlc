@@ -1,19 +1,6 @@
-/************************************************************************
-    This file is part of VLCWrapper.
-    
-    File:    VLCWrapper.cpp
-    Desc.:   VLCWrapper Implementation.
+// VLCWrapper/Alex Skoruppa (alex.skoruppa@googlemail.com)
+// http://www.codeproject.com/info/cpol10.aspx
 
-	Author:  Alex Skoruppa
-	Date:    08/10/2009
-	Updated: 03/12/2012
-	eM@il:   alex.skoruppa@googlemail.com
-
-	VLCWrapper is distributed under the Code Project Open License (CPOL).
-
-	You should have received a copy of the Code Project Open License
-	along with VLCWrapper.  If not, see <http://www.codeproject.com/info/cpol10.aspx>.
-************************************************************************/
 #include "VLCWrapper.h"
 #include "vlc\vlc.h"
 #include "vlc\libvlc_events.h"

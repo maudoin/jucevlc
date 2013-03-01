@@ -23,7 +23,6 @@ public:
     {
         // For this demo, we'll just create the main window...
         window = new VideoComponent();
-		window->centreWithSize(800, 600);
 
         /*  ..and now return, which will fall into to the main event
             dispatch loop, and this will run until something calls

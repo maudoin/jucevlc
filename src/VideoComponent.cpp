@@ -79,11 +79,13 @@ VideoComponent::VideoComponent()
 	controlComponent->slider().addListener(this);
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
+	controlComponent->addMouseListener(this, true);
 
 	tree = new MenuTree ();
 	tree->setItemImage(getItemImage());
 	tree->setFolderImage(getFolderImage());
 	tree->setFolderShortcutImage(getFolderShortcutImage());
+	tree->addMouseListener(this, true);
 	
     addChildComponent(controlComponent);
     addAndMakeVisible (tree);
@@ -133,6 +135,12 @@ VideoComponent::VideoComponent()
 	initFromSettings();
 
     setVisible (true);
+	
+	if(!isFullScreen())
+	{
+		//default window size if windowed
+		centreWithSize(800, 600);
+	}
 
 	invokeLater = new vf::GuiCallQueue();
 
@@ -234,17 +242,20 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 }
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
-	if(e.mods.isRightButtonDown())
+	if(e.eventComponent == this)
 	{
-		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), true));
-	}
-	if(e.mods.isLeftButtonDown())
-	{
-		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), false));
-	}
-	if(!isFullScreen())
-	{
-		dragger.startDraggingComponent (this, e);
+		if(e.mods.isRightButtonDown())
+		{
+			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), true));
+		}
+		if(e.mods.isLeftButtonDown())
+		{
+			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), false));
+		}
+		if(!isFullScreen())
+		{
+			dragger.startDraggingComponent (this, e);
+		}
 	}
 }
 
