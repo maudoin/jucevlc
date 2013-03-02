@@ -122,6 +122,21 @@ VLCWrapper::VLCWrapper(void)
      
     // Create a media player playing environement
     pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_);
+	
+ 
+	//list player
+    mlp = libvlc_media_list_player_new(pVLCInstance_);
+ 
+	//media list
+    ml = libvlc_media_list_new(pVLCInstance_);
+
+    /* Use our media list */
+    libvlc_media_list_player_set_media_list(mlp, ml);
+
+    /* Use a given media player */
+    libvlc_media_list_player_set_media_player(mlp, pMediaPlayer_);
+
+
 
     // Create an event manager for the player for handling e.g. time change events
     pEventManager_ = libvlc_media_player_event_manager(pMediaPlayer_);
@@ -139,6 +154,8 @@ VLCWrapper::~VLCWrapper(void)
 	SetDisplayCallback(0);
     // Free the media_player
     libvlc_media_player_release (pMediaPlayer_);
+    libvlc_media_list_player_release (mlp);
+    libvlc_media_list_release (ml);
 	libvlc_release (pVLCInstance_);
 }
 
@@ -183,13 +200,13 @@ void VLCWrapper::SetOutputWindow(void* pHwnd)
 void VLCWrapper::Play()
 {
 	// play the media_player
-    libvlc_media_player_play (pMediaPlayer_);
+    libvlc_media_list_player_play (mlp);
 }
 
 void VLCWrapper::Pause()
 {
 	// Pause playing
-    libvlc_media_player_pause (pMediaPlayer_);
+    libvlc_media_list_player_pause (mlp);
 }
 
     enum{
@@ -204,28 +221,28 @@ void VLCWrapper::Pause()
     };
 bool VLCWrapper::isPaused()
 {
-    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Paused;
+    return libvlc_media_list_player_get_state(mlp) == libvlc_Paused;
 }
 bool VLCWrapper::isPlaying()
 {
-    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Playing;
+    return libvlc_media_list_player_get_state(mlp) == libvlc_Playing;
 }
 
 bool VLCWrapper::isStopping()
 {
 	//  playing?
-    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Stopped;
+    return libvlc_media_list_player_get_state(mlp) == libvlc_Stopped;
 }
 bool VLCWrapper::isStopped()
 {
 	//  playing?
-    return libvlc_media_player_get_state(pMediaPlayer_) == libvlc_Ended;
+    return libvlc_media_list_player_get_state(mlp) == libvlc_Ended;
 }
 
 void VLCWrapper::Stop()
 {
     // Stop playing
-    libvlc_media_player_stop (pMediaPlayer_);
+    libvlc_media_list_player_stop (mlp);
 }
 
 int64_t VLCWrapper::GetLength()
@@ -268,9 +285,10 @@ void VLCWrapper::setVolume( double volume )
 
 void VLCWrapper::OpenMedia(const char* pMediaPathName)
 {
-	// Load a new item
-	pMedia_ = libvlc_media_new_path(pVLCInstance_, pMediaPathName);
-    libvlc_media_player_set_media (pMediaPlayer_, pMedia_);    
+	addPlayListItem(pMediaPathName);
+	int last = libvlc_media_list_count(ml) -1;
+	playPlayListItem(last);
+	
 }
 
 
@@ -553,4 +571,50 @@ void VLCWrapper::setAudioTrack(int n)
 int VLCWrapper::getAudioTrack()
 {
 	return libvlc_audio_get_track(pMediaPlayer_);
+}
+
+
+	
+std::vector<std::string> VLCWrapper::getCurrentPlayList()
+{	
+	std::vector<std::string> out;
+	int max = libvlc_media_list_count(ml);
+	for(int i=0;i<max;++i)
+	{
+		libvlc_media_t* media = libvlc_media_list_item_at_index(ml, i);
+		libvlc_media_parse(media);
+		out.push_back(libvlc_media_get_meta(media, libvlc_meta_Title ));//libvlc_meta_URL
+	}
+	return out;
+}
+void VLCWrapper::addPlayListItem(std::string const& path)
+{
+	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_, path.c_str());
+	libvlc_media_list_add_media(ml, pMedia);
+
+}
+std::string VLCWrapper::getCurrentPlayListItem()
+{
+	libvlc_media_t* media = libvlc_media_player_get_media(pMediaPlayer_);
+	if(!media)
+	{
+		return "";
+	}
+	libvlc_media_parse(media);
+	return libvlc_media_get_meta(media, libvlc_meta_Title );//libvlc_meta_URL
+}
+
+int VLCWrapper::getCurrentPlayListItemIndex()
+{
+	libvlc_media_t* media = libvlc_media_player_get_media(pMediaPlayer_);
+	if(!media)
+	{
+		return -1;
+	}
+	return libvlc_media_list_index_of_item(ml, media );
+}
+
+void VLCWrapper::playPlayListItem(int index)
+{
+	libvlc_media_list_player_play_item_at_index(mlp, index);
 }

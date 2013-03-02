@@ -1012,11 +1012,35 @@ void VideoComponent::onMenuExit(MenuTreeItem& item)
 {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
+
+void VideoComponent::onPlaylistItem(MenuTreeItem& item, int index)
+{
+	setBrowsingFiles(false);
+	vlc->playPlayListItem(index);
+
+	item.forceParentSelection();
+}
+void VideoComponent::onShowPlaylist(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	int current = vlc->getCurrentPlayListItemIndex ();
+	std::vector<std::string > list = vlc->getCurrentPlayList();
+	int i=0;
+	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		item.addAction(it->c_str(), Action::build(*this, &VideoComponent::onPlaylistItem, i), i==current?getItemImage():nullptr);
+		++i;
+	}
+
+}
 void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( "Open", Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
+	item.addAction( "Now playing", Action::build(*this, &VideoComponent::onShowPlaylist), getItemImage());
 	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
 	item.addAction( "Video options", Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
 	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());

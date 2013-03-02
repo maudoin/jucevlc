@@ -25,6 +25,8 @@ struct libvlc_instance_t;
 struct libvlc_media_player_t;
 struct libvlc_media_t;
 struct libvlc_event_manager_t;
+struct libvlc_media_list_t;
+struct libvlc_media_list_player_t;
 
 // Typedefs for old MS compilers
 typedef unsigned __int32	uint32_t;
@@ -71,6 +73,8 @@ class VLCWrapper
 	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
 	libvlc_media_t*          pMedia_;              ///< The media played by the media player.
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
+    libvlc_media_list_t *ml;
+    libvlc_media_list_player_t *mlp;
 public:
 	VLCWrapper(void);
 	~VLCWrapper(void);
@@ -159,6 +163,12 @@ public:
 
 	void setAutoCrop(bool autoCrop);
 	bool isAutoCrop();
+	
+	std::vector<std::string> getCurrentPlayList();
+	void addPlayListItem(std::string const& ratio);
+	void playPlayListItem(int index);
+	std::string getCurrentPlayListItem();
+	int getCurrentPlayListItemIndex();
 
 	std::string getInfo() const;
 };

@@ -131,6 +131,8 @@ public:
 	void onMenuSoundOptions(MenuTreeItem& item);
 	void onMenuRatio(MenuTreeItem& item);
 	void onMenuVideoOptions(MenuTreeItem& item);
+	void onPlaylistItem(MenuTreeItem& item, int index);
+	void onShowPlaylist(MenuTreeItem& item);
 	void onMenuRoot(MenuTreeItem& item);
 	/////////////// VLC EvtListener
 	virtual void vlcTimeChanged();
