@@ -311,6 +311,40 @@ void VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible)
 	tree->setVisible(visible);
 	controlComponent->menuButton().setImages(tree->isVisible()?hideFolderShortcutImage:folderShortcutImage);
 }
+
+//==============================================================================
+class DrawableMenuComponent  : public juce::PopupMenu::CustomComponent
+{
+	juce::Drawable* m_drawable;
+	int m_size;
+public:
+    DrawableMenuComponent(juce::Drawable* drawable, int size)
+        : m_drawable (drawable), m_size(size)
+    {
+    }
+
+    ~DrawableMenuComponent()
+    {
+    }
+
+    void getIdealSize (int& idealWidth,
+                       int& idealHeight)
+    {
+        idealHeight = idealWidth = m_size;
+    }
+
+    void paint (juce::Graphics& g)
+    {
+		g.fillAll(juce::Colours::black);
+		m_drawable->drawWithin(g, getLocalBounds().toFloat(), juce::RectanglePlacement(juce::RectanglePlacement::stretchToFit), 1.f );
+    }
+
+};
+static void alternateSliderModeButtonCallback (int result, VideoComponent* videoComponent)
+{
+    if (result != 0 && videoComponent != 0)
+        videoComponent->alternateSliderModeButton(result);
+}
 void VideoComponent::buttonClicked (juce::Button* button)
 {
 	if(!vlc)
@@ -338,9 +372,38 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	}
 	else if(button == &controlComponent->alternateSliderModeButton())
 	{
-		//todo popup toolbar
+		
+		int buttonWidth = 0.03*controlComponent->getWidth();
+
+        juce::PopupMenu m;
+		m.addCustomItem (E_POPUP_ITEM_VOLUME_SLIDER, new DrawableMenuComponent(audioImage.get(), buttonWidth));
+        m.addCustomItem (E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER, new DrawableMenuComponent(subtitlesImage.get(), buttonWidth));
+        m.addCustomItem (E_POPUP_ITEM_VOLUME_DELAY_SLIDER,new DrawableMenuComponent(audioImage.get(), buttonWidth));
+        m.addCustomItem (E_POPUP_ITEM_PLAY_SPEED_SLIDER, new DrawableMenuComponent(displayImage.get(), buttonWidth));
+
+        m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (button),
+                             juce::ModalCallbackFunction::forComponent (alternateSliderModeButtonCallback, this));
+
+		//todo update icon/checked item
+	}
+}
+
+void VideoComponent::alternateSliderModeButton(int result)
+{
+	switch(result)
+	{
+	case E_POPUP_ITEM_VOLUME_SLIDER:
 		showVolumeSlider();
-		//todo update icon
+		break;
+	case E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER:
+		showSubtitlesOffsetSlider();
+		break;
+	case E_POPUP_ITEM_VOLUME_DELAY_SLIDER:
+		showAudioOffsetSlider ();
+		break;
+	case E_POPUP_ITEM_PLAY_SPEED_SLIDER:
+		showPlaybackSpeedSlider();
+		break;
 	}
 }
 void VideoComponent::broughtToFront()
@@ -551,6 +614,18 @@ void VideoComponent::showZoomSlider ()
 	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
 		boost::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
 		vlc->getScale(), 50., 500., .1);
+}
+void VideoComponent::showAudioOffsetSlider ()
+{
+	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
+		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), _1),
+		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
+}
+void VideoComponent::showSubtitlesOffsetSlider ()
+{
+	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
+		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), _1),
+		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
 }
 ////////////////////////////////////////////////////////////
 //
@@ -791,7 +866,7 @@ void VideoComponent::onMenuRateSlider (MenuTreeItem& item)
 	item.addAction( "800%", Action::build(*this, &VideoComponent::onMenuRate, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
 
 }
-void VideoComponent::onMenuShiftAudio(MenuTreeItem& item, double s)
+void VideoComponent::onMenuShiftAudio(double s)
 {
 	setBrowsingFiles(false);
 	vlc->setAudioDelay((int64_t)(s*1000000.));
@@ -799,11 +874,9 @@ void VideoComponent::onMenuShiftAudio(MenuTreeItem& item, double s)
 void VideoComponent::onMenuShiftAudioSlider(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
-		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), boost::ref(item), _1),
-		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
+	showAudioOffsetSlider();
 }
-void VideoComponent::onMenuShiftSubtitles(MenuTreeItem& item, double s)
+void VideoComponent::onMenuShiftSubtitles(double s)
 {
 	setBrowsingFiles(false);
 	vlc->setSubtitleDelay((int64_t)(s*1000000.));
@@ -811,9 +884,7 @@ void VideoComponent::onMenuShiftSubtitles(MenuTreeItem& item, double s)
 void VideoComponent::onMenuShiftSubtitlesSlider(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
-		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), boost::ref(item), _1),
-		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
+	showSubtitlesOffsetSlider();
 }
 void VideoComponent::onMenuAudioVolume(MenuTreeItem& item, double volume)
 {

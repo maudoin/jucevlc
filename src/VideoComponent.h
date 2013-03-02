@@ -71,6 +71,8 @@ public:
 	void showVolumeSlider();
 	void showPlaybackSpeedSlider();
 	void showZoomSlider();
+	void showAudioOffsetSlider ();
+	void showSubtitlesOffsetSlider ();
 
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
@@ -111,9 +113,9 @@ public:
     void onMenuRate (MenuTreeItem& item, double rate);
     void onMenuRateSlider (MenuTreeItem& item);
     void onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio);
-    void onMenuShiftAudio(MenuTreeItem& item, double s);
+    void onMenuShiftAudio(double s);
     void onMenuShiftAudioSlider(MenuTreeItem& item);
-    void onMenuShiftSubtitles(MenuTreeItem& item, double s);
+    void onMenuShiftSubtitles(double s);
     void onMenuShiftSubtitlesSlider(MenuTreeItem& item);
     void onMenuAudioVolume(MenuTreeItem& item, double volume);
     void onMenuAudioVolumeSlider (MenuTreeItem& item);
@@ -162,6 +164,15 @@ public:
 	
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
     void broughtToFront();
+
+	enum SliderModeButton
+	{
+		  E_POPUP_ITEM_VOLUME_SLIDER = 1
+		, E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER
+		, E_POPUP_ITEM_VOLUME_DELAY_SLIDER
+		, E_POPUP_ITEM_PLAY_SPEED_SLIDER
+	};
+	void alternateSliderModeButton(int result);
 private:
 	
 	void setBrowsingFiles(bool newBrowsingFiles = true);
