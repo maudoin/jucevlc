@@ -1032,12 +1032,12 @@ void VideoComponent::onPlaylistItem(MenuTreeItem& item, int index)
 {
 	setBrowsingFiles(false);
 	vlc->playPlayListItem(index);
-
-	item.forceParentSelection();
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onShowPlaylist(MenuTreeItem& item)
 {
-	setBrowsingFiles(false);
+	setBrowsingFiles(true);
 	item.focusItemAsMenuShortcut();
 
 	int current = vlc->getCurrentPlayListItemIndex ();
