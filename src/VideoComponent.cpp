@@ -132,6 +132,7 @@ VideoComponent::VideoComponent()
 
 	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);  
 	
+	setSize(800, 600);
 
 	initFromSettings();
 
@@ -322,6 +323,18 @@ void VideoComponent::buttonClicked (juce::Button* button)
 		vlc->Stop();
 	}
 }
+void VideoComponent::broughtToFront()
+{
+	juce::Component::broughtToFront();
+#ifndef BUFFER_DISPLAY
+	if(isVisible() && !isFullScreen()
+		&& vlcNativePopupComponent && vlcNativePopupComponent->getPeer() && getPeer())
+	{
+		vlcNativePopupComponent->getPeer()->toBehind(getPeer());
+	}
+#endif//BUFFER_DISPLAY
+
+}
 
 ////////////////////////////////////////////////////////////
 //
@@ -390,7 +403,7 @@ void VideoComponent::resized()
 		if(getPeer())getPeer()->toBehind(vlcNativePopupComponent->getPeer());
 		toFront(false);
 	}
-#endif
+#endif//BUFFER_DISPLAY
     if (resizableBorder != nullptr)
     {
         resizableBorder->setVisible (! (isFullScreen() ));

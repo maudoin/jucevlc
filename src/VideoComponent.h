@@ -160,7 +160,7 @@ public:
     void mouseExit (const juce::MouseEvent& e);
 	
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
-    //void broughtToFront(){resized();}
+    void broughtToFront();
 private:
 	
 	void setBrowsingFiles(bool newBrowsingFiles = true);
