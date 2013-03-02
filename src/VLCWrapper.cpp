@@ -11,6 +11,23 @@
 #include "vlc\plugins\vlc_input.h"
 #include <stdio.h>
 
+
+//----------------------------------- HELPERS
+class MediaListScopedLock
+{
+	libvlc_media_list_t* m_ml;
+public:
+	MediaListScopedLock( libvlc_media_list_t* ml):m_ml(ml)
+	{
+		if(m_ml)libvlc_media_list_lock(m_ml);
+	}
+	~MediaListScopedLock()
+	{
+		if(m_ml)libvlc_media_list_unlock(m_ml);
+	}
+};
+//-----------------------------------
+
 static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
 {
     EventCallBack* cb = reinterpret_cast<EventCallBack*>(pUserData); 
@@ -572,42 +589,79 @@ int VLCWrapper::getAudioTrack()
 	return libvlc_audio_get_track(pMediaPlayer_);
 }
 
-
+bool addMediaSubItemsToMediaList(libvlc_media_t* media, libvlc_media_list_t* ml, int index)
+{
 	
+	libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
+	if(subMediaList)
+	{
+		{
+			MediaListScopedLock lock(subMediaList);
+
+			//add subitems individually
+			int jmax = libvlc_media_list_count(subMediaList);
+			for(int j=0;j<jmax;++j)
+			{
+				libvlc_media_t* media = libvlc_media_list_item_at_index(subMediaList, j);
+				libvlc_media_list_insert_media(ml, media, index+j);
+			}
+		}
+		libvlc_media_list_release(subMediaList) ;
+		return true;
+	}
+	return false;
+}
+std::string urlDecode(std::string const &SRC) {
+    std::string ret;
+    char ch;
+    std::string::size_type i, ii;
+    for (i=0; i<SRC.length(); i++) {
+        if (int(SRC[i])==37) {
+            sscanf(SRC.substr(i+1,2).c_str(), "%x", &ii);
+            ch=static_cast<char>(ii);
+            ret+=ch;
+            i=i+2;
+        } else {
+            ret+=SRC[i];
+        }
+    }
+    return (ret);
+}
+std::string getMediaName(libvlc_media_t* media)
+{
+	//return libvlc_media_get_meta(media, libvlc_meta_Title );
+	char* str = libvlc_media_get_mrl(media );
+	std::string url = str?str:"";
+	std::string::size_type i = url.find_last_of("/\\");
+	return urlDecode(i == std::string::npos ? url : url.substr(i+1));
+}
 std::vector<std::string> VLCWrapper::getCurrentPlayList()
 {	
 	std::vector<std::string> out;
+	MediaListScopedLock lock(ml);
 	int max = libvlc_media_list_count(ml);
 	for(int i=0;i<max;++i)
 	{
 		libvlc_media_t* media = libvlc_media_list_item_at_index(ml, i);
+
+		if(addMediaSubItemsToMediaList(media, ml, i+1))
+		{
+			//clear multi media item and restart
+			libvlc_media_list_remove_index(ml, i);
+			//reset counters
+			max = libvlc_media_list_count(ml);
+			i--;
+			continue;
+		}
 		libvlc_media_parse(media);
-		out.push_back(libvlc_media_get_meta(media, libvlc_meta_Title ));//libvlc_meta_URL
+		out.push_back(getMediaName(media));
 	}
 	return out;
 }
 void VLCWrapper::addPlayListItem(std::string const& path)
 {
 	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_, path.c_str());
-	libvlc_media_parse(pMedia);
-	libvlc_media_list_t* pMediaList = libvlc_media_subitems(pMedia);
-	if(pMediaList)
-	{
-		//add subitems individually
-		int max = libvlc_media_list_count(ml);
-		for(int i=0;i<max;++i)
-		{
-			libvlc_media_t* media = libvlc_media_list_item_at_index(ml, i);
-			libvlc_media_list_add_media(ml, media);
-		}
-
-		libvlc_media_list_release(pMediaList) ;
-	}
-	else
-	{
-		libvlc_media_list_add_media(ml, pMedia);
-	}
-
+	libvlc_media_list_add_media(ml, pMedia);
 }
 std::string VLCWrapper::getCurrentPlayListItem()
 {
@@ -617,7 +671,7 @@ std::string VLCWrapper::getCurrentPlayListItem()
 		return "";
 	}
 	libvlc_media_parse(media);
-	return libvlc_media_get_meta(media, libvlc_meta_Title );//libvlc_meta_URL
+	return getMediaName(media);
 }
 
 int VLCWrapper::getCurrentPlayListItemIndex()
