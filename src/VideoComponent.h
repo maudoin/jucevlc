@@ -39,6 +39,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::Drawable> itemImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
     juce::ScopedPointer<juce::Drawable> folderShortcutImage;
+    juce::ScopedPointer<juce::Drawable> hideFolderShortcutImage;
     juce::ScopedPointer<juce::Drawable> audioImage;
     juce::ScopedPointer<juce::Drawable> displayImage;
     juce::ScopedPointer<juce::Drawable> subtitlesImage;
@@ -166,6 +167,7 @@ private:
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void initFromSettings();
 	void initFromMediaDependantSettings();
+	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);
 
 };
 

@@ -66,6 +66,7 @@ VideoComponent::VideoComponent()
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
     folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
+    hideFolderShortcutImage = juce::Drawable::createFromImageData (hideFolderShortcut_svg, hideFolderShortcut_svgSize);
     audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
     displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
     subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
@@ -90,7 +91,8 @@ VideoComponent::VideoComponent()
 	tree->addMouseListener(this, true);
 	
     addChildComponent(controlComponent);
-    addAndMakeVisible (tree);
+    addChildComponent (tree);
+	setMenuTreeVisibleAndUpdateMenuButtonIcon(true);
 
 	sliderUpdating = false;
 	videoUpdating = false;
@@ -270,11 +272,11 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 	{
 		if(e.mods.isRightButtonDown())
 		{
-			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), true));
+			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
 		}
 		if(e.mods.isLeftButtonDown())
 		{
-			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), false));
+			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 		}
 		if(!isFullScreen())
 		{
@@ -303,6 +305,12 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 		sliderUpdating =false;
 	}
 }
+
+void VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible)
+{
+	tree->setVisible(visible);
+	controlComponent->menuButton().setImages(tree->isVisible()?hideFolderShortcutImage:folderShortcutImage);
+}
 void VideoComponent::buttonClicked (juce::Button* button)
 {
 	if(!vlc)
@@ -326,8 +334,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	}
 	else if(button == &controlComponent->menuButton())
 	{
-		tree->setVisible(!tree->isVisible());
-		//todo update icon
+		setMenuTreeVisibleAndUpdateMenuButtonIcon(!tree->isVisible());
 	}
 	else if(button == &controlComponent->alternateSliderModeButton())
 	{
@@ -985,7 +992,7 @@ void VideoComponent::updateTimeAndSlider()
 	}
 	else
 	{
-		tree->setVisible(false);
+		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		controlComponent->setVisible(false);
 	}
 	
@@ -1010,7 +1017,7 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
 
-	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, rightClick));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
 	
 }

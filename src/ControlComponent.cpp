@@ -232,7 +232,7 @@ ControlComponent::ControlComponent()
     m_pauseImage = juce::Drawable::createFromImageData (pause_svg, pause_svgSize);
     m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
     m_itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
-    m_folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
+    m_folderImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
 
     m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);

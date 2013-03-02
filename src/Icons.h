@@ -42,6 +42,8 @@
 	extern const int folder_svgSize;
 	extern const char* folderShortcut_svg;
 	extern const int folderShortcut_svgSize;
+	extern const char* hideFolderShortcut_svg;
+	extern const int hideFolderShortcut_svgSize;
 
 	
 	extern const char* audio_svg;
