@@ -726,6 +726,17 @@ void VideoComponent::onMenuRemoveFavorite(MenuTreeItem& item, juce::String path)
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 
+void VideoComponent::onMenuOpenUnconditionnal (MenuTreeItem& item, juce::String path)
+{
+	setBrowsingFiles(false);
+	play(path.toUTF8().getAddress());
+}
+void VideoComponent::onMenuQueue (MenuTreeItem& item, juce::String path)
+{
+	setBrowsingFiles(false);
+	vlc->addPlayListItem(path.toUTF8().getAddress());
+}
+
 void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 {
 	if(file.isDirectory())
@@ -734,6 +745,12 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
+		
+		item.addAction("Play All", Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, 
+				file.getFullPathName()), getItemImage());
+		item.addAction("Add All", Action::build(*this, &VideoComponent::onMenuQueue, 
+				file.getFullPathName()), getItemImage());
+
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
 
@@ -751,9 +768,7 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 	}
 	else
 	{
-		setBrowsingFiles(false);
-		invokeLater;
-		play(file.getFullPathName().toUTF8().getAddress());
+		onMenuOpenUnconditionnal(item, file.getFullPathName());
 	}
 }
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)

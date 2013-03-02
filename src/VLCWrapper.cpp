@@ -105,7 +105,6 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
 VLCWrapper::VLCWrapper(void)
 :	pVLCInstance_(0),
 	pMediaPlayer_(0),
-	pMedia_(0),
     pEventManager_(0)
 {
 	static const char * const vlc_args[] = {
@@ -590,7 +589,24 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 void VLCWrapper::addPlayListItem(std::string const& path)
 {
 	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_, path.c_str());
-	libvlc_media_list_add_media(ml, pMedia);
+	libvlc_media_parse(pMedia);
+	libvlc_media_list_t* pMediaList = libvlc_media_subitems(pMedia);
+	if(pMediaList)
+	{
+		//add subitems individually
+		int max = libvlc_media_list_count(ml);
+		for(int i=0;i<max;++i)
+		{
+			libvlc_media_t* media = libvlc_media_list_item_at_index(ml, i);
+			libvlc_media_list_add_media(ml, media);
+		}
+
+		libvlc_media_list_release(pMediaList) ;
+	}
+	else
+	{
+		libvlc_media_list_add_media(ml, pMedia);
+	}
 
 }
 std::string VLCWrapper::getCurrentPlayListItem()

@@ -71,7 +71,6 @@ class VLCWrapper
 {
     libvlc_instance_t*       pVLCInstance_;        ///< The VLC instance.
 	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
-	libvlc_media_t*          pMedia_;              ///< The media played by the media player.
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
     libvlc_media_list_t *ml;
     libvlc_media_list_player_t *mlp;

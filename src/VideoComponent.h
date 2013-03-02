@@ -101,6 +101,8 @@ public:
 	void onMenuRemoveFavorite (MenuTreeItem& item, juce::String path);
 	void writeFavorites();
     void onMenuOpen (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpenUnconditionnal (MenuTreeItem& item,  juce::String path);
+    void onMenuQueue (MenuTreeItem& item,  juce::String path);
     void onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file);
     void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
