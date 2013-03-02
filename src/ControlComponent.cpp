@@ -329,6 +329,16 @@ void ControlComponent::paint(juce::Graphics& g)
 						1, //1 line
 						1.f//no h scale
 						);
+
+	if(! (m_alternateControlComponent && m_alternateControlComponent->isVisible()))
+	{
+		g.drawFittedText (currentTimeString, 
+			m_alternateControlComponent->getBounds(),
+			juce::Justification::centred, 
+			1, //1 line
+			1.f//no h scale
+			);
+	}
 	
 }
 
@@ -344,6 +354,11 @@ juce::String toString(juce::int64 time)
 void ControlComponent::setTime(juce::int64 time, juce::int64 len)
 {
 	timeString = toString(time) + "/" + toString(len);
+
+	juce::int64 current = juce::Time::currentTimeMillis();
+	juce::int64 eta = current + len - time;
+
+	currentTimeString = juce::Time(current).formatted("%H:%M") + juce::Time(eta).formatted(" -> %H:%M");
 }
 
 void ControlComponent::showPausedControls()

@@ -171,6 +171,7 @@ public:
 		, E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER
 		, E_POPUP_ITEM_VOLUME_DELAY_SLIDER
 		, E_POPUP_ITEM_PLAY_SPEED_SLIDER
+		, E_POPUP_ITEM_SHOW_CURRENT_TIME
 	};
 	void alternateSliderModeButton(int result);
 private:

@@ -380,6 +380,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
         m.addCustomItem (E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER, new DrawableMenuComponent(subtitlesImage.get(), buttonWidth));
         m.addCustomItem (E_POPUP_ITEM_VOLUME_DELAY_SLIDER,new DrawableMenuComponent(audioImage.get(), buttonWidth));
         m.addCustomItem (E_POPUP_ITEM_PLAY_SPEED_SLIDER, new DrawableMenuComponent(displayImage.get(), buttonWidth));
+        m.addCustomItem (E_POPUP_ITEM_SHOW_CURRENT_TIME, new DrawableMenuComponent(itemImage.get(), buttonWidth));
 
         m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (button),
                              juce::ModalCallbackFunction::forComponent (alternateSliderModeButtonCallback, this));
@@ -403,6 +404,9 @@ void VideoComponent::alternateSliderModeButton(int result)
 		break;
 	case E_POPUP_ITEM_PLAY_SPEED_SLIDER:
 		showPlaybackSpeedSlider();
+		break;
+	case E_POPUP_ITEM_SHOW_CURRENT_TIME:
+		controlComponent->alternateControlComponent().setVisible(false);
 		break;
 	}
 }

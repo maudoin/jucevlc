@@ -66,6 +66,7 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> m_folderImage;
     juce::ScopedPointer<SecondaryControlComponent> m_alternateControlComponent;
 	juce::String timeString;
+	juce::String currentTimeString;
 public:
 	ControlComponent();
 	virtual ~ControlComponent();
