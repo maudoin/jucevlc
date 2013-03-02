@@ -79,6 +79,8 @@ VideoComponent::VideoComponent()
 	controlComponent->slider().addListener(this);
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
+	controlComponent->menuButton().addListener(this);
+	controlComponent->alternateSliderModeButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 
 	tree = new MenuTree ();
@@ -318,9 +320,20 @@ void VideoComponent::buttonClicked (juce::Button* button)
 			vlc->Pause();
 		}
 	}
-	if(button == &controlComponent->stopButton())
+	else if(button == &controlComponent->stopButton())
 	{
 		vlc->Stop();
+	}
+	else if(button == &controlComponent->menuButton())
+	{
+		tree->setVisible(!tree->isVisible());
+		//todo update icon
+	}
+	else if(button == &controlComponent->alternateSliderModeButton())
+	{
+		//todo popup toolbar
+		showVolumeSlider();
+		//todo update icon
 	}
 }
 void VideoComponent::broughtToFront()

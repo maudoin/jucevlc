@@ -231,15 +231,21 @@ ControlComponent::ControlComponent()
     m_playImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
     m_pauseImage = juce::Drawable::createFromImageData (pause_svg, pause_svgSize);
     m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
+    m_itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
+    m_folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
 
     m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);
 	m_playPauseButton->setImages(m_playImage);
     m_stopButton = new juce::DrawableButton("stop", juce::DrawableButton::ImageFitted);
 	m_stopButton->setOpaque(false);
-	m_stopButton->setImages(m_stopImage);
-	
-
+	m_stopButton->setImages(m_stopImage);	
+    m_menuButton = new juce::DrawableButton("menuButton", juce::DrawableButton::ImageFitted);
+	m_menuButton->setOpaque(false);
+	m_menuButton->setImages(m_folderImage);
+    m_alternateSliderModeButton = new juce::DrawableButton("2ndSliderModeButton", juce::DrawableButton::ImageFitted);
+	m_alternateSliderModeButton->setOpaque(false);
+	m_alternateSliderModeButton->setImages(m_itemImage);
 	
 
 	m_alternateControlComponent = new SecondaryControlComponent();
@@ -247,6 +253,8 @@ ControlComponent::ControlComponent()
 	addAndMakeVisible(m_slider);
     addAndMakeVisible(m_playPauseButton);
     addAndMakeVisible(m_stopButton);
+    addAndMakeVisible(m_menuButton);
+    addAndMakeVisible(m_alternateSliderModeButton);
     addChildComponent(m_alternateControlComponent);
 
 	
@@ -273,9 +281,11 @@ void ControlComponent::resized()
 	m_slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
 
 	m_playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
-	m_stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
+	m_stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);	
+	m_menuButton->setBounds (hMargin+2*buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
 
-	m_alternateControlComponent->setBounds (hMargin+10*buttonWidth, h-buttonWidth+hMargin/4, w -20*buttonWidth -2* hMargin, buttonWidth-hMargin/2);
+	m_alternateSliderModeButton->setBounds (hMargin+9*buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
+	m_alternateControlComponent->setBounds (hMargin+10*buttonWidth, h-buttonWidth+hMargin/4, w -19*buttonWidth -2* hMargin, buttonWidth-hMargin/2);
 }
 void ControlComponent::paint(juce::Graphics& g)
 {

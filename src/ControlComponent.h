@@ -57,9 +57,13 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<TimeSlider> m_slider;
     juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
     juce::ScopedPointer<juce::DrawableButton> m_stopButton;
+    juce::ScopedPointer<juce::DrawableButton> m_menuButton;
+    juce::ScopedPointer<juce::DrawableButton> m_alternateSliderModeButton;
     juce::ScopedPointer<juce::Drawable> m_playImage;
     juce::ScopedPointer<juce::Drawable> m_pauseImage;
     juce::ScopedPointer<juce::Drawable> m_stopImage;
+    juce::ScopedPointer<juce::Drawable> m_itemImage;
+    juce::ScopedPointer<juce::Drawable> m_folderImage;
     juce::ScopedPointer<SecondaryControlComponent> m_alternateControlComponent;
 	juce::String timeString;
 public:
@@ -79,6 +83,8 @@ public:
 	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
+	juce::DrawableButton& menuButton(){return *m_menuButton.get();}
+	juce::DrawableButton& alternateSliderModeButton(){return *m_alternateSliderModeButton.get();}
 	SecondaryControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}
 
 };
