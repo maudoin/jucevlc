@@ -998,6 +998,7 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
 
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::setVisible,tree.get(), rightClick));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
 	
 }
 void VideoComponent::vlcFullScreenControlCallback()
