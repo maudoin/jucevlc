@@ -276,7 +276,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		}
 		if(e.mods.isLeftButtonDown())
 		{
-			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
+			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
 		}
 		if(!isFullScreen())
 		{
@@ -1131,7 +1131,8 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
 
-	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, rightClick));
+	bool showMenu = rightClick || vlc->isStopped();
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
 	
 }
@@ -1180,6 +1181,7 @@ void VideoComponent::stoppedSynchronous()
 		setAlpha(1.f);
 		setOpaque(true);
 		vlcNativePopupComponent->setVisible(false);
+		setMenuTreeVisibleAndUpdateMenuButtonIcon(true);
 		getPeer()->getComponent().removeComponentListener(this);
 	}
 }
