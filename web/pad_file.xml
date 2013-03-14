@@ -81,21 +81,31 @@
     <Site_Description_450>JuceVLC homepage</Site_Description_450>
     <Site_Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Site_Keywords>
   </Site>
-  <ASBMPlannerID1stRound>4</ASBMPlannerID1stRound>
+  <ASBMPlannerID1stRound>6</ASBMPlannerID1stRound>
   <Issues>12</Issues>
-  <ASBMPlannerID2ndRound>5</ASBMPlannerID2ndRound>
+  <Press_Release>
+    <Press_Release>JuceVLC release</Press_Release>
+    <Press_Release_Plain>JuceVLC release</Press_Release_Plain>
+    <Headline>JuceVLC release</Headline>
+    <Summary>JuceVLC release</Summary>
+    <Keywords>JuceVLC,video,vlc,fullscreen,gui</Keywords>
+    <Related_URL>http://jucevlc.sourceforge.net/</Related_URL>
+  </Press_Release>
   <Program_Info>
     <Program_Name>JuceVLC</Program_Name>
-    <Program_Version>0.1</Program_Version>
+    <Program_Version>0.2</Program_Version>
     <Program_Release_Month>03</Program_Release_Month>
-    <Program_Release_Day>04</Program_Release_Day>
+    <Program_Release_Day>15</Program_Release_Day>
     <Program_Release_Year>2013</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
-    <Program_Release_Status>New Release</Program_Release_Status>
+    <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>No Install Support</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64</Program_OS_Support>
     <Program_Language>English</Program_Language>
+    <Program_Change_Info>-Fixed disappearing controls on pause or slider movement
+-Added video adjustments (contrast, ...)
+-Moved windowed/fullscreen options to player sub-menu</Program_Change_Info>
     <Program_System_Requirements>None</Program_System_Requirements>
     <Program_Category_Class>Audio &amp; Multimedia::Video Tools</Program_Category_Class>
     <File_Info>
@@ -117,7 +127,6 @@
       <Expire_Year></Expire_Year>
     </Expire_Info>
     <Program_Categories>Windows,Player,Video,Multimedia</Program_Categories>
-    <Program_Change_Info>First release</Program_Change_Info>
     <Limitations>None</Limitations>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
     <Program_Cost_Other></Program_Cost_Other>
@@ -130,10 +139,10 @@
   <Web_Info>
     <Application_URLs>
       <Application_Info_URL>http://jucevlc.sourceforge.net/</Application_Info_URL>
+      <Application_Order_URL>http://jucevlc.sourceforge.net/</Application_Order_URL>
       <Application_Screenshot_URL>http://jucevlc.sourceforge.net/screenshots/playing.jpg</Application_Screenshot_URL>
       <Application_Icon_URL>http://jucevlc.sourceforge.net/logo.gif</Application_Icon_URL>
       <Application_XML_File_URL>http://jucevlc.sourceforge.net/pad_file.xml</Application_XML_File_URL>
-      <Application_Order_URL>http://jucevlc.sourceforge.net/</Application_Order_URL>
     </Application_URLs>
     <Download_URLs>
       <Primary_Download_URL>http://sourceforge.net/projects/jucevlc/files/latest/download</Primary_Download_URL>
@@ -211,14 +220,6 @@ avoid the special danger that patents applied to a free program could
 make it effectively proprietary.  To prevent this, the GPL assures that
 patents cannot be used to render the program non-free.</EULA>
   </Permissions>
-  <Press_Release>
-    <Press_Release>JuceVLC release</Press_Release>
-    <Press_Release_Plain>JuceVLC release</Press_Release_Plain>
-    <Headline>JuceVLC release</Headline>
-    <Summary>JuceVLC release</Summary>
-    <Keywords>JuceVLC,video,vlc,fullscreen,gui</Keywords>
-    <Related_URL>http://jucevlc.sourceforge.net/</Related_URL>
-  </Press_Release>
   <Program_Descriptions>
     <English>
       <Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Keywords>
