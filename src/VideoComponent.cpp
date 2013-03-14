@@ -284,16 +284,18 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		}
 		if(!isFullScreen())
 		{
-			dragger.startDraggingComponent (this, e);
+			dragger.startDraggingComponent (this, e.getEventRelativeTo(this));
 		}
 	}
 }
 
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+
 	if(!isFullScreen())
 	{
-		dragger.dragComponent (this, e, 0);
+		dragger.dragComponent (this, e.getEventRelativeTo(this), nullptr);
 	}
 }
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
