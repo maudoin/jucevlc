@@ -3,6 +3,7 @@
 #include "Icons.h"
 #include "MenuTree.h"
 #include "MenuTreeAction.h"
+#include "Languages.h"
 #include <algorithm>
 
 #define DISAPEAR_DELAY_MS 6000
@@ -11,6 +12,7 @@
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
+#define SETTINGS_LANG "SETTINGS_LANG"
 #define SHORTCUTS_FILE "shortcuts.list"
 
 juce::PropertiesFile::Options options()
@@ -183,6 +185,8 @@ VideoComponent::~VideoComponent()
 
 	juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     // (the content component will be deleted automatically, so no need to do it here)
+
+	Languages::getInstance().reset();
 }
 
 ////////////////////////////////////////////////////////////
@@ -603,31 +607,31 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 
 void VideoComponent::showVolumeSlider()
 {
-	controlComponent->alternateControlComponent().show("Audio Volume: %.f%%",
+	controlComponent->alternateControlComponent().show(TRANS("Audio Volume: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
 		vlc->getVolume(), 1., 200., .1);
 }
 void VideoComponent::showPlaybackSpeedSlider ()
 {
-	controlComponent->alternateControlComponent().show("Speed: %.f%%",
+	controlComponent->alternateControlComponent().show(TRANS("Speed: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
 		vlc->getRate(), 50., 800., .1);
 }
 void VideoComponent::showZoomSlider ()
 {
-	controlComponent->alternateControlComponent().show("Zoom: %.f%%",
+	controlComponent->alternateControlComponent().show(TRANS("Zoom: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
 		vlc->getScale(), 50., 500., .1);
 }
 void VideoComponent::showAudioOffsetSlider ()
 {
-	controlComponent->alternateControlComponent().show("Audio offset: %+.3fs",
+	controlComponent->alternateControlComponent().show(TRANS("Audio offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), _1),
 		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
 }
 void VideoComponent::showSubtitlesOffsetSlider ()
 {
-	controlComponent->alternateControlComponent().show("Subtitles offset: %+.3fs",
+	controlComponent->alternateControlComponent().show(TRANS("Subtitles offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), _1),
 		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
 }
@@ -746,9 +750,9 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 
 		item.focusItemAsMenuShortcut();
 		
-		item.addAction("Play All", Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, 
+		item.addAction(TRANS("Play All"), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, 
 				file.getFullPathName()), getItemImage());
-		item.addAction("Add All", Action::build(*this, &VideoComponent::onMenuQueue, 
+		item.addAction(TRANS("Add All"), Action::build(*this, &VideoComponent::onMenuQueue, 
 				file.getFullPathName()), getItemImage());
 
 		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
@@ -756,12 +760,12 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
-			item.addAction("Add to favorites", Action::build(*this, &VideoComponent::onMenuAddFavorite, 
+			item.addAction(TRANS("Add to favorites"), Action::build(*this, &VideoComponent::onMenuAddFavorite, 
 				file.getFullPathName()), getItemImage());
 		}
 		else
 		{
-			item.addAction("Remove from favorites", Action::build(*this, &VideoComponent::onMenuRemoveFavorite, 
+			item.addAction(TRANS("Remove from favorites"), Action::build(*this, &VideoComponent::onMenuRemoveFavorite, 
 				file.getFullPathName()), getItemImage());
 		}
 		
@@ -779,18 +783,18 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	int current = vlc->getCurrentSubtitleIndex();
 	if(cnt)
 	{
-		item.addAction( juce::String::formatted("Disable"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, 0), (0==current||-1==current)?getItemImage():nullptr);
+		item.addAction( juce::String::formatted(TRANS("Disable")), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, 0), (0==current||-1==current)?getItemImage():nullptr);
 		for(int i = 1;i<cnt;++i)
 		{
-			item.addAction( juce::String::formatted("Slot %d", i), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, i), i==current?getItemImage():nullptr);
+			item.addAction( juce::String::formatted(TRANS("Slot %d"), i), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, i), i==current?getItemImage():nullptr);
 		}
 	}
 	else
 	{
-		item.addAction( juce::String::formatted("No subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
+		item.addAction( juce::String::formatted(TRANS("No subtitles")), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
 	}
-	item.addAction( "Add...", Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
-	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
+	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
+	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -849,13 +853,13 @@ void VideoComponent::onMenuCropList (MenuTreeItem& item)
 	
 	item.focusItemAsMenuShortcut();
 
-	//item.addAction( "Auto", Action::build(*this, &VideoComponent::onMenuAutoCrop), vlc->isAutoCrop()?getItemImage():nullptr);
+	//item.addAction( TRANS("Auto"), Action::build(*this, &VideoComponent::onMenuAutoCrop), vlc->isAutoCrop()?getItemImage():nullptr);
 	std::string current = vlc->getCrop();
 	std::vector<std::string> list = vlc->getCropList();
 	for(std::vector<std::string>::const_iterator it = list.begin();it != list.end();++it)
 	{	
 		juce::String ratio(it->c_str());
-		item.addAction( ratio.isEmpty()?"Original":ratio, Action::build(*this, &VideoComponent::onMenuCrop, ratio), *it==current?getItemImage():nullptr);
+		item.addAction( ratio.isEmpty()?TRANS("Original"):ratio, Action::build(*this, &VideoComponent::onMenuCrop, ratio), *it==current?getItemImage():nullptr);
 	}
 }
 void VideoComponent::onMenuRate (MenuTreeItem& item, double rate)
@@ -983,9 +987,9 @@ void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Volume", Action::build(*this, &VideoComponent::onMenuAudioVolumeSlider));
-	item.addAction( "Delay", Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
-	item.addAction( "Select Track", Action::build(*this, &VideoComponent::onMenuAudioTrackList));
+	item.addAction( TRANS("Volume"), Action::build(*this, &VideoComponent::onMenuAudioVolumeSlider));
+	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
+	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuAudioTrackList));
 }
 
 void VideoComponent::onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio)
@@ -1000,7 +1004,7 @@ void VideoComponent::onMenuRatio(MenuTreeItem& item)
 	setBrowsingFiles(false);
 	std::string current = vlc->getAspect();
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Original", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("")), current==""?getItemImage():nullptr);
+	item.addAction( TRANS("Original"), Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("")), current==""?getItemImage():nullptr);
 	item.addAction( "1:1", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("1:1")), current=="1:1"?getItemImage():nullptr);
 	item.addAction( "4:3", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("4:3")), current=="4:3"?getItemImage():nullptr);
 	item.addAction( "16:10", Action::build(*this, &VideoComponent::onMenuSetAspectRatio, juce::String("16:10")), current=="16:10"?getItemImage():nullptr);
@@ -1016,12 +1020,10 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "FullScreen", Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
-	item.addAction( "Windowed", Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
-	item.addAction( "Speed", Action::build(*this, &VideoComponent::onMenuRateSlider));
-	item.addAction( "Zoom", Action::build(*this, &VideoComponent::onMenuCropList));
-	item.addAction( "Aspect Ratio", Action::build(*this, &VideoComponent::onMenuRatio));
-	item.addAction( "Select Track", Action::build(*this, &VideoComponent::onMenuVideoTrackList));
+	item.addAction( TRANS("Speed"), Action::build(*this, &VideoComponent::onMenuRateSlider));
+	item.addAction( TRANS("Zoom"), Action::build(*this, &VideoComponent::onMenuCropList));
+	item.addAction( TRANS("Aspect Ratio"), Action::build(*this, &VideoComponent::onMenuRatio));
+	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuVideoTrackList));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
 {
@@ -1048,18 +1050,47 @@ void VideoComponent::onShowPlaylist(MenuTreeItem& item)
 		item.addAction(it->c_str(), Action::build(*this, &VideoComponent::onPlaylistItem, i), i==current?getItemImage():nullptr);
 		++i;
 	}
+	
+}
+void VideoComponent::onLanguageSelect(MenuTreeItem& item, std::string lang)
+{
+	setBrowsingFiles(false);
+	Languages::getInstance().setCurrentLanguage(lang);
+	
+	m_settings.setValue(SETTINGS_LANG, lang.c_str());
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onLanguageOptions(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
 
+	std::vector< std::string > list = Languages::getInstance().getLanguages();
+	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		item.addAction(it->c_str(), Action::build(*this, &VideoComponent::onLanguageSelect, *it), (*it==Languages::getInstance().getCurrentLanguage())?getItemImage():nullptr);
+	}
+}
+void VideoComponent::onPlayerOptions(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	item.addAction( TRANS("FullScreen"), Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
+	item.addAction( TRANS("Windowed"), Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
+	//item.addAction( TRANS("Language"), Action::build(*this, &VideoComponent::onLanguageOptions));
 }
 void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( "Open", Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
-	item.addAction( "Now playing", Action::build(*this, &VideoComponent::onShowPlaylist), getItemImage());
-	item.addAction( "Subtitle", Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
-	item.addAction( "Video options", Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
-	item.addAction( "Sound options", Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
-	item.addAction( "Exit", Action::build(*this, &VideoComponent::onMenuExit), getExitImage());
+	item.addAction( TRANS("Open"), Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
+	item.addAction( TRANS("Now playing"), Action::build(*this, &VideoComponent::onShowPlaylist), getItemImage());
+	item.addAction( TRANS("Subtitle"), Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
+	item.addAction( TRANS("Video options"), Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
+	item.addAction( TRANS("Sound options"), Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
+	item.addAction( TRANS("Player options"), Action::build(*this, &VideoComponent::onPlayerOptions), getItemImage());
+	item.addAction( TRANS("Exit"), Action::build(*this, &VideoComponent::onMenuExit), getExitImage());
 
 }
 ////////////////////////////////////////////////////////////
@@ -1195,6 +1226,7 @@ void VideoComponent::initFromSettings()
 {
 	setFullScreen(m_settings.getBoolValue(SETTINGS_FULLSCREEN, true));
 	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
+	Languages::getInstance().setCurrentLanguage(m_settings.getValue(SETTINGS_LANG, "").toUTF8().getAddress());
 	if(shortcuts.exists())
 	{
 		shortcuts.readLines(m_shortcuts);

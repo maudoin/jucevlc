@@ -87,6 +87,9 @@
     <ClCompile Include="src\ControlComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Languages.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
@@ -747,6 +750,9 @@
       <Filter>Header Files\vlc</Filter>
     </ClInclude>
     <ClInclude Include="src\ControlComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Languages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

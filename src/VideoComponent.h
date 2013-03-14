@@ -135,6 +135,9 @@ public:
 	void onMenuVideoOptions(MenuTreeItem& item);
 	void onPlaylistItem(MenuTreeItem& item, int index);
 	void onShowPlaylist(MenuTreeItem& item);
+	void onLanguageOptions(MenuTreeItem& item);
+	void onLanguageSelect(MenuTreeItem& item, std::string lang);
+	void onPlayerOptions(MenuTreeItem& item);
 	void onMenuRoot(MenuTreeItem& item);
 	/////////////// VLC EvtListener
 	virtual void vlcTimeChanged();

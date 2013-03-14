@@ -21,6 +21,7 @@ vlcfrontendOptimizedDebug.pdb
 boost/
 shortcuts.list
 settings.xml
+Français.lang
 syntax: regexp
 FontResource.cpp
 FontResource.h
