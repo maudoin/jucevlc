@@ -126,12 +126,19 @@ public:
     void onMenuAudioTrackList (MenuTreeItem& item);
     void onMenuVideoTrack (MenuTreeItem& item, int id);
     void onMenuVideoTrackList (MenuTreeItem& item);
+	void onMenuVideoContrast (MenuTreeItem& item);
+	void onMenuVideoBrightness (MenuTreeItem& item);
+	void onMenuVideoHue (MenuTreeItem& item);
+	void onMenuVideoSaturation (MenuTreeItem& item);
+	void onMenuVideoGamma (MenuTreeItem& item);
+	void onMenuVideoAdjust (MenuTreeItem& item);
 
     void onMenuFullscreen(MenuTreeItem& item, bool fs);
 	
 	void onMenuExit(MenuTreeItem& item);
 	void onMenuSoundOptions(MenuTreeItem& item);
 	void onMenuRatio(MenuTreeItem& item);
+	void onMenuVideoAdjustOptions(MenuTreeItem& item);
 	void onMenuVideoOptions(MenuTreeItem& item);
 	void onPlaylistItem(MenuTreeItem& item, int index);
 	void onShowPlaylist(MenuTreeItem& item);

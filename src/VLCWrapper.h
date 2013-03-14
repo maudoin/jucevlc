@@ -74,6 +74,7 @@ class VLCWrapper
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
     libvlc_media_list_t *ml;
     libvlc_media_list_player_t *mlp;
+	bool m_videoAdjustEnabled;
 public:
 	VLCWrapper(void);
 	~VLCWrapper(void);
@@ -147,6 +148,20 @@ public:
     int getSubtitlesCount();
     int getCurrentSubtitleIndex();
     void setSubtitleIndex(int i);
+
+	
+	void setVideoContrast(double n);
+	double getVideoContrast();
+	void setVideoBrightness(double n);
+	double getVideoBrightness();
+	void setVideoHue(double n);
+	double getVideoHue();
+	void setVideoSaturation(double n);
+	double getVideoSaturation();
+	void setVideoGamma(double n);
+	double getVideoGamma();
+	void setVideoAdjust(bool n);
+	bool getVideoAdjust();
 	
 	std::vector<std::string> getCropList();
 	void setCrop(std::string const& ratio);

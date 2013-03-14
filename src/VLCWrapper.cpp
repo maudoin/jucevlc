@@ -122,7 +122,8 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
 VLCWrapper::VLCWrapper(void)
 :	pVLCInstance_(0),
 	pMediaPlayer_(0),
-    pEventManager_(0)
+    pEventManager_(0),
+	m_videoAdjustEnabled(0)
 {
 	static const char * const vlc_args[] = {
 		"-I", "dumy"      // No special interface
@@ -566,7 +567,57 @@ int VLCWrapper::getVideoTrack()
 {
 	return libvlc_video_get_track(pMediaPlayer_);
 }
+  
+void VLCWrapper::setVideoAdjust(bool n)
+{
+	libvlc_video_set_adjust_int(pMediaPlayer_, libvlc_adjust_Enable, n?1:0);
+	m_videoAdjustEnabled = n;
+}
+bool VLCWrapper::getVideoAdjust()
+{
+	return m_videoAdjustEnabled;
+}
+void VLCWrapper::setVideoContrast(double n)
+{
+	libvlc_video_set_adjust_float(pMediaPlayer_, libvlc_adjust_Contrast, (float)n);
+}
+double VLCWrapper::getVideoContrast()
+{
+	return (double)libvlc_video_get_adjust_float(pMediaPlayer_, libvlc_adjust_Contrast);
+}
+void VLCWrapper::setVideoBrightness(double n)
+{
+	libvlc_video_set_adjust_float(pMediaPlayer_, libvlc_adjust_Brightness, (float)n);
+}
+double VLCWrapper::getVideoBrightness()
+{
+	return (double)libvlc_video_get_adjust_float(pMediaPlayer_, libvlc_adjust_Brightness);
+}
 
+void VLCWrapper::setVideoHue(double n)
+{
+	libvlc_video_set_adjust_int(pMediaPlayer_, libvlc_adjust_Hue, (int)n);
+}
+double VLCWrapper::getVideoHue()
+{
+	return (double)libvlc_video_get_adjust_int(pMediaPlayer_, libvlc_adjust_Hue);
+}
+void VLCWrapper::setVideoSaturation(double n)
+{
+	libvlc_video_set_adjust_float(pMediaPlayer_, libvlc_adjust_Saturation, (float)n);
+}
+double VLCWrapper::getVideoSaturation()
+{
+	return (double)libvlc_video_get_adjust_float(pMediaPlayer_, libvlc_adjust_Saturation);
+}
+void VLCWrapper::setVideoGamma(double n)
+{
+	libvlc_video_set_adjust_float(pMediaPlayer_, libvlc_adjust_Gamma, (float)n);
+}
+double VLCWrapper::getVideoGamma()
+{
+	return (double)libvlc_video_get_adjust_float(pMediaPlayer_, libvlc_adjust_Gamma);
+}
 std::vector< std::pair<int, std::string> > VLCWrapper::getAudioTrackList()
 {
 	std::vector< std::pair<int, std::string> > list;

@@ -965,6 +965,48 @@ void VideoComponent::onMenuAudioTrackList (MenuTreeItem& item)
 		item.addAction(it->second.c_str(), Action::build(*this, &VideoComponent::onMenuAudioTrack, it->first), it->first==current?getItemImage():nullptr);
 	}
 }
+void VideoComponent::onMenuVideoAdjust (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	vlc->setVideoAdjust(!vlc->getVideoAdjust());
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onMenuVideoContrast (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(TRANS("Contrast: %+.3fs"),
+		boost::bind<void>(&VLCWrapper::setVideoContrast, vlc.get(), _1),
+		vlc->getVideoContrast(), 0., 2., .01);
+}
+void  VideoComponent::onMenuVideoBrightness (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(TRANS("Brightness: %+.3f"),
+		boost::bind<void>(&VLCWrapper::setVideoBrightness, vlc.get(), _1),
+		vlc->getVideoBrightness(), 0., 2., .01);
+}
+void  VideoComponent::onMenuVideoHue (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(TRANS("Hue"),
+		boost::bind<void>(&VLCWrapper::setVideoHue, vlc.get(), _1),
+		vlc->getVideoHue(), 0, 256., .1);
+}
+void  VideoComponent::onMenuVideoSaturation (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(TRANS("Saturation: %+.3f"),
+		boost::bind<void>(&VLCWrapper::setVideoSaturation, vlc.get(), _1),
+		vlc->getVideoSaturation(), 0., 2., .01);
+}
+void  VideoComponent::onMenuVideoGamma (MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(TRANS("Gamma: %+.3f"),
+		boost::bind<void>(&VLCWrapper::setVideoGamma, vlc.get(), _1),
+		vlc->getVideoGamma(), 0., 2., .01);
+}
+
 void VideoComponent::onMenuVideoTrack (MenuTreeItem& item, int id)
 {
 	setBrowsingFiles(false);
@@ -1016,6 +1058,18 @@ void VideoComponent::onMenuRatio(MenuTreeItem& item)
 	
 }
 
+void VideoComponent::onMenuVideoAdjustOptions(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	item.addAction( TRANS("Enable"), Action::build(*this, &VideoComponent::onMenuVideoAdjust), vlc->getVideoAdjust()?getItemImage():nullptr);
+	item.addAction( TRANS("Contrast"), Action::build(*this, &VideoComponent::onMenuVideoContrast));
+	item.addAction( TRANS("Brightness"), Action::build(*this, &VideoComponent::onMenuVideoBrightness));
+	item.addAction( TRANS("Saturation"), Action::build(*this, &VideoComponent::onMenuVideoSaturation));
+	item.addAction( TRANS("Hue"), Action::build(*this, &VideoComponent::onMenuVideoHue));
+	item.addAction( TRANS("Gamma"), Action::build(*this, &VideoComponent::onMenuVideoGamma));
+}
+
 void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -1024,6 +1078,7 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 	item.addAction( TRANS("Zoom"), Action::build(*this, &VideoComponent::onMenuCropList));
 	item.addAction( TRANS("Aspect Ratio"), Action::build(*this, &VideoComponent::onMenuRatio));
 	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuVideoTrackList));
+	item.addAction( TRANS("Adjust"), Action::build(*this, &VideoComponent::onMenuVideoAdjustOptions));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
 {
