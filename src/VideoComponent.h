@@ -183,6 +183,7 @@ public:
 	void alternateSliderModeButton(int result);
 private:
 	
+	void handleIdleTimeAndControlsVisibility();
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void initFromSettings();
 	void initFromMediaDependantSettings();

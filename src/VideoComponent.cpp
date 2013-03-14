@@ -1121,6 +1121,11 @@ void VideoComponent::updateTimeAndSlider()
 		if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
 	}
+	handleIdleTimeAndControlsVisibility();
+}
+
+void VideoComponent::handleIdleTimeAndControlsVisibility()
+{
 	juce::int64 timeFromLastMouseMove = juce::Time::currentTimeMillis () - lastMouseMoveMovieTime;
 	if(timeFromLastMouseMove<(DISAPEAR_DELAY_MS+DISAPEAR_SPEED_MS))
 	{
@@ -1133,7 +1138,7 @@ void VideoComponent::updateTimeAndSlider()
 			setAlpha(1.f-(float)(timeFromLastMouseMove-DISAPEAR_DELAY_MS)/(float)DISAPEAR_SPEED_MS );
 		}
 		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
-		controlComponent->setVisible(vlc->isPlaying());
+		controlComponent->setVisible(vlc->isPlaying() || vlc->isPaused());
 	}
 	else
 	{
@@ -1175,10 +1180,10 @@ void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
 	bool controlsExpired = (juce::Time::currentTimeMillis () - lastMouseMoveMovieTime) - DISAPEAR_DELAY_MS - DISAPEAR_SPEED_MS > 0;
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
-	if(controlsExpired)
+	if(controlsExpired || vlc->isPaused())
 	{
 		//reactivateControls
-		invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+		invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 	}
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)
