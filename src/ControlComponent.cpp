@@ -275,17 +275,19 @@ void ControlComponent::resized()
 	int h =  getHeight();
 
 	
-	int hMargin = 0.025*w;
-	int buttonWidth = 0.03*w;
-	int sliderHeight = 0.3*h;
-	m_slider->setBounds (hMargin, h-sliderHeight-buttonWidth, w-2*hMargin, sliderHeight);
+	int buttonSize = 0.5*h;
+	int hMargin =buttonSize/2;
+	int sliderHeight = 0.35*h;
+	m_slider->setBounds (hMargin, h-sliderHeight-buttonSize, w-2*hMargin, sliderHeight);
 
-	m_playPauseButton->setBounds (hMargin, h-buttonWidth, buttonWidth, buttonWidth);
-	m_stopButton->setBounds (hMargin+buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);	
-	m_menuButton->setBounds (hMargin+2*buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
+	m_playPauseButton->setBounds (hMargin, h-buttonSize, buttonSize, buttonSize);
+	m_stopButton->setBounds (hMargin+buttonSize, h-buttonSize, buttonSize, buttonSize);	
+	m_menuButton->setBounds (hMargin+2*buttonSize, h-buttonSize, buttonSize, buttonSize);
 
-	m_alternateSliderModeButton->setBounds (hMargin+9*buttonWidth, h-buttonWidth, buttonWidth, buttonWidth);
-	m_alternateControlComponent->setBounds (hMargin+10*buttonWidth, h-buttonWidth+hMargin/4, w -19*buttonWidth -2* hMargin, buttonWidth-hMargin/2);
+	int alternateX = 7*buttonSize;
+	int alternateW = w - 2*alternateX;
+	m_alternateSliderModeButton->setBounds (alternateX-buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_alternateControlComponent->setBounds (alternateX, h-buttonSize+(buttonSize-sliderHeight)/2, alternateW, sliderHeight);
 }
 void ControlComponent::paint(juce::Graphics& g)
 {
@@ -293,25 +295,25 @@ void ControlComponent::paint(juce::Graphics& g)
 	int h =  getHeight();
 
 	
-	int hMargin = 0.025*w;
-	int buttonWidth = 0.03*w;
+	int buttonSize = 0.5*h;
+	int hMargin =buttonSize/2;
 	int sliderHeight = 0.3*h;
-	int roundness = hMargin/4;
+	int roundness = hMargin/2;
 	
 	///////////////// CONTROL ZONE:	
 	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										w/2, h-sliderHeight-buttonSize-hMargin/2,
 										juce::Colours::black,
 										w/2, h,
 										false));
-	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness);
+	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonSize-hMargin/2, w-hMargin, sliderHeight+buttonSize+hMargin/2, roundness);
 
 	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonWidth-hMargin/2,
+										w/2, h-sliderHeight-buttonSize-hMargin/2,
 										juce::Colours::black,
 										w/2, h-hMargin/2,
 										false));
-	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonWidth-hMargin/2, w-hMargin, sliderHeight+buttonWidth+hMargin/2, roundness,2.f);
+	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonSize-hMargin/2, w-hMargin, sliderHeight+buttonSize+hMargin/2, roundness,2.f);
 	
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
@@ -324,7 +326,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	
 
 	g.drawFittedText (timeString,
-						hMargin+2*buttonWidth, h-buttonWidth, w-2*hMargin-2*buttonWidth, buttonWidth,
+						hMargin+2*buttonSize, h-buttonSize, w-2*hMargin-2*buttonSize, buttonSize,
 						juce::Justification::topRight, 
 						1, //1 line
 						1.f//no h scale

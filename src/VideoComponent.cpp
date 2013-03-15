@@ -465,9 +465,9 @@ void VideoComponent::resized()
 	int w =  getWidth();
 	int h =  getHeight();
 	
-	int hMargin = 0.025*w;
+	int hMargin = tree->getItemHeight()/2;
 	int treeWidth = (browsingFiles?3:1)*w/4;
-	int controlHeight = 0.06*w;
+	int controlHeight = 3*tree->getItemHeight();
 	
     tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
 	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
@@ -1142,13 +1142,13 @@ void VideoComponent::onSetPlayerFonSize(MenuTreeItem& item, int size)
 	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(size);
 	
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::repaint, this));
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::resized, this));
 }
 void VideoComponent::onPlayerFonSize(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	for(int i=50;i<=200;i+=25)
+	for(int i=75;i<=175;i+=25)
 	{
 		item.addAction( juce::String::formatted("%d%%", i), Action::build(*this, &VideoComponent::onSetPlayerFonSize, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
 	}
