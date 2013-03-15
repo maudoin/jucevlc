@@ -38,12 +38,15 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	bool videoUpdating;
     juce::ScopedPointer<juce::Drawable> itemImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
+    juce::ScopedPointer<juce::Drawable> playlistImage;
     juce::ScopedPointer<juce::Drawable> folderShortcutImage;
     juce::ScopedPointer<juce::Drawable> hideFolderShortcutImage;
     juce::ScopedPointer<juce::Drawable> audioImage;
     juce::ScopedPointer<juce::Drawable> displayImage;
     juce::ScopedPointer<juce::Drawable> subtitlesImage;
+    juce::ScopedPointer<juce::Drawable> settingsImage;
     juce::ScopedPointer<juce::Drawable> exitImage;
+    juce::Image appImage;
 	LnF lnf;
 	juce::ComponentDragger dragger;
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
@@ -76,11 +79,13 @@ public:
 
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
+	juce::Drawable const* getPlaylistImage() const { return playlistImage; };
 	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
 	juce::Drawable const* getAudioImage() const { return audioImage; };
 	juce::Drawable const* getDisplayImage() const { return displayImage; };
 	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
 	juce::Drawable const* getExitImage() const { return exitImage; };
+	juce::Drawable const* getSettingsImage() const { return settingsImage; };
 	
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener

@@ -65,14 +65,18 @@ VideoComponent::VideoComponent()
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 {    
 
+    appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
+
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
+    playlistImage = juce::Drawable::createFromImageData (list_svg, list_svgSize);
     folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
     hideFolderShortcutImage = juce::Drawable::createFromImageData (hideFolderShortcut_svg, hideFolderShortcut_svgSize);
     audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
     displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
     subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
     exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
+    settingsImage = juce::Drawable::createFromImageData (gears_svg, gears_svgSize);
 
 
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
@@ -446,6 +450,7 @@ void VideoComponent::paint (juce::Graphics& g)
 	if(!vlcNativePopupComponent->isVisible())
 	{
 		g.fillAll (juce::Colours::black);
+		g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2);
 	}
 	else
 	{
@@ -1142,11 +1147,11 @@ void VideoComponent::onMenuRoot(MenuTreeItem& item)
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( TRANS("Open"), Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
-	item.addAction( TRANS("Now playing"), Action::build(*this, &VideoComponent::onShowPlaylist), getItemImage());
+	item.addAction( TRANS("Now playing"), Action::build(*this, &VideoComponent::onShowPlaylist), getPlaylistImage());
 	item.addAction( TRANS("Subtitle"), Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
 	item.addAction( TRANS("Video options"), Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
 	item.addAction( TRANS("Sound options"), Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
-	item.addAction( TRANS("Player options"), Action::build(*this, &VideoComponent::onPlayerOptions), getItemImage());
+	item.addAction( TRANS("Player options"), Action::build(*this, &VideoComponent::onPlayerOptions), getSettingsImage());
 	item.addAction( TRANS("Exit"), Action::build(*this, &VideoComponent::onMenuExit), getExitImage());
 
 }
