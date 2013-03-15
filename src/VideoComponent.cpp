@@ -1235,10 +1235,10 @@ void VideoComponent::onMenuRoot(MenuTreeItem& item)
 	item.focusItemAsMenuShortcut();
 	item.addAction( TRANS("Open"), Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
 	item.addAction( TRANS("Now playing"), Action::build(*this, &VideoComponent::onShowPlaylist), getPlaylistImage());
-	item.addAction( TRANS("Subtitle"), Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
-	item.addAction( TRANS("Video options"), Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
-	item.addAction( TRANS("Sound options"), Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
-	item.addAction( TRANS("Player options"), Action::build(*this, &VideoComponent::onPlayerOptions), getSettingsImage());
+	item.addAction( TRANS("Subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
+	item.addAction( TRANS("Video"), Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());
+	item.addAction( TRANS("Sound"), Action::build(*this, &VideoComponent::onMenuSoundOptions), getAudioImage());
+	item.addAction( TRANS("Player"), Action::build(*this, &VideoComponent::onPlayerOptions), getSettingsImage());
 	item.addAction( TRANS("Exit"), Action::build(*this, &VideoComponent::onMenuExit), getExitImage());
 
 }

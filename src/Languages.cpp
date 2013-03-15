@@ -33,11 +33,11 @@ countries: fr be mc ch lu\n\
 \"Aspect Ratio\" = \"Proportions\"\n\
 \"Open\" = \"Ouvrir\"\n\
 \"Now playing\" = \"En cours\"\n\
-\"Subtitle\" = \"Sous-titres\"\n\
+\"Subtitles\" = \"Sous-titres\"\n\
 \"Language\" = \"Langue\"\n\
-\"Video options\" = \"Paramêtres vidéo\"\n\
-\"Sound options\" = \"Paramêtres audio\"\n\
-\"Player options\" = \"Paramêtres du lecteur\"\n\
+\"Video\" = \"Image\"\n\
+\"Sound\" = \"Son\"\n\
+\"Player\" = \"Lecteur\"\n\
 \"Exit\" = \"Quitter\"\n\
 ";
 
