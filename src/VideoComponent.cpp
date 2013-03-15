@@ -11,6 +11,7 @@
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
+#define SETTINGS_FONT_SIZE "SETTINGS_FONT_SIZE"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SHORTCUTS_FILE "shortcuts.list"
@@ -1141,6 +1142,8 @@ void VideoComponent::onSetPlayerFonSize(MenuTreeItem& item, int size)
 
 	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(size);
 	
+	m_settings.setValue(SETTINGS_FONT_SIZE, size);
+	
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::resized, this));
 }
@@ -1148,7 +1151,7 @@ void VideoComponent::onPlayerFonSize(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	for(int i=75;i<=175;i+=25)
+	for(int i=50;i<=175;i+=25)
 	{
 		item.addAction( juce::String::formatted("%d%%", i), Action::build(*this, &VideoComponent::onSetPlayerFonSize, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
 	}
@@ -1313,6 +1316,7 @@ void VideoComponent::initFromSettings()
 	setFullScreen(m_settings.getBoolValue(SETTINGS_FULLSCREEN, true));
 	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
 	Languages::getInstance().setCurrentLanguage(m_settings.getValue(SETTINGS_LANG, "").toUTF8().getAddress());
+	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(m_settings.getIntValue(SETTINGS_FONT_SIZE, 100));
 	if(shortcuts.exists())
 	{
 		shortcuts.readLines(m_shortcuts);

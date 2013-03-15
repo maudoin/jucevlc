@@ -40,7 +40,7 @@ float AppProportionnalComponent::getFontHeight()
 }
 float AppProportionnalComponent::getItemHeight()
 {
-	return  m_scaleComponent == NULL ? 24 : m_itemHeightScalePercent*m_scaleComponent->getHeight() * 3.f / 10000.f;
+	return  m_scaleComponent == NULL ? 24 : m_itemHeightScalePercent*m_scaleComponent->getHeight() * 3.5f / 10000.f;
 }
 void AppProportionnalComponent::componentMovedOrResized (juce::Component& component,
                                         bool wasMoved,

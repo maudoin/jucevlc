@@ -277,7 +277,7 @@ void ControlComponent::resized()
 	
 	int buttonSize = 0.5*h;
 	int hMargin =buttonSize/2;
-	int sliderHeight = 0.35*h;
+	int sliderHeight = 0.3*h;
 	m_slider->setBounds (hMargin, h-sliderHeight-buttonSize, w-2*hMargin, sliderHeight);
 
 	m_playPauseButton->setBounds (hMargin, h-buttonSize, buttonSize, buttonSize);
