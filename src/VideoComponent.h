@@ -48,7 +48,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::Drawable> exitImage;
     juce::Image appImage;
 	LnF lnf;
-	juce::ComponentDragger dragger;
+    juce::ScopedPointer<juce::Component> titleBar;
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;

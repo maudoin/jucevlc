@@ -50,6 +50,71 @@ public:
 	}
 };
 	
+////////////////////////////////////////////////////////////
+//
+// TITLE COMPONENT
+//
+////////////////////////////////////////////////////////////
+class TitleComponent   : public juce::Component
+{
+	juce::Component* m_componentToMove;
+	juce::ComponentDragger dragger;
+public:
+	TitleComponent(juce::Component* componentToMove)
+		:juce::Component("Title")
+		,m_componentToMove(componentToMove)
+	{
+		setOpaque(false);
+	}
+	virtual ~TitleComponent(){}
+	void paint (juce::Graphics& g)
+	{
+		char* title = "JuceVLC player";
+
+		juce::Font f = g.getCurrentFont().withHeight(getHeight());
+		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+		float textWidth = f.getStringWidthFloat(title);
+		int rightBorder = (getWidth() - textWidth);
+		juce::Path path;
+		path.lineTo(textWidth+rightBorder-2, 0);
+		path.quadraticTo(textWidth+rightBorder/2, getHeight()-2, textWidth, getHeight()-2);
+		path.lineTo(0, getHeight()-2);
+		path.lineTo(0, 0);
+		
+		g.setColour (juce::Colours::purple.withAlpha(0.75f));
+		g.fillPath(path);
+
+		g.setColour (juce::Colours::purple.brighter());
+		g.strokePath(path, juce::PathStrokeType(2));
+
+		
+		g.setColour (juce::Colours::white);
+		g.drawFittedText (title,
+							2, 2,getWidth()-4,getHeight()-4,
+							juce::Justification::centredLeft, 
+							1, //1 line
+							1.f//no h scale
+							);
+	}
+	void mouseDown (const juce::MouseEvent& e)
+	{
+		if(e.eventComponent == this && isVisible())
+		{
+			dragger.startDraggingComponent (m_componentToMove, e.getEventRelativeTo(m_componentToMove));
+		}
+	}
+
+	void mouseDrag (const juce::MouseEvent& e)
+	{
+		if(e.eventComponent == this && isVisible())
+		{
+			dragger.dragComponent (m_componentToMove, e.getEventRelativeTo(m_componentToMove), nullptr);
+		}
+	}
+};
+	
 
 ////////////////////////////////////////////////////////////
 //
@@ -128,6 +193,7 @@ VideoComponent::VideoComponent()
 
 	
     defaultConstrainer.setMinimumSize (100, 100);
+	addChildComponent (titleBar = new TitleComponent(this));
     addChildComponent (resizableBorder = new juce::ResizableBorderComponent (this, &defaultConstrainer));
 
 	addKeyListener(this);
@@ -187,6 +253,7 @@ VideoComponent::~VideoComponent()
 	/////////////////////
 	removeKeyListener(this);
 	resizableBorder = nullptr;
+	titleBar = nullptr;
 
 	juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     // (the content component will be deleted automatically, so no need to do it here)
@@ -287,21 +354,12 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		{
 			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
 		}
-		if(!isFullScreen())
-		{
-			dragger.startDraggingComponent (this, e.getEventRelativeTo(this));
-		}
 	}
 }
 
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
-	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
-
-	if(!isFullScreen())
-	{
-		dragger.dragComponent (this, e.getEventRelativeTo(this), nullptr);
-	}
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
 }
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
 {
@@ -503,6 +561,12 @@ void VideoComponent::resized()
 		toFront(false);
 	}
 #endif//BUFFER_DISPLAY
+    if (titleBar != nullptr)
+    {
+        titleBar->setVisible (! (isFullScreen() ));
+		titleBar->setBounds(0, 0, w/3, tree->getItemHeight());
+		titleBar->toFront(false);
+    }
     if (resizableBorder != nullptr)
     {
         resizableBorder->setVisible (! (isFullScreen() ));
@@ -1223,12 +1287,15 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 			setAlpha(1.f-(float)(timeFromLastMouseMove-DISAPEAR_DELAY_MS)/(float)DISAPEAR_SPEED_MS );
 		}
 		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
-		controlComponent->setVisible(vlc->isPlaying() || vlc->isPaused());
+		bool showControls = vlc->isPlaying() || vlc->isPaused();
+		controlComponent->setVisible(showControls);
+		titleBar->setVisible(showControls);
 	}
 	else
 	{
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		controlComponent->setVisible(false);
+		titleBar->setVisible(false);
 	}
 	
 }
