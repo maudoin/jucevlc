@@ -1277,7 +1277,6 @@ void VideoComponent::stoppedSynchronous()
 	if(vlcNativePopupComponent->isVisible())
 	{
 		setAlpha(1.f);
-		setOpaque(true);
 		vlcNativePopupComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(true);
 		getPeer()->getComponent().removeComponentListener(this);
