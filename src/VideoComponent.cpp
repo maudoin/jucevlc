@@ -1134,6 +1134,25 @@ void VideoComponent::onLanguageOptions(MenuTreeItem& item)
 		item.addAction(it->c_str(), Action::build(*this, &VideoComponent::onLanguageSelect, *it), (*it==Languages::getInstance().getCurrentLanguage())?getItemImage():nullptr);
 	}
 }
+void VideoComponent::onSetPlayerFonSize(MenuTreeItem& item, int size)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(size);
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::repaint, this));
+}
+void VideoComponent::onPlayerFonSize(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	for(int i=50;i<=200;i+=25)
+	{
+		item.addAction( juce::String::formatted("%d%%", i), Action::build(*this, &VideoComponent::onSetPlayerFonSize, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
+	}
+}
 void VideoComponent::onPlayerOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -1141,6 +1160,7 @@ void VideoComponent::onPlayerOptions(MenuTreeItem& item)
 	item.addAction( TRANS("FullScreen"), Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
 	item.addAction( TRANS("Windowed"), Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
 	//item.addAction( TRANS("Language"), Action::build(*this, &VideoComponent::onLanguageOptions));
+	item.addAction( TRANS("Menu font size"), Action::build(*this, &VideoComponent::onPlayerFonSize));
 }
 void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {

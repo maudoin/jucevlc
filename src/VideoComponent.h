@@ -149,6 +149,8 @@ public:
 	void onShowPlaylist(MenuTreeItem& item);
 	void onLanguageOptions(MenuTreeItem& item);
 	void onLanguageSelect(MenuTreeItem& item, std::string lang);
+	void onSetPlayerFonSize(MenuTreeItem& item, int size);
+	void onPlayerFonSize(MenuTreeItem& item);
 	void onPlayerOptions(MenuTreeItem& item);
 	void onMenuRoot(MenuTreeItem& item);
 	/////////////// VLC EvtListener

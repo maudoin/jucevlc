@@ -148,6 +148,7 @@
     <ClCompile Include="juce\modules\juce_graphics\juce_graphics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_basics\juce_gui_basics.cpp" />
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
+    <ClCompile Include="src\AppProportionnalComponent.cpp" />
     <ClCompile Include="src\ControlComponent.cpp" />
     <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\FontSerialization.cpp" />
