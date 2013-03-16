@@ -197,6 +197,7 @@ VideoComponent::VideoComponent()
 	
     defaultConstrainer.setMinimumSize (100, 100);
 	addChildComponent (titleBar = new TitleComponent(this));
+	titleBar->addMouseListener(this, true);
     addChildComponent (resizableBorder = new juce::ResizableBorderComponent (this, &defaultConstrainer));
 
 	addKeyListener(this);
@@ -230,6 +231,8 @@ VideoComponent::VideoComponent()
 
 VideoComponent::~VideoComponent()
 {    
+	setVisible(false);
+
 	saveCurrentMediaTime();
 
 	invokeLater->close();
@@ -705,7 +708,14 @@ void VideoComponent::vlcDisplay(void *id)
 
 void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized)
 {
-    resized();
+	if(wasResized)
+	{
+		resized();
+	}
+	else
+	{
+		vlcNativePopupComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+	}
 }
 void VideoComponent::componentVisibilityChanged(Component &  component)
 {
