@@ -205,7 +205,7 @@ private:
 	void initFromSettings();
 	void initFromMediaDependantSettings();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);
-
+	void updateSubComponentsBounds();
 };
 
 #endif //VIDEO_COMPONENT

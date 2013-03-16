@@ -350,6 +350,8 @@ void VideoComponent::mouseExit (const juce::MouseEvent& e)
 
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
+	
+	//DBG ( "click " << e.eventComponent->getName() );
 	if(e.eventComponent == this)
 	{
 		if(e.mods.isRightButtonDown())
@@ -531,7 +533,7 @@ void VideoComponent::paint (juce::Graphics& g)
 	
 }
 	
-void VideoComponent::resized()
+void VideoComponent::updateSubComponentsBounds()
 {
 	int w =  getWidth();
 	int h =  getHeight();
@@ -542,6 +544,11 @@ void VideoComponent::resized()
 	
     tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
 	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
+}
+	
+void VideoComponent::resized()
+{
+	updateSubComponentsBounds();
 
 #ifdef BUFFER_DISPLAY
 	if(vlc)
@@ -565,8 +572,8 @@ void VideoComponent::resized()
 		}
 	}
 #else
-	vlcNativePopupComponent->setBounds(getScreenX(), getScreenY(), w, h);
-
+	vlcNativePopupComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+	//DBG("resized")
 	if(vlcNativePopupComponent->getPeer() && getPeer())
 	{
 		if(getPeer())getPeer()->toBehind(vlcNativePopupComponent->getPeer());
@@ -576,7 +583,7 @@ void VideoComponent::resized()
     if (titleBar != nullptr)
     {
         titleBar->setVisible (! (isFullScreen() ));
-		titleBar->setBounds(0, 0, w/3, tree->getItemHeight());
+		titleBar->setBounds(0, 0, getWidth()/3, tree->getItemHeight());
 		titleBar->toFront(false);
     }
     if (resizableBorder != nullptr)
@@ -584,7 +591,7 @@ void VideoComponent::resized()
         resizableBorder->setVisible (! (isFullScreen() ));
 
         resizableBorder->setBorderThickness (juce::BorderSize<int> (2));
-        resizableBorder->setSize (w, h);
+        resizableBorder->setSize (getWidth(), getHeight());
 		resizableBorder->toFront(false);
     }
 	
@@ -747,7 +754,7 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 	if(browsingFiles != newBrowsingFiles)
 	{
 		browsingFiles = newBrowsingFiles;
-		resized();
+		updateSubComponentsBounds();//tree may be larger! (or not)
 	}
 }
 void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
@@ -1325,6 +1332,7 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 	}
 	else
 	{
+		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << " -> hide() " );
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		controlComponent->setVisible(false);
 		titleBar->setVisible(false);
@@ -1349,22 +1357,21 @@ void VideoComponent::vlcStopped()
 
 void VideoComponent::vlcPopupCallback(bool rightClick)
 {
-	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
+	//DBG("vlcPopupCallback." << (rightClick?"rightClick":"leftClick") );
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
+
+	//prevent menu to disappear too quickly
+	m_canHideOSD = false;
 
 	bool showMenu = rightClick || vlc->isStopped();
-	if(showMenu)
-	{
-		//prevent menu to disappear too quickly
-		m_canHideOSD = false;
-		lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
-	}
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 	
 }
 void VideoComponent::vlcFullScreenControlCallback()
 {
-	DBG("vlcFullScreenControlCallback");
+	//DBG("vlcFullScreenControlCallback");
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
@@ -1374,12 +1381,14 @@ void VideoComponent::vlcMouseMove(int x, int y, int button)
 	if(controlsExpired || vlc->isPaused())
 	{
 		//reactivateControls
-		invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+		if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 	}
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)
 {
-	vlcMouseMove(x, y, button);
+	//DBG ( "vlcMouseClick " );
+
+	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 }
 void VideoComponent::startedSynchronous()
 {
