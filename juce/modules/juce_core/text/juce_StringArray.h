@@ -354,7 +354,13 @@ public:
         This method will reduce the amount of allocated storage to a minimum.
     */
     void minimiseStorageOverheads();
-
+	
+    //==============================================================================
+    /** Sorts the array like standar array.
+	*/
+    template <class ElementComparator>
+    void sort (ElementComparator& comparator,
+		const bool retainOrderOfEquivalentItems = false) const{strings.sort(comparator, retainOrderOfEquivalentItems);}
 
 private:
     //==============================================================================

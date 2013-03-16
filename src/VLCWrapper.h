@@ -88,15 +88,10 @@ public:
     void SetInputCallBack(InputCallBack* cb);
     bool setMouseInputCallBack(MouseInputCallBack* cb);
 
-
-
-    /** Open a media file.
-    *   @param [in] pMediaPathName PathName of the media file. */
-    void OpenMedia(const char* pMediaPathName);
 	void loadSubtitle(const char* pSubPathName);
 
     /** Start playback. */
-    void Play();
+    void play();
 	
 	bool isPaused();
 	bool isStopping();
@@ -179,7 +174,7 @@ public:
 	bool isAutoCrop();
 	
 	std::vector<std::string> getCurrentPlayList();
-	void addPlayListItem(std::string const& ratio);
+	int addPlayListItem(std::string const& path);
 	void playPlayListItem(int index);
 	std::string getCurrentPlayListItem();
 	int getCurrentPlayListItemIndex();

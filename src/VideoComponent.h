@@ -55,6 +55,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	bool mousehookset;
 	juce::int64 lastMouseMoveMovieTime;
 	juce::PropertiesFile m_settings;
+	juce::PropertiesFile m_mediaTimes;
 	juce::StringArray m_shortcuts;
     juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
 	bool m_canHideOSD;
@@ -64,7 +65,7 @@ public:
     virtual ~VideoComponent();
 	
 
-	void play(char* path);
+	void appendAndPlay(std::string const&path);
 	void play();
 	void pause();
 	void stop();
@@ -200,6 +201,7 @@ private:
 	
 	void handleIdleTimeAndControlsVisibility();
 	void setBrowsingFiles(bool newBrowsingFiles = true);
+	void saveCurrentMediaTime();
 	void initFromSettings();
 	void initFromMediaDependantSettings();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);

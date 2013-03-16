@@ -15,6 +15,7 @@
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SHORTCUTS_FILE "shortcuts.list"
+#define MAX_MEDIA_TIME_IN_SETTINGS 30
 
 juce::PropertiesFile::Options options()
 {
@@ -129,6 +130,7 @@ VideoComponent::VideoComponent()
 	:juce::Component("MainFrame")
 #endif
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
+	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
 {    
 
@@ -228,6 +230,8 @@ VideoComponent::VideoComponent()
 
 VideoComponent::~VideoComponent()
 {    
+	saveCurrentMediaTime();
+
 	invokeLater->close();
 	invokeLater = nullptr;
 
@@ -298,11 +302,11 @@ void VideoComponent::switchPlayPause()
 {
 	if(vlc->isPlaying())
 	{
-		vlc->Pause();
+		pause();
 	}
 	else if(vlc->isPaused())
 	{
-		vlc->Play();
+		play();
 	}
 }
 
@@ -432,16 +436,16 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		if(vlc->isPaused())
 		{
-			vlc->Play();
+			vlc->play();
 		}
 		else
 		{
-			vlc->Pause();
+			pause();
 		}
 	}
 	else if(button == &controlComponent->stopButton())
 	{
-		vlc->Stop();
+		stop();
 	}
 	else if(button == &controlComponent->menuButton())
 	{
@@ -593,13 +597,17 @@ void VideoComponent::resized()
 //
 ////////////////////////////////////////////////////////////
 
-void VideoComponent::play(char* path)
+void VideoComponent::appendAndPlay(std::string const& path)
 {
 	if(!vlc)
 	{
 		return;
 	}
-	vlc->OpenMedia(path);
+	std::string::size_type i = path.find_last_of("/\\");
+	std::string name =  i == std::string::npos ? path : path.substr(i+1);
+
+	int index = vlc->addPlayListItem(path);
+
 #ifdef BUFFER_DISPLAY
 	img = new juce::Image(img->rescaled(getWidth(), getHeight()));
 	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
@@ -608,7 +616,22 @@ void VideoComponent::play(char* path)
     resized();
 #endif
 
-	play();
+	vlc->playPlayListItem(index);
+
+	int time = m_mediaTimes.getIntValue(name.c_str(), 0);
+	if(time>0)
+	{
+		int64_t start = time*1000;
+		//dirty but vlc would not apply set time!!
+		const int stepMs = 30;
+		const int maxWaitMs = 750;
+		for(int i= 0;i<maxWaitMs &&(vlc->GetTime()<start);i+=stepMs)
+		{
+			juce::Thread::sleep(stepMs);
+		}
+		vlc->SetTime(start);
+	}
+
 }
 
 void VideoComponent::play()
@@ -617,20 +640,18 @@ void VideoComponent::play()
 	{
 		return;
 	}
-	controlComponent->slider().setValue(10000, juce::sendNotificationSync);
 
-	vlc->Play();
-
-	controlComponent->slider().setValue(0);
+	vlc->play();
 	
 }
-	
+
 void VideoComponent::pause()
 {
 	if(!vlc)
 	{
 		return;
 	}
+	saveCurrentMediaTime();
 	vlc->Pause();
 }
 void VideoComponent::stop()
@@ -639,6 +660,7 @@ void VideoComponent::stop()
 	{
 		return;
 	}
+	saveCurrentMediaTime();
 	vlc->Pause();
 	controlComponent->slider().setValue(10000, juce::sendNotificationSync);
 	vlc->Stop();
@@ -812,8 +834,10 @@ void VideoComponent::onMenuRemoveFavorite(MenuTreeItem& item, juce::String path)
 
 void VideoComponent::onMenuOpenUnconditionnal (MenuTreeItem& item, juce::String path)
 {
+	saveCurrentMediaTime();
+
 	setBrowsingFiles(false);
-	play(path.toUTF8().getAddress());
+	appendAndPlay(path.toUTF8().getAddress());
 }
 void VideoComponent::onMenuQueue (MenuTreeItem& item, juce::String path)
 {
@@ -1405,3 +1429,38 @@ void VideoComponent::initFromSettings()
 	}
 }
 
+	
+struct MediaTimeSorter
+{
+	juce::PropertySet const& propertySet;
+	MediaTimeSorter(juce::PropertySet const& propertySet_):propertySet(propertySet_) {}
+	int compareElements(juce::String const& some, juce::String const& other)
+	{
+		return propertySet.getIntValue(other, 0) - propertySet.getIntValue(some, 0);
+	}
+};
+
+void VideoComponent::saveCurrentMediaTime()
+{
+	std::string media = vlc->getCurrentPlayListItem();
+	if(media.empty())
+	{
+		return;
+	}
+	int64_t time = vlc->GetTime();
+	m_mediaTimes.setValue(media.c_str(), std::floor(time / 1000.));
+
+	//clear old times
+	juce::StringArray props = m_mediaTimes.getAllProperties().getAllKeys();
+	while(m_mediaTimes.getAllProperties().getAllKeys().size()>MAX_MEDIA_TIME_IN_SETTINGS)
+	{
+		m_mediaTimes.removeValue(props[0]);
+	}
+	/*
+	MediaTimeSorter sorter(m_mediaTimes);
+	props.sort(sorter);
+	for(int i=MAX_MEDIA_TIME_IN_SETTINGS;i<props.size();++i)
+	{
+		m_mediaTimes.removeValue(props[i]);
+	}*/
+}

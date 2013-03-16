@@ -214,7 +214,7 @@ void VLCWrapper::SetOutputWindow(void* pHwnd)
 	libvlc_media_player_set_hwnd(pMediaPlayer_, pHwnd);
 }
 
-void VLCWrapper::Play()
+void VLCWrapper::play()
 {
 	// play the media_player
     libvlc_media_list_player_play (mlp);
@@ -299,15 +299,6 @@ void VLCWrapper::setVolume( double volume )
 {
     libvlc_audio_set_volume(pMediaPlayer_, (int)volume);
 }
-
-void VLCWrapper::OpenMedia(const char* pMediaPathName)
-{
-	addPlayListItem(pMediaPathName);
-	int last = libvlc_media_list_count(ml) -1;
-	playPlayListItem(last);
-	
-}
-
 
 void VLCWrapper::loadSubtitle(const char* pSubPathName)
 {
@@ -682,9 +673,20 @@ std::string getMediaName(libvlc_media_t* media)
 {
 	//return libvlc_media_get_meta(media, libvlc_meta_Title );
 	char* str = libvlc_media_get_mrl(media );
-	std::string url = str?str:"";
+	std::string url = str?urlDecode(str):"";
+	if(url.find("rar")==0)
+	{
+		//strip content filename (after pipe character) for rars
+		std::string::size_type i = url.find_last_of("|");
+		if(i != std::string::npos)
+		{
+			url = url.substr(0, i);
+		}
+
+	}
+		
 	std::string::size_type i = url.find_last_of("/\\");
-	return urlDecode(i == std::string::npos ? url : url.substr(i+1));
+	return i == std::string::npos ? url : url.substr(i+1);
 }
 std::vector<std::string> VLCWrapper::getCurrentPlayList()
 {	
@@ -709,10 +711,11 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 	}
 	return out;
 }
-void VLCWrapper::addPlayListItem(std::string const& path)
+int VLCWrapper::addPlayListItem(std::string const& path)
 {
 	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_, path.c_str());
 	libvlc_media_list_add_media(ml, pMedia);
+	return libvlc_media_list_count(ml) -1;
 }
 std::string VLCWrapper::getCurrentPlayListItem()
 {
