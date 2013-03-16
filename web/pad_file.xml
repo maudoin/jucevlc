@@ -71,19 +71,19 @@
 			<Char_Desc_45>Fullscreen video player based on VLC</Char_Desc_45>
 			<Char_Desc_80>Fullscreen user firendly video player based on the popular vlc media player</Char_Desc_80>
 			<Char_Desc_250>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse. Big fonts and no system popup dialogs</Char_Desc_250>
-			<Char_Desc_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    ***  Browse files and adjust settings using On Screen Display (O.S.D.)    ***  Subtitles selection via O.S.D. and synchronization using slider *** Does not mess up your system: settings are stored in the application folder *** Keep last and favorite video folders</Char_Desc_450>
+			<Char_Desc_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    >--&lt;      Browse files and adjust settings using On Screen Display (O.S.D.)     >--&lt;     Subtitles selection via O.S.D. and synchronization using slider >--&lt;  Does not mess up your system: settings are stored in the application folder     >--&lt;   Keep last and favorite video folders</Char_Desc_450>
 			<Char_Desc_2000>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.
-It is meat to Browse and watch movies from your couch with a wireless mouse.
+Browse and watch movies from your couch with a wireless mouse.
 
 Features:
-    Browse files and adjust settings using On Screen Display (O.S.D.)
-    Big, customizable fonts size and no tiny popup dialogs
-    Subtitles selection and synchronization using slider via O.S.D.
-    Keep last and favorite video folders
-    Does not mess up your system: settings are stored in the application folder
-    Portable: Paste is on any usb key or external hard drive
-    JuceVLC application uses regular VLC core libraries/plugins: You can paste future VLC versions directory along JuceVLC to update the core video player without any JuceVLC update
-    The "space-key" allows your relatives to play/pause when interupting your video;-)
+ *    Browse files and adjust settings using On Screen Display (O.S.D.)
+ *    Big, customizable fonts size and no tiny popup dialogs
+ *    Subtitles selection and synchronization using slider via O.S.D.
+ *    Keep last and favorite video folders
+ *    Does not mess up your system: settings are stored in the application folder
+ *    Portable: Paste is on any usb key or external hard drive
+ *    JuceVLC application uses regular VLC core libraries/plugins: You can paste future VLC versions directory along JuceVLC to update the core video player without any JuceVLC update
+ *    The "space-key" allows your relatives to play/pause when interupting your video;-)
 </Char_Desc_2000>
 		</English>
 	</Program_Descriptions>
