@@ -57,6 +57,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::PropertiesFile m_settings;
 	juce::StringArray m_shortcuts;
     juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
+	bool m_canHideOSD;
 
 public:
     VideoComponent();

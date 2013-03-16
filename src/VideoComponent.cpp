@@ -6,7 +6,7 @@
 #include "Languages.h"
 #include <algorithm>
 
-#define DISAPEAR_DELAY_MS 6000
+#define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
@@ -129,6 +129,7 @@ VideoComponent::VideoComponent()
 	:juce::Component("MainFrame")
 #endif
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
+	,m_canHideOSD(true)
 {    
 
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
@@ -321,6 +322,7 @@ void VideoComponent::switchFullScreen()
 }
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
 {
+	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while moving on sub component
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 
 	if(e.eventComponent == &controlComponent->slider())
@@ -348,6 +350,10 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 	{
 		if(e.mods.isRightButtonDown())
 		{
+			//prevent menu to disappear too quickly
+			m_canHideOSD = false;
+			lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
+
 			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
 		}
 		if(e.mods.isLeftButtonDown())
@@ -359,7 +365,9 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
+	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while dragging on sub component
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
+
 }
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
 {
@@ -1276,9 +1284,9 @@ void VideoComponent::updateTimeAndSlider()
 void VideoComponent::handleIdleTimeAndControlsVisibility()
 {
 	juce::int64 timeFromLastMouseMove = juce::Time::currentTimeMillis () - lastMouseMoveMovieTime;
-	if(timeFromLastMouseMove<(DISAPEAR_DELAY_MS+DISAPEAR_SPEED_MS))
+	if(timeFromLastMouseMove<(DISAPEAR_DELAY_MS+DISAPEAR_SPEED_MS) || !m_canHideOSD)
 	{
-		if(timeFromLastMouseMove<DISAPEAR_DELAY_MS)
+		if(timeFromLastMouseMove<DISAPEAR_DELAY_MS || !m_canHideOSD)
 		{
 			setAlpha(1.f);
 		}
@@ -1320,6 +1328,12 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 	DBG("vlcPopupCallback(" << (rightClick?"rightClick":"leftClick") );
 
 	bool showMenu = rightClick || vlc->isStopped();
+	if(showMenu)
+	{
+		//prevent menu to disappear too quickly
+		m_canHideOSD = false;
+		lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
+	}
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
 	
@@ -1330,6 +1344,7 @@ void VideoComponent::vlcFullScreenControlCallback()
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
+	m_canHideOSD = true;//can hide sub component while moving video
 	bool controlsExpired = (juce::Time::currentTimeMillis () - lastMouseMoveMovieTime) - DISAPEAR_DELAY_MS - DISAPEAR_SPEED_MS > 0;
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 	if(controlsExpired || vlc->isPaused())
