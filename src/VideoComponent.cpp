@@ -914,7 +914,7 @@ void VideoComponent::onVLCOptionIntSelect(MenuTreeItem& item, std::string name, 
 
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
-void VideoComponent::onVLCOptionIntMenu(MenuTreeItem& item, std::string name)
+void VideoComponent::onVLCOptionIntListMenu(MenuTreeItem& item, std::string name)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
@@ -969,8 +969,8 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	}
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
-	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	item.addAction( TRANS("Thickness"), Action::build(*this, &VideoComponent::onVLCOptionIntMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	item.addAction( TRANS("Thickness"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -1255,7 +1255,8 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 	item.addAction( TRANS("Aspect Ratio"), Action::build(*this, &VideoComponent::onMenuRatio));
 	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuVideoTrackList));
 	item.addAction( TRANS("Adjust"), Action::build(*this, &VideoComponent::onMenuVideoAdjustOptions));
-	item.addAction( TRANS("Deinterlace"), Action::build(*this, &VideoComponent::onVLCOptionIntMenu, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
+	item.addAction( TRANS("Quality"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
+	item.addAction( TRANS("Deinterlace"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
 	item.addAction( TRANS("Deint. mode"), Action::build(*this, &VideoComponent::onVLCOptionStringMenu, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
@@ -1533,6 +1534,8 @@ void VideoComponent::initFromSettings()
 	vlc->setConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE, m_settings.getBoolValue(CONFIG_BOOL_OPTION_HARDWARE, vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_SIZE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	
+	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_QUALITY, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
 	vlc->setConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, m_settings.getValue(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE).c_str())).toUTF8().getAddress());
 

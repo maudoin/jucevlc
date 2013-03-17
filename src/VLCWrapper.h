@@ -24,10 +24,15 @@
 #define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw" 
 #define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" 
 #define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" 
+#define CONFIG_INT_OPTION_VIDEO_QUALITY "postproc-q" 
 #define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace" 
 #define CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE "deinterlace-mode"
 #define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color"
 #define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color"
+#define CONFIG_INT_OPTION_SUBTITLE_MARGIN "sub-margin"
+#define CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY "freetype-shadow-opacity"
+#define CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY "freetype-background-opacity"
+
 
 struct libvlc_instance_t;
 struct libvlc_media_player_t;

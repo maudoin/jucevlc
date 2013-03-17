@@ -791,6 +791,15 @@ std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigO
 			info.second.push_back(std::pair<int, std::string>(p_module_config->pi_list[i_index], p_module_config->ppsz_list_text[i_index]));
 		}
 	}
+	else
+	{
+		for( int i_index = p_module_config->min.i; i_index <= p_module_config->max.i; i_index++ )
+		{
+			std::ostringstream oss;
+			oss<<i_index;
+			info.second.push_back(std::pair<int, std::string>(i_index, oss.str()));
+		}
+	}
 	info.first = p_module_config->value.i;
 
 	return info;

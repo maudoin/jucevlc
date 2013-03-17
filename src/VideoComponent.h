@@ -114,7 +114,7 @@ public:
     void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
 	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
-    void onVLCOptionIntMenu (MenuTreeItem& item, std::string);
+    void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
 	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
