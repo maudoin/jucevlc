@@ -185,11 +185,10 @@ public:
 
 	void setAutoCrop(bool autoCrop);
 	bool isAutoCrop();
+	
+	void setVoutOptionInt(const char* name, int autoCrop);
+	int getVoutOptionInt(const char* name);
 
-	
-	void setHardwareAccelerationEnabled(bool enable);
-	bool isHardwareAccelerationEnabled();
-	
 	std::vector<std::string> getCurrentPlayList();
 	int addPlayListItem(std::string const& path);
 	void playPlayListItem(int index);

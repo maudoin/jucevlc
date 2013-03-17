@@ -948,7 +948,17 @@ void VideoComponent::onVLCOptionStringMenu (MenuTreeItem& item, std::string name
 	item.addAction( TRANS("Apply"), Action::build(*this, &VideoComponent::restart));
 
 }
+void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
+{
+	vlc->setVoutOptionInt(option.c_str(), (int)value);
 
+}
+void VideoComponent::onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double volumeMin, double volumeMax, double step, double buttonsStep)
+{
+	setBrowsingFiles(false);
+	controlComponent->alternateControlComponent().show(label, 
+		boost::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, volumeMin, volumeMax, step, buttonsStep);
+}
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -969,8 +979,20 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	}
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
+	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
+		TRANS("Subtitle pos.: %+.f"), 
+		std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
+		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.));
+	//item.addAction( TRANS("Background"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
+	//	TRANS("Sub.Bg. opacity: %+.f"),
+	//	std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY),
+	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), 0., 255., 1., 0.));
+	//item.addAction( TRANS("Shadow"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
+	//	TRANS("Shadow opacity: %+.f"),
+	//	std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY),
+	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), 0., 255., 1., 0.));
 	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	item.addAction( TRANS("Thickness"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -1534,6 +1556,7 @@ void VideoComponent::initFromSettings()
 	vlc->setConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE, m_settings.getBoolValue(CONFIG_BOOL_OPTION_HARDWARE, vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_SIZE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_MARGIN, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN)));
 	
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_QUALITY, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));

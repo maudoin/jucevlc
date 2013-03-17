@@ -539,8 +539,27 @@ bool VLCWrapper::isAutoCrop()
 	return autoCrop;
 }
 
-void setHardwareAccelerationEnabled(bool enable)
+void VLCWrapper::setVoutOptionInt(const char* name, int autoCrop)
 {
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+		var_SetInteger( p_vout, name,autoCrop);
+
+		vlc_object_release (p_vout);
+	}
+}
+
+int VLCWrapper::getVoutOptionInt(const char* name)
+{
+	bool autoCrop = false;
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+		autoCrop = var_GetInteger( p_vout, name );
+		vlc_object_release (p_vout);
+	}
+	return autoCrop;
 }
 
 std::vector< std::pair<int, std::string> > VLCWrapper::getVideoTrackList()

@@ -113,11 +113,14 @@ public:
     void onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file);
     void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
+
+	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
 	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
     void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
 	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
+    void onMenuSubtitlePosition (MenuTreeItem& item);
     void onMenuSubtitleMenu (MenuTreeItem& item);
     void onMenuZoom (MenuTreeItem& item, double ratio);
     void onMenuCrop (MenuTreeItem& item, juce::String  crop);
