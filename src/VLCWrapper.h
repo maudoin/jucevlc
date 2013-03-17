@@ -24,8 +24,10 @@
 #define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw" 
 #define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" 
 #define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" 
-#define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color" 
-#define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color" 
+#define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace" 
+#define CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE "deinterlace-mode"
+#define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color"
+#define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color"
 
 struct libvlc_instance_t;
 struct libvlc_media_player_t;
@@ -194,11 +196,14 @@ public:
 	
 	bool getConfigOptionBool(const char* name) const;
 	void setConfigOptionBool(const char* name, bool value);
-
+	
 	int getConfigOptionInt(const char* name) const;
 	void setConfigOptionInt(const char* name, int value);
+	std::pair<int,std::vector<std::pair<int, std::string> > > getConfigOptionInfoInt(const char* name)const;
 
-	std::pair<int,std::vector<std::pair<int, std::string> > > getConfigOptionInfo(const char* name)const;
+	std::string getConfigOptionString(const char* name) const;
+	void setConfigOptionString(const char* name, std::string const& value);
+	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > getConfigOptionInfoString(const char* name)const;
 
 };
 

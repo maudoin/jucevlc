@@ -10,6 +10,7 @@
 #include "vlc\plugins\vlc_variables.h"
 #include "vlc\plugins\vlc_input.h"
 #include <stdio.h>
+#include <sstream>
 
 
 //----------------------------------- HELPERS
@@ -757,7 +758,7 @@ void VLCWrapper::setConfigOptionInt(const char* name, int value)
 
 bool VLCWrapper::getConfigOptionBool(const char* name)const
 {
-	return (bool)config_GetInt(pVLCInstance_, name);
+	return (bool)config_GetInt(pVLCInstance_, name)!=0;
 }
 
 void VLCWrapper::setConfigOptionBool(const char* name, bool value)
@@ -765,7 +766,7 @@ void VLCWrapper::setConfigOptionBool(const char* name, bool value)
 	config_PutInt(pVLCInstance_, name, value);
 }
 
-std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigOptionInfo(const char* name)const
+std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigOptionInfoInt(const char* name)const
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_, name );
 	
@@ -783,11 +784,67 @@ std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigO
     }
 
 	std::pair<int,std::vector<std::pair<int, std::string> >> info;
-    for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
-    {
-		info.second.push_back(std::pair<int, std::string>(p_module_config->pi_list[i_index], p_module_config->ppsz_list_text[i_index]));
-    }
+	if(p_module_config->pi_list)
+	{
+		for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
+		{
+			info.second.push_back(std::pair<int, std::string>(p_module_config->pi_list[i_index], p_module_config->ppsz_list_text[i_index]));
+		}
+	}
 	info.first = p_module_config->value.i;
+
+	return info;
+}
+
+
+std::string VLCWrapper::getConfigOptionString(const char* name)const
+{
+	return config_GetPsz(pVLCInstance_, name);
+}
+
+void VLCWrapper::setConfigOptionString(const char* name, std::string const& value)
+{
+	config_PutPsz(pVLCInstance_, name, value.c_str());
+}
+std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWrapper::getConfigOptionInfoString(const char* name)const
+{
+    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_, name );
+	
+    if( p_module_config->pf_update_list )
+    {
+        vlc_value_t val;
+        val.psz_string = strdup(p_module_config->value.psz);
+
+        p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_, p_module_config->psz_name, val, val, NULL);
+
+        // assume in any case that dirty was set to true
+        // because lazy programmes will use the same callback for
+        // this, like the one behind the refresh push button?
+        p_module_config->b_dirty = false;
+
+        free( val.psz_string );
+    }
+
+	std::pair<std::string,std::vector<std::pair<std::string, std::string> >> info;
+	if(p_module_config->ppsz_list)
+	{
+		for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
+		{
+			if( !p_module_config->ppsz_list[i_index] )
+			{
+			
+				info.second.push_back(std::pair<std::string, std::string>("", ""));
+				  continue;
+			}
+
+			info.second.push_back(std::pair<std::string, std::string>(p_module_config->ppsz_list[i_index], 
+				(p_module_config->ppsz_list_text &&
+									p_module_config->ppsz_list_text[i_index])?
+									p_module_config->ppsz_list_text[i_index] :
+									p_module_config->ppsz_list[i_index]));
+		}
+	}
+	info.first = p_module_config->value.psz;
 
 	return info;
 }

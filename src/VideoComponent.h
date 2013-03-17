@@ -115,6 +115,8 @@ public:
 	
 	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
     void onVLCOptionIntMenu (MenuTreeItem& item, std::string);
+	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
+    void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
     void onMenuSubtitleMenu (MenuTreeItem& item);
     void onMenuZoom (MenuTreeItem& item, double ratio);
