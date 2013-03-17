@@ -924,7 +924,7 @@ void VideoComponent::onVLCOptionIntListMenu(MenuTreeItem& item, std::string name
 	{
 		item.addAction( TRANS(it->second.c_str()), Action::build(*this, &VideoComponent::onVLCOptionIntSelect, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
 	}
-	item.addAction( TRANS("Apply"), Action::build(*this, &VideoComponent::restart));
+	item.addAction( TRANS("Apply"), Action::build(*this, &VideoComponent::restart), getItemImage());
 
 }
 
