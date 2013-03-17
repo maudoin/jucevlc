@@ -607,6 +607,17 @@ void VideoComponent::resized()
 //
 ////////////////////////////////////////////////////////////
 
+void VideoComponent::forceSetVideoTime(int64_t start)
+{
+	//dirty but vlc would not apply set time!!
+	const int stepMs = 30;
+	const int maxWaitMs = 750;
+	for(int i= 0;i<maxWaitMs &&(vlc->GetTime()<start);i+=stepMs)
+	{
+		juce::Thread::sleep(stepMs);
+	}
+	vlc->SetTime(start);
+}
 void VideoComponent::appendAndPlay(std::string const& path)
 {
 	if(!vlc)
@@ -631,15 +642,7 @@ void VideoComponent::appendAndPlay(std::string const& path)
 	int time = m_mediaTimes.getIntValue(name.c_str(), 0);
 	if(time>0)
 	{
-		int64_t start = time*1000;
-		//dirty but vlc would not apply set time!!
-		const int stepMs = 30;
-		const int maxWaitMs = 750;
-		for(int i= 0;i<maxWaitMs &&(vlc->GetTime()<start);i+=stepMs)
-		{
-			juce::Thread::sleep(stepMs);
-		}
-		vlc->SetTime(start);
+		forceSetVideoTime(time*1000);
 	}
 
 }
@@ -896,6 +899,34 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 		onMenuOpenUnconditionnal(item, file.getFullPathName());
 	}
 }
+void VideoComponent::restart(MenuTreeItem& item)
+{
+	int64_t pos = vlc->GetTime();
+	vlc->Stop();
+	vlc->play();
+	forceSetVideoTime(pos);
+
+}
+void VideoComponent::onVLCOptionIntSelect(MenuTreeItem& item, std::string name, int v)
+{
+	vlc->setConfigOptionInt(name.c_str(), v);
+	m_settings.setValue(name.c_str(), (int)v);
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onVLCOptionIntMenu(MenuTreeItem& item, std::string name)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	
+	std::pair<int, std::vector<std::pair<int, std::string> > > res = vlc->getConfigOptionInfo(name.c_str());
+	for(std::vector<std::pair<int, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
+	{
+		item.addAction( TRANS(it->second.c_str()), Action::build(*this, &VideoComponent::onVLCOptionIntSelect, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
+	}
+	item.addAction( TRANS("Apply"), Action::build(*this, &VideoComponent::restart));
+
+}
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -916,6 +947,8 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	}
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
+	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	item.addAction( TRANS("Thickness"), Action::build(*this, &VideoComponent::onVLCOptionIntMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -1269,14 +1302,41 @@ void VideoComponent::onPlayerFonSize(MenuTreeItem& item)
 		item.addAction( juce::String::formatted("%d%%", i), Action::build(*this, &VideoComponent::onSetPlayerFonSize, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
 	}
 }
+
+void VideoComponent::onSetVLCOptionInt(MenuTreeItem& item, std::string name, int enable)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	vlc->setConfigOptionInt(name.c_str(), enable);
+	
+	m_settings.setValue(name.c_str(), enable);
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onSetVLCOption(MenuTreeItem& item, std::string name, bool enable)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+
+	vlc->setConfigOptionBool(name.c_str(), enable);
+	
+	m_settings.setValue(name.c_str(), enable);
+	
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
 void VideoComponent::onPlayerOptions(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
 	item.addAction( TRANS("FullScreen"), Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
 	item.addAction( TRANS("Windowed"), Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
+
 	//item.addAction( TRANS("Language"), Action::build(*this, &VideoComponent::onLanguageOptions));
 	item.addAction( TRANS("Menu font size"), Action::build(*this, &VideoComponent::onPlayerFonSize));
+
+	item.addAction( TRANS("Acceration"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
+	item.addAction( TRANS("No acceration"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
 }
 void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {
@@ -1433,8 +1493,7 @@ void VideoComponent::stoppedSynchronous()
 
 void VideoComponent::initFromMediaDependantSettings()
 {
-	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
-}
+	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));}
 
 void VideoComponent::initFromSettings()
 {
@@ -1446,6 +1505,11 @@ void VideoComponent::initFromSettings()
 	{
 		shortcuts.readLines(m_shortcuts);
 	}
+	
+	vlc->setConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE, m_settings.getBoolValue(CONFIG_BOOL_OPTION_HARDWARE, vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)));
+	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_SIZE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+
 }
 
 	

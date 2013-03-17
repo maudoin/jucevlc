@@ -538,6 +538,9 @@ bool VLCWrapper::isAutoCrop()
 	return autoCrop;
 }
 
+void setHardwareAccelerationEnabled(bool enable)
+{
+}
 
 std::vector< std::pair<int, std::string> > VLCWrapper::getVideoTrackList()
 {
@@ -741,4 +744,50 @@ int VLCWrapper::getCurrentPlayListItemIndex()
 void VLCWrapper::playPlayListItem(int index)
 {
 	libvlc_media_list_player_play_item_at_index(mlp, index);
+}
+
+int VLCWrapper::getConfigOptionInt(const char* name) const
+{
+	return config_GetInt(pVLCInstance_, name);
+}
+void VLCWrapper::setConfigOptionInt(const char* name, int value)
+{
+	config_PutInt(pVLCInstance_, name, value);
+}
+
+bool VLCWrapper::getConfigOptionBool(const char* name)const
+{
+	return (bool)config_GetInt(pVLCInstance_, name);
+}
+
+void VLCWrapper::setConfigOptionBool(const char* name, bool value)
+{
+	config_PutInt(pVLCInstance_, name, value);
+}
+
+std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigOptionInfo(const char* name)const
+{
+    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_, name );
+	
+    if( p_module_config->pf_update_list )
+    {
+       vlc_value_t val;
+       val.i_int = p_module_config->value.i;
+
+       p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_, p_module_config->psz_name, val, val, NULL);
+
+       // assume in any case that dirty was set to true
+       // because lazy programmes will use the same callback for
+       // this, like the one behind the refresh push button?
+       p_module_config->b_dirty = false;
+    }
+
+	std::pair<int,std::vector<std::pair<int, std::string> >> info;
+    for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
+    {
+		info.second.push_back(std::pair<int, std::string>(p_module_config->pi_list[i_index], p_module_config->ppsz_list_text[i_index]));
+    }
+	info.first = p_module_config->value.i;
+
+	return info;
 }

@@ -113,6 +113,8 @@ public:
     void onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file);
     void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
+	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
+    void onVLCOptionIntMenu (MenuTreeItem& item, std::string);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
     void onMenuSubtitleMenu (MenuTreeItem& item);
     void onMenuZoom (MenuTreeItem& item, double ratio);
@@ -153,6 +155,8 @@ public:
 	void onLanguageSelect(MenuTreeItem& item, std::string lang);
 	void onSetPlayerFonSize(MenuTreeItem& item, int size);
 	void onPlayerFonSize(MenuTreeItem& item);
+	void onSetVLCOptionInt(MenuTreeItem& item, std::string name, int enable);
+	void onSetVLCOption(MenuTreeItem& item, std::string name, bool enable);
 	void onPlayerOptions(MenuTreeItem& item);
 	void onMenuRoot(MenuTreeItem& item);
 	/////////////// VLC EvtListener
@@ -206,6 +210,8 @@ private:
 	void initFromMediaDependantSettings();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);
 	void updateSubComponentsBounds();
+	void forceSetVideoTime(int64_t start);
+	void restart(MenuTreeItem& item);
 };
 
 #endif //VIDEO_COMPONENT
