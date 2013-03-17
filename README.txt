@@ -33,7 +33,12 @@ It controls:
 
 **Changelog**
 ==================
-
+0.4 (2013/03/17):
+-Save last 30 videos progress
+-Subtitles position slider (avoids subtitles being hidden by controls)
+-Smarter OSD Controls disappearing
+-Fixed moved window flickering
+-Added new configuration option (subtitles size, video deinterlace, video acceleration, video quality). They affect the next played video (added Apply option for this)
 
 0.3 (2013/03/16):
 -Fixed windowed mode being activated on video stop
