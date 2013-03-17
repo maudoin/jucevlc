@@ -24,6 +24,7 @@ settings.xml
 Français.lang
 filezilla.lnk
 mediaTimes.xml
+PADGen.lnk
 syntax: regexp
 FontResource.cpp
 FontResource.h
