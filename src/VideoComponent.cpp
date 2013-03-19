@@ -133,6 +133,7 @@ VideoComponent::VideoComponent()
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
 {    
+	Languages::getInstance();
 
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
 
@@ -231,6 +232,8 @@ VideoComponent::VideoComponent()
 
 VideoComponent::~VideoComponent()
 {    
+	Languages::getInstance().clear();
+
 	setVisible(false);
 
 	saveCurrentMediaTime();
@@ -266,7 +269,6 @@ VideoComponent::~VideoComponent()
 	juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     // (the content component will be deleted automatically, so no need to do it here)
 
-	Languages::getInstance().reset();
 }
 
 ////////////////////////////////////////////////////////////
@@ -1379,11 +1381,11 @@ void VideoComponent::onPlayerOptions(MenuTreeItem& item)
 	item.addAction( TRANS("FullScreen"), Action::build(*this, &VideoComponent::onMenuFullscreen, true), isFullScreen()?getItemImage():nullptr);
 	item.addAction( TRANS("Windowed"), Action::build(*this, &VideoComponent::onMenuFullscreen, false), isFullScreen()?nullptr:getItemImage());
 
-	//item.addAction( TRANS("Language"), Action::build(*this, &VideoComponent::onLanguageOptions));
+	item.addAction( TRANS("Language"), Action::build(*this, &VideoComponent::onLanguageOptions));
 	item.addAction( TRANS("Menu font size"), Action::build(*this, &VideoComponent::onPlayerFonSize));
 
-	item.addAction( TRANS("Acceration"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
-	item.addAction( TRANS("No acceration"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
+	item.addAction( TRANS("Hardware"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
+	item.addAction( TRANS("No hardware"), Action::build(*this, &VideoComponent::onSetVLCOption, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
 }
 void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {

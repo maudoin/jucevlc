@@ -2,10 +2,11 @@
 #include "juce.h"
 #include <algorithm>
 #include <iterator>
+#include <vector>
 
 #define LANG_EXTENSION "lang"
 
-char* lang_fr="language: French\n\
+char* lang_fr="language: France\n\
 countries: fr be mc ch lu\n\
 \n\
 \"Audio Volume: %.f%%\" = \"Volume audio: %.f%%\"\n\
@@ -39,90 +40,142 @@ countries: fr be mc ch lu\n\
 \"Sound\" = \"Son\"\n\
 \"Player\" = \"Lecteur\"\n\
 \"Exit\" = \"Quitter\"\n\
+\"Apply\" = \"Appliquer\"\n\
+\"Position\" = \"Position\"\n\
+\"Subtitle pos.: %+.f\" = \"Pos. sous-titres: %+.f\"\n\
+\"Background\" = \"Fond\"\n\
+\"Sub.Bg. opacity: %+.f\" = \"Opac. fond ss-titres: %+.f\"\n\
+\"Shadow\" = \"Ombre\"\n\
+\"Shadow opacity: %+.f\" = \"Opac. ombre ss-titres: %+.f\"\n\
+\"Size\" = \"Taille\"\n\
+\"Outline\" = \"Contour\"\n\
+\"Contrast: %+.3fs\" = \"Contraste: %+.3fs\"\n\
+\"Brightness: %+.3f\" = \"Luminosité: %+.3f\"\n\
+\"Hue\" = \"Teinte\"\n\
+\"Saturation: %+.3f\" = \"Saturation: %+.3f\"\n\
+\"Gamma: %+.3f\" = \"Gamma: %+.3f\"\n\
+\"Enable\" = \"Activer\"\n\
+\"Contrast\" = \"Contraste\"\n\
+\"Brightness\" = \"Luminosité\"\n\
+\"Saturation\" = \"Saturation\"\n\
+\"Gamma\" = \"Gamma\"\n\
+\"Adjust\" = \"Ajuster\"\n\
+\"Quality\" = \"Qualité\"\n\
+\"Deinterlace\" = \"Désentrelacement\"\n\
+\"Deint. mode\" = \"Mode de désentr.\"\n\
+\"Menu font size\" = \"Taille du texte (menu)\"\n\
+\"Hardware\" = \"Accélération Matérielle\"\n\
+\"No hardware\" = \"Désactiver Accélération\"\n\
+\"Thin\" = \"Fin\"\n\
+\"Thick\" = \"Epais\"\n\
+\"None\" = \"Aucun\"\n\
+\"Normal\" = \"Normal\"\n\
+\"Smaller\" = \"Plus Petit\"\n\
+\"Small\" = \"Petit\"\n\
+\"Large\" = \"Grand\"\n\
+\"Larger\" = \"Plus grand\"\n\
 ";
+
+inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)
+{
+	tgt.insert(std::map<std::string, std::string>::value_type(name.toUTF8().getAddress(), path.toUTF8().getAddress()));
+}
 
 Languages::Languages()
 {
-	m_currentLanguage = "English";
-	registerInternalLanguage(m_currentLanguage, "");
-	registerInternalLanguage("Français", lang_fr);
 
 	//parse files!
-	
+	std::vector<juce::LocalisedStrings*> all;
 	juce::Array<juce::File> res;
 	juce::File::getCurrentWorkingDirectory().findChildFiles(res, juce::File::findFiles, false, juce::String("*.")+LANG_EXTENSION);
 	for(int i=0;i<res.size();++i)
 	{
-		registerLanguage(res[i].getFileNameWithoutExtension().toUTF8().getAddress(), Lang::INTERNAL_MEANING_THE_STRING_IS_CONTENT, res[i].getFullPathName().toUTF8().getAddress());
+		if(!res[i].exists())
+		{
+			return;
+		}
+		juce::LocalisedStrings *l = new juce::LocalisedStrings (res[i]);
+		all.push_back( l );
+		add(m_languages, l->getLanguageName().toUTF8(), res[i].getFullPathName());
 	}
 
-	//if not internal maps found (the first time):dump them as example!
-	if(res.size()==0)
+	//default one
+	std::map<std::string, std::string>::const_iterator it = m_languages.find("English");
+	if(it == m_languages.end())
 	{
-		for(std::map<std::string, Lang>::const_iterator it = m_languages.begin();it != m_languages.end();++it)
+		add(m_languages, "English", "");
+	}
+	//defaults embedded languages
+	dumpDefaultIfMissing("France", lang_fr, all);
+
+
+	//setup current locale
+	for(std::vector<juce::LocalisedStrings*>::const_iterator it = all.begin();it != all.end();++it)
+	{
+		if(*it && (*it)->getCountryCodes().contains(juce::SystemStats::getUserRegion (), true ))//ignore case
 		{
-			if(!it->second.m_contentOrPath.empty() && it->second.m_mode == Lang::INTERNAL_MEANING_THE_STRING_IS_CONTENT)
-			{
-				juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((it->first + "."+ LANG_EXTENSION).c_str());
-				f.appendText(it->second.m_contentOrPath.c_str());
-			}
+			juce::LocalisedStrings::setCurrentMappings (*it);
+			all.erase(it);
+			break;
 		}
 	}
+	//cleanup unused ones
+	for(std::vector<juce::LocalisedStrings*>::const_iterator it = all.begin();it != all.end();++it)
+	{
+		delete *it;
+	}
+	
+
 }
 Languages::~Languages()
 {
-	reset();
+	clear();
 }
-void Languages::reset()
+void Languages::clear()
 {
-	juce::LocalisedStrings* old = juce::LocalisedStrings::getCurrentMappings();
-	if(old)
+	juce::LocalisedStrings::setCurrentMappings (nullptr);
+}
+
+void  Languages::dumpDefaultIfMissing(std::string const& name, std::string const& content, std::vector<juce::LocalisedStrings*> & all)
+{
+	std::map<std::string, std::string>::const_iterator it = m_languages.find(name);
+	if(it == m_languages.end())
 	{
-		juce::LocalisedStrings::setCurrentMappings (nullptr);
-		delete old;
+		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION).c_str());
+		f.appendText(content.c_str());
+		add(m_languages, name.c_str(), f.getFullPathName());
+		all.push_back(new juce::LocalisedStrings (content.c_str()));
 	}
 }
-void Languages::registerInternalLanguage(std::string const& name, std::string const&  content)
-{
-	registerLanguage(name, Lang::INTERNAL_MEANING_THE_STRING_IS_CONTENT, content);
-}
-void Languages::registerLanguage(std::string const& name, Lang::Mode mode, std::string const&  content)
-{
-	m_languages.insert(std::map<std::string, Lang>::value_type(name, Lang(mode, content)));
-}
+
 void Languages::setCurrentLanguage(std::string name)
 {
-	std::map<std::string, Lang>::const_iterator it = m_languages.find(name);
+	std::string previous = Languages::getCurrentLanguage();
+	if(name ==previous)
+	{
+		return;
+	}
+	std::map<std::string, std::string>::const_iterator it = m_languages.find(name);
 	if(it == m_languages.end())
 	{
 		return;
 	}
-	//apply
-	juce::LocalisedStrings* old = juce::LocalisedStrings::getCurrentMappings();
-	juce::LocalisedStrings* newLang = nullptr;
-	if(!it->second.m_contentOrPath.empty())
+	if(it->second.empty())
 	{
-		switch(it->second.m_mode)
-		{
-		case Lang::INTERNAL_MEANING_THE_STRING_IS_CONTENT:
-			newLang = (new juce::LocalisedStrings (juce::String(it->second.m_contentOrPath.c_str())));
-			break;
-		case Lang::EXTERNAL_MEANING_THE_STRING_IS_A_PATH:
-			newLang = (new juce::LocalisedStrings (juce::File(it->second.m_contentOrPath.c_str())));
-			break;
-		}
+		juce::LocalisedStrings::setCurrentMappings (nullptr);
+		return;
 	}
-	juce::LocalisedStrings::setCurrentMappings (newLang);
-	m_currentLanguage = it->first;
-
-	if(old)
+	
+	juce::File f(it->second.c_str());
+	if(f.exists())
 	{
-		delete old;
+		juce::LocalisedStrings::setCurrentMappings (new juce::LocalisedStrings(f));
 	}
+	
 }
 std::string Languages::getCurrentLanguage() const
 {
-	return m_currentLanguage;
+	return juce::LocalisedStrings::getCurrentMappings()?juce::LocalisedStrings::getCurrentMappings()->getLanguageName().toUTF8().getAddress():"English";
 }
 std::vector<std::string> Languages::getLanguages() const
 {
@@ -132,12 +185,9 @@ std::vector<std::string> Languages::getLanguages() const
     m_languages.begin(),
     m_languages.end(),
     std::back_inserter(keys),
-    [](const std::map<std::string,Languages::Lang>::value_type &pair){return pair.first;});
+    [](const std::map<std::string,std::string>::value_type &pair){return pair.first;});
 	return keys;
 }
-
-
-
 
 Languages& Languages::getInstance()
 {
