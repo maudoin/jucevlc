@@ -8,9 +8,10 @@
 !define COMP_NAME "Matthieu A."
 !define WEB_SITE "http://jucevlc.sourceforge.net/"
 !define VERSION "00.50.00.00"
+!define V "0.5"
 !define COPYRIGHT "Matthieu A. © 2013"
 !define DESCRIPTION "Media Player"
-!define INSTALLER_NAME "JuceVLCsetup-0.5.exe"
+!define INSTALLER_NAME "${APP_NAME}setup-${V}.exe"
 !define MAIN_APP_EXE "juceVLC.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 
@@ -36,8 +37,8 @@ Caption "${APP_NAME}"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
-InstallDir "$LOCALAPPDATA\JuceVLC"
-
+InstallDir "$LOCALAPPDATA\${APP_NAME}-${V}"
+AllowRootDirInstall false
 ######################################################################
 
 !include "MUI.nsh"
@@ -122,14 +123,14 @@ CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_
 !endif
 
 !ifndef REG_START_MENU
-CreateDirectory "$SMPROGRAMS\JuceVLC"
-CreateShortCut "$SMPROGRAMS\JuceVLC\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+CreateDirectory "$SMPROGRAMS\${APP_NAME}"
+CreateShortCut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
-CreateShortCut "$SMPROGRAMS\JuceVLC\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
+CreateShortCut "$SMPROGRAMS\${APP_NAME}\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !ifdef WEB_SITE
 WriteIniStr "$INSTDIR\${APP_NAME} website.url" "InternetShortcut" "URL" "${WEB_SITE}"
-CreateShortCut "$SMPROGRAMS\JuceVLC\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
+CreateShortCut "$SMPROGRAMS\${APP_NAME}\${APP_NAME} Website.lnk" "$INSTDIR\${APP_NAME} website.url"
 !endif
 !endif
 
