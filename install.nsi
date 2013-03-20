@@ -10,12 +10,13 @@
 !define VERSION "00.50.00.00"
 !define COPYRIGHT "Matthieu A. © 2013"
 !define DESCRIPTION "Media Player"
-!define INSTALLER_NAME "JuceVLCsetup.exe"
+!define INSTALLER_NAME "JuceVLCsetup-0.5.exe"
 !define MAIN_APP_EXE "juceVLC.exe"
 !define INSTALL_TYPE "SetShellVarContext current"
 
 !define REG_START_MENU "Start Menu Folder"
 
+RequestExecutionLevel user
 var SM_Folder
 
 ######################################################################
@@ -35,7 +36,7 @@ Caption "${APP_NAME}"
 OutFile "${INSTALLER_NAME}"
 BrandingText "${APP_NAME}"
 XPStyle on
-InstallDir "$PROGRAMFILES\JuceVLC"
+InstallDir "$LOCALAPPDATA\JuceVLC"
 
 ######################################################################
 
@@ -44,11 +45,16 @@ InstallDir "$PROGRAMFILES\JuceVLC"
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
 
-!insertmacro MUI_PAGE_WELCOME
+; MUI Settings / Icons
+!define MUI_ICON "src\vlc.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall-nsis.ico"
 
-!ifdef LICENSE_TXT
-!insertmacro MUI_PAGE_LICENSE "${LICENSE_TXT}"
-!endif
+; MUI Settings / Header
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_RIGHT
+!define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
+!define MUI_HEADERIMAGE_BITMAP "installer\logo.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "installer\logo.bmp"
 
 !insertmacro MUI_PAGE_DIRECTORY
 
@@ -69,6 +75,17 @@ InstallDir "$PROGRAMFILES\JuceVLC"
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Dutch"
+!insertmacro MUI_LANGUAGE "French"
+!insertmacro MUI_LANGUAGE "German"
+!insertmacro MUI_LANGUAGE "Korean"
+!insertmacro MUI_LANGUAGE "Russian"
+!insertmacro MUI_LANGUAGE "Spanish"
+!insertmacro MUI_LANGUAGE "Swedish"
+!insertmacro MUI_LANGUAGE "TradChinese"
+!insertmacro MUI_LANGUAGE "SimpChinese"
+!insertmacro MUI_LANGUAGE "Slovak"
+
 
 ######################################################################
 
@@ -76,10 +93,11 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-File /a /r "juceVLC.exe"
-File /a /r "libvlc.dll"
-File /a /r "libvlccore.dll"
-File /a /r "plugins"
+File /a /oname=${MAIN_APP_EXE} "vlcfrontendRelease.exe"
+File /a "libvlc.dll"
+File /a "libvlccore.dll"
+SetOutPath "$INSTDIR\plugins"
+File /a /r "plugins\*.*"
 SectionEnd
 
 ######################################################################
@@ -90,6 +108,7 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 
 !ifdef REG_START_MENU
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+SetShellVarContext current
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
@@ -119,12 +138,25 @@ SectionEnd
 ######################################################################
 
 Section Uninstall
+
+        FindProcDLL::FindProc ${MAIN_APP_EXE}
+        IntCmp $R0 1 0 notRunning
+            MessageBox MB_OK|MB_ICONEXCLAMATION "JuceVLC is running. Please close it first" /SD IDOK
+            Abort
+        notRunning:
+        
 ${INSTALL_TYPE}
-Delete /REBOOTOK "${MAIN_APP_EXE}"
-Delete /REBOOTOK  "$INSTDIR\plugins"
-Delete /REBOOTOK "$INSTDIR\libvlccore.dll"
-Delete /REBOOTOK "$INSTDIR\libvlc.dll"
-Delete /REBOOTOK "$INSTDIR\uninstall.exe"
+Delete "$INSTDIR\${MAIN_APP_EXE}"
+RmDir /r "$INSTDIR\plugins\*.*"
+RmDir "$INSTDIR\plugins"
+Delete "$INSTDIR\plugins.dat"
+Delete "$INSTDIR\France.lang"
+Delete "$INSTDIR\mediaTimes.xml"
+Delete "$INSTDIR\settings.xml"
+Delete "$INSTDIR\shortcuts.list"
+Delete "$INSTDIR\libvlccore.dll"
+Delete "$INSTDIR\libvlc.dll"
+Delete  "$INSTDIR\uninstall.exe"
 !ifdef WEB_SITE
 Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
@@ -132,6 +164,7 @@ Delete "$INSTDIR\${APP_NAME} website.url"
 RmDir "$INSTDIR"
 
 !ifdef REG_START_MENU
+SetShellVarContext current
 !insertmacro MUI_STARTMENU_GETFOLDER "Application" $SM_Folder
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk"
 Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
@@ -158,3 +191,54 @@ SectionEnd
 
 ######################################################################
 
+
+######################################################################
+
+Function .onInit
+        ;File /oname=$TEMP\vlc.bmp "installer\vlc.bmp"
+
+        ;advsplash::show 1000 600 400 0xFFFFFF $TEMP\vlc
+
+        ;Pop $0          ; $0 has '1' if the user closed the splash screen early,
+                        ; '0' if everything closed normally, and '-1' if some error occurred.
+
+        ;Delete $TEMP\vlc.bmp
+
+        FindProcDLL::FindProc ${MAIN_APP_EXE}
+        IntCmp $R0 1 0 notRunning
+            MessageBox MB_OK|MB_ICONEXCLAMATION "JuceVLC is running. Please close it first" /SD IDOK
+            Abort
+        notRunning:
+	;Language selection dialog
+
+	Push ""
+	Push ${LANG_ENGLISH}
+	Push English
+	Push ${LANG_DUTCH}
+	Push Dutch
+	Push ${LANG_FRENCH}
+	Push French
+	Push ${LANG_GERMAN}
+	Push German
+	Push ${LANG_KOREAN}
+	Push Korean
+	Push ${LANG_RUSSIAN}
+	Push Russian
+	Push ${LANG_SPANISH}
+	Push Spanish
+	Push ${LANG_SWEDISH}
+	Push Swedish
+	Push ${LANG_TRADCHINESE}
+	Push "Traditional Chinese"
+	Push ${LANG_SIMPCHINESE}
+	Push "Simplified Chinese"
+	Push ${LANG_SLOVAK}
+	Push Slovak
+	Push A ; A means auto count languages
+	       ; for the auto count to work the first empty push (Push "") must remain
+	LangDLL::LangDialog "Installer Language" "Please select the language of the installer"
+
+	Pop $LANGUAGE
+	StrCmp $LANGUAGE "cancel" 0 +2
+		Abort
+FunctionEnd
