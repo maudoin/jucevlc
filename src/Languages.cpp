@@ -19,7 +19,7 @@ countries: fr be mc ch lu\n\
 \"Add to favorites\" = \"Ajouter aux favoris\"\n\
 \"Remove from favorites\" = \"Retirer des favoris\"\n\
 \"Disable\" = \"Désactiver\"\n\
-\"Slot %d\" = \"Piste %s\"\n\
+\"Slot %d\" = \"Piste %d\"\n\
 \"No subtitles\" = \"Pas de sous-titres\"\n\
 \"Add...\" = \"Ajouter...\"\n\
 \"Delay\" = \"Décalage\"\n\
@@ -74,6 +74,9 @@ countries: fr be mc ch lu\n\
 \"Small\" = \"Petit\"\n\
 \"Large\" = \"Grand\"\n\
 \"Larger\" = \"Plus grand\"\n\
+\"Automatic\" = \"Automatique\"\n\
+\"Custom\" = \"Personnalisé\"\n\
+\"Setup\" = \"Définir\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

@@ -14,6 +14,7 @@
 #define SETTINGS_FONT_SIZE "SETTINGS_FONT_SIZE"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
+#define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
 #define SHORTCUTS_FILE "shortcuts.list"
 #define MAX_MEDIA_TIME_IN_SETTINGS 30
 
@@ -132,6 +133,7 @@ VideoComponent::VideoComponent()
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
+	,m_autoSubtitlesHeight(true)
 {    
 	Languages::getInstance();
 
@@ -961,6 +963,39 @@ void VideoComponent::onMenuVoutIntOption (MenuTreeItem& item, juce::String label
 	controlComponent->alternateControlComponent().show(label, 
 		boost::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, volumeMin, volumeMax, step, buttonsStep);
 }
+void VideoComponent::onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic)
+{
+	setBrowsingFiles(false);
+	
+	m_autoSubtitlesHeight = automatic;
+	m_settings.setValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, automatic);
+
+	if(!m_autoSubtitlesHeight)
+	{
+		onMenuVoutIntOption(item,TRANS("Subtitle pos.: %+.f"), 
+		std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
+		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.);
+	}
+	else
+	{
+		if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::handleIdleTimeAndControlsVisibility, this));
+	}
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+
+}
+void VideoComponent::onMenuSubtitlePosition(MenuTreeItem& item)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	item.addAction( TRANS("Automatic"), Action::build(*this, &VideoComponent::onMenuSubtitlePositionMode, true),m_autoSubtitlesHeight?getItemImage():nullptr);
+	item.addAction( TRANS("Custom"), Action::build(*this, &VideoComponent::onMenuSubtitlePositionMode, false),(!m_autoSubtitlesHeight)?getItemImage():nullptr);
+	//item.addAction( TRANS("Setup"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
+	//	TRANS("Subtitle pos.: %+.f"), 
+	//	std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
+	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.));
+
+	
+}
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -981,18 +1016,7 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	}
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
-	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
-		TRANS("Subtitle pos.: %+.f"), 
-		std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
-		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.));
-	//item.addAction( TRANS("Background"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
-	//	TRANS("Sub.Bg. opacity: %+.f"),
-	//	std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY),
-	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), 0., 255., 1., 0.));
-	//item.addAction( TRANS("Shadow"), Action::build(*this, &VideoComponent::onMenuVoutIntOption,
-	//	TRANS("Shadow opacity: %+.f"),
-	//	std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY),
-	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), 0., 255., 1., 0.));
+	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuSubtitlePosition));
 	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
 	item.addAction( TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
 }
@@ -1456,6 +1480,10 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 		controlComponent->setVisible(false);
 		titleBar->setVisible(false);
 	}
+	if(m_autoSubtitlesHeight)
+	{
+		vlc->setVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN, controlComponent->isVisible()?controlComponent->getHeight():0);
+	}
 	
 }
 void VideoComponent::vlcPaused()
@@ -1554,6 +1582,7 @@ void VideoComponent::initFromSettings()
 	{
 		shortcuts.readLines(m_shortcuts);
 	}
+	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
 	
 	vlc->setConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE, m_settings.getBoolValue(CONFIG_BOOL_OPTION_HARDWARE, vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_SIZE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE)));

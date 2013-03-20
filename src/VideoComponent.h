@@ -59,6 +59,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::StringArray m_shortcuts;
     juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
 	bool m_canHideOSD;
+	bool m_autoSubtitlesHeight;
 
 public:
     VideoComponent();
@@ -119,6 +120,8 @@ public:
     void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
 	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
+	void onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic);
+	void onMenuSubtitlePositionMode(MenuTreeItem& item);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
     void onMenuSubtitlePosition (MenuTreeItem& item);
     void onMenuSubtitleMenu (MenuTreeItem& item);
