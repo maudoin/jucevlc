@@ -33,6 +33,12 @@ It controls:
 
 **Changelog**
 ==================
+
+0.5 (2013/03/21):
+- Installer
+- Localization support (English/French for now) -> look at "France.lang" to add other languages
+- Automatic subtitles position mode (always above controls)
+
 0.4 (2013/03/17):
 -Save last 30 videos progress
 -Subtitles position slider (avoids subtitles being hidden by controls)
@@ -52,4 +58,4 @@ It controls:
 -Moved windowed/fullscreen options to player sub-menu
 
 0.1 (2013/03/04):
-  First release 
+-First release 
