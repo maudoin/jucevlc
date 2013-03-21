@@ -34,9 +34,9 @@
 	</Company_Info>
 	<Program_Info>
 		<Program_Name>JuceVLC</Program_Name>
-		<Program_Version>0.4</Program_Version>
+		<Program_Version>0.5</Program_Version>
 		<Program_Release_Month>03</Program_Release_Month>
-		<Program_Release_Day>17</Program_Release_Day>
+		<Program_Release_Day>21</Program_Release_Day>
 		<Program_Release_Year>2013</Program_Release_Year>
 		<Program_Cost_Dollars>0</Program_Cost_Dollars>
 		<Program_Cost_Other_Code />
@@ -45,8 +45,8 @@
 		<Program_Release_Status>Major Update</Program_Release_Status>
 		<Program_Install_Support>No Install Support</Program_Install_Support>
 		<Program_OS_Support>Win7 x32,Win7 x64,WinVista,WinVista x64,WinXP</Program_OS_Support>
-		<Program_Language>English</Program_Language>
-		<Program_Change_Info>-Subtitles position slider (avoids subtitles being hidden by controls)</Program_Change_Info>
+		<Program_Language>English,French</Program_Language>
+		<Program_Change_Info>Installer / Localization support</Program_Change_Info>
 		<Program_Specific_Category>Audio</Program_Specific_Category>
 		<Program_Category_Class>Audio &amp; Multimedia::Video Tools</Program_Category_Class>
 		<Program_System_Requirements>None</Program_System_Requirements>
@@ -97,7 +97,7 @@ Features:
 		</Application_URLs>
 		<Download_URLs>
 			<Primary_Download_URL>http://sourceforge.net/projects/jucevlc/files/latest/download</Primary_Download_URL>
-			<Secondary_Download_URL>http://jucevlc.googlecode.com/files/juceVLC-fullBinaries-Win32-0.4.zip</Secondary_Download_URL>
+			<Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.5.exe</Secondary_Download_URL>
 			<Additional_Download_URL_1 />
 			<Additional_Download_URL_2 />
 		</Download_URLs>
