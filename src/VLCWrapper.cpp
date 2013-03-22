@@ -464,7 +464,7 @@ static vout_thread_t *GetVout (libvlc_media_player_t *mp, size_t num)
     for (size_t i = 0; i < n; i++)
         if (i != num)
             vlc_object_release (pp_vouts[i]);
-    //free (pp_vouts);
+    libvlc_free (pp_vouts);
 
     if (p_vout == NULL)
 err:
@@ -531,7 +531,7 @@ std::string VLCWrapper::getCrop()
 		if(str)
 		{
 			crop = str;
-			//free( str );
+			libvlc_free( str );
 		}
 
 		vlc_object_release (p_vout);
@@ -641,7 +641,7 @@ std::string VLCWrapper::getAoutFilterOptionString(const char* name)
 		if(s)
 		{
 			v = s;
-			//free(s);
+			libvlc_free(s);
 		}
 		vlc_object_release (p_aout);
 	}
