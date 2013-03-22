@@ -128,7 +128,7 @@ VideoComponent::VideoComponent()
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
 #else
-	:juce::Component("MainFrame")
+	:juce::Component("JuceVLC")
 #endif
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
