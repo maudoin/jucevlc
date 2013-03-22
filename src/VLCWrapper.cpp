@@ -12,6 +12,10 @@
 #include <stdio.h>
 #include <sstream>
 
+#include <assert.h>
+#include "vlc/media_player_internal.h"
+#include "vlc/plugins/vlc_threads.h"
+#include "vlc/plugins/vlc_aout_intf.h"
 
 //----------------------------------- HELPERS
 class MediaListScopedLock
@@ -374,9 +378,6 @@ void VLCWrapper::SetInputCallBack(InputCallBack* cb)
 
 }
 
-#include <assert.h>
-#include "vlc/media_player_internal.h"
-#include "vlc/plugins/vlc_threads.h"
 
 
 static inline void lock_input(libvlc_media_player_t *mp)
@@ -428,6 +429,25 @@ static vout_thread_t **GetVouts( libvlc_media_player_t *p_mi, size_t *n )
     }
     vlc_object_release (p_input);
     return pp_vouts;
+}
+
+/*
+ * Remember to release the returned audio_output_t since it is locked at
+ * the end of this function.
+ */
+static audio_output_t *GetAOut( libvlc_media_player_t *mp )
+{
+    assert( mp != NULL );
+
+    input_thread_t *p_input = libvlc_get_input_thread( mp );
+    if( p_input == NULL )
+        return NULL;
+
+    audio_output_t * p_aout = input_GetAout( p_input );
+    vlc_object_release( p_input );
+    if( p_aout == NULL )
+        libvlc_printerr( "No active audio output" );
+    return p_aout;
 }
 
 static vout_thread_t *GetVout (libvlc_media_player_t *mp, size_t num)
@@ -508,8 +528,11 @@ std::string VLCWrapper::getCrop()
 	if(p_vout)
 	{
 		char* str = var_GetString( p_vout, "crop" );
-		crop = str;
-		//free( str );
+		if(str)
+		{
+			crop = str;
+			//free( str );
+		}
 
 		vlc_object_release (p_vout);
 	}
@@ -539,12 +562,12 @@ bool VLCWrapper::isAutoCrop()
 	return autoCrop;
 }
 
-void VLCWrapper::setVoutOptionInt(const char* name, int autoCrop)
+void VLCWrapper::setVoutOptionInt(const char* name, int v)
 {
     vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
 	if(p_vout)
 	{
-		var_SetInteger( p_vout, name,autoCrop);
+		var_SetInteger( p_vout, name,v);
 
 		vlc_object_release (p_vout);
 	}
@@ -552,16 +575,69 @@ void VLCWrapper::setVoutOptionInt(const char* name, int autoCrop)
 
 int VLCWrapper::getVoutOptionInt(const char* name)
 {
-	bool autoCrop = false;
+	int v = false;
     vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
 	if(p_vout)
 	{
-		autoCrop = var_GetInteger( p_vout, name );
+		v = var_GetInteger( p_vout, name );
 		vlc_object_release (p_vout);
 	}
-	return autoCrop;
+	return v;
 }
 
+/* Return the order in which filters should be inserted */
+static int FilterOrder( const char *psz_name )
+{
+    static const struct {
+        const char *psz_name;
+        int        i_order;
+    } filter[] = {
+        { "equalizer",  0 },
+        { NULL,         INT_MAX },
+    };
+    for( int i = 0; filter[i].psz_name; i++ )
+    {
+        if( !strcmp( filter[i].psz_name, psz_name ) )
+            return filter[i].i_order;
+    }
+    return INT_MAX;
+}
+void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& filter, std::string const& v)
+{
+	audio_output_t *p_aout = GetAOut (pMediaPlayer_);
+	if(p_aout)
+	{
+		aout_EnableFilter( pMediaPlayer_, filter.c_str(), !v.empty() );
+		var_SetString( p_aout, name,v.c_str());
+
+		vlc_object_release (p_aout);
+	}
+	else
+	{
+		return setConfigOptionString(name, v);
+	}
+}
+
+std::string VLCWrapper::getAoutFilterOptionString(const char* name)
+{
+	std::string v;
+	audio_output_t *p_aout = GetAOut (pMediaPlayer_);
+	if(p_aout)
+	{
+		char* s = var_GetString( p_aout, name );
+		if(s)
+		{
+			v = s;
+			//free(s);
+		}
+		vlc_object_release (p_aout);
+	}
+	else
+	{
+		return getConfigOptionString(name);
+	}
+	return v;
+}
 std::vector< std::pair<int, std::string> > VLCWrapper::getVideoTrackList()
 {
 	std::vector< std::pair<int, std::string> > list;

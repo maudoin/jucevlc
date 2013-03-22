@@ -32,6 +32,11 @@
 #define CONFIG_INT_OPTION_SUBTITLE_MARGIN "sub-margin"
 #define CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY "freetype-shadow-opacity"
 #define CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY "freetype-background-opacity"
+#define AOUT_FILTER_EQUALIZER "equalizer"
+#define CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET "equalizer-preset"
+#define CONFIG_BOOL_OPTION_AUDIO_EQUALIZER_2PASS "equalizer-2pass"
+#define CONFIG_STRING_OPTION_AUDIO_DEVICE "audio-device"
+#define CONFIG_INT_OPTION_AUDIO_CHANNELS "audio-channels"
 
 
 struct libvlc_instance_t;
@@ -186,8 +191,11 @@ public:
 	void setAutoCrop(bool autoCrop);
 	bool isAutoCrop();
 	
-	void setVoutOptionInt(const char* name, int autoCrop);
+	void setVoutOptionInt(const char* name, int v);
 	int getVoutOptionInt(const char* name);
+
+	void setAoutFilterOptionString(const char* name, std::string const&  filter, std::string const& v);
+	std::string getAoutFilterOptionString(const char* name);
 
 	std::vector<std::string> getCurrentPlayList();
 	int addPlayListItem(std::string const& path);

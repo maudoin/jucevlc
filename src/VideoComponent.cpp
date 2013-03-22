@@ -911,6 +911,7 @@ void VideoComponent::restart(MenuTreeItem& item)
 	forceSetVideoTime(pos);
 
 }
+
 void VideoComponent::onVLCOptionIntSelect(MenuTreeItem& item, std::string name, int v)
 {
 	vlc->setConfigOptionInt(name.c_str(), v);
@@ -1133,6 +1134,28 @@ void VideoComponent::onMenuShiftSubtitlesSlider(MenuTreeItem& item)
 	setBrowsingFiles(false);
 	showSubtitlesOffsetSlider();
 }
+
+void VideoComponent::onVLCAoutStringSelect(MenuTreeItem& item, std::string filter, std::string name, std::string v)
+{
+	vlc->setAoutFilterOptionString(name.c_str(), filter, v);
+	m_settings.setValue(name.c_str(), v.c_str());
+
+	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
+}
+void VideoComponent::onVLCAoutStringSelectListMenu(MenuTreeItem& item, std::string filter, std::string name)
+{
+	setBrowsingFiles(false);
+	item.focusItemAsMenuShortcut();
+	std::string current = vlc->getAoutFilterOptionString(name.c_str());
+	item.addAction( TRANS("Disable"), Action::build(*this, &VideoComponent::onVLCAoutStringSelect, filter, name, std::string("")), current.empty()?getItemImage():nullptr);
+
+	std::pair<std::string, std::vector<std::pair<std::string, std::string> > > res = vlc->getConfigOptionInfoString(name.c_str());
+	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
+	{
+		item.addAction( TRANS(it->second.c_str()), Action::build(*this, &VideoComponent::onVLCAoutStringSelect, filter, name, it->first), it->first==current?getItemImage():nullptr);
+	}
+
+}
 void VideoComponent::onMenuAudioVolume(MenuTreeItem& item, double volume)
 {
 	setBrowsingFiles(false);
@@ -1255,6 +1278,7 @@ void VideoComponent::onMenuSoundOptions(MenuTreeItem& item)
 	item.focusItemAsMenuShortcut();
 	item.addAction( TRANS("Volume"), Action::build(*this, &VideoComponent::onMenuAudioVolumeSlider));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftAudioSlider));
+	item.addAction( TRANS("Equalizer"), Action::build(*this, &VideoComponent::onVLCAoutStringSelectListMenu, std::string(AOUT_FILTER_EQUALIZER), std::string(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET)));
 	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuAudioTrackList));
 }
 
@@ -1592,7 +1616,13 @@ void VideoComponent::initFromSettings()
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_QUALITY, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY)));
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
 	vlc->setConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, m_settings.getValue(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE).c_str())).toUTF8().getAddress());
-
+	
+	juce::String preset = m_settings.getValue(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET).c_str()));
+	if(!preset.isEmpty())
+	{
+		vlc->setConfigOptionString(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET, preset.toUTF8().getAddress());
+	}
+	
 }
 
 	

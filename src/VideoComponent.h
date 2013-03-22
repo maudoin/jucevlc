@@ -136,6 +136,8 @@ public:
     void onMenuShiftAudioSlider(MenuTreeItem& item);
     void onMenuShiftSubtitles(double s);
     void onMenuShiftSubtitlesSlider(MenuTreeItem& item);
+	void onVLCAoutStringSelect(MenuTreeItem& item, std::string, std::string, std::string i);
+    void onVLCAoutStringSelectListMenu (MenuTreeItem& item, std::string, std::string);
     void onMenuAudioVolume(MenuTreeItem& item, double volume);
     void onMenuAudioVolumeSlider (MenuTreeItem& item);
 	
