@@ -26,10 +26,11 @@ class MenuTreeItem
 public:
 	virtual ~MenuTreeItem(){}
     virtual MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
-    virtual MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_) = 0;
-    virtual MenuTreeItem* addFile(juce::File const& file_, AbstractFileAction* fileMethod_) = 0;
-	virtual void addRootFiles(AbstractFileAction* fileMethod) = 0;
-	virtual void addChildrenFiles(juce::File const& parent, AbstractFileAction* fileMethod, 
+    virtual MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr) = 0;
+    virtual MenuTreeItem* addFile(juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr) = 0;
+	virtual void addRootFiles(AbstractFileAction const& fileMethod) = 0;
+	virtual void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr) = 0;
+	virtual void addChildrenFiles(juce::File const& parent, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr, 
 		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
         const juce::String& wildCardPattern = "*",
         bool searchRecursively = false) = 0;

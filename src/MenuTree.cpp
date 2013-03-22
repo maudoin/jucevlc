@@ -186,37 +186,37 @@ public:
         }
     }
     MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_);
-    MenuTreeItem* addFile(juce::File const& file, AbstractFileAction* fileMethod)
+    MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr);
+    MenuTreeItem* addFile(juce::File const& file, AbstractFileAction* fileMethod, const juce::Drawable* icon = nullptr)
 	{
 		juce::File p = file.getParentDirectory();
 		juce::String name = p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
 
-		return addFile(name, file, fileMethod);
+		return addFile(name, file, fileMethod, icon);
 	}
 	
-	void addRootFiles(AbstractFileAction* fileMethod)
+	void addRootFiles(AbstractFileAction const& fileMethod)
 	{
 		juce::Array<juce::File> destArray;
 		juce::File::findFileSystemRoots(destArray);
 		addFiles(destArray, fileMethod);
 	}
 	
-	void addChildrenFiles(juce::File const& parent, AbstractFileAction* fileMethod,
+	void addChildrenFiles(juce::File const& parent, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr,
 		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
         const juce::String& wildCardPattern = "*",
         bool searchRecursively = false)
 	{
 		juce::Array<juce::File> destArray;
 		parent.findChildFiles(destArray, whatToLookFor, searchRecursively, wildCardPattern);
-		addFiles(destArray, fileMethod);
+		addFiles(destArray, fileMethod, icon);
 	}
 	
-	void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction* fileMethod)
+	void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr)
 	{
 		for(int i=0;i<destArray.size();++i)
 		{
-			addFile( destArray[i], fileMethod->clone());
+			addFile( destArray[i], fileMethod.clone(), icon);
 		}
 	}
 	virtual MenuTreeItem* getMenuTreeItemParent()
@@ -240,23 +240,40 @@ public:
 		return m_isShortcut;
 	}
 };
-class ActionTreeViewItem  : public SmartTreeViewItem
+class IconTreeViewItem  : public SmartTreeViewItem
 {
+protected:
 	juce::String name;
 	const juce::Drawable* icon;
-	juce::ScopedPointer<AbstractAction> action;
 public:
-    ActionTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+    IconTreeViewItem (MenuTree* owner, juce::String name, const juce::Drawable* icon = nullptr)
 		:SmartTreeViewItem(owner)
 		,name(name)
 		,icon(icon)
-		,action(action)
     {
 	}
-    ActionTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+    IconTreeViewItem (SmartTreeViewItem& p, juce::String name, const juce::Drawable* icon = nullptr)
 		:SmartTreeViewItem(p)
 		,name(name)
 		,icon(icon)
+    {
+	}
+    juce::String getUniqueName() const
+    {
+        return name;
+    }
+};
+class ActionTreeViewItem  : public IconTreeViewItem
+{
+	juce::ScopedPointer<AbstractAction> action;
+public:
+    ActionTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+		:IconTreeViewItem(owner,name, icon)
+		,action(action)
+    {
+	}
+    ActionTreeViewItem (SmartTreeViewItem& owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+		:IconTreeViewItem(owner,name, icon)
 		,action(action)
     {
 	}
@@ -281,10 +298,6 @@ public:
 	{
 		return icon?icon:SmartTreeViewItem::getIcon();
 	}
-    juce::String getUniqueName() const
-    {
-        return name;
-    }
 
     virtual bool mightContainSubItems()
     {
@@ -294,25 +307,22 @@ public:
 
 };
 
-class FileTreeViewItem  : public SmartTreeViewItem
+class FileTreeViewItem  : public IconTreeViewItem
 {
     juce::File file;
-	juce::String name;
 	juce::ScopedPointer<AbstractFileAction> fileMethod;
 public:
     FileTreeViewItem (MenuTree* owner, 
-                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_)
-		:SmartTreeViewItem(owner)
+                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr)
+		:IconTreeViewItem(owner,name_, icon)
 		,file(file_)
-		,name(name_)
 		,fileMethod(fileMethod_)
     {
 	}
-    FileTreeViewItem (SmartTreeViewItem& p, 
-                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_)
-		:SmartTreeViewItem(p)
+    FileTreeViewItem (SmartTreeViewItem& owner, 
+                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr)
+		:IconTreeViewItem(owner,name_, icon)
 		,file(file_)
-		,name(name_)
 		,fileMethod(fileMethod_)
     {
 	}
@@ -321,12 +331,8 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return file.isDirectory()?m_isShortcut?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
+		return icon?icon:file.isDirectory()?m_isShortcut?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
 	}
-    juce::String getUniqueName() const
-    {
-		return name;
-    }
 	bool mightContainSubItems()                 
 	{ 
 		return file.isDirectory();
@@ -357,9 +363,9 @@ MenuTreeItem* SmartTreeViewItem::addAction(juce::String const& name, AbstractAct
 	return item;
 }
 
-MenuTreeItem* SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod)
+MenuTreeItem* SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod, const juce::Drawable* icon)
 {
-	FileTreeViewItem* item = new FileTreeViewItem(*this, name, file, fileMethod);
+	FileTreeViewItem* item = new FileTreeViewItem(*this, name, file, fileMethod, icon);
 	addSubItem(item);
 	return item;
 }

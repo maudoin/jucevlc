@@ -5,6 +5,7 @@
 #include "MenuTreeAction.h"
 #include "Languages.h"
 #include <algorithm>
+#include <set>
 
 #define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
@@ -17,6 +18,27 @@
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
 #define SHORTCUTS_FILE "shortcuts.list"
 #define MAX_MEDIA_TIME_IN_SETTINGS 30
+
+
+
+#define EXTENSIONS_VIDEO(add) add("3g2");add("3gp");add("3gp2");add("3gpp");add("amv");add("asf");add("avi");add("bin");add("divx");add("drc");add("dv");add("f4v");add("flv");add("gxf");add("iso");add("m1v");add("m2v");\
+                         add("m2t");add("m2ts");add("m4v");add("mkv");add("mov");add("mp2");add("mp2v");add("mp4");add("mp4v");add("mpa");add("mpe");add("mpeg");add("mpeg1");\
+                         add("mpeg2");add("mpeg4");add("mpg");add("mpv2");add("mts");add("mtv");add("mxf");add("mxg");add("nsv");add("nuv");\
+                         add("ogg");add("ogm");add("ogv");add("ogx");add("ps");\
+                         add("rec");add("rm");add("rmvb");add("tod");add("ts");add("tts");add("vob");add("vro");add("webm");add("wm");add("wmv");
+
+#define EXTENSIONS_PLAYLIST(add) add("asx");add("b4s");add("cue");add("ifo");add("m3u");add("m3u8");add("pls");add("ram");add("rar");add("sdp");add("vlc");add("xspf");add("wvx");add("zip");add("conf");
+
+#define EXTENSIONS_SUBTITLE(add) add("cdg");add("idx");add("srt"); \
+                            add("sub");add("utf");add("ass"); \
+                            add("ssa");add("aqt"); \
+                            add("jss");add("psb"); \
+                            add("rt");add("smi");add("txt"); \
+							add("smil");add("stl");add("usf"); \
+                            add("dks");add("pjs");add("mpl2");
+
+
+#define EXTENSIONS_MEDIA(add) EXTENSIONS_VIDEO(add) EXTENSIONS_SUBTITLE(add) EXTENSIONS_PLAYLIST(add)
 
 juce::PropertiesFile::Options options()
 {
@@ -149,6 +171,12 @@ VideoComponent::VideoComponent()
     subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
     exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
     settingsImage = juce::Drawable::createFromImageData (gears_svg, gears_svgSize);
+
+	
+	EXTENSIONS_VIDEO(m_videoExtensions.insert)
+	EXTENSIONS_PLAYLIST(m_playlistExtensions.insert)
+	EXTENSIONS_SUBTITLE(m_subtitlesExtensions.insert)
+	EXTENSIONS_MEDIA(m_suportedExtensions.insert)
 
 
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
@@ -774,6 +802,16 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 		updateSubComponentsBounds();//tree may be larger! (or not)
 	}
 }
+void VideoComponent::onMenuListMediaFiles(MenuTreeItem& item)
+{
+	juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpen));
+	onMenuListFiles(item, fileMethod);
+}
+void VideoComponent::onMenuListSubtitlesFiles(MenuTreeItem& item)
+{
+	juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle));
+	onMenuListFiles(item, fileMethod);
+}
 void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
 	setBrowsingFiles();
@@ -783,9 +821,8 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 	if(item.isMenuShortcut() || path.isEmpty() || !f.exists())
 	{
 		item.focusItemAsMenuShortcut();
-		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod), getItemImage());
-		item.addRootFiles(fileMethod);
-	
+		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod->clone()), getItemImage());
+		item.addRootFiles(*fileMethod);
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, juce::String::empty);
 	}
 	else
@@ -828,11 +865,6 @@ void VideoComponent::onMenuListFavorites(MenuTreeItem& item, AbstractFileAction*
 	}
 }
 
-void VideoComponent::onMenuOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
-{
-	onMenuListFiles(item, fileMethod);
-}
-
 void VideoComponent::writeFavorites()
 {
 	juce::File shortcuts(juce::File::getCurrentWorkingDirectory().getChildFile(SHORTCUTS_FILE));
@@ -868,6 +900,59 @@ void VideoComponent::onMenuQueue (MenuTreeItem& item, juce::String path)
 	setBrowsingFiles(false);
 	vlc->addPlayListItem(path.toUTF8().getAddress());
 }
+bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
+{
+	juce::String ext = f.getFileExtension().toLowerCase();
+	return e.end() != e.find(ext.startsWith(".")?ext.substring(1):ext);
+}
+struct FileSorter
+{
+	std::set<juce::String> priorityExtensions;
+	FileSorter(std::set<juce::String> const& priorityExtensions_):priorityExtensions(priorityExtensions_) {}
+	int rank(juce::File const& f)
+	{
+		if(f.isDirectory())
+		{
+			return 1;
+		}
+		if(extensionMatch(priorityExtensions, f))
+		{
+			return 2;
+		}
+		return 3;
+	}
+	int compareElements(juce::File const& some, juce::File const& other)
+	{
+		int r1 = rank(some);
+		int r2 = rank(other);
+		if(r1 == r2)
+		{
+			return some.getFileName().compareIgnoreCase(other.getFileName());
+		}
+		return r1 - r2;
+	}
+};
+juce::Drawable const* VideoComponent::getIcon(juce::File const& f)
+{
+	if(f.isDirectory())
+	{
+		return nullptr;
+	}
+	if(extensionMatch(m_videoExtensions, f))
+	{
+		return displayImage;
+	}
+	if(extensionMatch(m_playlistExtensions, f))
+	{
+		return playlistImage;
+	}
+	if(extensionMatch(m_subtitlesExtensions, f))
+	{
+		return subtitlesImage;
+	}
+	return nullptr;
+}
+
 
 void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 {
@@ -883,8 +968,19 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 		item.addAction(TRANS("Add All"), Action::build(*this, &VideoComponent::onMenuQueue, 
 				file.getFullPathName()), getItemImage());
 
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpen), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+		
+		juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpen));
+
+		
+		item.addChildrenFiles(file, *(fileMethod.get()), nullptr, juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+
+		juce::Array<juce::File> destArray;
+		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
+		destArray.sort(FileSorter(m_suportedExtensions));
+		for(int i=0;i<destArray.size();++i)
+		{
+			item.addFile( destArray[i], fileMethod->clone(), getIcon(destArray[i]));
+		}
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
@@ -900,7 +996,15 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 	}
 	else
 	{
-		onMenuOpenUnconditionnal(item, file.getFullPathName());
+		if(extensionMatch(m_subtitlesExtensions, file))
+		{
+			setBrowsingFiles(false);
+			vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
+		}
+		else
+		{
+			onMenuOpenUnconditionnal(item, file.getFullPathName());
+		}
 	}
 }
 void VideoComponent::restart(MenuTreeItem& item)
@@ -1015,7 +1119,7 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	{
 		item.addAction( juce::String::formatted(TRANS("No subtitles")), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, -1), -1==current?getItemImage():nullptr);
 	}
-	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListFiles, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle)));
+	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListSubtitlesFiles));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuSubtitlePosition));
 	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
@@ -1036,8 +1140,17 @@ void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& f
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		item.focusItemAsMenuShortcut();
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle), juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-		item.addChildrenFiles(file, FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle), juce::File::findFiles|juce::File::ignoreHiddenFiles);
+						
+		juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle));
+		item.addChildrenFiles(file, *(fileMethod.get()), nullptr, juce::File::findDirectories|juce::File::ignoreHiddenFiles);
+
+		juce::Array<juce::File> destArray;
+		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
+		destArray.sort(FileSorter(m_subtitlesExtensions));
+		for(int i=0;i<destArray.size();++i)
+		{
+			item.addFile( destArray[i], fileMethod->clone(), extensionMatch(m_subtitlesExtensions, destArray[i])?subtitlesImage.get():nullptr);//getIcon(destArray[i]));//
+		}
 	}
 	else
 	{
@@ -1439,7 +1552,7 @@ void VideoComponent::onMenuRoot(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Open"), Action::build(*this, &VideoComponent::onMenuOpenFiles, FileAction::build(*this, &VideoComponent::onMenuOpen)), getFolderShortcutImage());
+	item.addAction( TRANS("Open"), Action::build(*this, &VideoComponent::onMenuListMediaFiles), getFolderShortcutImage());
 	item.addAction( TRANS("Now playing"), Action::build(*this, &VideoComponent::onShowPlaylist), getPlaylistImage());
 	item.addAction( TRANS("Subtitles"), Action::build(*this, &VideoComponent::onMenuSubtitleMenu), getSubtitlesImage());
 	item.addAction( TRANS("Video"), Action::build(*this, &VideoComponent::onMenuVideoOptions), getDisplayImage());

@@ -9,6 +9,7 @@
 #include "AppProportionnalComponent.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
+#include <set>
 #include "LookNFeel.h"
 
 
@@ -60,6 +61,10 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
 	bool m_canHideOSD;
 	bool m_autoSubtitlesHeight;
+	std::set<juce::String> m_videoExtensions;
+	std::set<juce::String> m_playlistExtensions;
+	std::set<juce::String> m_subtitlesExtensions;
+	std::set<juce::String> m_suportedExtensions;
 
 public:
     VideoComponent();
@@ -80,6 +85,8 @@ public:
 	void showAudioOffsetSlider ();
 	void showSubtitlesOffsetSlider ();
 
+	
+	juce::Drawable const* getIcon(juce::File const&);
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
 	juce::Drawable const* getPlaylistImage() const { return playlistImage; };
@@ -101,8 +108,9 @@ public:
 #endif
 
 	/////////////// MenuTree
+	void onMenuListMediaFiles(MenuTreeItem& item);
+	void onMenuListSubtitlesFiles(MenuTreeItem& item);
 	void onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-	void onMenuOpenFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	void onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	
 	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
