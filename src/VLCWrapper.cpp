@@ -614,7 +614,20 @@ void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& 
 	}
 	else
 	{
-		return setConfigOptionString(name, v);
+		std::string audioFilters = getConfigOptionString("audio-filter");
+		if(std::string::npos == audioFilters.find(AOUT_FILTER_EQUALIZER))
+		{
+			//set if missing
+			if(!audioFilters.empty())
+			{
+				//append if not alone
+				audioFilters += ":";
+			}
+			audioFilters += AOUT_FILTER_EQUALIZER;
+			setConfigOptionString("audio-filter", audioFilters);
+		}
+
+		setConfigOptionString(name, v);
 	}
 }
 

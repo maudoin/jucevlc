@@ -1617,10 +1617,21 @@ void VideoComponent::initFromSettings()
 	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
 	vlc->setConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, m_settings.getValue(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE).c_str())).toUTF8().getAddress());
 	
+	std::string audioFilters;
 	juce::String preset = m_settings.getValue(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET).c_str()));
 	if(!preset.isEmpty())
 	{
+		if(!audioFilters.empty())
+		{
+			audioFilters += ":";
+		}
+		audioFilters += AOUT_FILTER_EQUALIZER;
 		vlc->setConfigOptionString(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET, preset.toUTF8().getAddress());
+	}
+	
+	if(!audioFilters.empty())
+	{
+		vlc->setConfigOptionString("audio-filter", AOUT_FILTER_EQUALIZER);
 	}
 	
 }
