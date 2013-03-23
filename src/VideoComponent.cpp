@@ -562,7 +562,17 @@ void VideoComponent::paint (juce::Graphics& g)
 	if(!vlcNativePopupComponent->isVisible())
 	{
 		g.fillAll (juce::Colours::black);
-		g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2);
+		g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2 );
+
+		
+		juce::Font f = g.getCurrentFont().withHeight(tree->getFontHeight());
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+		g.setColour (juce::Colours::grey);
+		g.drawText(juce::String("Featuring VLC ") + vlc->getInfo().c_str(),(getWidth() - appImage.getWidth())/2,  
+			(getHeight() + appImage.getHeight())/2, appImage.getWidth(), 
+			tree->getFontHeight(), 
+			juce::Justification::centred, true);
 	}
 	else
 	{
