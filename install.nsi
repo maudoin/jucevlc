@@ -7,8 +7,8 @@
 !define APP_NAME "JuceVLC"
 !define COMP_NAME "Matthieu A."
 !define WEB_SITE "http://jucevlc.sourceforge.net/"
-!define VERSION "00.50.00.00"
-!define V "0.5"
+!define VERSION "00.60.00.00"
+!define V "0.6"
 !define COPYRIGHT "Matthieu A. © 2013"
 !define DESCRIPTION "Media Player"
 !define INSTALLER_NAME "${APP_NAME}setup-${V}.exe"
@@ -94,7 +94,7 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-File /a /oname=${MAIN_APP_EXE} "vlcfrontendRelease.exe"
+File /a ${MAIN_APP_EXE}
 File /a "libvlc.dll"
 File /a "libvlccore.dll"
 SetOutPath "$INSTDIR\plugins"

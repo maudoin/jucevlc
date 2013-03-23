@@ -57,7 +57,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>true</GenerateManifest>
-    <TargetName>$(ProjectName)$(Configuration)</TargetName>
+    <TargetName>juceVLC</TargetName>
     <OutDir>$(SolutionDir)\</OutDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
@@ -130,6 +130,7 @@
       <PreventDllBinding>
       </PreventDllBinding>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <ManifestResourceCompile>
       <ResourceOutputFileName>$(ProjectDir)$(TargetName)$(TargetExt).embed.manifest.res</ResourceOutputFileName>

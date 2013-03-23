@@ -26,6 +26,9 @@ filezilla.lnk
 mediaTimes.xml
 PADGen.lnk
 France.lang
+juceVLC.exe
+JuceVLCsetup-*.exe
+juceVLC-exeOnly-*.zip
 syntax: regexp
 FontResource.cpp
 FontResource.h
