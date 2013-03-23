@@ -113,7 +113,7 @@ public:
 	
 		float hborder = height/8.f;	
 	
-		float iconhborder = height/2.f;
+		float iconhborder = height/4.f;
 		int iconSize = height;
 
 		
@@ -376,7 +376,6 @@ MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
 	setIndentSize(0);
 	setDefaultOpenness(true);
 	setOpenCloseButtonsVisible(false);
-	setIndentSize(50);
 	setOpaque(false);
 
 	refresh();
@@ -395,13 +394,26 @@ void MenuTree::refresh()
 	if(rootAction)
 	{
 		juce::TreeViewItem* const root
-			= new ActionTreeViewItem (this, "Menu", rootAction);
+			= new ActionTreeViewItem (this, "Menu", rootAction, itemImage);
 
 		setRootItem (root);
 
 		root->setSelected(true, true);
 	}
 	
+}
+void MenuTree::resized()
+{
+	int h = 1.5*getFontHeight();
+	if(h != getIndentSize())
+	{
+		setIndentSize(h);//calls resized internally
+	}
+	else
+	{
+		juce::TreeView::resized();
+	}
+
 }
 void MenuTree::paint (juce::Graphics& g)
 {

@@ -53,7 +53,8 @@ public:
 	virtual ~MenuTree();
 	virtual void refresh();
 	void setInitialMenu();
-	
+
+	void resized();
 	void paint (juce::Graphics& g);
 	
 	void setRootAction(AbstractAction* rootAction_){rootAction=rootAction_;refresh();}
