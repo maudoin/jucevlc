@@ -1167,6 +1167,8 @@ void VideoComponent::onVLCOptionIntRangeMenu(MenuTreeItem& item, std::string att
 	vlc->setConfigOptionInt(attr.c_str(), (int)slider.getValue());
 	m_settings.setValue(attr.c_str(), (int)slider.getValue());
 }
+#define OPT_TRANS(label) ( juce::String("*") + TRANS(label) )
+
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -1210,16 +1212,16 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListSubtitlesFiles));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuSubtitlePosition));
-	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	item.addAction( TRANS("Opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	item.addAction( TRANS("Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
-	item.addAction( TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	item.addAction( TRANS("Outline opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	item.addAction( TRANS("Outline Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
-	item.addAction( TRANS("Background opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
-	item.addAction( TRANS("Background Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
-	item.addAction( TRANS("Shadow opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
-	item.addAction( TRANS("Shadow Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
+	item.addAction( OPT_TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	item.addAction( OPT_TRANS("Opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	item.addAction( OPT_TRANS("Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
+	item.addAction( OPT_TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( OPT_TRANS("Outline opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	item.addAction( OPT_TRANS("Outline Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
+	item.addAction( OPT_TRANS("Background opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( OPT_TRANS("Background Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
+	item.addAction( OPT_TRANS("Shadow opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( OPT_TRANS("Shadow Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
 
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
@@ -1537,9 +1539,9 @@ void VideoComponent::onMenuVideoOptions(MenuTreeItem& item)
 	item.addAction( TRANS("Aspect Ratio"), Action::build(*this, &VideoComponent::onMenuRatio));
 	item.addAction( TRANS("Select Track"), Action::build(*this, &VideoComponent::onMenuVideoTrackList));
 	item.addAction( TRANS("Adjust"), Action::build(*this, &VideoComponent::onMenuVideoAdjustOptions));
-	item.addAction( TRANS("Quality"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
-	item.addAction( TRANS("Deinterlace"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
-	item.addAction( TRANS("Deint. mode"), Action::build(*this, &VideoComponent::onVLCOptionStringMenu, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
+	item.addAction( OPT_TRANS("Quality"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
+	item.addAction( OPT_TRANS("Deinterlace"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
+	item.addAction( OPT_TRANS("Deint. mode"), Action::build(*this, &VideoComponent::onVLCOptionStringMenu, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
 }
 void VideoComponent::onMenuExit(MenuTreeItem& item)
 {

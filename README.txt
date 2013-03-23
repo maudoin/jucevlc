@@ -17,6 +17,8 @@ The main menu is accessible by right clicking on the video or using the third pl
 
 The main menu can be hidden bu left clicking on the video or using the third playback control bar icon (red cross over a folder in a blue dot).
 
+WARNING: Menu options prefixed with a star are applied to the next played video
+
 Playback control bar
 ------------------
 
@@ -34,11 +36,11 @@ It controls:
 **Changelog**
 ==================
 
-0.6
+0.6 (2013/03/24):
 - Audio equaliser (presets)
-- Subtitle colors configuration
+- Advanced subtitle configuration (colors, opacity,...) WARNING they are applied to the next played video
 - File browsing improvement (sorting and icons)
-- TODO: non disappearing controls fix
+- non disappearing controls fix
 
 0.5 (2013/03/21):
 - Installer
