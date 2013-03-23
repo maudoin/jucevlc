@@ -46,7 +46,7 @@ countries: fr be mc ch lu\n\
 \"Opacity\" = \"Opacité\"\n\
 \"Background\" = \"Fond\"\n\
 \"Background opacity\" = \"Opacité fond\"\n\
-\"Background color\" = \"Couleu fond\"\n\
+\"Background color\" = \"Couleur fond\"\n\
 \"Opacity: %.0f\" = \"Opacité: %+.f\"\n\
 \"Shadow\" = \"Ombre\"\n\
 \"Shadow color\" = \"Couleur ombre\"\n\
