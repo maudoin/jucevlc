@@ -1175,6 +1175,28 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	int current = vlc->getCurrentSubtitleIndex();
 	if(cnt)
 	{
+		//int commonCharacters = 0;
+		//std::vector<std::string> path = vlc->getSubtitlesPath();
+		//if(path.size()>2)
+		//{
+		//	//subs are indexed at 1 and the first is the media subtitle
+		//	std::string referenceName = juce::File(path.at(1).c_str()).getFileNameWithoutExtension().toUTF8().getAddress();
+		//	commonCharacters = referenceName.size();
+
+		//	for(int i = 2;i<cnt;++i)
+		//	{
+		//		std::string::size_type commonCharactersForThisPair = 0;
+		//		std::string currentName = juce::File(path.at(i).c_str()).getFileNameWithoutExtension().toUTF8().getAddress();
+
+		//		std::string::const_iterator itFirst = referenceName.begin();
+		//		for (std::string::const_iterator it = currentName.begin() ; 
+		//			it != currentName.end() && itFirst != referenceName.end() && *it == *itFirst && commonCharactersForThisPair <= commonCharacters; 
+		//			it++ ,itFirst++,commonCharactersForThisPair++);
+		//		
+		//		commonCharacters = commonCharactersForThisPair;
+		//	}
+		//}
+
 		item.addAction( juce::String::formatted(TRANS("Disable")), Action::build(*this, &VideoComponent::onMenuSubtitleSelect, 0), (0==current||-1==current)?getItemImage():nullptr);
 		for(int i = 1;i<cnt;++i)
 		{
