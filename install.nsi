@@ -97,6 +97,7 @@ SetOutPath "$INSTDIR"
 File /a ${MAIN_APP_EXE}
 File /a "libvlc.dll"
 File /a "libvlccore.dll"
+File /a "README.txt"
 SetOutPath "$INSTDIR\plugins"
 File /a /r "plugins\*.*"
 SectionEnd
