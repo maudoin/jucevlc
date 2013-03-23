@@ -11,6 +11,39 @@
 
 juce::String toString(juce::int64 time);
 
+
+class SliderWithInnerLabel : public juce::Slider
+{
+private:
+	juce::String m_format;
+public:
+	SliderWithInnerLabel(juce::String const& name="")
+		:juce::Slider(name)
+	{
+		setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+		setSliderStyle (juce::Slider::LinearBar);
+		setAlpha(1.f);
+		setOpaque(true);
+	}
+	virtual ~SliderWithInnerLabel(){}
+	void setLabelFormat(juce::String const& f){m_format = f;}
+	void paint(juce::Graphics& g)
+	{		
+		juce::Slider::paint(g);
+		
+		juce::Font f = g.getCurrentFont().withHeight(getHeight());
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+		g.setColour (juce::Colours::black);
+		g.drawFittedText (juce::String::formatted(m_format,getValue()),
+							0, 0, getWidth(), getHeight(),
+							juce::Justification::centred, 
+							1, //1 line
+							1.f//no h scale
+							);
+	}
+};
+
 class ActionSlider;
 
 typedef boost::function<void (double)> ActionSliderCallback;

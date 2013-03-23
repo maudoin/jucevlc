@@ -15,43 +15,22 @@
 void nop(double)
 {
 }
-class ActionSlider   : public juce::Slider, public juce::SliderListener
+class ActionSlider   : public SliderWithInnerLabel, public juce::SliderListener
 {
 public:
     typedef boost::function<void (double)> Functor;
 private:
 	Functor m_f;
-	juce::String m_format;
 public:
 	ActionSlider(juce::String const& name="")
-		:juce::Slider(name)
+		:SliderWithInnerLabel(name)
 		,m_f(boost::bind(&nop, _1))
 	{
-		setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
-		setSliderStyle (juce::Slider::LinearBar);
-		setAlpha(1.f);
-		setOpaque(true);
 		addListener(this);
 	}
 	virtual ~ActionSlider(){}
 	void resetCallback(){m_f = boost::bind(&nop, _1);}
 	void setCallback(ActionSliderCallback const& f){m_f = f;}
-	void setLabelFormat(juce::String const& f){m_format = f;}
-	void paint(juce::Graphics& g)
-	{		
-		juce::Slider::paint(g);
-		
-		juce::Font f = g.getCurrentFont().withHeight(getHeight());
-		f.setStyleFlags(juce::Font::plain);
-		g.setFont(f);
-		g.setColour (juce::Colours::black);
-		g.drawFittedText (juce::String::formatted(m_format,getValue()),
-							0, 0, getWidth(), getHeight(),
-							juce::Justification::centred, 
-							1, //1 line
-							1.f//no h scale
-							);
-	}
     virtual void sliderValueChanged (juce::Slider* slider)
 	{
 		m_f(slider->getValue());

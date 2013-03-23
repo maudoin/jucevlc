@@ -22,16 +22,20 @@
 #include <vector>
 
 #define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw" 
-#define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" 
-#define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" 
+#define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" //int list
+#define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" //int list
 #define CONFIG_INT_OPTION_VIDEO_QUALITY "postproc-q" 
 #define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace" 
 #define CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE "deinterlace-mode"
 #define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color"
 #define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color"
 #define CONFIG_INT_OPTION_SUBTITLE_MARGIN "sub-margin"
+#define CONFIG_INT_OPTION_SUBTITLE_OPACITY "freetype-opacity"
+#define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY "freetype-outline-opacity"
 #define CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY "freetype-shadow-opacity"
+#define CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR "freetype-shadow-color"
 #define CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY "freetype-background-opacity"
+#define CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR "freetype-background-color"
 #define AOUT_FILTER_EQUALIZER "equalizer"
 #define CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET "equalizer-preset"
 #define CONFIG_BOOL_OPTION_AUDIO_EQUALIZER_2PASS "equalizer-2pass"

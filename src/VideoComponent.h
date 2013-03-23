@@ -126,6 +126,7 @@ public:
 	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
 	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
     void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
+    void onVLCOptionIntRangeMenu (MenuTreeItem& item, std::string, const char* format, int min, int max, int defaultVal);
 	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
 	void onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic);
@@ -227,6 +228,7 @@ private:
 	void saveCurrentMediaTime();
 	void initBoolSetting(const char* name);
 	void initIntSetting(const char* name);
+	void initIntSetting(const char* name, int defaultVal);
 	void initStrSetting(const char* name);
 	void initFromSettings();
 	void initFromMediaDependantSettings();

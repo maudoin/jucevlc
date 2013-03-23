@@ -43,12 +43,18 @@ countries: fr be mc ch lu\n\
 \"Apply\" = \"Appliquer\"\n\
 \"Position\" = \"Position\"\n\
 \"Subtitle pos.: %+.f\" = \"Pos. sous-titres: %+.f\"\n\
+\"Opacity\" = \"Opacité\"\n\
 \"Background\" = \"Fond\"\n\
-\"Sub.Bg. opacity: %+.f\" = \"Opac. fond ss-titres: %+.f\"\n\
+\"Background opacity\" = \"Opacité fond\"\n\
+\"Background color\" = \"Couleu fond\"\n\
+\"Opacity: %.0f\" = \"Opacité: %+.f\"\n\
 \"Shadow\" = \"Ombre\"\n\
-\"Shadow opacity: %+.f\" = \"Opac. ombre ss-titres: %+.f\"\n\
+\"Shadow color\" = \"Couleur ombre\"\n\
+\"Shadow opacity\" = \"Opacité ombre\"\n\
 \"Size\" = \"Taille\"\n\
 \"Outline\" = \"Contour\"\n\
+\"Outline opacity\" = \"Opacité contour\"\n\
+\"Outline color\" = \"Couleur contour\"\n\
 \"Contrast: %+.3fs\" = \"Contraste: %+.3fs\"\n\
 \"Brightness: %+.3f\" = \"Luminosité: %+.3f\"\n\
 \"Hue\" = \"Teinte\"\n\
@@ -147,7 +153,7 @@ void  Languages::dumpDefaultIfMissing(std::string const& name, std::string const
 	std::map<std::string, std::string>::const_iterator it = m_languages.find(name);
 	if(it == m_languages.end())
 	{
-		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION).c_str());
+		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
 		f.appendText(content.c_str());
 		add(m_languages, name.c_str(), f.getFullPathName());
 		all.push_back(new juce::LocalisedStrings (content.c_str()));

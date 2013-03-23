@@ -1123,6 +1123,7 @@ void VideoComponent:: onVLCOptionColor(MenuTreeItem& item, std::string attr)
 	juce::ColourSelector colourSelector(juce::ColourSelector::showColourspace);
 	colourSelector.setCurrentColour(init);
 	colourSelector.setSize(getWidth() / 2, getHeight() /2);
+
     juce::CallOutBox callOut(colourSelector, tree->getBounds(), this);
     callOut.runModalLoop();
 
@@ -1134,6 +1135,28 @@ void VideoComponent:: onVLCOptionColor(MenuTreeItem& item, std::string attr)
 }
 
 
+void VideoComponent::onVLCOptionIntRangeMenu(MenuTreeItem& item, std::string attr, const char* format, int min, int max, int defaultVal)
+{
+	setBrowsingFiles(false);
+	
+	int init(vlc->getConfigOptionInt(attr.c_str()));
+	
+	SliderWithInnerLabel slider(attr.c_str());
+	slider.setRange((double)min, (double)max, 1.);
+	slider.setValue(defaultVal);
+	slider.setLabelFormat(format);
+	slider.setSize(getWidth()/2, tree->getItemHeight());
+	
+	juce::Rectangle<int> componentParentBounds(tree->getBounds());
+	componentParentBounds.setTop(0);
+	componentParentBounds.setHeight(getHeight());
+
+    juce::CallOutBox callOut(slider, componentParentBounds, this);
+    callOut.runModalLoop();
+	
+	vlc->setConfigOptionInt(attr.c_str(), (int)slider.getValue());
+	m_settings.setValue(attr.c_str(), (int)slider.getValue());
+}
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -1155,10 +1178,17 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListSubtitlesFiles));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuSubtitlePosition));
-	item.addAction( TRANS("Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
 	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	item.addAction( TRANS("Opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	item.addAction( TRANS("Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
 	item.addAction( TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( TRANS("Outline opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
 	item.addAction( TRANS("Outline Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
+	item.addAction( TRANS("Background opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( TRANS("Background Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
+	item.addAction( TRANS("Shadow opacity"), Action::build(*this, &VideoComponent::onVLCOptionIntRangeMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( TRANS("Shadow Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
+
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -1743,6 +1773,7 @@ void VideoComponent::stoppedSynchronous()
 void VideoComponent::initFromMediaDependantSettings()
 {
 	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
+	
 }
 void VideoComponent::initBoolSetting(const char* name)
 {
@@ -1750,7 +1781,11 @@ void VideoComponent::initBoolSetting(const char* name)
 }
 void VideoComponent::initIntSetting(const char* name)
 {
-	vlc->setConfigOptionInt(name, m_settings.getIntValue(name, vlc->getConfigOptionInt(name)));
+	initIntSetting(name, vlc->getConfigOptionInt(name));
+}
+void VideoComponent::initIntSetting(const char* name, int defaultVal)
+{
+	vlc->setConfigOptionInt(name, m_settings.getIntValue(name, defaultVal));
 }
 void VideoComponent::initStrSetting(const char* name)
 {
@@ -1770,12 +1805,20 @@ void VideoComponent::initFromSettings()
 	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
 	
 	initBoolSetting(CONFIG_BOOL_OPTION_HARDWARE);
-
+	
 	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_SIZE);
 	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS);
 	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_MARGIN);
+	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_OPACITY);
+	
+	//initIntSetting(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY);
+	//initIntSetting(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY);
+	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY);
+	
 	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_COLOR);
+	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR);
 	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR);
+	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR);
 	
 	initIntSetting(CONFIG_INT_OPTION_VIDEO_QUALITY);
 	initIntSetting(CONFIG_INT_OPTION_VIDEO_DEINTERLACE);
