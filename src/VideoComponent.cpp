@@ -1720,7 +1720,7 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
 
 	//prevent menu to disappear too quickly
-	m_canHideOSD = false;
+	m_canHideOSD = !rightClick;
 
 	bool showMenu = rightClick || vlc->isStopped();
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
