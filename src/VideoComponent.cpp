@@ -261,7 +261,11 @@ VideoComponent::VideoComponent()
 }
 
 VideoComponent::~VideoComponent()
-{    
+{   
+	//prevent processing
+	sliderUpdating = true;
+	videoUpdating = true;
+
 	Languages::getInstance().clear();
 
 	setVisible(false);
@@ -1101,6 +1105,35 @@ void VideoComponent::onMenuSubtitlePosition(MenuTreeItem& item)
 
 	
 }
+inline int RGB2ARGB(int rgb)
+{
+	return 0xFF000000 | (rgb&0xFFFFFF);
+}
+
+inline int ARGB2RGB(int argb)
+{
+	return (argb&0xFFFFFF);
+}
+void VideoComponent:: onVLCOptionColor(MenuTreeItem& item, std::string attr)
+{
+	setBrowsingFiles(false);
+
+	juce::Colour init(RGB2ARGB(vlc->getConfigOptionInt(attr.c_str())));
+
+	juce::ColourSelector colourSelector(juce::ColourSelector::showColourspace);
+	colourSelector.setCurrentColour(init);
+	colourSelector.setSize(getWidth() / 2, getHeight() /2);
+    juce::CallOutBox callOut(colourSelector, tree->getBounds(), this);
+    callOut.runModalLoop();
+
+	int newCol = ARGB2RGB(colourSelector.getCurrentColour().getPixelARGB().getARGB());
+	vlc->setConfigOptionInt(attr.c_str(), newCol);
+
+	
+	m_settings.setValue(attr.c_str(), newCol);
+}
+
+
 void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
@@ -1122,8 +1155,10 @@ void VideoComponent::onMenuSubtitleMenu(MenuTreeItem& item)
 	item.addAction( TRANS("Add..."), Action::build(*this, &VideoComponent::onMenuListSubtitlesFiles));
 	item.addAction( TRANS("Delay"), Action::build(*this, &VideoComponent::onMenuShiftSubtitlesSlider));
 	item.addAction( TRANS("Position"), Action::build(*this, &VideoComponent::onMenuSubtitlePosition));
+	item.addAction( TRANS("Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
 	item.addAction( TRANS("Size"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
 	item.addAction( TRANS("Outline"), Action::build(*this, &VideoComponent::onVLCOptionIntListMenu, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( TRANS("Outline Color"), Action::build(*this, &VideoComponent::onVLCOptionColor, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
 }
 void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 {
@@ -1707,7 +1742,20 @@ void VideoComponent::stoppedSynchronous()
 
 void VideoComponent::initFromMediaDependantSettings()
 {
-	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));}
+	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
+}
+void VideoComponent::initBoolSetting(const char* name)
+{
+	vlc->setConfigOptionBool(name, m_settings.getBoolValue(name, vlc->getConfigOptionBool(name)));
+}
+void VideoComponent::initIntSetting(const char* name)
+{
+	vlc->setConfigOptionInt(name, m_settings.getIntValue(name, vlc->getConfigOptionInt(name)));
+}
+void VideoComponent::initStrSetting(const char* name)
+{
+	vlc->setConfigOptionString(name, m_settings.getValue(name, vlc->getConfigOptionString(name).c_str()).toUTF8().getAddress());
+}
 
 void VideoComponent::initFromSettings()
 {
@@ -1721,15 +1769,18 @@ void VideoComponent::initFromSettings()
 	}
 	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
 	
-	vlc->setConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE, m_settings.getBoolValue(CONFIG_BOOL_OPTION_HARDWARE, vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)));
-	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_SIZE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	vlc->setConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN, m_settings.getIntValue(CONFIG_INT_OPTION_SUBTITLE_MARGIN, vlc->getConfigOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN)));
+	initBoolSetting(CONFIG_BOOL_OPTION_HARDWARE);
+
+	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_SIZE);
+	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS);
+	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_MARGIN);
+	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_COLOR);
+	initIntSetting(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR);
 	
-	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_QUALITY, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_QUALITY)));
-	vlc->setConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, m_settings.getIntValue(CONFIG_INT_OPTION_VIDEO_DEINTERLACE, vlc->getConfigOptionInt(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
-	vlc->setConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, m_settings.getValue(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE).c_str())).toUTF8().getAddress());
-	
+	initIntSetting(CONFIG_INT_OPTION_VIDEO_QUALITY);
+	initIntSetting(CONFIG_INT_OPTION_VIDEO_DEINTERLACE);
+	initStrSetting(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE);
+
 	std::string audioFilters;
 	juce::String preset = m_settings.getValue(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET, juce::String(vlc->getConfigOptionString(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET).c_str()));
 	if(!preset.isEmpty())

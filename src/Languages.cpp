@@ -24,7 +24,7 @@ countries: fr be mc ch lu\n\
 \"Add...\" = \"Ajouter...\"\n\
 \"Delay\" = \"Décalage\"\n\
 \"Auto\" = \"Automatique\"\n\
-\"Original\" = \"Originale\"\n\
+\"Original\" = \"Original\"\n\
 \"Volume\" = \"Volume\"\n\
 \"Select Track\" = \"Piste\"\n\
 \"FullScreen\" = \"Plein écran\"\n\
@@ -77,6 +77,9 @@ countries: fr be mc ch lu\n\
 \"Automatic\" = \"Automatique\"\n\
 \"Custom\" = \"Personnalisé\"\n\
 \"Setup\" = \"Définir\"\n\
+\"Color\" = \"Couleur\"\n\
+\"Outline Color\" = \"Couleur du contour\"\n\
+\"Equalizer\" = \"Equaliseur\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

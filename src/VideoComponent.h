@@ -132,6 +132,7 @@ public:
 	void onMenuSubtitlePositionMode(MenuTreeItem& item);
 	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
     void onMenuSubtitlePosition (MenuTreeItem& item);
+	void onVLCOptionColor(MenuTreeItem& item, std::string);
     void onMenuSubtitleMenu (MenuTreeItem& item);
     void onMenuZoom (MenuTreeItem& item, double ratio);
     void onMenuCrop (MenuTreeItem& item, juce::String  crop);
@@ -224,6 +225,9 @@ private:
 	void handleIdleTimeAndControlsVisibility();
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void saveCurrentMediaTime();
+	void initBoolSetting(const char* name);
+	void initIntSetting(const char* name);
+	void initStrSetting(const char* name);
 	void initFromSettings();
 	void initFromMediaDependantSettings();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);

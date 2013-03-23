@@ -34,6 +34,12 @@ It controls:
 **Changelog**
 ==================
 
+0.6
+- Audio equaliser (presets)
+- Subtitle colors configuration
+- File browsing improvement (sorting and icons)
+- TODO: non disappearing controls fix
+
 0.5 (2013/03/21):
 - Installer
 - Localization support (English/French for now) -> look at "France.lang" to add other languages
