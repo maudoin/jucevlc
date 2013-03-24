@@ -6,8 +6,14 @@ Portable Application installation
 ------------------
 
 Extract the archive on any folder and run **JuceVLC.exe**
+You can use the installer multiple times:
+* once for your computer, activating shortcut creation, 
+* and again for your usb key or external hard drive.
+Since it does not store anything in the registry subsequent installs won't affect the previous ones (except for optionnal shortcut creation obviously)
+
 All files except JuceVLC.exe are taken from VLC so you can paste JuceVLC.exe in an existing VLC installation (2.0.0 and up).
 The application can be executed from a usb key or an external drive as its settings are stored along the exe file
+
 **Under Windows 7 it is not recommanded to extract the application in "Program Files" as Windows won't allow the settings to written.**
 
 
@@ -43,7 +49,7 @@ It controls:
 - non disappearing controls fix
 
 0.5 (2013/03/21):
-- Installer
+- Installer (copying the new exe over previous installs still works) The application is still as portable as previously, the installer behaves just like extracting an archive, plus optionnal shortcuts creation.
 - Localization support (English/French for now) -> look at "France.lang" to add other languages
 - Automatic subtitles position mode (always above controls)
 
