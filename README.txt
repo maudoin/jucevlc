@@ -42,6 +42,12 @@ It controls:
 **Changelog**
 ==================
 
+0.65 (2013/04/06):
+- File listing sorting improvement
+- Auxiliary slider reset button
+- Fullscreen button
+- Auxiliary slider function selection icons improvement
+
 0.6 (2013/03/24):
 - Audio equaliser (presets)
 - Advanced subtitle configuration (colors, opacity,...) WARNING they are applied to the next played video
