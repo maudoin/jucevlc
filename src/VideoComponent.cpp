@@ -191,6 +191,7 @@ VideoComponent::VideoComponent()
 	controlComponent->slider().addListener(this);
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
+	controlComponent->fullscreenButton().addListener(this);
 	controlComponent->menuButton().addListener(this);
 	controlComponent->auxilliarySliderModeButton().addListener(this);
 	controlComponent->resetButton().addListener(this);
@@ -493,6 +494,10 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	else if(button == &controlComponent->stopButton())
 	{
 		stop();
+	}
+	else if(button == &controlComponent->fullscreenButton())
+	{
+		switchFullScreen();
 	}
 	else if(button == &controlComponent->menuButton())
 	{

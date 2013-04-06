@@ -235,6 +235,11 @@ ControlComponent::ControlComponent()
 	m_stopButton->setOpaque(false);
 	m_stopButton->setImages(m_stopImage);	
 
+    m_fullscreenButton = new juce::DrawableButton("fullscreenButton", juce::DrawableButton::ImageFitted);
+	m_fullscreenButton->setOpaque(false);
+	m_fullscreenButton->setImages(m_itemImage);
+	m_fullscreenButton->setTooltip(TRANS("Switch fullscreen"));
+
     m_menuButton = new juce::DrawableButton("menuButton", juce::DrawableButton::ImageFitted);
 	m_menuButton->setOpaque(false);
 	m_menuButton->setImages(m_folderImage);
@@ -247,7 +252,7 @@ ControlComponent::ControlComponent()
     m_resetButton = new juce::DrawableButton("ResetButton", juce::DrawableButton::ImageFitted);
 	m_resetButton->setOpaque(false);
 	m_resetButton->setImages(m_itemImage);
-	m_menuButton->setTooltip(TRANS("Reset"));
+	m_resetButton->setTooltip(TRANS("Reset"));
 	
 
 	m_auxilliaryControlComponent = new SecondaryControlComponent();
@@ -255,6 +260,7 @@ ControlComponent::ControlComponent()
 	addAndMakeVisible(m_slider);
     addAndMakeVisible(m_playPauseButton);
     addAndMakeVisible(m_stopButton);
+    addAndMakeVisible(m_fullscreenButton);
     addAndMakeVisible(m_menuButton);
     addAndMakeVisible(m_auxilliarySliderModeButton);
     addAndMakeVisible(m_resetButton);
@@ -289,7 +295,8 @@ void ControlComponent::resized()
 
 	m_playPauseButton->setBounds (hMargin, h-playPauseButtonSize, playPauseButtonSize, playPauseButtonSize);
 	m_stopButton->setBounds (hMargin+playPauseButtonSize, h-buttonSize, buttonSize, buttonSize);	
-	m_menuButton->setBounds (hMargin+playPauseButtonSize+buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_fullscreenButton->setBounds (hMargin+playPauseButtonSize+buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_menuButton->setBounds (hMargin+playPauseButtonSize+2*buttonSize, h-buttonSize, buttonSize, buttonSize);
 
 	int auxilliaryX = playPauseButtonSize+6*buttonSize;
 	int auxilliaryW = w - 2*auxilliaryX;

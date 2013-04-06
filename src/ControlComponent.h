@@ -94,6 +94,7 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
     juce::ScopedPointer<juce::DrawableButton> m_stopButton;
     juce::ScopedPointer<juce::DrawableButton> m_menuButton;
+    juce::ScopedPointer<juce::DrawableButton> m_fullscreenButton;
     juce::ScopedPointer<juce::DrawableButton> m_auxilliarySliderModeButton;
     juce::ScopedPointer<juce::DrawableButton> m_resetButton;
     juce::ScopedPointer<juce::Drawable> m_playImage;
@@ -122,6 +123,7 @@ public:
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 	juce::DrawableButton& menuButton(){return *m_menuButton.get();}
+	juce::DrawableButton& fullscreenButton(){return *m_fullscreenButton.get();}
 	juce::DrawableButton& auxilliarySliderModeButton(){return *m_auxilliarySliderModeButton.get();}
 	juce::DrawableButton& resetButton(){return *m_resetButton.get();}
 	SecondaryControlComponent& auxilliaryControlComponent(){return *m_auxilliaryControlComponent.get();}
