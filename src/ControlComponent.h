@@ -102,6 +102,9 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::Drawable> m_stopImage;
     juce::ScopedPointer<juce::Drawable> m_itemImage;
     juce::ScopedPointer<juce::Drawable> m_folderImage;
+    juce::ScopedPointer<juce::Drawable> m_starImage;
+    juce::ScopedPointer<juce::Drawable> m_fullscreenImage;
+    juce::ScopedPointer<juce::Drawable> m_undoImage;
     juce::ScopedPointer<SecondaryControlComponent> m_auxilliaryControlComponent;
 	juce::String timeString;
 	juce::String currentTimeString;

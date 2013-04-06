@@ -49,6 +49,23 @@
 	extern const char* vlc_png;
 	extern const int vlc_pngSize;
 
+	extern const char* restore_svg;
+	extern const int restore_svgSize;
+	extern const char* fullscreen_svg;
+	extern const int fullscreen_svgSize;
+
+	extern const char* star_svg;
+	extern const int star_svgSize;
+	extern const char* undo_svg;
+	extern const int undo_svgSize;
+
+	extern const char* speed_svg;
+	extern const int speed_svgSize;
+	extern const char* clock_svg;
+	extern const int clock_svgSize;
+	extern const char* audioShift_svg;
+	extern const int audioShift_svgSize;
+
 	extern const char* list_svg;
 	extern const int list_svgSize;
 	extern const char* audio_svg;

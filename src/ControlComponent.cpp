@@ -226,6 +226,9 @@ ControlComponent::ControlComponent()
     m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
     m_itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
     m_folderImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
+    m_starImage = juce::Drawable::createFromImageData (star_svg, star_svgSize);
+    m_fullscreenImage = juce::Drawable::createFromImageData (fullscreen_svg, fullscreen_svgSize);
+    m_undoImage = juce::Drawable::createFromImageData (undo_svg, undo_svgSize);
 
     m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);
@@ -237,7 +240,7 @@ ControlComponent::ControlComponent()
 
     m_fullscreenButton = new juce::DrawableButton("fullscreenButton", juce::DrawableButton::ImageFitted);
 	m_fullscreenButton->setOpaque(false);
-	m_fullscreenButton->setImages(m_itemImage);
+	m_fullscreenButton->setImages(m_fullscreenImage);
 	m_fullscreenButton->setTooltip(TRANS("Switch fullscreen"));
 
     m_menuButton = new juce::DrawableButton("menuButton", juce::DrawableButton::ImageFitted);
@@ -247,11 +250,11 @@ ControlComponent::ControlComponent()
 
     m_auxilliarySliderModeButton = new juce::DrawableButton("2ndSliderModeButton", juce::DrawableButton::ImageFitted);
 	m_auxilliarySliderModeButton->setOpaque(false);
-	m_auxilliarySliderModeButton->setImages(m_itemImage);
+	m_auxilliarySliderModeButton->setImages(m_starImage);
 
     m_resetButton = new juce::DrawableButton("ResetButton", juce::DrawableButton::ImageFitted);
 	m_resetButton->setOpaque(false);
-	m_resetButton->setImages(m_itemImage);
+	m_resetButton->setImages(m_undoImage);
 	m_resetButton->setTooltip(TRANS("Reset"));
 	
 
