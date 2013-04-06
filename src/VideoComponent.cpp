@@ -853,7 +853,7 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 	if(item.isMenuShortcut() || path.isEmpty() || !f.exists())
 	{
 		item.focusItemAsMenuShortcut();
-		item.addAction( "Favorites", Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod->clone()), getItemImage());
+		item.addAction( TRANS("Favorites"), Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod->clone()), getItemImage());
 		item.addRootFiles(*fileMethod);
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, juce::String::empty);
 	}
