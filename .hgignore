@@ -29,6 +29,9 @@ PADGen.lnk
 juceVLC.exe
 JuceVLCsetup-*.exe
 juceVLC-exeOnly-*.zip
+Jucer.exe
+mpc-hc-master/**
+src/Nouveau dossier/**
 syntax: regexp
 FontResource.cpp
 FontResource.h
