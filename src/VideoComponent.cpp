@@ -159,7 +159,7 @@ VideoComponent::VideoComponent()
 {    
 	Languages::getInstance();
 
-	m_toolTip = new juce::TooltipWindow( this,50);
+	//m_toolTip = new juce::TooltipWindow( this,50);
 
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
 
