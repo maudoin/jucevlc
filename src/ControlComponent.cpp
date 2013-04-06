@@ -95,9 +95,10 @@ void SecondaryControlComponent::resized()
 void SecondaryControlComponent::paint(juce::Graphics& g)
 {
 }
-void SecondaryControlComponent::show(juce::String const& label, ActionSliderCallback const& f, double value, double volumeMin, double volumeMax, double step, double buttonsStep)
+void SecondaryControlComponent::show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
 {
 	m_buttonsStep = buttonsStep;
+	m_resetValue = resetValue;
 	bool showButtons = m_buttonsStep>0.;
 	m_leftButton->setVisible(showButtons);
 	m_rightButton->setVisible(showButtons);
@@ -257,13 +258,15 @@ void ControlComponent::resized()
 	int buttonSize = 0.5*h;
 	int hMargin =buttonSize/2;
 	int sliderHeight = 0.3*h;
-	m_slider->setBounds (hMargin, h-sliderHeight-buttonSize, w-2*hMargin, sliderHeight);
+	int playPauseButtonSize = buttonSize+sliderHeight;
+	int sliderLeftMargin = hMargin + playPauseButtonSize;
+	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
 
-	m_playPauseButton->setBounds (hMargin, h-buttonSize, buttonSize, buttonSize);
-	m_stopButton->setBounds (hMargin+buttonSize, h-buttonSize, buttonSize, buttonSize);	
-	m_menuButton->setBounds (hMargin+2*buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_playPauseButton->setBounds (hMargin, h-playPauseButtonSize, playPauseButtonSize, playPauseButtonSize);
+	m_stopButton->setBounds (hMargin+playPauseButtonSize, h-buttonSize, buttonSize, buttonSize);	
+	m_menuButton->setBounds (hMargin+playPauseButtonSize+buttonSize, h-buttonSize, buttonSize, buttonSize);
 
-	int alternateX = 7*buttonSize;
+	int alternateX = playPauseButtonSize+6*buttonSize;
 	int alternateW = w - 2*alternateX;
 	m_alternateSliderModeButton->setBounds (alternateX-buttonSize, h-buttonSize, buttonSize, buttonSize);
 	m_alternateControlComponent->setBounds (alternateX, h-buttonSize+(buttonSize-sliderHeight)/2, alternateW, sliderHeight);

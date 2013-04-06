@@ -64,7 +64,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	std::set<juce::String> m_videoExtensions;
 	std::set<juce::String> m_playlistExtensions;
 	std::set<juce::String> m_subtitlesExtensions;
-	std::set<juce::String> m_suportedExtensions;
+	std::vector< std::set<juce::String> > m_suportedExtensions;
 
 public:
     VideoComponent();
@@ -123,7 +123,7 @@ public:
     void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
 	
 
-	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
+	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
 	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
     void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
     void onVLCOptionIntRangeMenu (MenuTreeItem& item, std::string, const char* format, int min, int max, int defaultVal);

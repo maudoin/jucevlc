@@ -25,7 +25,7 @@
                          add("m2t");add("m2ts");add("m4v");add("mkv");add("mov");add("mp2");add("mp2v");add("mp4");add("mp4v");add("mpa");add("mpe");add("mpeg");add("mpeg1");\
                          add("mpeg2");add("mpeg4");add("mpg");add("mpv2");add("mts");add("mtv");add("mxf");add("mxg");add("nsv");add("nuv");\
                          add("ogg");add("ogm");add("ogv");add("ogx");add("ps");\
-                         add("rec");add("rm");add("rmvb");add("tod");add("ts");add("tts");add("vob");add("vro");add("webm");add("wm");add("wmv");
+                         add("rec");add("rm");add("rmvb");add("tod");add("ts");add("tts");add("vob");add("vro");add("webm");add("wm");add("wmv");add("flv");
 
 #define EXTENSIONS_PLAYLIST(add) add("asx");add("b4s");add("cue");add("ifo");add("m3u");add("m3u8");add("pls");add("ram");add("rar");add("sdp");add("vlc");add("xspf");add("wvx");add("zip");add("conf");
 
@@ -176,7 +176,10 @@ VideoComponent::VideoComponent()
 	EXTENSIONS_VIDEO(m_videoExtensions.insert)
 	EXTENSIONS_PLAYLIST(m_playlistExtensions.insert)
 	EXTENSIONS_SUBTITLE(m_subtitlesExtensions.insert)
-	EXTENSIONS_MEDIA(m_suportedExtensions.insert)
+
+	m_suportedExtensions.push_back(m_videoExtensions);
+	m_suportedExtensions.push_back(m_subtitlesExtensions);
+	m_suportedExtensions.push_back(m_playlistExtensions);
 
 
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
@@ -777,31 +780,31 @@ void VideoComponent::showVolumeSlider()
 {
 	controlComponent->alternateControlComponent().show(TRANS("Audio Volume: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
-		vlc->getVolume(), 1., 200., .1);
+		vlc->getVolume(), 100., 1., 200., .1);
 }
 void VideoComponent::showPlaybackSpeedSlider ()
 {
 	controlComponent->alternateControlComponent().show(TRANS("Speed: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
-		vlc->getRate(), 50., 800., .1);
+		vlc->getRate(), 100., 50., 800., .1);
 }
 void VideoComponent::showZoomSlider ()
 {
 	controlComponent->alternateControlComponent().show(TRANS("Zoom: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
-		vlc->getScale(), 50., 500., .1);
+		vlc->getScale(), 100., 50., 500., .1);
 }
 void VideoComponent::showAudioOffsetSlider ()
 {
 	controlComponent->alternateControlComponent().show(TRANS("Audio offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), _1),
-		vlc->getAudioDelay()/1000000., -2., 2., .01, 2.);
+		vlc->getAudioDelay()/1000000., 0., -2., 2., .01, 2.);
 }
 void VideoComponent::showSubtitlesOffsetSlider ()
 {
 	controlComponent->alternateControlComponent().show(TRANS("Subtitles offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), _1),
-		vlc->getSubtitleDelay()/1000000., -2., 2., .01, 2.);
+		vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.);
 }
 ////////////////////////////////////////////////////////////
 //
@@ -921,19 +924,23 @@ bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
 }
 struct FileSorter
 {
-	std::set<juce::String> priorityExtensions;
-	FileSorter(std::set<juce::String> const& priorityExtensions_):priorityExtensions(priorityExtensions_) {}
+	std::vector< std::set<juce::String> > priorityExtensions;
+	FileSorter(std::set<juce::String> const& priorityExtensions_){priorityExtensions.push_back(priorityExtensions_);}
+	FileSorter(std::vector< std::set<juce::String> > const& priorityExtensions_):priorityExtensions(priorityExtensions_) {}
 	int rank(juce::File const& f)
 	{
 		if(f.isDirectory())
 		{
-			return 1;
+			return 0;
 		}
-		if(extensionMatch(priorityExtensions, f))
+		for(std::vector< std::set<juce::String> >::const_iterator it = priorityExtensions.begin();it != priorityExtensions.end();++it)
 		{
-			return 2;
+			if(extensionMatch(*it, f))
+			{
+				return 1+(it-priorityExtensions.begin());
+			}
 		}
-		return 3;
+		return priorityExtensions.size()+1;
 	}
 	int compareElements(juce::File const& some, juce::File const& other)
 	{
@@ -985,11 +992,8 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 		
 		juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpen));
 
-		
-		item.addChildrenFiles(file, *(fileMethod.get()), nullptr, juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-
 		juce::Array<juce::File> destArray;
-		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
+		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
 		destArray.sort(FileSorter(m_suportedExtensions));
 		for(int i=0;i<destArray.size();++i)
 		{
@@ -1076,11 +1080,11 @@ void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
 	vlc->setVoutOptionInt(option.c_str(), (int)value);
 
 }
-void VideoComponent::onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double volumeMin, double volumeMax, double step, double buttonsStep)
+void VideoComponent::onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(label, 
-		boost::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, volumeMin, volumeMax, step, buttonsStep);
+		boost::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, resetValue, volumeMin, volumeMax, step, buttonsStep);
 }
 void VideoComponent::onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic)
 {
@@ -1093,7 +1097,7 @@ void VideoComponent::onMenuSubtitlePositionMode(MenuTreeItem& item, bool automat
 	{
 		onMenuVoutIntOption(item,TRANS("Subtitle pos.: %+.f"), 
 		std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
-		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.);
+		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., 0., (double)getHeight(), 1., 0.);
 	}
 	else
 	{
@@ -1435,35 +1439,35 @@ void VideoComponent::onMenuVideoContrast (MenuTreeItem& item)
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(TRANS("Contrast: %+.3fs"),
 		boost::bind<void>(&VLCWrapper::setVideoContrast, vlc.get(), _1),
-		vlc->getVideoContrast(), 0., 2., .01);
+		vlc->getVideoContrast(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoBrightness (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(TRANS("Brightness: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoBrightness, vlc.get(), _1),
-		vlc->getVideoBrightness(), 0., 2., .01);
+		vlc->getVideoBrightness(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoHue (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(TRANS("Hue"),
 		boost::bind<void>(&VLCWrapper::setVideoHue, vlc.get(), _1),
-		vlc->getVideoHue(), 0, 256., .1);
+		vlc->getVideoHue(), vlc->getVideoHue(), 0, 256., .1);
 }
 void  VideoComponent::onMenuVideoSaturation (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(TRANS("Saturation: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoSaturation, vlc.get(), _1),
-		vlc->getVideoSaturation(), 0., 2., .01);
+		vlc->getVideoSaturation(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoGamma (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
 	controlComponent->alternateControlComponent().show(TRANS("Gamma: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoGamma, vlc.get(), _1),
-		vlc->getVideoGamma(), 0., 2., .01);
+		vlc->getVideoGamma(), 1., 0., 2., .01);
 }
 
 void VideoComponent::onMenuVideoTrack (MenuTreeItem& item, int id)

@@ -56,6 +56,7 @@ class SecondaryControlComponent   : public juce::Component, public juce::Button:
     juce::ScopedPointer<juce::Drawable> m_leftImage;
     juce::ScopedPointer<juce::Drawable> m_rightImage;
 	double m_buttonsStep;
+	double m_resetValue;
 public:
 	SecondaryControlComponent();
 	virtual ~SecondaryControlComponent();
@@ -65,7 +66,7 @@ public:
 	void buttonClicked (juce::Button* button);
 	
 	void paint(juce::Graphics& g);
-	void show(juce::String const& label, ActionSliderCallback const& f, double value, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
+	void show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
 	
 };
 
