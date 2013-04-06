@@ -94,14 +94,14 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
     juce::ScopedPointer<juce::DrawableButton> m_stopButton;
     juce::ScopedPointer<juce::DrawableButton> m_menuButton;
-    juce::ScopedPointer<juce::DrawableButton> m_alternateSliderModeButton;
+    juce::ScopedPointer<juce::DrawableButton> m_auxilliarySliderModeButton;
     juce::ScopedPointer<juce::DrawableButton> m_resetButton;
     juce::ScopedPointer<juce::Drawable> m_playImage;
     juce::ScopedPointer<juce::Drawable> m_pauseImage;
     juce::ScopedPointer<juce::Drawable> m_stopImage;
     juce::ScopedPointer<juce::Drawable> m_itemImage;
     juce::ScopedPointer<juce::Drawable> m_folderImage;
-    juce::ScopedPointer<SecondaryControlComponent> m_alternateControlComponent;
+    juce::ScopedPointer<SecondaryControlComponent> m_auxilliaryControlComponent;
 	juce::String timeString;
 	juce::String currentTimeString;
 public:
@@ -122,9 +122,9 @@ public:
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 	juce::DrawableButton& menuButton(){return *m_menuButton.get();}
-	juce::DrawableButton& alternateSliderModeButton(){return *m_alternateSliderModeButton.get();}
+	juce::DrawableButton& auxilliarySliderModeButton(){return *m_auxilliarySliderModeButton.get();}
 	juce::DrawableButton& resetButton(){return *m_resetButton.get();}
-	SecondaryControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}
+	SecondaryControlComponent& auxilliaryControlComponent(){return *m_auxilliaryControlComponent.get();}
 
 };
 #endif //CONTORL_COMPONENT_H

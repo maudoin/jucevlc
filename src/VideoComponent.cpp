@@ -192,7 +192,7 @@ VideoComponent::VideoComponent()
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
 	controlComponent->menuButton().addListener(this);
-	controlComponent->alternateSliderModeButton().addListener(this);
+	controlComponent->auxilliarySliderModeButton().addListener(this);
 	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 
@@ -468,10 +468,10 @@ public:
     }
 
 };
-static void alternateSliderModeButtonCallback (int result, VideoComponent* videoComponent)
+static void auxilliarySliderModeButtonCallback (int result, VideoComponent* videoComponent)
 {
     if (result != 0 && videoComponent != 0)
-        videoComponent->alternateSliderModeButton(result);
+        videoComponent->auxilliarySliderModeButton(result);
 }
 void VideoComponent::buttonClicked (juce::Button* button)
 {
@@ -500,9 +500,9 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	}
 	else if(button == &controlComponent->resetButton())
 	{
-		controlComponent->alternateControlComponent().reset();
+		controlComponent->auxilliaryControlComponent().reset();
 	}
-	else if(button == &controlComponent->alternateSliderModeButton())
+	else if(button == &controlComponent->auxilliarySliderModeButton())
 	{
 		
 		int buttonWidth = 0.03*controlComponent->getWidth();
@@ -515,13 +515,13 @@ void VideoComponent::buttonClicked (juce::Button* button)
         m.addCustomItem (E_POPUP_ITEM_SHOW_CURRENT_TIME, new DrawableMenuComponent(itemImage.get(), buttonWidth));
 
         m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (button),
-                             juce::ModalCallbackFunction::forComponent (alternateSliderModeButtonCallback, this));
+                             juce::ModalCallbackFunction::forComponent (auxilliarySliderModeButtonCallback, this));
 
 		//todo update icon/checked item
 	}
 }
 
-void VideoComponent::alternateSliderModeButton(int result)
+void VideoComponent::auxilliarySliderModeButton(int result)
 {
 	switch(result)
 	{
@@ -538,7 +538,7 @@ void VideoComponent::alternateSliderModeButton(int result)
 		showPlaybackSpeedSlider();
 		break;
 	case E_POPUP_ITEM_SHOW_CURRENT_TIME:
-		controlComponent->alternateControlComponent().disableAndHide();
+		controlComponent->auxilliaryControlComponent().disableAndHide();
 		break;
 	}
 }
@@ -785,31 +785,31 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 
 void VideoComponent::showVolumeSlider()
 {
-	controlComponent->alternateControlComponent().show(TRANS("Audio Volume: %.f%%"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Audio Volume: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
 		vlc->getVolume(), 100., 1., 200., .1);
 }
 void VideoComponent::showPlaybackSpeedSlider ()
 {
-	controlComponent->alternateControlComponent().show(TRANS("Speed: %.f%%"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Speed: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
 		vlc->getRate(), 100., 50., 800., .1);
 }
 void VideoComponent::showZoomSlider ()
 {
-	controlComponent->alternateControlComponent().show(TRANS("Zoom: %.f%%"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Zoom: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
 		vlc->getScale(), 100., 50., 500., .1);
 }
 void VideoComponent::showAudioOffsetSlider ()
 {
-	controlComponent->alternateControlComponent().show(TRANS("Audio offset: %+.3fs"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Audio offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftAudio, boost::ref(*this), _1),
 		vlc->getAudioDelay()/1000000., 0., -2., 2., .01, 2.);
 }
 void VideoComponent::showSubtitlesOffsetSlider ()
 {
-	controlComponent->alternateControlComponent().show(TRANS("Subtitles offset: %+.3fs"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Subtitles offset: %+.3fs"),
 		boost::bind<void>(&VideoComponent::onMenuShiftSubtitles, boost::ref(*this), _1),
 		vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.);
 }
@@ -1090,7 +1090,7 @@ void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
 void VideoComponent::onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(label, 
+	controlComponent->auxilliaryControlComponent().show(label, 
 		boost::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, resetValue, volumeMin, volumeMax, step, buttonsStep);
 }
 void VideoComponent::onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic)
@@ -1444,35 +1444,35 @@ void VideoComponent::onMenuVideoAdjust (MenuTreeItem& item)
 void VideoComponent::onMenuVideoContrast (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(TRANS("Contrast: %+.3fs"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Contrast: %+.3fs"),
 		boost::bind<void>(&VLCWrapper::setVideoContrast, vlc.get(), _1),
 		vlc->getVideoContrast(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoBrightness (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(TRANS("Brightness: %+.3f"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Brightness: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoBrightness, vlc.get(), _1),
 		vlc->getVideoBrightness(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoHue (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(TRANS("Hue"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Hue"),
 		boost::bind<void>(&VLCWrapper::setVideoHue, vlc.get(), _1),
 		vlc->getVideoHue(), vlc->getVideoHue(), 0, 256., .1);
 }
 void  VideoComponent::onMenuVideoSaturation (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(TRANS("Saturation: %+.3f"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Saturation: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoSaturation, vlc.get(), _1),
 		vlc->getVideoSaturation(), 1., 0., 2., .01);
 }
 void  VideoComponent::onMenuVideoGamma (MenuTreeItem& item)
 {
 	setBrowsingFiles(false);
-	controlComponent->alternateControlComponent().show(TRANS("Gamma: %+.3f"),
+	controlComponent->auxilliaryControlComponent().show(TRANS("Gamma: %+.3f"),
 		boost::bind<void>(&VLCWrapper::setVideoGamma, vlc.get(), _1),
 		vlc->getVideoGamma(), 1., 0., 2., .01);
 }

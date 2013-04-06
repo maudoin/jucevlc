@@ -221,7 +221,7 @@ public:
 		, E_POPUP_ITEM_PLAY_SPEED_SLIDER
 		, E_POPUP_ITEM_SHOW_CURRENT_TIME
 	};
-	void alternateSliderModeButton(int result);
+	void auxilliarySliderModeButton(int result);
 private:
 	
 	void handleIdleTimeAndControlsVisibility();
