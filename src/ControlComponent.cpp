@@ -35,6 +35,10 @@ public:
 	{
 		m_f(slider->getValue());
 	}
+	void disable()
+	{
+		setCallback(boost::bind(&nop, _1));
+	}
 	void setup(juce::String const& label, ActionSliderCallback const& f, double value, double volumeMin, double volumeMax, double step)
 	{
 		setRange(volumeMin, volumeMax, step);
@@ -107,6 +111,15 @@ void SecondaryControlComponent::show(juce::String const& label, ActionSliderCall
 	setVisible(true);
 }
 	
+void SecondaryControlComponent::reset()
+{
+	m_slider->setValue(m_resetValue);
+}
+void SecondaryControlComponent::disableAndHide()
+{
+	m_slider->disable();
+	setVisible(false);
+}
 void SecondaryControlComponent::buttonClicked (juce::Button* button)
 {
 	double value = m_slider->getValue();
@@ -217,15 +230,24 @@ ControlComponent::ControlComponent()
     m_playPauseButton = new juce::DrawableButton("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);
 	m_playPauseButton->setImages(m_playImage);
+
     m_stopButton = new juce::DrawableButton("stop", juce::DrawableButton::ImageFitted);
 	m_stopButton->setOpaque(false);
 	m_stopButton->setImages(m_stopImage);	
+
     m_menuButton = new juce::DrawableButton("menuButton", juce::DrawableButton::ImageFitted);
 	m_menuButton->setOpaque(false);
 	m_menuButton->setImages(m_folderImage);
+	m_menuButton->setTooltip(TRANS("Quick menu"));
+
     m_alternateSliderModeButton = new juce::DrawableButton("2ndSliderModeButton", juce::DrawableButton::ImageFitted);
 	m_alternateSliderModeButton->setOpaque(false);
 	m_alternateSliderModeButton->setImages(m_itemImage);
+
+    m_resetButton = new juce::DrawableButton("ResetButton", juce::DrawableButton::ImageFitted);
+	m_resetButton->setOpaque(false);
+	m_resetButton->setImages(m_itemImage);
+	m_menuButton->setTooltip(TRANS("Reset"));
 	
 
 	m_alternateControlComponent = new SecondaryControlComponent();
@@ -235,6 +257,7 @@ ControlComponent::ControlComponent()
     addAndMakeVisible(m_stopButton);
     addAndMakeVisible(m_menuButton);
     addAndMakeVisible(m_alternateSliderModeButton);
+    addAndMakeVisible(m_resetButton);
     addChildComponent(m_alternateControlComponent);
 
 	
@@ -245,6 +268,8 @@ ControlComponent::~ControlComponent()
 	m_slider = nullptr;
 	m_playPauseButton = nullptr;
 	m_stopButton = nullptr;
+	m_alternateSliderModeButton = nullptr;
+	m_resetButton = nullptr;
 	m_playImage = nullptr;
 	m_pauseImage = nullptr;
 	m_stopImage = nullptr;
@@ -270,6 +295,8 @@ void ControlComponent::resized()
 	int alternateW = w - 2*alternateX;
 	m_alternateSliderModeButton->setBounds (alternateX-buttonSize, h-buttonSize, buttonSize, buttonSize);
 	m_alternateControlComponent->setBounds (alternateX, h-buttonSize+(buttonSize-sliderHeight)/2, alternateW, sliderHeight);
+
+	m_resetButton->setBounds (alternateX+m_alternateControlComponent->getWidth(), h-buttonSize, buttonSize, buttonSize);
 }
 void ControlComponent::paint(juce::Graphics& g)
 {

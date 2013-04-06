@@ -31,6 +31,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #else
     juce::ScopedPointer<juce::Component> vlcNativePopupComponent;
 #endif
+    juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<MenuTree> tree;
     juce::CriticalSection imgCriticalSection;

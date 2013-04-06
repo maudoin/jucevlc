@@ -66,6 +66,8 @@ public:
 	void buttonClicked (juce::Button* button);
 	
 	void paint(juce::Graphics& g);
+	void reset();
+	void disableAndHide();
 	void show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
 	
 };
@@ -93,6 +95,7 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     juce::ScopedPointer<juce::DrawableButton> m_stopButton;
     juce::ScopedPointer<juce::DrawableButton> m_menuButton;
     juce::ScopedPointer<juce::DrawableButton> m_alternateSliderModeButton;
+    juce::ScopedPointer<juce::DrawableButton> m_resetButton;
     juce::ScopedPointer<juce::Drawable> m_playImage;
     juce::ScopedPointer<juce::Drawable> m_pauseImage;
     juce::ScopedPointer<juce::Drawable> m_stopImage;
@@ -120,6 +123,7 @@ public:
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 	juce::DrawableButton& menuButton(){return *m_menuButton.get();}
 	juce::DrawableButton& alternateSliderModeButton(){return *m_alternateSliderModeButton.get();}
+	juce::DrawableButton& resetButton(){return *m_resetButton.get();}
 	SecondaryControlComponent& alternateControlComponent(){return *m_alternateControlComponent.get();}
 
 };

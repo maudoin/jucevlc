@@ -87,6 +87,8 @@ countries: fr be mc ch lu\n\
 \"Color\" = \"Couleur\"\n\
 \"Outline Color\" = \"Couleur du contour\"\n\
 \"Equalizer\" = \"Equaliseur\"\n\
+\"Quick menu\" = \"Raccourcis\"\n\
+\"Reset\" = \"Réinitialiser\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

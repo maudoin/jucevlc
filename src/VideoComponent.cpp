@@ -159,6 +159,8 @@ VideoComponent::VideoComponent()
 {    
 	Languages::getInstance();
 
+	m_toolTip = new juce::TooltipWindow( this,50);
+
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
 
     itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
@@ -191,6 +193,7 @@ VideoComponent::VideoComponent()
 	controlComponent->stopButton().addListener(this);
 	controlComponent->menuButton().addListener(this);
 	controlComponent->alternateSliderModeButton().addListener(this);
+	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 
 	tree = new MenuTree ();
@@ -495,6 +498,10 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(!tree->isVisible());
 	}
+	else if(button == &controlComponent->resetButton())
+	{
+		controlComponent->alternateControlComponent().reset();
+	}
 	else if(button == &controlComponent->alternateSliderModeButton())
 	{
 		
@@ -531,7 +538,7 @@ void VideoComponent::alternateSliderModeButton(int result)
 		showPlaybackSpeedSlider();
 		break;
 	case E_POPUP_ITEM_SHOW_CURRENT_TIME:
-		controlComponent->alternateControlComponent().setVisible(false);
+		controlComponent->alternateControlComponent().disableAndHide();
 		break;
 	}
 }
