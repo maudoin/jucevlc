@@ -1,45 +1,18 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<TITLE>VLC Plugin test page</TITLE>
-<STYLE>
+<html>
+<title>VLC Plugin test page</TITLE>
+<style>
   .inputTrackerInput {
         height:20;
         width:30;
         font-family : Arial, Helvetica, sans-serif;
         font-size : 12px;
   }
-</STYLE>
+</style>
 
-<SCRIPT type="text/javascript" src="blueshoes-4.5/javascript/lib/LibCrossBrowser.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="blueshoes-4.5/javascript/lib/EventHandler.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="blueshoes-4.5/javascript/core/form/Bs_FormUtil.lib.js"></SCRIPT>
-<SCRIPT type="text/javascript" src="blueshoes-4.5/javascript/components/slider/Bs_Slider.class.js"></SCRIPT>
-
-<SCRIPT language="JavaScript"><!--
+<script language="JavaScript"><!--
 function init()
 {
-    inputTracker = new Bs_Slider();
-    if (inputTracker)
-    {
-        inputTracker.attachOnChange(onInputTrackerChange);
-        inputTracker.attachOnSlideStart(onInputTrackerScrollStart);
-        inputTracker.attachOnSlideEnd(onInputTrackerScrollEnd);
-        inputTracker.width         = 530;
-        inputTracker.height        = 15;
-        inputTracker.minVal        = 0;
-        inputTracker.maxVal        = 1.0;
-        inputTracker.valueDefault  = 0;
-        inputTracker.valueInterval = 1/530;
-        inputTracker.setDisabled(true);
-        inputTracker.imgDir   = 'blueshoes-4.5/javascript/components/slider/img/';
-        inputTracker.setBackgroundImage('aluminumalloyvolcanic/horizontal_background.gif', 'repeat');
-        inputTracker.setArrowIconLeft('aluminumalloyvolcanic/horizontal_backgroundLeft.gif', 2, 19);
-        inputTracker.setArrowIconRight('aluminumalloyvolcanic/horizontal_backgroundRight.gif', 2, 19);
-        inputTracker.setSliderIcon('aluminumalloyvolcanic/horizontal_knob.gif', 15, 19);
-        inputTracker.useInputField = 0;
-        inputTracker.draw('inputTrackerDiv');
-    }
-
     if( navigator.appName.indexOf("Microsoft Internet")==-1 )
     {
         onVLCPluginReady()
@@ -235,10 +208,6 @@ function onVLCPluginReady()
 
 function close()
 {
-    unregisterVLCEvent('MediaPlayerMouseGrab', handleMouseGrab);
-    unregisterVLCEvent('MediaPlayerMouseRelease', handleMouseRelease);
-    unregisterVLCEvent('MediaPlayerMouseClick', handleMouseClick);
-
     unregisterVLCEvent("MediaPlayerMediaChanged", handleMediaPlayerMediaChanged);
     unregisterVLCEvent("MediaPlayerNothingSpecial", handle_MediaPlayerNothingSpecial);
     unregisterVLCEvent("MediaPlayerOpening", handle_MediaPlayerOpening);
@@ -258,21 +227,24 @@ function close()
     unregisterVLCEvent("MediaPlayerLengthChanged", handle_MediaPlayerLengthChanged);
 }
 
-//--></SCRIPT>
+//--></script>
 
-<BODY onLoad="init();" onClose="close();>
-<TABLE>
-<TR><TD colspan="2">
+<body onLoad="init();" onClose="close();">
+
+<div style="width: 600; height: 200; top:200px; position: absolute; border: 1pt solid black; background: blue; border-radius: 5px; display: none;" id="overlay"></div>
+<table>
+<tr><td colspan="2">
 MRL:
-<INPUT size="90" id="targetTextField" value="">
-<INPUT type=submit value="Go" onClick="doGo(document.getElementById('targetTextField').value);">
-<INPUT type=submit value="Add" onClick="doAdd(document.getElementById('targetTextField').value);">
-</TD></TR>
-<TR><TD align="center" colspan="2">
+<input size="90" id="targetTextField" value="">
+<input type=submit value="Go" onClick="doGo(document.getElementById('targetTextField').value);">
+<input type=submit value="Add" onClick="doAdd(document.getElementById('targetTextField').value);">
+</td></tr>
+<tr><td align="center" colspan="2">
+
 <!--
 Insert VideoLAN.VLCPlugin.2
 -->
-<OBJECT classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
+<object classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921"
         width="640"
         height="480"
         id="vlc"
@@ -290,152 +262,149 @@ Insert VideoLAN.VLCPlugin.2
        width="640"
        height="480"
        toolbar="true"
+       loop="true"
        text="Waiting for video"
        name="vlc">
 </EMBED>
-</OBJECT>
-</TD></TR>
-<TR><TD colspan="2">
-<TABLE><TR>
-<TD valign="top" width="550">
+</object>
+</td></tr>
+<tr><td colspan="2">
+<table><tr>
+<td valign="top" width="550">
 <!--
 Insert Slider widget
 -->
-<DIV id="inputTrackerDiv"</DIV>
-</TD><TD width="15%">
-<DIV id="info" style="text-align:center">-:--:--/-:--:--</DIV>
-<DIV id="state" style="text-align:center">Stopped...</DIV>
-</TD></TR></TABLE>
-</TD></TR>
-<TR><TD>
-<INPUT type=button id="PlayOrPause" value=" Play " onClick='doPlayOrPause();'>
-<INPUT type=button value="Stop" onClick='doStop();'>
+<div id="inputTrackerDiv"></div>
+</td><td width="15%">
+<div id="info" style="text-align:center">-:--:--/-:--:--</div>
+<div id="state" style="text-align:center">Stopped...</div>
+</td></tr></table>
+</td></tr>
+<tr><td>
+<input type=button id="PlayOrPause" value=" Play " onClick='doPlayOrPause();'>
+<input type=button value="Stop" onClick='doStop();'>
 &nbsp;
-<INPUT type=button value=" << " onClick='doPlaySlower();'>
-<INPUT type=button value="Reverse" onClick='doReverse();'>
-<INPUT type=button value=" >> " onClick='doPlayFaster();'>
+<input type=button value=" << " onClick='doPlaySlower();'>
+<input type=button value="Reverse" onClick='doReverse();'>
+<input type=button value=" >> " onClick='doPlayFaster();'>
 &nbsp;
-<INPUT type=button value="Fullscreen" onClick='getVLC("vlc").video.toggleFullscreen();'>
-<INPUT type=button value="Version" onClick='alert("vlc " + getVLC("vlc").VersionInfo);'>
-<INPUT type=button value=" State " onClick='alert("state: " + getVLC("vlc").input.state);'>
-</TD><TD align="right">
+<input type=button value="Fullscreen" onClick='getVLC("vlc").video.toggleFullscreen();'>
+<input type=button value="Version" onClick='alert("vlc " + getVLC("vlc").VersionInfo);'>
+<input type=button value=" State " onClick='alert("state: " + getVLC("vlc").input.state);'>
+</td><td align="right">
 <SPAN style="text-align:center">Volume:</SPAN>
-<INPUT type=button value=" - " onClick='updateVolume(-10)'>
+<input type=button value=" - " onClick='updateVolume(-10)'>
 <SPAN id="volumeTextField" style="text-align:center">--</SPAN>
-<INPUT type=button value=" + " onClick='updateVolume(+10)'>
-<INPUT type=button value="Mute" onClick='getVLC("vlc").audio.toggleMute();'>
-</TD>
-</TR>
-<TR><TD>Playlist:
-<INPUT type=button value="Prev" onClick='getVLC("vlc").playlist.prev();'>
-<INPUT type=button value="Next" onClick='getVLC("vlc").playlist.next();'>
-<INPUT type=button value="Clear All" onClick='doPlaylistClearAll();'>
+<input type=button value=" + " onClick='updateVolume(+10)'>
+<input type=button value="Mute" onClick='getVLC("vlc").audio.toggleMute();'>
+</td>
+</tr>
+<tr><td>Playlist:
+<input type=button value="Prev" onClick='getVLC("vlc").playlist.prev();'>
+<input type=button value="Next" onClick='getVLC("vlc").playlist.next();'>
+<input type=button value="Clear All" onClick='doPlaylistClearAll();'>
     Aspect Ratio:
-    <SELECT readonly onChange='doAspectRatio(this.value)'>
-      <OPTION value="default">Default</OPTION>
-      <OPTION value="1:1">1:1</OPTION>
-      <OPTION value="4:3">4:3</OPTION>
-      <OPTION value="16:9">16:9</OPTION>
-      <OPTION value="221:100">221:100</OPTION>
-      <OPTION value="5:4">5:4</OPTION>
-    </SELECT>
-</TD><TD align="right">
-<INPUT type=button id="itemCount" value=" Items 0 " onClick='doItemCount();'>
-<INPUT size=4 value="" id="removeid"><INPUT type=submit value="Delete" onClick="doRemoveItem(document.getElementById('removeid').value);">
-</TD>
-</TR>
-<TR><TD>Audio Channel:
-  <SELECT readonly onClick='doAudioChannel(this.value);'>
-    <OPTION value=1>Stereo</OPTION>
-    <OPTION value=2>Reverse Stereo</OPTION>
-    <OPTION value=3>Left</OPTION>
-    <OPTION value=4>Right</OPTION>
-    <OPTION value=5>Dolby</OPTION>
-  </SELECT>
-</TD>
-<TD>
-<INPUT type=button value="current channel" onClick='alert(getVLC("vlc").audio.channel);'>
-</TD>
-</TR>
-<TR><TD> Audio Track:
-<INPUT type=button value=" + " onClick='doAudioTrack(1);'>
+    <select readonly onChange='doAspectRatio(this.value)'>
+      <option value="default">Default</option>
+      <option value="1:1">1:1</option>
+      <option value="4:3">4:3</option>
+      <option value="16:9">16:9</option>
+      <option value="221:100">221:100</option>
+      <option value="5:4">5:4</option>
+    </select>
+</td><td align="right">
+<input type=button id="itemCount" value=" Items 0 " onClick='doItemCount();'>
+<input size=4 value="" id="removeid"><input type=submit value="Delete" onClick="doRemoveItem(document.getElementById('removeid').value);">
+</td>
+</tr>
+<tr><td>Audio Channel:
+  <select readonly onClick='doAudioChannel(this.value);'>
+    <option value=1>Stereo</option>
+    <option value=2>Reverse Stereo</option>
+    <option value=3>Left</option>
+    <option value=4>Right</option>
+    <option value=5>Dolby</option>
+  </select>
+</td>
+<td>
+<input type=button value="current channel" onClick='alert(getVLC("vlc").audio.channel);'>
+</td>
+</tr>
+<tr><td> Audio Track:
+<input type=button value=" + " onClick='doAudioTrack(1);'>
 <SPAN id="trackTextField" style="text-align:center">--</SPAN>
-<INPUT type=button value=" - " onClick='doAudioTrack(-1);'>
-<INPUT type=button value="current track" onClick='alert(getVLC("vlc").audio.description(vlc.audio.track));'>
-<INPUT type=button value="number of track" onClick='alert(getVLC("vlc").audio.count);'>
-</TD>
-<TD>
-<INPUT type=button value="set slider" onClick='doSetSlider();'>
-<INPUT type=button value="get position" onClick='doGetPosition();'>
-</TD>
-</TR>
-<TR>
-<TD>Video Subtitle:
-    <INPUT type=button value=" + " onClick='doSubtitle(1);'>
+<input type=button value=" - " onClick='doAudioTrack(-1);'>
+<input type=button value="current track" onClick='alert(getVLC("vlc").audio.description(vlc.audio.track));'>
+<input type=button value="number of track" onClick='alert(getVLC("vlc").audio.count);'>
+</td>
+<td>
+<input type=button value="set slider" onClick='doSetSlider();'>
+<input type=button value="get position" onClick='doGetPosition();'>
+</td>
+</tr>
+<tr>
+<td>Video Subtitle:
+    <input type=button value=" + " onClick='doSubtitle(1);'>
     <SPAN id="spuTextField" style="text-align:center">--</SPAN>
-    <INPUT type=button value=" - " onClick='doSubtitle(-1);'>
-    <INPUT type=button value="current subtitle" onClick='alert(getVLC("vlc").subtitle.description(vlc.subtitle.track));'>
-    <INPUT type=button value="number of subtitle" onClick='alert(getVLC("vlc").subtitle.count);'>
-</TD>
-</TR>
-<TR>
-<TD>Deinterlacing:
-    <INPUT type=button value="BLEND" onClick='getVLC("vlc").video.deinterlace.enable("blend");'>
-    <INPUT type=button value="  X  " onClick='getVLC("vlc").video.deinterlace.enable("x");'>
-    <INPUT type=button value="Disable" onClick='getVLC("vlc").video.deinterlace.disable();'>
-</TD>
-</TR>
-<TR>
-<TD>Marquee video filter:
-    <INPUT type=button value="Enable" onClick='getVLC("vlc").video.marquee.enable();'>
-    <INPUT type=button value="Disable" onClick='getVLC("vlc").video.marquee.disable();'>
-    <INPUT size=4 value="" id="marqueeIntValue">
-    <SELECT readonly onClick="doMarqueeOption(this.value,document.getElementById('marqueeIntValue').value);">
-        <OPTION value=1>Color</OPTION>
-        <OPTION value=2>Opacity</OPTION>
-        <OPTION value=3>Position</OPTION>
-        <OPTION value=4>Refresh</OPTION>
-        <OPTION value=5>Size</OPTION>
-        <OPTION value=6>Text</OPTION>
-        <OPTION value=7>Timeout</OPTION>
-        <OPTION value=8>X</OPTION>
-        <OPTION value=9>Y</OPTION>
-    </SELECT>
-</TD>
-</TR>
-<TR>
-<TD>Logo video filter:
-    <INPUT type=button value="Enable" onClick='getVLC("vlc").video.logo.enable();'>
-    <INPUT type=button value="Disable" onClick='getVLC("vlc").video.logo.disable();'>
-    <INPUT size=4 value="" id="logoIntValue">
-    <SELECT readonly onClick="doLogoOption(this.value,document.getElementById('logoIntValue').value);">
-        <OPTION value=1>File</OPTION>
-        <OPTION value=2>Position</OPTION>
-        <OPTION value=3>Opacity</OPTION>
-        <OPTION value=4>Repeat</OPTION>
-        <OPTION value=5>Delay</OPTION>
-        <OPTION value=6>X</OPTION>
-        <OPTION value=7>Y</OPTION>
-    </SELECT>
-</TD>
-</TR>
-<TR>
-<TD>
-    <INPUT type=button id="telx" value="Teletext off" onClick='doToggleTeletext();'>
+    <input type=button value=" - " onClick='doSubtitle(-1);'>
+    <input type=button value="current subtitle" onClick='alert(getVLC("vlc").subtitle.description(vlc.subtitle.track));'>
+    <input type=button value="number of subtitle" onClick='alert(getVLC("vlc").subtitle.count);'>
+</td>
+</tr>
+<tr>
+<td>Deinterlacing:
+    <input type=button value="BLEND" onClick='getVLC("vlc").video.deinterlace.enable("blend");'>
+    <input type=button value="  X  " onClick='getVLC("vlc").video.deinterlace.enable("x");'>
+    <input type=button value="Disable" onClick='getVLC("vlc").video.deinterlace.disable();'>
+</td>
+</tr>
+<tr>
+<td>Marquee video filter:
+    <input type=button value="Enable" onClick='getVLC("vlc").video.marquee.enable();'>
+    <input type=button value="Disable" onClick='getVLC("vlc").video.marquee.disable();'>
+    <input size=4 value="" id="marqueeIntValue">
+    <select readonly onClick="doMarqueeOption(this.value,document.getElementById('marqueeIntValue').value);">
+        <option value=1>Color</option>
+        <option value=2>Opacity</option>
+        <option value=3>Position</option>
+        <option value=4>Refresh</option>
+        <option value=5>Size</option>
+        <option value=6>Text</option>
+        <option value=7>Timeout</option>
+        <option value=8>X</option>
+        <option value=9>Y</option>
+    </select>
+</td>
+</tr>
+<tr>
+<td>Logo video filter:
+    <input type=button value="Enable" onClick='getVLC("vlc").video.logo.enable();'>
+    <input type=button value="Disable" onClick='getVLC("vlc").video.logo.disable();'>
+    <input size=4 value="" id="logoIntValue">
+    <select readonly onClick="doLogoOption(this.value,document.getElementById('logoIntValue').value);">
+        <option value=1>File</option>
+        <option value=2>Position</option>
+        <option value=3>Opacity</option>
+        <option value=4>Repeat</option>
+        <option value=5>Delay</option>
+        <option value=6>X</option>
+        <option value=7>Y</option>
+    </select>
+</td>
+</tr>
+<tr>
+<td>
+    <input type=button id="telx" value="Teletext off" onClick='doToggleTeletext();'>
     Teletext page:
-    <INPUT size=4 value="100" id="telxPage" onClick='doTelxPage(document.getElementById("telxPage").value);'>
-</TD>
-</TR>
-</TABLE>
+    <input size=4 value="100" id="telxPage" onClick='doTelxPage(document.getElementById("telxPage").value);'>
+</td>
+</tr>
+</table>
 <SCRIPT language="javascript">
 <!--
 
 var rate = 0;
 var prevState = 0;
-var monitorTimerId = 0;
-var inputTracker;
-var inputTrackerScrolling = false;
-var inputTrackerIgnoreChange = false;
 var telxState = false;
 var canPause = true;
 var canSeek = true;
@@ -597,6 +566,8 @@ function formatTime(timeVal)
         return timeMin+":"+timeSec;
 }
 
+// Old method of querying current state
+// function doState() - depreceated
 function doState()
 {
     var vlc = getVLC("vlc");
@@ -647,71 +618,6 @@ function doState()
     }
 }
 
-function monitor()
-{
-    var vlc = getVLC("vlc");
-    var newState = 0;
-
-    if( vlc )
-    {
-        newState = vlc.input.state;
-    }
-
-    if( prevState != newState )
-    {
-        if( newState == 0 )
-        {
-            // current media has stopped
-            onEnd();
-        }
-        else if( newState == 1 )
-        {
-            // current media is openning/connecting
-            onOpen();
-        }
-        else if( newState == 2 )
-        {
-            // current media is buffering data
-            onBuffer();
-        }
-        else if( newState == 3 )
-        {
-            // current media is now playing
-            onPlay();
-        }
-        else if( newState == 4 )
-        {
-            // current media is now paused
-            onPause();
-        }
-        else if( newState == 5 )
-        {
-            // current media has stopped
-            onStop();
-        }
-        else if( newState == 6 )
-        {
-            // current media has ended
-            onEnd();
-        }
-        else if( newState == 7 )
-        {
-            // current media encountered error
-            onError();
-        }
-        prevState = newState;
-    }
-    else if( newState == 3 )
-    {
-        // current media is playing
-        onPlaying();
-    }
-    if( monitorTimerId == 0 )
-    {
-        monitorTimerId = setInterval("monitor()", 1000);
-    }
-};
-
 /* actions */
 
 function doGo(targetURL)
@@ -733,10 +639,6 @@ function doGo(targetURL)
         {
             // play MRL
             vlc.playlist.playItem(itemId);
-            if( monitorTimerId == 0 )
-            {
-                monitor();
-            }
         }
         else
         {
@@ -763,36 +665,15 @@ function doPlayOrPause()
     var vlc = getVLC("vlc");
     if( vlc )
     {
-        if( vlc.playlist.isPlaying && canPause )
-        {
             vlc.playlist.togglePause();
-            //monitor();
-        }
-        else if( vlc.playlist.items.count > 0 )
-        {
-            vlc.playlist.play();
-            //monitor();
-        }
-        else
-        {
-            alert('nothing to play !');
-        }
     }
 }
 
 function doStop()
 {
     var vlc = getVLC("vlc");
-
     if( vlc )
         vlc.playlist.stop();
-
-    if( monitorTimerId != 0 )
-    {
-        clearInterval(monitorTimerId);
-        monitorTimerId = 0;
-    }
-    onStop();
 }
 
 function doPlaySlower()
@@ -890,46 +771,23 @@ var liveFeedRoll = 0;
 
 function onPlaying()
 {
-    if( !inputTrackerScrolling )
-    {
         var vlc = getVLC("vlc");
         var info = document.getElementById("info");
         if( vlc )
         {
             var mediaLen = vlc.input.length;
-            inputTrackerIgnoreChange = true;
             if( mediaLen > 0 )
             {
                 // seekable media
-                if( inputTracker )
-                {
-                    if( inputTracker.maxVal == 1.0 )
-                    {
-                        inputTracker.setDisabled(false);
-                        inputTracker.maxVal = 1.0;
-                    }
-                    inputTracker.setValue(vlc.input.position);
-                }
                 info.innerHTML = formatTime(vlc.input.time)+"/"+formatTime(mediaLen);
             }
             else
             {
                 // non-seekable "live" media
-                if( inputTracker )
-                {
-                    if( inputTracker.maxVal != 0.0 )
-                    {
-                        inputTracker.maxVal = 0.0;
-                        inputTracker.setValue(0.0);
-                        inputTracker.setDisabled(true);
-                    }
-                }
                 liveFeedRoll = liveFeedRoll & 3;
                 info.innerHTML = liveFeedText[liveFeedRoll++];
             }
-            inputTrackerIgnoreChange  = false;
         }
-    }
 }
 
 function onPause()
@@ -941,15 +799,6 @@ function onPause()
 function onStop()
 {
     var vlc = getVLC("vlc");
-
-    if( inputTracker )
-    {
-        if( !inputTracker.disabled )
-        {
-            inputTracker.setValue(inputTracker.minVal);
-            inputTracker.setDisabled(true);
-        }
-    }
 
     document.getElementById("info").innerHTML = "-:--:--/-:--:--";
     document.getElementById("state").innerHTML = "Stopped...";
@@ -963,34 +812,7 @@ function onError()
     document.getElementById("state").innerHTML = "Error...";
 }
 
-function onInputTrackerScrollStart()
-{
-    inputTrackerScrolling = true;
-}
-
-function onInputTrackerScrollEnd(inputTracker, value, pos)
-{
-    inputTrackerScrolling = false;
-}
-
-function onInputTrackerChange(inputTracker, value, pos)
-{
-    if( !inputTrackerIgnoreChange )
-    {
-        var vlc = getVLC("vlc");
-        if( vlc )
-        {
-            if( (vlc.input.state == 3) && (vlc.input.position != value) )
-            {
-                var info = document.getElementById("info");
-                vlc.input.position = value;
-                info.innerHTML = formatTime(vlc.input.time)+"/"+formatTime(vlc.input.length);
-            }
-        }
-    }
-}
-
 //-->
 </SCRIPT>
-</BODY>
+</body>
 </HTML>

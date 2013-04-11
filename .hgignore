@@ -32,6 +32,7 @@ juceVLC-exeOnly-*.zip
 Jucer.exe
 mpc-hc-master/**
 src/Nouveau dossier/**
+icons/iconic/vector/
 syntax: regexp
 FontResource.cpp
 FontResource.h

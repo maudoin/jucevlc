@@ -42,6 +42,9 @@ It controls:
 **Changelog**
 ==================
 
+0.66 (2013/04/11):
+- libVLC 2.0.6
+
 0.65 (2013/04/06):
 - File listing sorting improvement
 - Auxiliary slider reset button
