@@ -923,13 +923,13 @@ void VideoComponent::onMenuRemoveFavorite(MenuTreeItem& item, juce::String path)
 void VideoComponent::onMenuOpenUnconditionnal (MenuTreeItem& item, juce::String path)
 {
 	saveCurrentMediaTime();
-
-	setBrowsingFiles(false);
+	
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	appendAndPlay(path.toUTF8().getAddress());
 }
 void VideoComponent::onMenuQueue (MenuTreeItem& item, juce::String path)
 {
-	setBrowsingFiles(false);
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	vlc->addPlayListItem(path.toUTF8().getAddress());
 }
 bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
@@ -1031,7 +1031,7 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 	{
 		if(extensionMatch(m_subtitlesExtensions, file))
 		{
-			setBrowsingFiles(false);
+			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 			vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 		}
 		else
@@ -1272,7 +1272,7 @@ void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& f
 	}
 	else
 	{
-		setBrowsingFiles(false);
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 	}
 }
