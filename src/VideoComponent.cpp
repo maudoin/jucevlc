@@ -12,6 +12,7 @@
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
+#define SETTINGS_CROP "SETTINGS_CROP"
 #define SETTINGS_FONT_SIZE "SETTINGS_FONT_SIZE"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
@@ -1326,6 +1327,9 @@ void VideoComponent::onMenuCrop (MenuTreeItem& item, juce::String ratio)
 	vlc->setAutoCrop(false);
 	vlc->setCrop(std::string(ratio.getCharPointer().getAddress()));
 
+	
+	m_settings.setValue(SETTINGS_CROP, ratio);
+
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuAutoCrop (MenuTreeItem& item)
@@ -1839,11 +1843,8 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 }
 void VideoComponent::startedSynchronous()
 {
-	
 	if(!vlcNativePopupComponent->isVisible())
 	{		
-		initFromMediaDependantSettings();
-
 		setAlpha(1.f);
 		setOpaque(false);
 		vlcNativePopupComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary); 
@@ -1855,6 +1856,7 @@ void VideoComponent::startedSynchronous()
 
 		resized();
 	}
+	initFromMediaDependantSettings();
 }
 void VideoComponent::stoppedSynchronous()
 {
@@ -1872,6 +1874,7 @@ void VideoComponent::initFromMediaDependantSettings()
 {
 	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 	
+	vlc->setCrop(m_settings.getValue(SETTINGS_CROP, "").toUTF8().getAddress());	
 }
 void VideoComponent::initBoolSetting(const char* name)
 {
