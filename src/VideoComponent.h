@@ -119,6 +119,7 @@ public:
 	
 	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
 	void onMenuRemoveFavorite (MenuTreeItem& item, juce::String path);
+	void mayPurgeFavorites();
 	void writeFavorites();
     void onMenuOpen (MenuTreeItem& item, juce::File const& file);
     void onMenuOpenUnconditionnal (MenuTreeItem& item,  juce::String path);

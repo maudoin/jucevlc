@@ -896,10 +896,38 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 void VideoComponent::onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
 	item.focusItemAsMenuShortcut();
+
+	mayPurgeFavorites();
+
 	for(int i=0;i<m_shortcuts.size();++i)
 	{
 		juce::File path(m_shortcuts[i]);
 		item.addFile(path.getVolumeLabel() + "-" + path.getFileName(), path, fileMethod->clone());
+	}
+}
+
+void VideoComponent::mayPurgeFavorites()
+{
+	bool changed = false;
+	juce::StringArray newShortcuts;
+	for(int i=0;i<m_shortcuts.size();++i)
+	{
+		juce::File path(m_shortcuts[i]);
+		if(path.getVolumeSerialNumber() == 0 || path.exists() )
+		{
+			//still exists or unkown
+			newShortcuts.add(path.getFullPathName());
+		}
+		else
+		{
+			changed = true;
+		}
+	}
+
+	if(changed)
+	{
+		m_shortcuts = newShortcuts;
+		writeFavorites();
 	}
 }
 
