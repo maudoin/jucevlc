@@ -682,8 +682,18 @@ void VideoComponent::forceSetVideoTime(int64_t start)
 	}
 	vlc->SetTime(start);
 }
+void VideoComponent::forceSetVideoTime(std::string const& name)
+{
+	int time = m_mediaTimes.getIntValue(name.c_str(), 0);
+	if(time>0)
+	{
+		forceSetVideoTime(time*1000);
+	}
+}
 void VideoComponent::appendAndPlay(std::string const& path)
 {
+	saveCurrentMediaTime();
+
 	if(!vlc)
 	{
 		return;
@@ -702,12 +712,8 @@ void VideoComponent::appendAndPlay(std::string const& path)
 #endif
 
 	vlc->playPlayListItem(index);
-
-	int time = m_mediaTimes.getIntValue(name.c_str(), 0);
-	if(time>0)
-	{
-		forceSetVideoTime(time*1000);
-	}
+	
+	forceSetVideoTime(name);
 
 }
 
@@ -921,9 +927,7 @@ void VideoComponent::onMenuRemoveFavorite(MenuTreeItem& item, juce::String path)
 }
 
 void VideoComponent::onMenuOpenUnconditionnal (MenuTreeItem& item, juce::String path)
-{
-	saveCurrentMediaTime();
-	
+{	
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	appendAndPlay(path.toUTF8().getAddress());
 }
@@ -1569,8 +1573,21 @@ void VideoComponent::onMenuExit(MenuTreeItem& item)
 
 void VideoComponent::onPlaylistItem(MenuTreeItem& item, int index)
 {
-	setBrowsingFiles(false);
+	saveCurrentMediaTime();
+	
+	std::string name;
+	try
+	{
+		std::vector<std::string > list = vlc->getCurrentPlayList();
+		name = list.at(index);
+	}
+	catch(std::exception const& e)
+	{
+	}
+
 	vlc->playPlayListItem(index);
+
+	forceSetVideoTime(name);
 	
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
@@ -1909,9 +1926,14 @@ struct MediaTimeSorter
 
 void VideoComponent::saveCurrentMediaTime()
 {
+	if(!vlc)
+	{
+		return;
+	}
 	std::string media = vlc->getCurrentPlayListItem();
 	if(media.empty())
 	{
+		
 		return;
 	}
 	int64_t time = vlc->GetTime();

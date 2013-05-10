@@ -239,6 +239,7 @@ private:
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);
 	void updateSubComponentsBounds();
 	void forceSetVideoTime(int64_t start);
+	void forceSetVideoTime(std::string const& name);
 	void restart(MenuTreeItem& item);
 };
 
