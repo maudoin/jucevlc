@@ -42,6 +42,13 @@ It controls:
 **Changelog**
 ==================
 
+0.67 (2013/05/10):
+- Save current crop ratio as it is not video but screen dependant
+- Auto purge missing favorite folders on available drives
+- Fixed secondary slider (audio offset...) reset after using arrows
+- Fixed video position no recovered from current playlist selection
+- Hide menu instead of shriking it on file open
+
 0.66 (2013/04/11):
 - libVLC 2.0.6
 
