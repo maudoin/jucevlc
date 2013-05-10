@@ -113,6 +113,13 @@ void SecondaryControlComponent::show(juce::String const& label, ActionSliderCall
 	
 void SecondaryControlComponent::reset()
 {
+	double min = m_slider->getMinimum();
+	double max = m_slider->getMaximum();
+	if(m_resetValue < min || m_resetValue > max)
+	{
+		double fix = std::ceil((m_resetValue - (min + max) / 2.  )/m_buttonsStep)*m_buttonsStep;
+		m_slider->setRange(min+fix, max+fix, m_slider->getInterval());
+	}
 	m_slider->setValue(m_resetValue);
 }
 void SecondaryControlComponent::disableAndHide()
@@ -130,12 +137,12 @@ void SecondaryControlComponent::buttonClicked (juce::Button* button)
 	if( button == m_leftButton.get() )
 	{
 		m_slider->setRange(min-m_buttonsStep, max-m_buttonsStep, step);
-		m_slider->setValue(value-m_buttonsStep);
+		m_slider->setValue(std::min(value, max-m_buttonsStep));
 	}
 	else if( button == m_rightButton.get() )
 	{
 		m_slider->setRange(min+m_buttonsStep, max+m_buttonsStep, step);
-		m_slider->setValue(value+m_buttonsStep);
+		m_slider->setValue(std::max(value, min-m_buttonsStep));
 	}
 }
 ////////////////////////////////////////////////////////////
