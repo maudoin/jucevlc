@@ -16,7 +16,7 @@ countries: fr be mc ch lu\n\
 \"Subtitles offset: %+.3fs\" = \"Décalage sous-titres: %+.3fs\"\n\
 \"Play All\" = \"Lire Tout\"\n\
 \"Add All\" = \"Ajouter Tout\"\n\
-\"Favorites\" = \"Favoris\"\n\
+\"All videos...\" = \"Toutes les vidéos...\"\n\
 \"Add to favorites\" = \"Ajouter aux favoris\"\n\
 \"Remove from favorites\" = \"Retirer des favoris\"\n\
 \"Disable\" = \"Désactiver\"\n\

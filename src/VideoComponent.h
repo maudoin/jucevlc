@@ -115,6 +115,8 @@ public:
 	void onMenuListMediaFiles(MenuTreeItem& item);
 	void onMenuListSubtitlesFiles(MenuTreeItem& item);
 	void onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListUPNPFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	void onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	
 	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);

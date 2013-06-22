@@ -145,7 +145,10 @@ VLCWrapper::VLCWrapper(void)
     // Create a media player playing environement
     pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_);
 	
- 
+	//media_discoverer
+    pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_,"upnp");
+	pUPNPMediaList_ = libvlc_media_discoverer_media_list(pMediaDiscoverer_);
+
 	//list player
     mlp = libvlc_media_list_player_new(pVLCInstance_);
  
@@ -175,6 +178,8 @@ VLCWrapper::~VLCWrapper(void)
 	SetEventCallBack(0);
 	SetDisplayCallback(0);
     // Free the media_player
+	libvlc_media_list_release(pUPNPMediaList_) ;
+	libvlc_media_discoverer_release( pMediaDiscoverer_);
     libvlc_media_player_release (pMediaPlayer_);
     libvlc_media_list_player_release (mlp);
     libvlc_media_list_release (ml);
@@ -786,6 +791,7 @@ std::string getMediaName(libvlc_media_t* media)
 	//return libvlc_media_get_meta(media, libvlc_meta_Title );
 	char* str = libvlc_media_get_mrl(media );
 	std::string url = str?urlDecode(str):"";
+	libvlc_free(str);
 	if(url.find("rar")==0)
 	{
 		//strip content filename (after pipe character) for rars
@@ -820,6 +826,8 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 		}
 		libvlc_media_parse(media);
 		out.push_back(getMediaName(media));
+		
+		libvlc_media_release(media);
 	}
 	return out;
 }
@@ -964,4 +972,55 @@ std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWra
 	info.first = p_module_config->value.psz;
 
 	return info;
+}
+
+
+void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::string, std::string> >& list, std::string const& prefix = "")
+{
+	if(mediaList)
+	{
+		MediaListScopedLock lock(mediaList);
+
+		//add subitems individually
+		int jmax = libvlc_media_list_count(mediaList);
+		for(int j=0;j<jmax;++j)
+		{
+			libvlc_media_t* media = libvlc_media_list_item_at_index(mediaList, j);
+				
+			libvlc_media_parse(media);
+			
+			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+			std::string name = (desc?desc:"???");
+			if(!prefix.empty())
+			{
+				name = prefix + "/" + name;
+			}
+			libvlc_free(desc);
+				
+			libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
+			if(subMediaList)
+			{
+				//recurse
+				readMediaList(subMediaList, list, name);
+
+				libvlc_media_list_release(subMediaList);
+			}
+			else
+			{
+				char* mrl = libvlc_media_get_mrl 	( media ) ;	
+				list.push_back(std::pair<std::string, std::string>(name, mrl));
+				libvlc_free(mrl);
+			}
+			
+			libvlc_media_release(media);
+		}
+	}
+}
+
+
+std::vector<std::pair<std::string, std::string> > VLCWrapper::getUPNPList()
+{
+	std::vector<std::pair<std::string, std::string> > list;
+	readMediaList(pUPNPMediaList_, list);
+	return list;
 }

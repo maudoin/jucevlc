@@ -49,6 +49,7 @@ struct libvlc_media_t;
 struct libvlc_event_manager_t;
 struct libvlc_media_list_t;
 struct libvlc_media_list_player_t;
+struct libvlc_media_discoverer_t;
 
 // Typedefs for old MS compilers
 typedef unsigned __int32	uint32_t;
@@ -93,6 +94,8 @@ class VLCWrapper
 {
     libvlc_instance_t*       pVLCInstance_;        ///< The VLC instance.
 	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
+	libvlc_media_discoverer_t*   pMediaDiscoverer_;        ///< The VLC media Discoverer object.
+	libvlc_media_list_t* pUPNPMediaList_;
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
     libvlc_media_list_t *ml;
     libvlc_media_list_player_t *mlp;
@@ -209,6 +212,7 @@ public:
 
 	std::string getInfo() const;
 
+	std::vector<std::pair<std::string, std::string> > getUPNPList();
 	
 	bool getConfigOptionBool(const char* name) const;
 	void setConfigOptionBool(const char* name, bool value);

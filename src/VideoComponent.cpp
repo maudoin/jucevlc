@@ -859,10 +859,7 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 	juce::File f(path);
 	if(item.isMenuShortcut() || path.isEmpty() || !f.exists())
 	{
-		item.focusItemAsMenuShortcut();
-		item.addAction( TRANS("Favorites"), Action::build(*this, &VideoComponent::onMenuListFavorites, fileMethod->clone()), getItemImage());
-		item.addRootFiles(*fileMethod);
-		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, juce::String::empty);
+		onMenuListFavorites(item, fileMethod);
 	}
 	else
 	{
@@ -894,17 +891,42 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 	}
 }
 
+void VideoComponent::onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+{
+	item.focusItemAsMenuShortcut();
+	item.addRootFiles(*fileMethod);
+
+	item.addAction( TRANS("UPNP videos..."), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, fileMethod->clone()), getItemImage());
+}
+
+void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+{
+	item.focusItemAsMenuShortcut();
+	
+	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList();
+	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
+	{
+		item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, juce::String(it->second.c_str())), nullptr);
+	}
+
+	
+}
 void VideoComponent::onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
 {
 	item.focusItemAsMenuShortcut();
 
 	mayPurgeFavorites();
 
+	item.addAction( TRANS("All videos..."), Action::build(*this, &VideoComponent::onMenuListRootFiles, fileMethod->clone()), getItemImage());
+
 	for(int i=0;i<m_shortcuts.size();++i)
 	{
 		juce::File path(m_shortcuts[i]);
-		item.addFile(path.getVolumeLabel() + "-" + path.getFileName(), path, fileMethod->clone());
+		juce::String driveRoot = path.getFullPathName().upToFirstOccurrenceOf(juce::File::separatorString, false, false);
+		juce::String drive = path.getVolumeLabel().isEmpty() ? driveRoot : (path.getVolumeLabel()+"("+driveRoot + ")" );
+		item.addFile(path.getFileName() + "-" + drive, path, fileMethod->clone());
 	}
+	
 }
 
 void VideoComponent::mayPurgeFavorites()
@@ -1957,7 +1979,7 @@ struct MediaTimeSorter
 
 void VideoComponent::saveCurrentMediaTime()
 {
-	if(!vlc)
+	if(!vlc || !vlc->isPlaying())
 	{
 		return;
 	}
