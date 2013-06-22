@@ -42,6 +42,9 @@ It controls:
 **Changelog**
 ==================
 
+0.68 (2013/06/12):
+- libVLC 2.0.7
+
 0.67 (2013/05/10):
 - Save current crop ratio as it is not video but screen dependant
 - Auto purge missing favorite folders on available drives
