@@ -926,7 +926,7 @@ void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::st
 		{
 			std::vector<std::string> newPath(path);
 			newPath.push_back(it->first);
-			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, newPath), nullptr);
+			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, newPath), folderImage);
 		}
 	}
 
