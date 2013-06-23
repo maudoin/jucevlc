@@ -1068,27 +1068,25 @@ std::vector<std::pair<std::string, std::string> > VLCWrapper::getUPNPList(std::v
 			std::string name = (desc?desc:"???");
 			libvlc_free(desc);
 
-			if(!nameList.empty() && name != nameList.front())
+			if(nameList.empty())
 			{
-				//not what we are looknig for
-				continue;
-			}
-				
-			libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
-			if(subMediaList && !nameList.empty())
-			{
-				nameList.pop_front();
-				nextMedialist = subMediaList;
-				
-				//look no further
-				jmax = 0;
-			}
-			else
-			{
+				//list
 				char* mrl = libvlc_media_get_mrl 	( media ) ;	
 				list.push_back(std::pair<std::string, std::string>(name+getExtension(mrl), mrl));
 				libvlc_free(mrl);
 			}
+			else if(name == nameList.front())
+			{
+				//found path entry, enter next entry
+				nameList.pop_front();
+
+				nextMedialist = libvlc_media_subitems(media);
+
+				
+				//look no further in the current entry
+				jmax = 0;
+			}
+				
 			
 			libvlc_media_release(media);
 		}
