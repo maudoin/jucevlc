@@ -900,6 +900,17 @@ void VideoComponent::onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction*
 	item.addAction( TRANS("UPNP videos..."), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, std::vector<std::string>()), getItemImage());
 }
 
+//include the dot
+std::string getPathExtensionWithoutDot(std::string const& path)
+{
+	std::string::size_type p = path.find_last_of(".");
+	if(p == std::string::npos)
+	{
+		return "";
+	}
+	return path.substr(p+1);
+}
+
 void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::string> path)
 {
 	item.focusItemAsMenuShortcut();
@@ -909,7 +920,7 @@ void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::st
 	{
 		if(std::string::npos == std::string(it->second).find("vlc://nop"))
 		{
-			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, juce::String(it->second.c_str())), nullptr);
+			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, juce::String(it->second.c_str())), getIcon(getPathExtensionWithoutDot(it->first).c_str()));
 		}
 		else
 		{
@@ -997,10 +1008,14 @@ void VideoComponent::onMenuQueue (MenuTreeItem& item, juce::String path)
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	vlc->addPlayListItem(path.toUTF8().getAddress());
 }
+bool extensionMatch(std::set<juce::String> const& e, juce::String const& ex)
+{
+	juce::String ext = ex.toLowerCase();
+	return e.end() != e.find(ext.startsWith(".")?ext.substring(1):ext);
+}
 bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
 {
-	juce::String ext = f.getFileExtension().toLowerCase();
-	return e.end() != e.find(ext.startsWith(".")?ext.substring(1):ext);
+	return extensionMatch(e, f.getFileExtension());
 }
 struct FileSorter
 {
@@ -1033,25 +1048,29 @@ struct FileSorter
 		return r1 - r2;
 	}
 };
+juce::Drawable const* VideoComponent::getIcon(juce::String const& e)
+{
+	if(extensionMatch(m_videoExtensions, e))
+	{
+		return displayImage;
+	}
+	if(extensionMatch(m_playlistExtensions, e))
+	{
+		return playlistImage;
+	}
+	if(extensionMatch(m_subtitlesExtensions, e))
+	{
+		return subtitlesImage;
+	}
+	return nullptr;
+}
 juce::Drawable const* VideoComponent::getIcon(juce::File const& f)
 {
 	if(f.isDirectory())
 	{
 		return nullptr;
 	}
-	if(extensionMatch(m_videoExtensions, f))
-	{
-		return displayImage;
-	}
-	if(extensionMatch(m_playlistExtensions, f))
-	{
-		return playlistImage;
-	}
-	if(extensionMatch(m_subtitlesExtensions, f))
-	{
-		return subtitlesImage;
-	}
-	return nullptr;
+	return getIcon(f.getFileExtension());
 }
 
 

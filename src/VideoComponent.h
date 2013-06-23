@@ -90,6 +90,7 @@ public:
 	void showSubtitlesOffsetSlider ();
 
 	
+	juce::Drawable const* getIcon(juce::String const&);
 	juce::Drawable const* getIcon(juce::File const&);
 	juce::Drawable const* getItemImage() const { return itemImage; };
 	juce::Drawable const* getFolderImage() const { return folderImage; };
