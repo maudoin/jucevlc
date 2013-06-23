@@ -896,17 +896,27 @@ void VideoComponent::onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction*
 	item.focusItemAsMenuShortcut();
 	item.addRootFiles(*fileMethod);
 
-	item.addAction( TRANS("UPNP videos..."), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, fileMethod->clone()), getItemImage());
+	
+	item.addAction( TRANS("UPNP videos..."), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, std::vector<std::string>()), getItemImage());
 }
 
-void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::string> path)
 {
 	item.focusItemAsMenuShortcut();
 	
-	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList();
+	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList(path);
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{
-		item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, juce::String(it->second.c_str())), nullptr);
+		if(std::string::npos == std::string(it->second).find("vlc://nop"))
+		{
+			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuOpenUnconditionnal, juce::String(it->second.c_str())), nullptr);
+		}
+		else
+		{
+			std::vector<std::string> newPath(path);
+			newPath.push_back(it->first);
+			item.addAction( it->first.c_str(), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, newPath), nullptr);
+		}
 	}
 
 	
@@ -1863,6 +1873,7 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 }
+
 void VideoComponent::startedSynchronous()
 {
 	if(!vlcNativePopupComponent->isVisible())

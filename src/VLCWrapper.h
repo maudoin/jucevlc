@@ -212,7 +212,7 @@ public:
 
 	std::string getInfo() const;
 
-	std::vector<std::pair<std::string, std::string> > getUPNPList();
+	std::vector<std::pair<std::string, std::string> > getUPNPList(std::vector<std::string> const& path);
 	
 	bool getConfigOptionBool(const char* name) const;
 	void setConfigOptionBool(const char* name, bool value);

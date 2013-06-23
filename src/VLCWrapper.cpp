@@ -11,6 +11,9 @@
 #include "vlc\plugins\vlc_input.h"
 #include <stdio.h>
 #include <sstream>
+#include <deque>
+#include <algorithm>
+#include <iterator>
 
 #include <assert.h>
 #include "vlc/media_player_internal.h"
@@ -53,10 +56,13 @@ static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
 		    cb->vlcPaused();
             break;
 	   case libvlc_MediaPlayerStopped:
+	   case libvlc_MediaPlayerEndReached:
 		    cb->vlcStopped();
             break;
 	} 
 }
+
+//-----------------------------------
 
 static void *vlcLock(void *pUserData, void **p_pixels)
 {
@@ -147,6 +153,7 @@ VLCWrapper::VLCWrapper(void)
 	
 	//media_discoverer
     pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_,"upnp");
+
 	pUPNPMediaList_ = libvlc_media_discoverer_media_list(pMediaDiscoverer_);
 
 	//list player
@@ -974,6 +981,16 @@ std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWra
 	return info;
 }
 
+//include the dot
+std::string getExtension(std::string const& path)
+{
+	std::string::size_type p = path.find_last_of(".");
+	if(p == std::string::npos)
+	{
+		return "";
+	}
+	return path.substr(p);
+}
 
 void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::string, std::string> >& list, std::string const& prefix = "")
 {
@@ -1008,7 +1025,11 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 			else
 			{
 				char* mrl = libvlc_media_get_mrl 	( media ) ;	
-				list.push_back(std::pair<std::string, std::string>(name, mrl));
+				if(std::string::npos == std::string(mrl).find("vlc://nop"))
+				{
+					//real media, keep it
+					list.push_back(std::pair<std::string, std::string>(name+getExtension(mrl), mrl));
+				}
 				libvlc_free(mrl);
 			}
 			
@@ -1018,9 +1039,61 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 }
 
 
-std::vector<std::pair<std::string, std::string> > VLCWrapper::getUPNPList()
+std::vector<std::pair<std::string, std::string> > VLCWrapper::getUPNPList(std::vector<std::string> const& path)
 {
 	std::vector<std::pair<std::string, std::string> > list;
-	readMediaList(pUPNPMediaList_, list);
+	//readMediaList(pUPNPMediaList_, list);
+
+	std::deque<std::string> nameList;
+	std::copy(path.begin(), path.end(), std::back_inserter(nameList));
+
+	libvlc_media_list_t* nextMedialist = pUPNPMediaList_;
+	libvlc_media_list_retain(pUPNPMediaList_);//media lists are released
+
+	while(nextMedialist)
+	{
+		libvlc_media_list_t* currentMediaList = nextMedialist;
+		nextMedialist = 0;
+		MediaListScopedLock lock(currentMediaList);
+
+		//add subitems individually
+		int jmax = libvlc_media_list_count(currentMediaList);
+		for(int j=0;j<jmax;++j)
+		{
+			libvlc_media_t* media = libvlc_media_list_item_at_index(currentMediaList, j);
+				
+			libvlc_media_parse(media);
+			
+			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+			std::string name = (desc?desc:"???");
+			libvlc_free(desc);
+
+			if(!nameList.empty() && name != nameList.front())
+			{
+				//not what we are looknig for
+				continue;
+			}
+				
+			libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
+			if(subMediaList && !nameList.empty())
+			{
+				nameList.pop_front();
+				nextMedialist = subMediaList;
+				
+				//look no further
+				jmax = 0;
+			}
+			else
+			{
+				char* mrl = libvlc_media_get_mrl 	( media ) ;	
+				list.push_back(std::pair<std::string, std::string>(name+getExtension(mrl), mrl));
+				libvlc_free(mrl);
+			}
+			
+			libvlc_media_release(media);
+		}
+		
+		libvlc_media_list_release(currentMediaList);
+	}
 	return list;
 }

@@ -116,7 +116,7 @@ public:
 	void onMenuListSubtitlesFiles(MenuTreeItem& item);
 	void onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	void onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-	void onMenuListUPNPFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::string> path);
 	void onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
 	
 	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
