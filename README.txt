@@ -42,6 +42,9 @@ It controls:
 **Changelog**
 ==================
 
+0.69 (2013/06/24):
+- UPNP remote media support and browsing
+
 0.68 (2013/06/12):
 - libVLC 2.0.7
 
