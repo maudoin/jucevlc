@@ -795,7 +795,11 @@ std::string urlDecode(std::string const &SRC) {
 }
 std::string getMediaName(libvlc_media_t* media)
 {
-	//return libvlc_media_get_meta(media, libvlc_meta_Title );
+	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+	std::string name = (desc?desc:"???");
+	libvlc_free(desc);
+	return name;
+	/*
 	char* str = libvlc_media_get_mrl(media );
 	std::string url = str?urlDecode(str):"";
 	libvlc_free(str);
@@ -812,6 +816,7 @@ std::string getMediaName(libvlc_media_t* media)
 		
 	std::string::size_type i = url.find_last_of("/\\");
 	return i == std::string::npos ? url : url.substr(i+1);
+	*/
 }
 std::vector<std::string> VLCWrapper::getCurrentPlayList()
 {	
