@@ -8,14 +8,14 @@ class MenuTree;
 
 class SmartTreeViewItem  : public juce::TreeViewItem, public MenuTreeItem
 {
-	MenuTree* owner;
+	MenuTree& owner;
 protected:
 	bool m_isShortcut;
 	juce::String name;
 	const juce::Drawable* icon;
 	AbstractAction action;
 public:
-    SmartTreeViewItem (MenuTree* owner, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
+    SmartTreeViewItem (MenuTree& owner, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
 		:owner(owner)
 		,m_isShortcut(false)
 		,name(name)
@@ -23,15 +23,7 @@ public:
 		,action(action)
     {
 	}
-    SmartTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
-		:owner(p.owner)
-		,m_isShortcut(false)
-		,name(name)
-		,icon(icon)
-		,action(action)
-    {
-	}
-    
+
 	virtual ~SmartTreeViewItem()
 	{
 	}
@@ -68,9 +60,9 @@ public:
 	}
     virtual int getItemHeight() const                               
 	{
-		return (int)owner->getItemHeight(); 
+		return (int)owner.getItemHeight(); 
 	}
-	MenuTree* getOwner()
+	MenuTree& getOwner()
 	{
 		return owner;
 	}
@@ -81,9 +73,9 @@ public:
 	}
     virtual int getIndentX() const noexcept
 	{
-		int x = owner->isRootItemVisible() ? 1 : 0;
+		int x = owner.isRootItemVisible() ? 1 : 0;
 
-		if (! owner->areOpenCloseButtonsVisible())
+		if (! owner.areOpenCloseButtonsVisible())
 			--x;
 		if(m_isShortcut)
 		{
@@ -110,7 +102,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return  icon?icon:(m_isShortcut && !isSelected())?owner->getItemImage():nullptr;
+		return  icon?icon:(m_isShortcut && !isSelected())?owner.getItemImage():nullptr;
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
@@ -196,7 +188,7 @@ public:
     }
     MenuTreeItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
-		SmartTreeViewItem* item = new SmartTreeViewItem(*this, name, action, icon);
+		SmartTreeViewItem* item = new SmartTreeViewItem(owner, name, action, icon);
 		addSubItem(item);
 		return item;
 	}
@@ -272,7 +264,7 @@ void MenuTree::refresh()
 	if(!rootAction.empty())
 	{
 		juce::TreeViewItem* const root
-			= new SmartTreeViewItem (this, "Menu", rootAction, itemImage);
+			= new SmartTreeViewItem (*this, "Menu", rootAction, itemImage);
 
 		setRootItem (root);
 
