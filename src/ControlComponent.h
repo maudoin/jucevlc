@@ -31,7 +31,7 @@ public:
 	{		
 		juce::Slider::paint(g);
 		
-		juce::Font f = g.getCurrentFont().withHeight(getHeight());
+		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		g.setColour (juce::Colours::black);

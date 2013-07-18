@@ -213,7 +213,7 @@ void TimeSlider::paint (juce::Graphics& g)
 							1.f//no h scale
 							);
 
-		g.drawLine(mouseOverTimeStringPos, 0, mouseOverTimeStringPos, getHeight(), 2);
+		g.drawLine((float)mouseOverTimeStringPos, 0.f, (float)mouseOverTimeStringPos, (float)getHeight(), 2.f);
 	}
 
 	
@@ -296,9 +296,9 @@ void ControlComponent::resized()
 	int h =  getHeight();
 
 	
-	int buttonSize = 0.5*h;
+	int buttonSize = h/2;
 	int hMargin =buttonSize/2;
-	int sliderHeight = 0.3*h;
+	int sliderHeight = (int)(0.3*h);
 	int playPauseButtonSize = buttonSize+sliderHeight;
 	int sliderLeftMargin = hMargin + playPauseButtonSize;
 	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
@@ -317,22 +317,22 @@ void ControlComponent::resized()
 }
 void ControlComponent::paint(juce::Graphics& g)
 {
-	int w =  getWidth();
-	int h =  getHeight();
+	float w = (float)getWidth();
+	float h = (float)getHeight();
 
 	
-	int buttonSize = 0.5*h;
-	int hMargin =buttonSize/2;
-	int sliderHeight = 0.3*h;
-	int roundness = hMargin/2;
+	float buttonSize = 0.5f*h;
+	float hMargin =buttonSize/22.f;
+	float sliderHeight = 0.3f*h;
+	float roundness = hMargin/2.f;
 	
 	///////////////// CONTROL ZONE:	
 	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonSize-hMargin/2,
+										w/2.f, h-sliderHeight-buttonSize-hMargin/2.f,
 										juce::Colours::black,
-										w/2, h,
+										w/2.f, h,
 										false));
-	g.fillRoundedRectangle(hMargin/2,  h-sliderHeight-buttonSize-hMargin/2, w-hMargin, sliderHeight+buttonSize+hMargin/2, roundness);
+	g.fillRoundedRectangle(hMargin/2.f,  h-sliderHeight-buttonSize-hMargin/2.f, w-hMargin, sliderHeight+buttonSize+hMargin/2.f, roundness);
 
 	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
 										w/2, h-sliderHeight-buttonSize-hMargin/2,
@@ -352,7 +352,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	
 
 	g.drawFittedText (timeString,
-						hMargin+2*buttonSize, h-buttonSize, w-2*hMargin-2*buttonSize, buttonSize,
+						(int)(hMargin+2*buttonSize), (int)(h-buttonSize), (int)(w-2*hMargin-2*buttonSize), (int)(buttonSize),
 						juce::Justification::topRight, 
 						1, //1 line
 						1.f//no h scale
