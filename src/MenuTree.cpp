@@ -11,15 +11,24 @@ class SmartTreeViewItem  : public juce::TreeViewItem, public MenuTreeItem
 	MenuTree* owner;
 protected:
 	bool m_isShortcut;
+	juce::String name;
+	const juce::Drawable* icon;
+	juce::ScopedPointer<AbstractAction> action;
 public:
-    SmartTreeViewItem (MenuTree* owner)
+    SmartTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
 		:owner(owner)
 		,m_isShortcut(false)
+		,name(name)
+		,icon(icon)
+		,action(action)
     {
 	}
-    SmartTreeViewItem (SmartTreeViewItem& p)
+    SmartTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
 		:owner(p.owner)
 		,m_isShortcut(false)
+		,name(name)
+		,icon(icon)
+		,action(action)
     {
 	}
     
@@ -101,7 +110,7 @@ public:
 	}
 	virtual const juce::Drawable* getIcon()
 	{
-		return (m_isShortcut && !isSelected())?owner->getItemImage():nullptr;
+		return  icon?icon:(m_isShortcut && !isSelected())?owner->getItemImage():nullptr;
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
@@ -185,40 +194,13 @@ public:
 			clearSubItems();
         }
     }
-    MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr);
-    MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr);
-    MenuTreeItem* addFile(juce::File const& file, AbstractFileAction* fileMethod, const juce::Drawable* icon = nullptr)
+    MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr)
 	{
-		juce::File p = file.getParentDirectory();
-		juce::String name = p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
+		SmartTreeViewItem* item = new SmartTreeViewItem(*this, name, action, icon);
+		addSubItem(item);
+		return item;
+	}
 
-		return addFile(name, file, fileMethod, icon);
-	}
-	
-	void addRootFiles(AbstractFileAction const& fileMethod)
-	{
-		juce::Array<juce::File> destArray;
-		juce::File::findFileSystemRoots(destArray);
-		addFiles(destArray, fileMethod);
-	}
-	
-	void addChildrenFiles(juce::File const& parent, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr,
-		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
-        const juce::String& wildCardPattern = "*",
-        bool searchRecursively = false)
-	{
-		juce::Array<juce::File> destArray;
-		parent.findChildFiles(destArray, whatToLookFor, searchRecursively, wildCardPattern);
-		addFiles(destArray, fileMethod, icon);
-	}
-	
-	void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr)
-	{
-		for(int i=0;i<destArray.size();++i)
-		{
-			addFile( destArray[i], fileMethod.clone(), icon);
-		}
-	}
 	virtual MenuTreeItem* getMenuTreeItemParent()
 	{
 		return dynamic_cast<SmartTreeViewItem*>(getParentItem());;
@@ -239,48 +221,11 @@ public:
 	{
 		return m_isShortcut;
 	}
-};
-class IconTreeViewItem  : public SmartTreeViewItem
-{
-protected:
-	juce::String name;
-	const juce::Drawable* icon;
-public:
-    IconTreeViewItem (MenuTree* owner, juce::String name, const juce::Drawable* icon = nullptr)
-		:SmartTreeViewItem(owner)
-		,name(name)
-		,icon(icon)
-    {
-	}
-    IconTreeViewItem (SmartTreeViewItem& p, juce::String name, const juce::Drawable* icon = nullptr)
-		:SmartTreeViewItem(p)
-		,name(name)
-		,icon(icon)
-    {
-	}
     juce::String getUniqueName() const
     {
         return name;
     }
-};
-class ActionTreeViewItem  : public IconTreeViewItem
-{
-	juce::ScopedPointer<AbstractAction> action;
-public:
-    ActionTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
-		:IconTreeViewItem(owner,name, icon)
-		,action(action)
-    {
-	}
-    ActionTreeViewItem (SmartTreeViewItem& owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
-		:IconTreeViewItem(owner,name, icon)
-		,action(action)
-    {
-	}
-    
-	virtual ~ActionTreeViewItem()
-	{
-	}
+
 	void itemSelectionChanged(bool isSelected)
 	{
 		if(isSelected)
@@ -294,11 +239,6 @@ public:
 	}
     
 	
-	virtual const juce::Drawable* getIcon()
-	{
-		return icon?icon:SmartTreeViewItem::getIcon();
-	}
-
     virtual bool mightContainSubItems()
     {
         return true;
@@ -307,68 +247,6 @@ public:
 
 };
 
-class FileTreeViewItem  : public IconTreeViewItem
-{
-    juce::File file;
-	juce::ScopedPointer<AbstractFileAction> fileMethod;
-public:
-    FileTreeViewItem (MenuTree* owner, 
-                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr)
-		:IconTreeViewItem(owner,name_, icon)
-		,file(file_)
-		,fileMethod(fileMethod_)
-    {
-	}
-    FileTreeViewItem (SmartTreeViewItem& owner, 
-                      juce::String const& name_, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr)
-		:IconTreeViewItem(owner,name_, icon)
-		,file(file_)
-		,fileMethod(fileMethod_)
-    {
-	}
-	virtual ~FileTreeViewItem()
-	{
-	}
-	virtual const juce::Drawable* getIcon()
-	{
-		return icon?icon:file.isDirectory()?m_isShortcut?getOwner()->getFolderShortcutImage():getOwner()->getFolderImage():nullptr;
-	}
-	bool mightContainSubItems()                 
-	{ 
-		return file.isDirectory();
-	}
-	juce::File const& getFile() const
-	{
-		return file;
-	}	
-	
-	void itemClicked(const juce::MouseEvent& e)
-	{
-	}
-
-	void itemSelectionChanged(bool isSelected)
-	{
-		if(isSelected && fileMethod)
-		{
-			fileMethod->operator()(*this, file);
-		}
-		
-	}
-	
-};
-MenuTreeItem* SmartTreeViewItem::addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon)
-{
-	ActionTreeViewItem* item = new ActionTreeViewItem(*this, name, action, icon);
-	addSubItem(item);
-	return item;
-}
-
-MenuTreeItem* SmartTreeViewItem::addFile(juce::String const& name, juce::File const& file, AbstractFileAction* fileMethod, const juce::Drawable* icon)
-{
-	FileTreeViewItem* item = new FileTreeViewItem(*this, name, file, fileMethod, icon);
-	addSubItem(item);
-	return item;
-}
 
 MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
 {
@@ -394,7 +272,7 @@ void MenuTree::refresh()
 	if(rootAction)
 	{
 		juce::TreeViewItem* const root
-			= new ActionTreeViewItem (this, "Menu", rootAction, itemImage);
+			= new SmartTreeViewItem (this, "Menu", rootAction, itemImage);
 
 		setRootItem (root);
 
@@ -404,7 +282,7 @@ void MenuTree::refresh()
 }
 void MenuTree::resized()
 {
-	int h = 1.5*getFontHeight();
+	int h = (int)(1.5*getFontHeight());
 	if(h != getIndentSize())
 	{
 		setIndentSize(h);//calls resized internally

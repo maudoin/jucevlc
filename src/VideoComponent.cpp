@@ -843,15 +843,19 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 }
 void VideoComponent::onMenuListMediaFiles(MenuTreeItem& item)
 {
-	juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpen));
-	onMenuListFiles(item, fileMethod);
+	onMenuListFiles(item, &VideoComponent::onMenuOpen);
 }
 void VideoComponent::onMenuListSubtitlesFiles(MenuTreeItem& item)
 {
-	juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle));
-	onMenuListFiles(item, fileMethod);
+	onMenuListFiles(item, &VideoComponent::onMenuOpenSubtitle);
 }
-void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+juce::String name(juce::File const& file)
+{
+	juce::File p = file.getParentDirectory();
+	return p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
+}
+
+void VideoComponent::onMenuListFiles(MenuTreeItem& item, FileMethod fileMethod)
 {
 	setBrowsingFiles();
 
@@ -880,7 +884,8 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 		MenuTreeItem* last =&item;
 		for(int i=lifo.size()-1;i>=0;--i)
 		{
-			last = last->addFile(lifo[i], fileMethod->clone());
+			juce::File const& file(lifo[i]);
+			last = last->addAction( name(file), Action::build(*this, fileMethod, file), getIcon(file));
 		}
 		if(last)
 		{
@@ -891,11 +896,18 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fil
 	}
 }
 
-void VideoComponent::onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuListRootFiles(MenuTreeItem& item, FileMethod fileMethod)
 {
 	item.focusItemAsMenuShortcut();
-	item.addRootFiles(*fileMethod);
-
+	
+	juce::Array<juce::File> destArray;
+	juce::File::findFileSystemRoots(destArray);
+	
+	for(int i=0;i<destArray.size();++i)
+	{
+		juce::File const& file(destArray[i]);
+		item.addAction( name(file), Action::build(*this, fileMethod, file), getIcon(file));
+	}
 	
 	item.addAction( TRANS("UPNP videos..."), Action::build(*this, &VideoComponent::onMenuListUPNPFiles, std::vector<std::string>()), getItemImage());
 }
@@ -932,20 +944,20 @@ void VideoComponent::onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::st
 
 	
 }
-void VideoComponent::onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod)
+void VideoComponent::onMenuListFavorites(MenuTreeItem& item, FileMethod fileMethod)
 {
 	item.focusItemAsMenuShortcut();
 
 	mayPurgeFavorites();
 
-	item.addAction( TRANS("All videos..."), Action::build(*this, &VideoComponent::onMenuListRootFiles, fileMethod->clone()), getItemImage());
+	item.addAction( TRANS("All videos..."), Action::build(*this, &VideoComponent::onMenuListRootFiles, fileMethod), getItemImage());
 
 	for(int i=0;i<m_shortcuts.size();++i)
 	{
 		juce::File path(m_shortcuts[i]);
 		juce::String driveRoot = path.getFullPathName().upToFirstOccurrenceOf(juce::File::separatorString, false, false);
 		juce::String drive = path.getVolumeLabel().isEmpty() ? driveRoot : (path.getVolumeLabel()+"("+driveRoot + ")" );
-		item.addFile(path.getFileName() + "-" + drive, path, fileMethod->clone());
+		item.addAction(path.getFileName() + "-" + drive, Action::build(*this, fileMethod, path));
 	}
 	
 }
@@ -1068,13 +1080,12 @@ juce::Drawable const* VideoComponent::getIcon(juce::File const& f)
 {
 	if(f.isDirectory())
 	{
-		return nullptr;
+		return folderImage.get();
 	}
 	return getIcon(f.getFileExtension());
 }
 
-
-void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File file)
 {
 	if(file.isDirectory())
 	{
@@ -1089,14 +1100,14 @@ void VideoComponent::onMenuOpen (MenuTreeItem& item, juce::File const& file)
 				file.getFullPathName()), getItemImage());
 
 		
-		juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpen));
-
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
 		destArray.sort(FileSorter(m_suportedExtensions));
 		for(int i=0;i<destArray.size();++i)
 		{
-			item.addFile( destArray[i], fileMethod->clone(), getIcon(destArray[i]));
+			juce::File const& file(destArray[i]);
+			item.addAction( name(file), Action::build(*this, &VideoComponent::onMenuOpen, file), getIcon(file));
+
 		}
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
@@ -1334,7 +1345,7 @@ void VideoComponent::onMenuSubtitleSelect(MenuTreeItem& item, int i)
 
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&MenuTreeItem::forceParentSelection, &item, true));
 }
-void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File file)
 {
 	if(file.isDirectory())
 	{
@@ -1343,15 +1354,22 @@ void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& f
 
 		item.focusItemAsMenuShortcut();
 						
-		juce::ScopedPointer<AbstractFileAction> fileMethod(FileAction::build(*this, &VideoComponent::onMenuOpenSubtitle));
-		item.addChildrenFiles(file, *(fileMethod.get()), nullptr, juce::File::findDirectories|juce::File::ignoreHiddenFiles);
-
 		juce::Array<juce::File> destArray;
+		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false, "*");
+		for(int i=0;i<destArray.size();++i)
+		{
+			juce::File const& file(destArray[i]);
+			item.addAction( name(file), Action::build(*this, &VideoComponent::onMenuOpenSubtitle, file), folderImage.get());
+		}
+
+
+		destArray.clear();
 		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
 		destArray.sort(FileSorter(m_subtitlesExtensions));
 		for(int i=0;i<destArray.size();++i)
 		{
-			item.addFile( destArray[i], fileMethod->clone(), extensionMatch(m_subtitlesExtensions, destArray[i])?subtitlesImage.get():nullptr);//getIcon(destArray[i]));//
+			juce::File const& file(destArray[i]);
+			item.addAction( name(file), Action::build(*this, &VideoComponent::onMenuOpenSubtitle, file), extensionMatch(m_subtitlesExtensions, destArray[i])?subtitlesImage.get():nullptr);//getIcon(destArray[i]));//
 		}
 	}
 	else
@@ -1360,7 +1378,7 @@ void VideoComponent::onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& f
 		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 	}
 }
-void VideoComponent::onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file)
+void VideoComponent::onMenuOpenPlaylist (MenuTreeItem& item, juce::File file)
 {
 }
 

@@ -13,27 +13,12 @@ public:
 	virtual ~AbstractAction () { }
 	virtual void operator() (MenuTreeItem& parent) = 0;
 };
-class AbstractFileAction
-{
-public:
-	virtual ~AbstractFileAction () { }
-	virtual void operator() (MenuTreeItem& parent, juce::File const& file) = 0;
-	virtual AbstractFileAction* clone() const = 0;
-};
 //==============================================================================
 class MenuTreeItem
 {
 public:
 	virtual ~MenuTreeItem(){}
     virtual MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr) = 0;
-    virtual MenuTreeItem* addFile(juce::String const& name, juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr) = 0;
-    virtual MenuTreeItem* addFile(juce::File const& file_, AbstractFileAction* fileMethod_, const juce::Drawable* icon = nullptr) = 0;
-	virtual void addRootFiles(AbstractFileAction const& fileMethod) = 0;
-	virtual void addFiles(juce::Array<juce::File> const& destArray, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr) = 0;
-	virtual void addChildrenFiles(juce::File const& parent, AbstractFileAction const& fileMethod, const juce::Drawable* icon = nullptr, 
-		int whatToLookFor = juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles,
-        const juce::String& wildCardPattern = "*",
-        bool searchRecursively = false) = 0;
 	virtual void focusItemAsMenuShortcut() = 0;
 	virtual MenuTreeItem* getMenuTreeItemParent() = 0;
 	virtual void forceSelection(bool force = true) = 0;

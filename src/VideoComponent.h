@@ -111,24 +111,26 @@ public:
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
 #endif
-
+	
+	typedef void (VideoComponent::*FileMethod)(MenuTreeItem&, juce::File);
+	
 	/////////////// MenuTree
 	void onMenuListMediaFiles(MenuTreeItem& item);
 	void onMenuListSubtitlesFiles(MenuTreeItem& item);
-	void onMenuListFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
-	void onMenuListRootFiles(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListFiles(MenuTreeItem& item, FileMethod fileMethod);
+	void onMenuListRootFiles(MenuTreeItem& item, FileMethod fileMethod);
 	void onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::string> path);
-	void onMenuListFavorites(MenuTreeItem& item, AbstractFileAction* fileMethod);
+	void onMenuListFavorites(MenuTreeItem& item, FileMethod fileMethod);
 	
 	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
 	void onMenuRemoveFavorite (MenuTreeItem& item, juce::String path);
 	void mayPurgeFavorites();
 	void writeFavorites();
-    void onMenuOpen (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpen (MenuTreeItem& item, juce::File file);
     void onMenuOpenUnconditionnal (MenuTreeItem& item,  juce::String path);
     void onMenuQueue (MenuTreeItem& item,  juce::String path);
-    void onMenuOpenSubtitle (MenuTreeItem& item, juce::File const& file);
-    void onMenuOpenPlaylist (MenuTreeItem& item, juce::File const& file);
+    void onMenuOpenSubtitle (MenuTreeItem& item, juce::File file);
+    void onMenuOpenPlaylist (MenuTreeItem& item, juce::File file);
 	
 
 	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
