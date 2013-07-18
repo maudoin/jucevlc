@@ -96,17 +96,17 @@ public:
 	{
 		char* title = "JuceVLC player";
 
-		juce::Font f = g.getCurrentFont().withHeight(getHeight());
+		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		float textWidth = f.getStringWidthFloat(title);
-		int rightBorder = (getWidth() - textWidth);
+		int rightBorder = (int)(getWidth() - textWidth);
 		juce::Path path;
 		path.lineTo(textWidth+rightBorder-2, 0);
-		path.quadraticTo(textWidth+rightBorder/2, getHeight()-2, textWidth, getHeight()-2);
-		path.lineTo(0, getHeight()-2);
-		path.lineTo(0, 0);
+		path.quadraticTo(textWidth+rightBorder/2.f, getHeight()-2.f, textWidth, getHeight()-2.f);
+		path.lineTo(0.f, getHeight()-2.f);
+		path.lineTo(0.f, 0.f);
 		
 		g.setColour (juce::Colours::purple.withAlpha(0.75f));
 		g.fillPath(path);
@@ -203,8 +203,6 @@ VideoComponent::VideoComponent()
 
 	tree = new MenuTree ();
 	tree->setItemImage(getItemImage());
-	tree->setFolderImage(getFolderImage());
-	tree->setFolderShortcutImage(getFolderShortcutImage());
 	tree->addMouseListener(this, true);
 	
     addChildComponent(controlComponent);
@@ -384,7 +382,7 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 		float min = controlComponent->slider().getPositionOfValue(controlComponent->slider().getMinimum());
 		float w = controlComponent->slider().getPositionOfValue(controlComponent->slider().getMaximum()) - min;
 		double mouseMoveValue = (e.x - min)/w;
-		controlComponent->slider().setMouseOverTime(e.x, mouseMoveValue*vlc->GetLength());
+		controlComponent->slider().setMouseOverTime(e.x, (juce::int64)(mouseMoveValue*vlc->GetLength()));
 		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
 	}
 }
@@ -514,7 +512,7 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	else if(button == &controlComponent->auxilliarySliderModeButton())
 	{
 		
-		int buttonWidth = 0.03*controlComponent->getWidth();
+		int buttonWidth = (int)(0.03*controlComponent->getWidth());
 
         juce::PopupMenu m;
 		m.addCustomItem (E_POPUP_ITEM_VOLUME_SLIDER, new DrawableMenuComponent(audioImage.get(), buttonWidth));
@@ -590,7 +588,7 @@ void VideoComponent::paint (juce::Graphics& g)
 		g.setColour (juce::Colours::grey);
 		g.drawText(juce::String("Featuring VLC ") + vlc->getInfo().c_str(),(getWidth() - appImage.getWidth())/2,  
 			(getHeight() + appImage.getHeight())/2, appImage.getWidth(), 
-			tree->getFontHeight(), 
+			(int)tree->getFontHeight(), 
 			juce::Justification::centred, true);
 	}
 	else
@@ -606,9 +604,9 @@ void VideoComponent::updateSubComponentsBounds()
 	int w =  getWidth();
 	int h =  getHeight();
 	
-	int hMargin = tree->getItemHeight()/2;
+	int hMargin = (int)(tree->getItemHeight()/2.);
 	int treeWidth = (browsingFiles?3:1)*w/4;
-	int controlHeight = 3*tree->getItemHeight();
+	int controlHeight = 3*(int)tree->getItemHeight();
 	
     tree->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
 	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
@@ -651,7 +649,7 @@ void VideoComponent::resized()
     if (titleBar != nullptr)
     {
         titleBar->setVisible (! (isFullScreen() ));
-		titleBar->setBounds(0, 0, getWidth()/3, tree->getItemHeight());
+		titleBar->setBounds(0, 0, getWidth()/3, (int)tree->getItemHeight());
 		titleBar->toFront(false);
     }
     if (resizableBorder != nullptr)
@@ -1269,7 +1267,7 @@ void VideoComponent::onVLCOptionIntRangeMenu(MenuTreeItem& item, std::string att
 	slider.setRange((double)min, (double)max, 1.);
 	slider.setValue(defaultVal);
 	slider.setLabelFormat(format);
-	slider.setSize(getWidth()/2, tree->getItemHeight());
+	slider.setSize(getWidth()/2, (int)tree->getItemHeight());
 	
 	juce::Rectangle<int> componentParentBounds(tree->getBounds());
 	componentParentBounds.setTop(0);
@@ -1682,7 +1680,7 @@ void VideoComponent::onPlaylistItem(MenuTreeItem& item, int index)
 		std::vector<std::string > list = vlc->getCurrentPlayList();
 		name = list.at(index);
 	}
-	catch(std::exception const& e)
+	catch(std::exception const& )
 	{
 	}
 

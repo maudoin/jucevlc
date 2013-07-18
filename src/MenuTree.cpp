@@ -13,9 +13,9 @@ protected:
 	bool m_isShortcut;
 	juce::String name;
 	const juce::Drawable* icon;
-	juce::ScopedPointer<AbstractAction> action;
+	AbstractAction action;
 public:
-    SmartTreeViewItem (MenuTree* owner, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+    SmartTreeViewItem (MenuTree* owner, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
 		:owner(owner)
 		,m_isShortcut(false)
 		,name(name)
@@ -23,7 +23,7 @@ public:
 		,action(action)
     {
 	}
-    SmartTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+    SmartTreeViewItem (SmartTreeViewItem& p, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
 		:owner(p.owner)
 		,m_isShortcut(false)
 		,name(name)
@@ -194,7 +194,7 @@ public:
 			clearSubItems();
         }
     }
-    MenuTreeItem* addAction(juce::String const& name, AbstractAction* action, const juce::Drawable* icon = nullptr)
+    MenuTreeItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
 		SmartTreeViewItem* item = new SmartTreeViewItem(*this, name, action, icon);
 		addSubItem(item);
@@ -230,9 +230,9 @@ public:
 	{
 		if(isSelected)
 		{
-			if(action)
+			if(!action.empty())
 			{
-				action->operator()(*this);
+				action(*this);
 			}
 		}
 		
@@ -248,7 +248,7 @@ public:
 };
 
 
-MenuTree::MenuTree() : rootAction(nullptr), itemImage(nullptr)
+MenuTree::MenuTree() : itemImage(nullptr)
 {
 
 	setIndentSize(0);
@@ -269,7 +269,7 @@ void MenuTree::refresh()
 
 	deleteRootItem();
 
-	if(rootAction)
+	if(!rootAction.empty())
 	{
 		juce::TreeViewItem* const root
 			= new SmartTreeViewItem (this, "Menu", rootAction, itemImage);
