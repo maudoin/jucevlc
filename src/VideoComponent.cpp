@@ -1,7 +1,7 @@
 
 #include "VideoComponent.h"
 #include "Icons.h"
-#include "MenuTree.h"
+#include "MenuComponent.h"
 #include "Languages.h"
 #include <algorithm>
 #include <set>
@@ -201,7 +201,7 @@ VideoComponent::VideoComponent()
 	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 
-	tree = new MenuTree ();
+	tree = new MenuComponent ();
 	tree->setItemImage(getItemImage());
 	tree->asComponent()->addMouseListener(this, true);
 	
@@ -839,14 +839,6 @@ void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 		updateSubComponentsBounds();//tree may be larger! (or not)
 	}
 }
-void VideoComponent::onMenuListMediaFiles(AbstractMenuItem& item)
-{
-	onMenuListFiles(item, &VideoComponent::onMenuOpen);
-}
-void VideoComponent::onMenuListSubtitlesFiles(AbstractMenuItem& item)
-{
-	onMenuListFiles(item, &VideoComponent::onMenuOpenSubtitle);
-}
 juce::String name(juce::File const& file)
 {
 	juce::File p = file.getParentDirectory();
@@ -885,7 +877,7 @@ void VideoComponent::onMenuListFiles(AbstractMenuItem& item, FileMethod fileMeth
 		for(int i=parentFolders.size()-1;i>=0;--i)
 		{
 			juce::File const& file(parentFolders[i]);
-			last = last->addAction( name(file), boost::bind(fileMethod, this, _1, file), getIcon(file));
+			last = last->addAction( name(file), AbstractMenuItem::EXECUTE_ONLY, boost::bind(fileMethod, this, _1, file), getIcon(file));
 		}
 		//select the last item
 		if(last)
@@ -898,19 +890,17 @@ void VideoComponent::onMenuListFiles(AbstractMenuItem& item, FileMethod fileMeth
 }
 
 void VideoComponent::onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod)
-{
-	item.focusItemAsMenuShortcut();
-	
+{	
 	juce::Array<juce::File> destArray;
 	juce::File::findFileSystemRoots(destArray);
 	
 	for(int i=0;i<destArray.size();++i)
 	{
 		juce::File const& file(destArray[i]);
-		item.addAction( name(file), boost::bind(fileMethod, this, _1, file), getIcon(file));
+		item.addAction( name(file), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(fileMethod, this, _1, file), getIcon(file));
 	}
 	
-	item.addAction( TRANS("UPNP videos..."), boost::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, std::vector<std::string>()), getItemImage());
+	item.addAction( TRANS("UPNP videos..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, std::vector<std::string>()), getItemImage());
 }
 
 //include the dot
@@ -925,21 +915,19 @@ std::string getPathExtensionWithoutDot(std::string const& path)
 }
 
 void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path)
-{
-	item.focusItemAsMenuShortcut();
-	
+{	
 	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList(path);
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{
 		if(std::string::npos == std::string(it->second).find("vlc://nop"))
 		{
-			item.addAction( it->first.c_str(), boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, juce::String(it->second.c_str())), getIcon(getPathExtensionWithoutDot(it->first).c_str()));
+			item.addAction( it->first.c_str(), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, juce::String(it->second.c_str())), getIcon(getPathExtensionWithoutDot(it->first).c_str()));
 		}
 		else
 		{
 			std::vector<std::string> newPath(path);
 			newPath.push_back(it->first);
-			item.addAction( it->first.c_str(), boost::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, newPath), folderImage);
+			item.addAction( it->first.c_str(), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, newPath), folderImage);
 		}
 	}
 
@@ -947,18 +935,17 @@ void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std
 }
 void VideoComponent::onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod)
 {
-	item.focusItemAsMenuShortcut();
 
 	mayPurgeFavorites();
 
-	item.addAction( TRANS("All videos..."), boost::bind(&VideoComponent::onMenuListRootFiles, this, _1, fileMethod), getItemImage());
+	item.addAction( TRANS("All videos..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListRootFiles, this, _1, fileMethod), getItemImage());
 
 	for(int i=0;i<m_shortcuts.size();++i)
 	{
 		juce::File path(m_shortcuts[i]);
 		juce::String driveRoot = path.getFullPathName().upToFirstOccurrenceOf(juce::File::separatorString, false, false);
 		juce::String drive = path.getVolumeLabel().isEmpty() ? driveRoot : (path.getVolumeLabel()+"("+driveRoot + ")" );
-		item.addAction(path.getFileName() + "-" + drive, boost::bind(fileMethod, this, _1, path));
+		item.addAction(path.getFileName() + "-" + drive, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(fileMethod, this, _1, path));
 	}
 	
 }
@@ -1000,15 +987,11 @@ void VideoComponent::onMenuAddFavorite(AbstractMenuItem& item, juce::String path
 {
 	m_shortcuts.add(path);
 	writeFavorites();
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuRemoveFavorite(AbstractMenuItem& item, juce::String path)
 {
 	m_shortcuts.removeString(path);
 	writeFavorites();
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 
 void VideoComponent::onMenuOpenUnconditionnal (AbstractMenuItem& item, juce::String path)
@@ -1086,44 +1069,55 @@ juce::Drawable const* VideoComponent::getIcon(juce::File const& f)
 	return getIcon(f.getFileExtension());
 }
 
-void VideoComponent::onMenuOpen (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 {
 	if(file.isDirectory())
 	{
 		setBrowsingFiles();
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
-
-		item.focusItemAsMenuShortcut();
-		
-		item.addAction(TRANS("Play All"), boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, 
+				
+		item.addAction(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, 
 				file.getFullPathName()), getItemImage());
-		item.addAction(TRANS("Add All"), boost::bind(&VideoComponent::onMenuQueue, this, _1, 
+		item.addAction(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuQueue, this, _1, 
 				file.getFullPathName()), getItemImage());
 
 		
 		juce::Array<juce::File> destArray;
-		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
+		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false);
 		destArray.sort(FileSorter(m_suportedExtensions));
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
-			item.addAction( name(file), boost::bind(&VideoComponent::onMenuOpen, this, _1, file), getIcon(file));
+			item.addAction( name(file), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuOpenFolder, this, _1, file), getFolderImage());
+
+		}
+		destArray.clear();
+		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
+		destArray.sort(FileSorter(m_suportedExtensions));
+		for(int i=0;i<destArray.size();++i)
+		{
+			juce::File const& file(destArray[i]);
+			item.addAction( name(file), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenFile, this, _1, file), getIcon(file));
 
 		}
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
-			item.addAction(TRANS("Add to favorites"), boost::bind(&VideoComponent::onMenuAddFavorite, this, _1, 
+			item.addAction(TRANS("Add to favorites"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAddFavorite, this, _1, 
 				file.getFullPathName()), getItemImage());
 		}
 		else
 		{
-			item.addAction(TRANS("Remove from favorites"), boost::bind(&VideoComponent::onMenuRemoveFavorite, this, _1, 
+			item.addAction(TRANS("Remove from favorites"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRemoveFavorite, this, _1, 
 				file.getFullPathName()), getItemImage());
 		}
 		
 	}
-	else
+}
+
+void VideoComponent::onMenuOpenFile (AbstractMenuItem& item, juce::File file)
+{
+	if(!file.isDirectory())
 	{
 		if(extensionMatch(m_subtitlesExtensions, file))
 		{
@@ -1149,20 +1143,17 @@ void VideoComponent::onVLCOptionIntSelect(AbstractMenuItem& item, std::string na
 {
 	vlc->setConfigOptionInt(name.c_str(), v);
 	m_settings.setValue(name.c_str(), (int)v);
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onVLCOptionIntListMenu(AbstractMenuItem& item, std::string name)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 	
 	std::pair<int, std::vector<std::pair<int, std::string> > > res = vlc->getConfigOptionInfoInt(name.c_str());
 	for(std::vector<std::pair<int, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
 	{
-		item.addAction( TRANS(it->second.c_str()), boost::bind(&VideoComponent::onVLCOptionIntSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
+		item.addAction( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCOptionIntSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
 	}
-	item.addAction( TRANS("Apply"), boost::bind(&VideoComponent::restart, this, _1), getItemImage());
+	item.addAction( TRANS("Apply"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::restart, this, _1), getItemImage());
 
 }
 
@@ -1170,20 +1161,17 @@ void VideoComponent::onVLCOptionStringSelect(AbstractMenuItem& item, std::string
 {
 	vlc->setConfigOptionString(name.c_str(), v);
 	m_settings.setValue(name.c_str(), juce::String(v.c_str()));
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onVLCOptionStringMenu (AbstractMenuItem& item, std::string name)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 	
 	std::pair<std::string, std::vector<std::pair<std::string, std::string> > > res = vlc->getConfigOptionInfoString(name.c_str());
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
 	{
-		item.addAction( TRANS(it->second.c_str()), boost::bind(&VideoComponent::onVLCOptionStringSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionString(name.c_str())?getItemImage():nullptr);
+		item.addAction( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCOptionStringSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionString(name.c_str())?getItemImage():nullptr);
 	}
-	item.addAction( TRANS("Apply"), boost::bind(&VideoComponent::restart, this, _1));
+	item.addAction( TRANS("Apply"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::restart, this, _1));
 
 }
 void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
@@ -1214,15 +1202,14 @@ void VideoComponent::onMenuSubtitlePositionMode(AbstractMenuItem& item, bool aut
 	{
 		if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::handleIdleTimeAndControlsVisibility, this));
 	}
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 
 }
 void VideoComponent::onMenuSubtitlePosition(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Automatic"), boost::bind(&VideoComponent::onMenuSubtitlePositionMode, this, _1, true),m_autoSubtitlesHeight?getItemImage():nullptr);
-	item.addAction( TRANS("Custom"), boost::bind(&VideoComponent::onMenuSubtitlePositionMode, this, _1, false),(!m_autoSubtitlesHeight)?getItemImage():nullptr);
+
+	item.addAction( TRANS("Automatic"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitlePositionMode, this, _1, true),m_autoSubtitlesHeight?getItemImage():nullptr);
+	item.addAction( TRANS("Custom"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitlePositionMode, this, _1, false),(!m_autoSubtitlesHeight)?getItemImage():nullptr);
 	//item.addAction( TRANS("Setup"), boost::bind(&VideoComponent::onMenuVoutIntOption, this, _1,
 	//	TRANS("Subtitle pos.: %+.f"), 
 	//	std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
@@ -1287,7 +1274,7 @@ void VideoComponent::onVLCOptionIntRangeMenu(AbstractMenuItem& item, std::string
 void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
+
 	int cnt = vlc->getSubtitlesCount();
 	int current = vlc->getCurrentSubtitleIndex();
 	if(cnt)
@@ -1314,53 +1301,49 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		//	}
 		//}
 
-		item.addAction( juce::String::formatted(TRANS("Disable")), boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, 0), (0==current||-1==current)?getItemImage():nullptr);
+		item.addAction( juce::String::formatted(TRANS("Disable")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, 0), (0==current||-1==current)?getItemImage():nullptr);
 		for(int i = 1;i<cnt;++i)
 		{
-			item.addAction( juce::String::formatted(TRANS("Slot %d"), i), boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, i), i==current?getItemImage():nullptr);
+			item.addAction( juce::String::formatted(TRANS("Slot %d"), i), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, i), i==current?getItemImage():nullptr);
 		}
 	}
 	else
 	{
-		item.addAction( juce::String::formatted(TRANS("No subtitles")), boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), -1==current?getItemImage():nullptr);
+		item.addAction( juce::String::formatted(TRANS("No subtitles")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), -1==current?getItemImage():nullptr);
 	}
-	item.addAction( TRANS("Add..."), boost::bind(&VideoComponent::onMenuListSubtitlesFiles, this, _1));
-	item.addAction( TRANS("Delay"), boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
-	item.addAction( TRANS("Position"), boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
-	item.addAction( OPT_TRANS("Size"), boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	item.addAction( OPT_TRANS("Opacity"), boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	item.addAction( OPT_TRANS("Color"), boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
-	item.addAction( OPT_TRANS("Outline"), boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	item.addAction( OPT_TRANS("Outline opacity"), boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	item.addAction( OPT_TRANS("Outline Color"), boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
-	item.addAction( OPT_TRANS("Background opacity"), boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
-	item.addAction( OPT_TRANS("Background Color"), boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
-	item.addAction( OPT_TRANS("Shadow opacity"), boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
-	item.addAction( OPT_TRANS("Shadow Color"), boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
+	item.addAction( TRANS("Add..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenSubtitleFolder));
+	item.addAction( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
+	item.addAction( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
+	item.addAction( OPT_TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	item.addAction( OPT_TRANS("Opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	item.addAction( OPT_TRANS("Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
+	item.addAction( OPT_TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	item.addAction( OPT_TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	item.addAction( OPT_TRANS("Outline Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
+	item.addAction( OPT_TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( OPT_TRANS("Background Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
+	item.addAction( OPT_TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
+	item.addAction( OPT_TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
 
 }
 void VideoComponent::onMenuSubtitleSelect(AbstractMenuItem& item, int i)
 {
 	setBrowsingFiles(false);
 	vlc->setSubtitleIndex(i);
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
-void VideoComponent::onMenuOpenSubtitle (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file)
 {
 	if(file.isDirectory())
 	{
 		setBrowsingFiles();
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
-
-		item.focusItemAsMenuShortcut();
-						
+								
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false, "*");
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
-			item.addAction( name(file), boost::bind(&VideoComponent::onMenuOpenSubtitle, this, _1, file), folderImage.get());
+			item.addAction( name(file), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuOpenSubtitleFolder, this, _1, file), folderImage.get());
 		}
 
 
@@ -1370,10 +1353,13 @@ void VideoComponent::onMenuOpenSubtitle (AbstractMenuItem& item, juce::File file
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
-			item.addAction( name(file), boost::bind(&VideoComponent::onMenuOpenSubtitle, this, _1, file), extensionMatch(m_subtitlesExtensions, destArray[i])?subtitlesImage.get():nullptr);//getIcon(destArray[i]));//
+			item.addAction( name(file), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenSubtitleFile, this, _1, file), extensionMatch(m_subtitlesExtensions, destArray[i])?subtitlesImage.get():nullptr);//getIcon(destArray[i]));//
 		}
 	}
-	else
+}
+void VideoComponent::onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file)
+{
+	if(!file.isDirectory())
 	{
 		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
@@ -1396,32 +1382,25 @@ void VideoComponent::onMenuCrop (AbstractMenuItem& item, juce::String ratio)
 
 	vlc->setAutoCrop(false);
 	vlc->setCrop(std::string(ratio.getCharPointer().getAddress()));
-
 	
 	m_settings.setValue(SETTINGS_CROP, ratio);
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuAutoCrop (AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 	vlc->setAutoCrop(true);
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuCropList (AbstractMenuItem& item)
 {
-	setBrowsingFiles(false);
-	
-	item.focusItemAsMenuShortcut();
+	setBrowsingFiles(false);	
 
-	//item.addAction( TRANS("Auto"), boost::bind(&VideoComponent::onMenuAutoCrop, this, _1), vlc->isAutoCrop()?getItemImage():nullptr);
+	//item.addAction( TRANS("Auto"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAutoCrop, this, _1), vlc->isAutoCrop()?getItemImage():nullptr);
 	std::string current = vlc->getCrop();
 	std::vector<std::string> list = vlc->getCropList();
 	for(std::vector<std::string>::const_iterator it = list.begin();it != list.end();++it)
 	{	
 		juce::String ratio(it->c_str());
-		item.addAction( ratio.isEmpty()?TRANS("Original"):ratio, boost::bind(&VideoComponent::onMenuCrop, this, _1, ratio), *it==current?getItemImage():nullptr);
+		item.addAction( ratio.isEmpty()?TRANS("Original"):ratio, AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuCrop, this, _1, ratio), *it==current?getItemImage():nullptr);
 	}
 }
 void VideoComponent::onMenuRate (AbstractMenuItem& item, double rate)
@@ -1430,25 +1409,22 @@ void VideoComponent::onMenuRate (AbstractMenuItem& item, double rate)
 	vlc->setRate(rate);
 
 	showPlaybackSpeedSlider();
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
-void VideoComponent::onMenuRateSlider (AbstractMenuItem& item)
+void VideoComponent::onMenuRateListAndSlider (AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 
 	showPlaybackSpeedSlider();
 	
-	item.focusItemAsMenuShortcut();
-	item.addAction( "50%", boost::bind(&VideoComponent::onMenuRate, this, _1, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "100%", boost::bind(&VideoComponent::onMenuRate, this, _1, 100.), 100==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "125%", boost::bind(&VideoComponent::onMenuRate, this, _1, 125.), 125==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "150%", boost::bind(&VideoComponent::onMenuRate, this, _1, 150.), 150==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "200%", boost::bind(&VideoComponent::onMenuRate, this, _1, 200.), 200==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "300%", boost::bind(&VideoComponent::onMenuRate, this, _1, 300.), 300==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "400%", boost::bind(&VideoComponent::onMenuRate, this, _1, 400.), 400==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "600%", boost::bind(&VideoComponent::onMenuRate, this, _1, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
-	item.addAction( "800%", boost::bind(&VideoComponent::onMenuRate, this, _1, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "50%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 50.), 50==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "100%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 100.), 100==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "125%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 125.), 125==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "150%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 150.), 150==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "200%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 200.), 200==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "300%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 300.), 300==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "400%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 400.), 400==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "600%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 600.), 600==(int)(vlc->getRate())?getItemImage():nullptr);
+	item.addAction( "800%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRate, this, _1, 800.), 800==(int)(vlc->getRate())?getItemImage():nullptr);
 
 }
 void VideoComponent::onMenuShiftAudio(double s)
@@ -1476,20 +1452,18 @@ void VideoComponent::onVLCAoutStringSelect(AbstractMenuItem& item, std::string f
 {
 	vlc->setAoutFilterOptionString(name.c_str(), filter, v);
 	m_settings.setValue(name.c_str(), v.c_str());
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onVLCAoutStringSelectListMenu(AbstractMenuItem& item, std::string filter, std::string name)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
+
 	std::string current = vlc->getAoutFilterOptionString(name.c_str());
-	item.addAction( TRANS("Disable"), boost::bind(&VideoComponent::onVLCAoutStringSelect, this, _1, filter, name, std::string("")), current.empty()?getItemImage():nullptr);
+	item.addAction( TRANS("Disable"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCAoutStringSelect, this, _1, filter, name, std::string("")), current.empty()?getItemImage():nullptr);
 
 	std::pair<std::string, std::vector<std::pair<std::string, std::string> > > res = vlc->getConfigOptionInfoString(name.c_str());
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
 	{
-		item.addAction( TRANS(it->second.c_str()), boost::bind(&VideoComponent::onVLCAoutStringSelect, this, _1, filter, name, it->first), it->first==current?getItemImage():nullptr);
+		item.addAction( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCAoutStringSelect, this, _1, filter, name, it->first), it->first==current?getItemImage():nullptr);
 	}
 
 }
@@ -1501,59 +1475,50 @@ void VideoComponent::onMenuAudioVolume(AbstractMenuItem& item, double volume)
 	showVolumeSlider();
 
 	m_settings.setValue(SETTINGS_VOLUME, vlc->getVolume());
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
-
 }
 
-void VideoComponent::onMenuAudioVolumeSlider(AbstractMenuItem& item)
+void VideoComponent::onMenuAudioVolumeListAndSlider(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 	showVolumeSlider();
 	
-	item.focusItemAsMenuShortcut();
-	item.addAction( "10%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "25%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 25.), 25==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "50%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 50.), 50==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "75%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 75.), 75==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "100%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 100.), 100==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "125%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 125.), 125==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "150%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 150.), 150==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "175%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 175.), 175==(int)(vlc->getVolume())?getItemImage():nullptr);
-	item.addAction( "200%", boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 200.), 200==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "10%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "25%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 25.), 25==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "50%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 50.), 50==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "75%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 75.), 75==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "100%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 100.), 100==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "125%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 125.), 125==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "150%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 150.), 150==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "175%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 175.), 175==(int)(vlc->getVolume())?getItemImage():nullptr);
+	item.addAction( "200%", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioVolume, this, _1, 200.), 200==(int)(vlc->getVolume())?getItemImage():nullptr);
 }
 
 void VideoComponent::onMenuFullscreen(AbstractMenuItem& item, bool fs)
 {
 	setBrowsingFiles(false);
 	setFullScreen(fs);
-
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 
 void VideoComponent::onMenuAudioTrack (AbstractMenuItem& item, int id)
 {
 	setBrowsingFiles(false);
 	vlc->setAudioTrack(id);
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuAudioTrackList (AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	int current = vlc->getAudioTrack();
 	std::vector<std::pair<int, std::string> > list = vlc->getAudioTrackList();
 	for(std::vector<std::pair<int, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{	
-		item.addAction(it->second.c_str(), boost::bind(&VideoComponent::onMenuAudioTrack, this, _1, it->first), it->first==current?getItemImage():nullptr);
+		item.addAction(it->second.c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAudioTrack, this, _1, it->first), it->first==current?getItemImage():nullptr);
 	}
 }
 void VideoComponent::onMenuVideoAdjust (AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 	vlc->setVideoAdjust(!vlc->getVideoAdjust());
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuVideoContrast (AbstractMenuItem& item)
 {
@@ -1595,78 +1560,74 @@ void VideoComponent::onMenuVideoTrack (AbstractMenuItem& item, int id)
 {
 	setBrowsingFiles(false);
 	vlc->setVideoTrack(id);
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuVideoTrackList (AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	int current = vlc->getVideoTrack();
 	std::vector<std::pair<int, std::string> > list = vlc->getVideoTrackList();
 	for(std::vector<std::pair<int, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{	
-		item.addAction(it->second.c_str(), boost::bind(&VideoComponent::onMenuVideoTrack, this, _1, it->first), it->first==current?getItemImage():nullptr);
+		item.addAction(it->second.c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuVideoTrack, this, _1, it->first), it->first==current?getItemImage():nullptr);
 	}
 }
 void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Volume"), boost::bind(&VideoComponent::onMenuAudioVolumeSlider, this, _1));
-	item.addAction( TRANS("Delay"), boost::bind(&VideoComponent::onMenuShiftAudioSlider, this, _1));
-	item.addAction( TRANS("Equalizer"), boost::bind(&VideoComponent::onVLCAoutStringSelectListMenu, this, _1, std::string(AOUT_FILTER_EQUALIZER), std::string(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET)));
-	item.addAction( TRANS("Select Track"), boost::bind(&VideoComponent::onMenuAudioTrackList, this, _1));
+
+	item.addAction( TRANS("Volume"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuAudioVolumeListAndSlider, this, _1));
+	item.addAction( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftAudioSlider, this, _1));
+	item.addAction( TRANS("Equalizer"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCAoutStringSelectListMenu, this, _1, std::string(AOUT_FILTER_EQUALIZER), std::string(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET)));
+	item.addAction( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuAudioTrackList, this, _1));
 }
 
 void VideoComponent::onMenuSetAspectRatio(AbstractMenuItem& item, juce::String ratio)
 {
 	setBrowsingFiles(false);
 	vlc->setAspect(ratio.getCharPointer().getAddress());
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onMenuRatio(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 	std::string current = vlc->getAspect();
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Original"), boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("")), current==""?getItemImage():nullptr);
-	item.addAction( "1:1", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("1:1")), current=="1:1"?getItemImage():nullptr);
-	item.addAction( "4:3", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("4:3")), current=="4:3"?getItemImage():nullptr);
-	item.addAction( "16:10", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("16:10")), current=="16:10"?getItemImage():nullptr);
-	item.addAction( "16:9", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("16:9")), current=="16:9"?getItemImage():nullptr);
-	item.addAction( "2.21:1", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.21:1")), current=="2.21:1"?getItemImage():nullptr);
-	item.addAction( "2.35:1", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.35:1")), current=="2.35:1"?getItemImage():nullptr);
-	item.addAction( "2.39:1", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.39:1")), current=="2.39:1"?getItemImage():nullptr);
-	item.addAction( "5:4", boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("5:4")), current=="5:4"?getItemImage():nullptr);
+
+	item.addAction( TRANS("Original"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("")), current==""?getItemImage():nullptr);
+	item.addAction( "1:1", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("1:1")), current=="1:1"?getItemImage():nullptr);
+	item.addAction( "4:3", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("4:3")), current=="4:3"?getItemImage():nullptr);
+	item.addAction( "16:10", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("16:10")), current=="16:10"?getItemImage():nullptr);
+	item.addAction( "16:9", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("16:9")), current=="16:9"?getItemImage():nullptr);
+	item.addAction( "2.21:1", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.21:1")), current=="2.21:1"?getItemImage():nullptr);
+	item.addAction( "2.35:1", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.35:1")), current=="2.35:1"?getItemImage():nullptr);
+	item.addAction( "2.39:1", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("2.39:1")), current=="2.39:1"?getItemImage():nullptr);
+	item.addAction( "5:4", AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetAspectRatio, this, _1, juce::String("5:4")), current=="5:4"?getItemImage():nullptr);
 	
 }
 
 void VideoComponent::onMenuVideoAdjustOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Enable"), boost::bind(&VideoComponent::onMenuVideoAdjust, this, _1), vlc->getVideoAdjust()?getItemImage():nullptr);
-	item.addAction( TRANS("Contrast"), boost::bind(&VideoComponent::onMenuVideoContrast, this, _1));
-	item.addAction( TRANS("Brightness"), boost::bind(&VideoComponent::onMenuVideoBrightness, this, _1));
-	item.addAction( TRANS("Saturation"), boost::bind(&VideoComponent::onMenuVideoSaturation, this, _1));
-	item.addAction( TRANS("Hue"), boost::bind(&VideoComponent::onMenuVideoHue, this, _1));
-	item.addAction( TRANS("Gamma"), boost::bind(&VideoComponent::onMenuVideoGamma, this, _1));
+
+	item.addAction( TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuVideoAdjust, this, _1), vlc->getVideoAdjust()?getItemImage():nullptr);
+	item.addAction( TRANS("Contrast"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuVideoContrast, this, _1));
+	item.addAction( TRANS("Brightness"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuVideoBrightness, this, _1));
+	item.addAction( TRANS("Saturation"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuVideoSaturation, this, _1));
+	item.addAction( TRANS("Hue"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuVideoHue, this, _1));
+	item.addAction( TRANS("Gamma"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuVideoGamma, this, _1));
 }
 
 void VideoComponent::onMenuVideoOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Speed"), boost::bind(&VideoComponent::onMenuRateSlider, this, _1));
-	item.addAction( TRANS("Zoom"), boost::bind(&VideoComponent::onMenuCropList, this, _1));
-	item.addAction( TRANS("Aspect Ratio"), boost::bind(&VideoComponent::onMenuRatio, this, _1));
-	item.addAction( TRANS("Select Track"), boost::bind(&VideoComponent::onMenuVideoTrackList, this, _1));
-	item.addAction( TRANS("Adjust"), boost::bind(&VideoComponent::onMenuVideoAdjustOptions, this, _1));
-	item.addAction( OPT_TRANS("Quality"), boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
-	item.addAction( OPT_TRANS("Deinterlace"), boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
-	item.addAction( OPT_TRANS("Deint. mode"), boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
+
+	item.addAction( TRANS("Speed"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRateListAndSlider, this, _1));
+	item.addAction( TRANS("Zoom"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuCropList, this, _1));
+	item.addAction( TRANS("Aspect Ratio"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRatio, this, _1));
+	item.addAction( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoTrackList, this, _1));
+	item.addAction( TRANS("Adjust"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoAdjustOptions, this, _1));
+	item.addAction( OPT_TRANS("Quality"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
+	item.addAction( OPT_TRANS("Deinterlace"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
+	item.addAction( OPT_TRANS("Deint. mode"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
 }
 void VideoComponent::onMenuExit(AbstractMenuItem& item)
 {
@@ -1690,20 +1651,17 @@ void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
 	vlc->playPlayListItem(index);
 
 	forceSetVideoTime(name);
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onShowPlaylist(AbstractMenuItem& item)
 {
 	setBrowsingFiles(true);
-	item.focusItemAsMenuShortcut();
 
 	int current = vlc->getCurrentPlayListItemIndex ();
 	std::vector<std::string > list = vlc->getCurrentPlayList();
 	int i=0;
 	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
 	{	
-		item.addAction(it->c_str(), boost::bind(&VideoComponent::onPlaylistItem, this, _1, i), i==current?getItemImage():nullptr);
+		item.addAction(it->c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onPlaylistItem, this, _1, i), i==current?getItemImage():nullptr);
 		++i;
 	}
 	
@@ -1714,88 +1672,77 @@ void VideoComponent::onLanguageSelect(AbstractMenuItem& item, std::string lang)
 	Languages::getInstance().setCurrentLanguage(lang);
 	
 	m_settings.setValue(SETTINGS_LANG, lang.c_str());
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onLanguageOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	std::vector< std::string > list = Languages::getInstance().getLanguages();
 	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
 	{	
-		item.addAction(it->c_str(), boost::bind(&VideoComponent::onLanguageSelect, this, _1, *it), (*it==Languages::getInstance().getCurrentLanguage())?getItemImage():nullptr);
+		item.addAction(it->c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onLanguageSelect, this, _1, *it), (*it==Languages::getInstance().getCurrentLanguage())?getItemImage():nullptr);
 	}
 }
 void VideoComponent::onSetPlayerFonSize(AbstractMenuItem& item, int size)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(size);
 	
 	m_settings.setValue(SETTINGS_FONT_SIZE, size);
 	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 	if(invokeLater)invokeLater->queuef(boost::bind<void>(&VideoComponent::resized, this));
 }
 void VideoComponent::onPlayerFonSize(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
+
 	for(int i=50;i<=175;i+=25)
 	{
-		item.addAction( juce::String::formatted("%d%%", i), boost::bind(&VideoComponent::onSetPlayerFonSize, this, _1, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
+		item.addAction( juce::String::formatted("%d%%", i), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetPlayerFonSize, this, _1, i), i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?getItemImage():nullptr);
 	}
 }
 
 void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	vlc->setConfigOptionInt(name.c_str(), enable);
 	
 	m_settings.setValue(name.c_str(), enable);
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
 
 	vlc->setConfigOptionBool(name.c_str(), enable);
 	
 	m_settings.setValue(name.c_str(), enable);
-	
-	if(invokeLater)invokeLater->queuef(boost::bind<void>(&AbstractMenuItem::forceParentSelection, &item, true));
 }
 void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("FullScreen"), boost::bind(&VideoComponent::onMenuFullscreen, this, _1, true), isFullScreen()?getItemImage():nullptr);
-	item.addAction( TRANS("Windowed"), boost::bind(&VideoComponent::onMenuFullscreen, this, _1, false), isFullScreen()?nullptr:getItemImage());
 
-	item.addAction( TRANS("Language"), boost::bind(&VideoComponent::onLanguageOptions, this, _1));
-	item.addAction( TRANS("Menu font size"), boost::bind(&VideoComponent::onPlayerFonSize, this, _1));
+	item.addAction( TRANS("FullScreen"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuFullscreen, this, _1, true), isFullScreen()?getItemImage():nullptr);
+	item.addAction( TRANS("Windowed"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuFullscreen, this, _1, false), isFullScreen()?nullptr:getItemImage());
 
-	item.addAction( TRANS("Hardware"), boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
-	item.addAction( TRANS("No hardware"), boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
+	item.addAction( TRANS("Language"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onLanguageOptions, this, _1));
+	item.addAction( TRANS("Menu font size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onPlayerFonSize, this, _1));
+
+	item.addAction( TRANS("Hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
+	item.addAction( TRANS("No hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
 }
 void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
-	item.focusItemAsMenuShortcut();
-	item.addAction( TRANS("Open"), boost::bind(&VideoComponent::onMenuListMediaFiles, this, _1), getFolderShortcutImage());
-	item.addAction( TRANS("Now playing"), boost::bind(&VideoComponent::onShowPlaylist, this, _1), getPlaylistImage());
-	item.addAction( TRANS("Subtitles"), boost::bind(&VideoComponent::onMenuSubtitleMenu, this, _1), getSubtitlesImage());
-	item.addAction( TRANS("Video"), boost::bind(&VideoComponent::onMenuVideoOptions, this, _1), getDisplayImage());
-	item.addAction( TRANS("Sound"), boost::bind(&VideoComponent::onMenuSoundOptions, this, _1), getAudioImage());
-	item.addAction( TRANS("Player"), boost::bind(&VideoComponent::onPlayerOptions, this, _1), getSettingsImage());
-	item.addAction( TRANS("Exit"), boost::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
+
+	item.addAction( TRANS("Open"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenFolder), getFolderShortcutImage());
+	item.addAction( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onShowPlaylist, this, _1), getPlaylistImage());
+	item.addAction( TRANS("Subtitles"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitleMenu, this, _1), getSubtitlesImage());
+	item.addAction( TRANS("Video"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoOptions, this, _1), getDisplayImage());
+	item.addAction( TRANS("Sound"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSoundOptions, this, _1), getAudioImage());
+	item.addAction( TRANS("Player"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onPlayerOptions, this, _1), getSettingsImage());
+	item.addAction( TRANS("Exit"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
 
 }
 ////////////////////////////////////////////////////////////

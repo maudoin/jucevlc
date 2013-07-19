@@ -115,8 +115,6 @@ public:
 	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
 	
 	/////////////// MenuTree
-	void onMenuListMediaFiles(AbstractMenuItem& item);
-	void onMenuListSubtitlesFiles(AbstractMenuItem& item);
 	void onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
@@ -126,10 +124,12 @@ public:
 	void onMenuRemoveFavorite (AbstractMenuItem& item, juce::String path);
 	void mayPurgeFavorites();
 	void writeFavorites();
-    void onMenuOpen (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenFile (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenFolder (AbstractMenuItem& item, juce::File file);
     void onMenuOpenUnconditionnal (AbstractMenuItem& item,  juce::String path);
     void onMenuQueue (AbstractMenuItem& item,  juce::String path);
-    void onMenuOpenSubtitle (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file);
     void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
 	
 
@@ -150,7 +150,7 @@ public:
     void onMenuAutoCrop (AbstractMenuItem& item);
     void onMenuCropList (AbstractMenuItem& item);
     void onMenuRate (AbstractMenuItem& item, double rate);
-    void onMenuRateSlider (AbstractMenuItem& item);
+    void onMenuRateListAndSlider (AbstractMenuItem& item);
     void onMenuSetAspectRatio(AbstractMenuItem& item, juce::String ratio);
     void onMenuShiftAudio(double s);
     void onMenuShiftAudioSlider(AbstractMenuItem& item);
@@ -159,7 +159,7 @@ public:
 	void onVLCAoutStringSelect(AbstractMenuItem& item, std::string, std::string, std::string i);
     void onVLCAoutStringSelectListMenu (AbstractMenuItem& item, std::string, std::string);
     void onMenuAudioVolume(AbstractMenuItem& item, double volume);
-    void onMenuAudioVolumeSlider (AbstractMenuItem& item);
+    void onMenuAudioVolumeListAndSlider (AbstractMenuItem& item);
 	
     void onMenuAudioTrack (AbstractMenuItem& item, int id);
     void onMenuAudioTrackList (AbstractMenuItem& item);

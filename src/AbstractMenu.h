@@ -13,11 +13,15 @@ typedef boost::function<void (AbstractMenuItem&)> AbstractAction;
 class AbstractMenuItem
 {
 public:
+	enum ActionEffect
+	{
+		EXECUTE_ONLY,
+		REFRESH_MENU,
+		STORE_AND_OPEN_CHILDREN
+	};
 	virtual ~AbstractMenuItem(){}
-    virtual AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
-	virtual void focusItemAsMenuShortcut() = 0;
+    virtual AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
 	virtual void forceSelection(bool force = true) = 0;
-	virtual void forceParentSelection(bool force = true) = 0;
 	virtual bool isMenuShortcut() = 0;
 };
 //==============================================================================

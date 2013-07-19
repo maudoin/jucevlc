@@ -9,13 +9,15 @@ class SmartTreeViewItem  : public juce::TreeViewItem, public AbstractMenuItem
 	juce::String name;
 	const juce::Drawable* icon;
 	AbstractAction action;
+	ActionEffect actionEffect;
 public:
-    SmartTreeViewItem (AbstractMenu& owner, juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
+    SmartTreeViewItem (AbstractMenu& owner, juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
 		:owner(owner)
 		,m_isShortcut(false)
 		,name(name)
 		,icon(icon)
 		,action(action)
+		,actionEffect(actionEffect)
     {
 	}
 
@@ -113,9 +115,9 @@ public:
 			clearSubItems();
         }
     }
-    AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
+    AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
-		SmartTreeViewItem* item = new SmartTreeViewItem(owner, name, action, icon);
+		SmartTreeViewItem* item = new SmartTreeViewItem(owner, name, actionEffect, action, icon);
 		addSubItem(item);
 		return item;
 	}
@@ -124,12 +126,12 @@ public:
 	{
 		setSelected(force, true);
 	}
-	virtual void forceParentSelection(bool force)
+	virtual void forceParentSelection()
 	{
 		juce::TreeViewItem* parent = getParentItem();
 		if(parent)
 		{
-			parent->setSelected(force, true);
+			parent->setSelected(true, true, juce::sendNotificationAsync);
 		}
 	}
     juce::String getUniqueName() const
@@ -143,7 +145,15 @@ public:
 		{
 			if(!action.empty())
 			{
+				if(STORE_AND_OPEN_CHILDREN == actionEffect)
+				{
+					focusItemAsMenuShortcut();
+				}
 				action(*this);
+				if(REFRESH_MENU == actionEffect)
+				{
+					forceParentSelection();
+				}
 			}
 		}
 		
@@ -181,7 +191,7 @@ void MenuTree::fillWith(AbstractAction rootAction)
 	if(!rootAction.empty())
 	{
 		juce::TreeViewItem* const root
-			= new SmartTreeViewItem (*this, "Menu", rootAction, itemImage);
+			= new SmartTreeViewItem (*this, "Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction, itemImage);
 
 		setRootItem (root);
 

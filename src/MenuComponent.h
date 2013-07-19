@@ -25,10 +25,8 @@ public:
 	void recentItemSelected(int /*lastRowselected*/);
 
 	
-	virtual AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr);
-	virtual void focusItemAsMenuShortcut();
+	virtual AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr);
 	virtual void forceSelection(bool force = true);
-	virtual void forceParentSelection(bool force = true);
 	virtual bool isMenuShortcut();
 
 };

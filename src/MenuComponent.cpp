@@ -11,40 +11,27 @@ protected:
 	juce::String name;
 	const juce::Drawable* icon;
 	AbstractAction action;
+	AbstractMenuItem::ActionEffect actionEffect;
 public:
 
-    MenuItem (int index = -1, juce::String const& name = juce::String::empty, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr)
+    MenuItem (int index = -1, juce::String const& name = juce::String::empty, AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr)
 	:index(index)
 	,name(name)
 	,icon(icon)
 	,action(action)
+	,actionEffect(actionEffect)
 	{
-	}
-
-    MenuItem (MenuItem const& other)
-	:index(0)
-	,name(juce::String::empty)
-	,icon(nullptr)
-	,action(NullAbstractAction)
-	{
-		operator=(other);
 	}
 
 	virtual ~MenuItem()
 	{
 	}
-	
-    MenuItem& operator= (MenuItem const& other)
-	{
-		index=other.index;
-		name=other.name;
-		icon=other.icon;
-		action=other.action;
-		return *this;
-	}
+
 	virtual const juce::Drawable* getIcon(){ return icon;}
 	virtual juce::String const& getName(){ return name;}
 	virtual void execute(AbstractMenuItem & m){ return action(m);}
+	
+	virtual AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
 	
 };
 
@@ -173,7 +160,7 @@ void MenuComponent::fillWith(AbstractAction rootAction_)
 	{
 		rootAction_(*this);
         menuList->getListBox()->updateContent();
-		recentList->add(MenuItem(0, "Menu", rootAction_, itemImage));
+		recentList->add(MenuItem(0, "Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction_, itemImage));
 	}
 	
 }
@@ -206,7 +193,8 @@ void MenuComponent::recentItemSelected(int /*lastRowselected*/)
 	{
 		recentList->removeItemsAfter(row);
 		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
-
+		
+		menuList->clear();
 		item->execute(*this);
 
 		resized();
@@ -218,41 +206,41 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 	MenuItem* item = menuList->getSelectedItem();
     if (item != nullptr)
 	{
-		//if(item->moveToRecentList())
+		switch(item->getActionEffect())
 		{
-			MenuItem copy = *item;
-			recentList->add(copy);
-			menuList->clear();
-			copy.execute(*this);
-		}/*
-	    else
-		{
-			item->execute(*this)
-			if(item->refreshMenu())
+			case STORE_AND_OPEN_CHILDREN:
 			{
-				recentList->selectLastItem(juce::sendNotificationAsync);
+				MenuItem copy = *item;
+				recentList->add(copy);
+				menuList->clear();
+				copy.execute(*this);
+				break;
 			}
-		}*/
+			case EXECUTE_ONLY:
+			{
+				item->execute(*this);
+				break;
+			}
+			case REFRESH_MENU:
+			{
+				item->execute(*this);
+				//menuList->clear();
+				recentList->selectLastItem(juce::sendNotificationAsync);
+				break;
+			}
+		}
 		resized();
 	}
 }
 
-AbstractMenuItem* MenuComponent::addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon)
+AbstractMenuItem* MenuComponent::addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 {
-	menuList->add(MenuItem(menuList->getNumRows(), name, action, icon));
+	menuList->add(MenuItem(menuList->getNumRows(), name, actionEffect, action, icon));
 	return this;
-}
-void MenuComponent::focusItemAsMenuShortcut(/*AbstractMenuItem& it*/)
-{
-	//it must not be deleted...
 }
 void MenuComponent::forceSelection(/*AbstractMenuItem& it*/bool force)
 {
 	//??
-}
-void MenuComponent::forceParentSelection(bool force)
-{
-	recentList->selectLastItem(juce::sendNotificationAsync);
 }
 bool MenuComponent::isMenuShortcut()
 {
