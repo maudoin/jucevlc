@@ -1,4 +1,5 @@
 #include "MenuComponent.h"
+#include <boost/bind.hpp>
 
 
 void NullAbstractAction(AbstractMenuItem&){};
@@ -12,33 +13,82 @@ protected:
 	AbstractAction action;
 public:
 
-    MenuItem (int index = -1, juce::String const& name = "", AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr)
+    MenuItem (int index = -1, juce::String const& name = juce::String::empty, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr)
 	:index(index)
 	,name(name)
 	,icon(icon)
-	,action(action){}
+	,action(action)
+	{
+	}
+
+    MenuItem (MenuItem const& other)
+	:index(0)
+	,name(juce::String::empty)
+	,icon(nullptr)
+	,action(NullAbstractAction)
+	{
+		operator=(other);
+	}
 
 	virtual ~MenuItem()
 	{
 	}
-
+	
+    MenuItem& operator= (MenuItem const& other)
+	{
+		index=other.index;
+		name=other.name;
+		icon=other.icon;
+		action=other.action;
+		return *this;
+	}
 	virtual const juce::Drawable* getIcon(){ return icon;}
 	virtual juce::String const& getName(){ return name;}
 	virtual void execute(AbstractMenuItem & m){ return action(m);}
 	
 };
-class DefaultModel : public juce::ListBoxModel
+
+
+
+class TransparentListBox : public virtual juce::ListBox
 {
-protected:
-	juce::Array<MenuItem> items;
-	bool isShortcut;
 public:
-	DefaultModel(bool isShortcut):isShortcut(isShortcut)
+	TransparentListBox(const juce::String& componentName = juce::String::empty,
+             juce::ListBoxModel* model = nullptr) : juce::ListBox(componentName, model)
+	{
+		setColour(backgroundColourId, juce::Colour());
+	}
+	void paint (juce::Graphics& g)
 	{
 	}
-	virtual ~DefaultModel()
+};
+
+
+class MenuItemList : public juce::ListBoxModel
+{
+public:
+	typedef boost::function<void (int)> SelectionCallback;
+private:
+	TransparentListBox box;
+	juce::Array<MenuItem> items;
+	bool isShortcut;
+	SelectionCallback listBoxSelectionCallback;
+public:
+
+	MenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback, bool isShortcut)
+		:box(name, this)
+		,isShortcut(isShortcut)
+		,listBoxSelectionCallback(listBoxSelectionCallback)
 	{
-		items.clear();
+	}
+	virtual ~MenuItemList()
+	{
+	}
+
+	
+	juce::ListBox * getListBox()
+	{
+		return &box;
 	}
 	
     // implements the ListBoxModel method
@@ -60,119 +110,56 @@ public:
 		MenuItem& item = items[rowNumber];
 		paintMenuItem(g, width, height, rowIsSelected, item.getName(), item.getIcon(), isShortcut);
     }
-};
-class RecentList : public DefaultModel, public virtual juce::ListBox
-{
-	AbstractMenuItem &parent;
-public:
-	RecentList(AbstractMenuItem &parent)
-		: DefaultModel(true)
-		, juce::ListBox("RecentList", this)
-		, parent(parent)
+	
+    void selectedRowsChanged (int lastRowselected)
 	{
-		setColour(backgroundColourId, juce::Colour());
+		listBoxSelectionCallback(lastRowselected);
 	}
-
-	virtual ~RecentList()
+    virtual void add(MenuItem const& item)
 	{
-		items.clear();
-        updateContent();
+		items.add(item);
+        box.updateContent();
 	}
 	
-	void paint (juce::Graphics& g)
+	MenuItem* getItem(int rowNumber)
 	{
-	}
-	
-    void selectedRowsChanged (int /*lastRowselected*/)
-    {
-		int rowNumber = getSelectedRow();
-        if (rowNumber < 0 || rowNumber>= items.size())
+		if (rowNumber < 0 || rowNumber>= getNumRows())
 		{
-			return;
+			return nullptr;
 		}
-		MenuItem& item = items[rowNumber];
-		item.execute(parent);
-
+		return &(items.getReference(rowNumber));
+	}
+	
+	MenuItem* getSelectedItem()
+	{
+		return getItem(box.getSelectedRow());
+	}
+	void removeItemsAfter(int rowNumber)
+	{
 		//menu is likely to have changed
 		items.removeRange(rowNumber +1, items.size()-1-rowNumber);
-        updateContent();
-    }
-    virtual void add(MenuItem const& item)
-	{
-		items.add(item);
-        updateContent();
+		box.updateContent();
 	}
-	
-};
-class MenuList : public DefaultModel, public virtual juce::ListBox, public AbstractMenuItem
-{
-public:
-	MenuList()
-		: DefaultModel(false)
-		, juce::ListBox("MenuList", this)
-	{
-		setColour(backgroundColourId, juce::Colour());
-	}
-
-	virtual ~MenuList()
-	{
-        updateContent();
-	}
-	
-	void paint (juce::Graphics& g)
-	{
-	}
-    // implements the ListBoxModel method
-    int getNumRows()
-    {
-        return items.size();
-    }
-
-	
-    virtual void add(MenuItem const& item)
-	{
-		items.add(item);
-        updateContent();
-	}
-    virtual AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
-	{
-		add(MenuItem(items.size(), name, action, icon));
-		return this;
-	}
-	virtual void focusItemAsMenuShortcut()
+	void clear()
 	{
 		items.clear();
-        updateContent();
+		box.updateContent();
 	}
-	virtual void forceSelection(bool force = true)
+	
+	void selectLastItem(juce::NotificationType type)
 	{
-		//??
+		int index = getNumRows()-1;
+		juce::SparseSet<int> set;
+		set.addRange (juce::Range<int>(index, index));
+		getListBox()->setSelectedRows(set, type);
 	}
-	virtual void forceParentSelection(bool force = true)
-	{
-		//??
-	}
-	virtual bool isMenuShortcut()
-	{
-		return false;
-	}
-    void selectedRowsChanged (int /*lastRowselected*/)
-    {
-		int rowNumber = getSelectedRow();
-        if (rowNumber < 0 || rowNumber>= items.size())
-		{
-			return;
-		}
-		MenuItem& item = items[rowNumber];
-		item.execute(*this);
-    }
 };
 MenuComponent::MenuComponent() 
-	: menuList(new MenuList())
-	, recentList(new RecentList(*menuList))
+	: menuList(new MenuItemList("MenuList", boost::bind(&MenuComponent::menuItemSelected, this, _1),false))
+	, recentList(new MenuItemList("RecentList", boost::bind(&MenuComponent::recentItemSelected, this, _1),true))
 {
-    addAndMakeVisible (recentList.get());
-    addAndMakeVisible (menuList.get());
+    addAndMakeVisible (recentList->getListBox());
+    addAndMakeVisible (menuList->getListBox());
 	setOpaque(false);
 }
 MenuComponent::~MenuComponent()
@@ -184,8 +171,8 @@ void MenuComponent::fillWith(AbstractAction rootAction_)
 {
 	if(!rootAction_.empty())
 	{
-		rootAction_(*menuList);
-        menuList->updateContent();
+		rootAction_(*this);
+        menuList->getListBox()->updateContent();
 		recentList->add(MenuItem(0, "Menu", rootAction_, itemImage));
 	}
 	
@@ -197,7 +184,8 @@ void MenuComponent::paint (juce::Graphics& g)
 }
 void MenuComponent::resized()
 {
-	menuList->setRowHeight((int)getItemHeight());
+	menuList->getListBox()->setRowHeight((int)getItemHeight());
+	recentList->getListBox()->setRowHeight((int)getItemHeight());
 
 	int recentSize = recentList->getNumRows()*(int)getItemHeight()+2;
 	if(recentSize > getHeight()/2)
@@ -205,7 +193,68 @@ void MenuComponent::resized()
 		recentSize = getHeight()/2;
 	}
 	
-	recentList->setBounds(0, 0, getWidth(), recentSize);
-	menuList->setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
+	recentList->getListBox()->setBounds(0, 0, getWidth(), recentSize);
+	menuList->getListBox()->setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
 	Component::resized();
+}
+
+void MenuComponent::recentItemSelected(int /*lastRowselected*/)
+{
+	int row = recentList->getListBox()->getSelectedRow();
+	MenuItem* item = recentList->getItem(row);
+    if (item != nullptr)
+	{
+		recentList->removeItemsAfter(row);
+		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+
+		item->execute(*this);
+
+		resized();
+	}
+}
+	
+void MenuComponent::menuItemSelected (int /*lastRowselected*/)
+{
+	MenuItem* item = menuList->getSelectedItem();
+    if (item != nullptr)
+	{
+		//if(item->moveToRecentList())
+		{
+			MenuItem copy = *item;
+			recentList->add(copy);
+			menuList->clear();
+			copy.execute(*this);
+		}/*
+	    else
+		{
+			item->execute(*this)
+			if(item->refreshMenu())
+			{
+				recentList->selectLastItem(juce::sendNotificationAsync);
+			}
+		}*/
+		resized();
+	}
+}
+
+AbstractMenuItem* MenuComponent::addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon)
+{
+	menuList->add(MenuItem(menuList->getNumRows(), name, action, icon));
+	return this;
+}
+void MenuComponent::focusItemAsMenuShortcut(/*AbstractMenuItem& it*/)
+{
+	//it must not be deleted...
+}
+void MenuComponent::forceSelection(/*AbstractMenuItem& it*/bool force)
+{
+	//??
+}
+void MenuComponent::forceParentSelection(bool force)
+{
+	recentList->selectLastItem(juce::sendNotificationAsync);
+}
+bool MenuComponent::isMenuShortcut()
+{
+	return false;
 }

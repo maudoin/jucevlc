@@ -4,13 +4,12 @@
 
 #include "MenuBase.h"
 	
-class MenuList;
-class RecentList;
+class MenuItemList;
 //==============================================================================
-class MenuComponent : public virtual juce::Component, public virtual MenuBase
+class MenuComponent : public virtual juce::Component, public virtual MenuBase, public virtual AbstractMenuItem
 {
-	juce::ScopedPointer<MenuList> menuList;
-	juce::ScopedPointer<RecentList> recentList;
+	juce::ScopedPointer<MenuItemList> menuList;
+	juce::ScopedPointer<MenuItemList> recentList;
 public:
 	MenuComponent();
 	virtual ~MenuComponent();
@@ -21,6 +20,17 @@ public:
 	void paint (juce::Graphics& g);
 	juce::Component* asComponent() {return this;}
 	juce::Component const* asComponent() const {return this;}
+
+	void menuItemSelected(int /*lastRowselected*/);
+	void recentItemSelected(int /*lastRowselected*/);
+
+	
+	virtual AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr);
+	virtual void focusItemAsMenuShortcut();
+	virtual void forceSelection(bool force = true);
+	virtual void forceParentSelection(bool force = true);
+	virtual bool isMenuShortcut();
+
 };
 
 #endif //MENU_COMPONENT_H
