@@ -36,26 +36,8 @@ void MenuBase::paintMenuBackGround(juce::Graphics& g)
 }
 //==============================================================================
 
-MenuItemBase::MenuItemBase (AbstractMenu& owner, juce::String name, AbstractAction action, const juce::Drawable* icon)
-	:owner(owner)
-	,m_isShortcut(false)
-	,name(name)
-	,icon(icon)
-	,action(action)
-{
-}
-void MenuItemBase::execute()
-{
-	if(!action.empty())
-	{
-		action(*this);
-	}
-}
-const juce::Drawable* MenuItemBase::getIcon(bool isItemSelected)
-{
-	return  icon?icon:(m_isShortcut && !isItemSelected)?owner.getItemImage():nullptr;
-}
-void MenuItemBase::paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelected)
+
+void paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelected, juce::String const& name, const juce::Drawable* d, bool isShortcut)
 {
 		
 	float fontSize =  0.9f*height;
@@ -89,7 +71,7 @@ void MenuItemBase::paintMenuItem (juce::Graphics& g, int width, int height, bool
 		g.drawRect(borderBounds);
 	}
 
-	if(!m_isShortcut)
+	if(!isShortcut)
 	{
 		g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
 											borderBounds.getX(), 0.f,
@@ -102,7 +84,6 @@ void MenuItemBase::paintMenuItem (juce::Graphics& g, int width, int height, bool
 	
 	g.setColour (juce::Colours::black);
 		
-	const juce::Drawable* d = getIcon(isItemSelected);
 	if (d != nullptr)
 	{
 			d->drawWithin (g, juce::Rectangle<float> (iconhborder, 0.0f, (float)iconSize, (float)iconSize),

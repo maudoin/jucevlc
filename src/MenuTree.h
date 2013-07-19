@@ -2,8 +2,6 @@
 #define MENU_TREE_H
 
 
-#include "juce.h"
-#include "AppProportionnalComponent.h"
 #include "MenuBase.h"
 	
 //==============================================================================

@@ -8,14 +8,10 @@
 class MenuBase : public AbstractMenu
 {
 protected:
-	AbstractAction rootAction;
     juce::Drawable const* itemImage;
 public:
 	MenuBase();
 	virtual ~MenuBase();
-
-	virtual void fillWith(AbstractAction rootAction_){rootAction=rootAction_;}
-
 	
 	void setItemImage(juce::Drawable const* itemImage_){itemImage=itemImage_;}
 	juce::Drawable const* getItemImage() const { return itemImage; };
@@ -26,24 +22,7 @@ protected:
 
 };
 //==============================================================================
-class MenuItemBase : public AbstractMenuItem
-{
-protected:
-	AbstractMenu& owner;
-	bool m_isShortcut;
-	juce::String name;
-	const juce::Drawable* icon;
-	AbstractAction action;
 
-    MenuItemBase (AbstractMenu& owner, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr);
-	void execute();
-	virtual const juce::Drawable* getIcon(bool isItemSelected);
-    void paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelected);
-public:
-	
-	virtual bool isMenuShortcut(){return m_isShortcut;}
-};
-
-
+void paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelected, juce::String const& name, const juce::Drawable* d, bool isShortcut = false);
 
 #endif //MENU_BASE_H

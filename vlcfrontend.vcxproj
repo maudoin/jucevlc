@@ -156,6 +156,7 @@
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\Languages.cpp" />
     <ClCompile Include="src\MenuBase.cpp" />
+    <ClCompile Include="src\MenuComponent.cpp" />
     <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -379,6 +380,7 @@
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\Languages.h" />
     <ClInclude Include="src\MenuBase.h" />
+    <ClInclude Include="src\MenuComponent.h" />
     <ClInclude Include="src\MenuTree.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />

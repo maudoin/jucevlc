@@ -2,17 +2,34 @@
 
 #include <modules\vf_core\vf_core.h>
 
-class SmartTreeViewItem  : public juce::TreeViewItem, public MenuItemBase
+class SmartTreeViewItem  : public juce::TreeViewItem, public AbstractMenuItem
 {
+	AbstractMenu& owner;
+	bool m_isShortcut;
+	juce::String name;
+	const juce::Drawable* icon;
+	AbstractAction action;
 public:
-    SmartTreeViewItem (AbstractMenu& owner, juce::String name, AbstractAction action, const juce::Drawable* icon = nullptr)
-		:MenuItemBase (owner, name, action, icon)
+    SmartTreeViewItem (AbstractMenu& owner, juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
+		:owner(owner)
+		,m_isShortcut(false)
+		,name(name)
+		,icon(icon)
+		,action(action)
     {
 	}
 
 	virtual ~SmartTreeViewItem()
 	{
 	}
+
+	virtual bool isMenuShortcut(){return m_isShortcut;}
+
+	const juce::Drawable* getIcon(bool isItemSelected)
+	{
+		return  icon?icon:(m_isShortcut && !isItemSelected)?owner.getItemImage():nullptr;
+	}
+
 	void isolate()
 	{
 		juce::TreeViewItem* parent = getParentItem();
@@ -84,7 +101,7 @@ public:
 	}
     void paintItem (juce::Graphics& g, int width, int height)
     {
-		MenuItemBase::paintMenuItem(g, width, height, isSelected());
+		paintMenuItem(g, width, height, isSelected(), name, getIcon(isSelected()) ,m_isShortcut);
 	}
     void itemOpennessChanged (bool isNowOpen)
     {
@@ -124,7 +141,10 @@ public:
 	{
 		if(isSelected)
 		{
-			MenuItemBase::execute();
+			if(!action.empty())
+			{
+				action(*this);
+			}
 		}
 		
 	}    
@@ -153,9 +173,8 @@ MenuTree::~MenuTree()
 }
 
 
-void MenuTree::fillWith(AbstractAction rootAction_)
+void MenuTree::fillWith(AbstractAction rootAction)
 {
-	MenuBase::fillWith(rootAction_);
 
 	deleteRootItem();
 
