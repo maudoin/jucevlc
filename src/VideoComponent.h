@@ -5,7 +5,7 @@
 #include "juce.h"
 #include "VLCWrapper.h"
 #include "ControlComponent.h"
-#include "MenuTree.h"
+#include "AbstractMenu.h"
 #include "AppProportionnalComponent.h"
 #include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
@@ -33,7 +33,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #endif
     juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<MenuTree> tree;
+    juce::ScopedPointer<AbstractMenu> tree;
     juce::CriticalSection imgCriticalSection;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
@@ -112,83 +112,83 @@ public:
     void componentVisibilityChanged(Component& component);
 #endif
 	
-	typedef void (VideoComponent::*FileMethod)(MenuTreeItem&, juce::File);
+	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
 	
 	/////////////// MenuTree
-	void onMenuListMediaFiles(MenuTreeItem& item);
-	void onMenuListSubtitlesFiles(MenuTreeItem& item);
-	void onMenuListFiles(MenuTreeItem& item, FileMethod fileMethod);
-	void onMenuListRootFiles(MenuTreeItem& item, FileMethod fileMethod);
-	void onMenuListUPNPFiles(MenuTreeItem& item, std::vector<std::string> path);
-	void onMenuListFavorites(MenuTreeItem& item, FileMethod fileMethod);
+	void onMenuListMediaFiles(AbstractMenuItem& item);
+	void onMenuListSubtitlesFiles(AbstractMenuItem& item);
+	void onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod);
+	void onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod);
+	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
+	void onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod);
 	
-	void onMenuAddFavorite (MenuTreeItem& item, juce::String path);
-	void onMenuRemoveFavorite (MenuTreeItem& item, juce::String path);
+	void onMenuAddFavorite (AbstractMenuItem& item, juce::String path);
+	void onMenuRemoveFavorite (AbstractMenuItem& item, juce::String path);
 	void mayPurgeFavorites();
 	void writeFavorites();
-    void onMenuOpen (MenuTreeItem& item, juce::File file);
-    void onMenuOpenUnconditionnal (MenuTreeItem& item,  juce::String path);
-    void onMenuQueue (MenuTreeItem& item,  juce::String path);
-    void onMenuOpenSubtitle (MenuTreeItem& item, juce::File file);
-    void onMenuOpenPlaylist (MenuTreeItem& item, juce::File file);
+    void onMenuOpen (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenUnconditionnal (AbstractMenuItem& item,  juce::String path);
+    void onMenuQueue (AbstractMenuItem& item,  juce::String path);
+    void onMenuOpenSubtitle (AbstractMenuItem& item, juce::File file);
+    void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
 	
 
-	void onMenuVoutIntOption (MenuTreeItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
-	void onVLCOptionIntSelect(MenuTreeItem& item, std::string, int i);
-    void onVLCOptionIntListMenu (MenuTreeItem& item, std::string);
-    void onVLCOptionIntRangeMenu (MenuTreeItem& item, std::string, const char* format, int min, int max, int defaultVal);
-	void onVLCOptionStringSelect(MenuTreeItem& item, std::string, std::string i);
-    void onVLCOptionStringMenu (MenuTreeItem& item, std::string);
-	void onMenuSubtitlePositionMode(MenuTreeItem& item, bool automatic);
-	void onMenuSubtitlePositionMode(MenuTreeItem& item);
-	void onMenuSubtitleSelect(MenuTreeItem& item, int i);
-    void onMenuSubtitlePosition (MenuTreeItem& item);
-	void onVLCOptionColor(MenuTreeItem& item, std::string);
-    void onMenuSubtitleMenu (MenuTreeItem& item);
-    void onMenuZoom (MenuTreeItem& item, double ratio);
-    void onMenuCrop (MenuTreeItem& item, juce::String  crop);
-    void onMenuAutoCrop (MenuTreeItem& item);
-    void onMenuCropList (MenuTreeItem& item);
-    void onMenuRate (MenuTreeItem& item, double rate);
-    void onMenuRateSlider (MenuTreeItem& item);
-    void onMenuSetAspectRatio(MenuTreeItem& item, juce::String ratio);
+	void onMenuVoutIntOption (AbstractMenuItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
+	void onVLCOptionIntSelect(AbstractMenuItem& item, std::string, int i);
+    void onVLCOptionIntListMenu (AbstractMenuItem& item, std::string);
+    void onVLCOptionIntRangeMenu (AbstractMenuItem& item, std::string, const char* format, int min, int max, int defaultVal);
+	void onVLCOptionStringSelect(AbstractMenuItem& item, std::string, std::string i);
+    void onVLCOptionStringMenu (AbstractMenuItem& item, std::string);
+	void onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic);
+	void onMenuSubtitlePositionMode(AbstractMenuItem& item);
+	void onMenuSubtitleSelect(AbstractMenuItem& item, int i);
+    void onMenuSubtitlePosition (AbstractMenuItem& item);
+	void onVLCOptionColor(AbstractMenuItem& item, std::string);
+    void onMenuSubtitleMenu (AbstractMenuItem& item);
+    void onMenuZoom (AbstractMenuItem& item, double ratio);
+    void onMenuCrop (AbstractMenuItem& item, juce::String  crop);
+    void onMenuAutoCrop (AbstractMenuItem& item);
+    void onMenuCropList (AbstractMenuItem& item);
+    void onMenuRate (AbstractMenuItem& item, double rate);
+    void onMenuRateSlider (AbstractMenuItem& item);
+    void onMenuSetAspectRatio(AbstractMenuItem& item, juce::String ratio);
     void onMenuShiftAudio(double s);
-    void onMenuShiftAudioSlider(MenuTreeItem& item);
+    void onMenuShiftAudioSlider(AbstractMenuItem& item);
     void onMenuShiftSubtitles(double s);
-    void onMenuShiftSubtitlesSlider(MenuTreeItem& item);
-	void onVLCAoutStringSelect(MenuTreeItem& item, std::string, std::string, std::string i);
-    void onVLCAoutStringSelectListMenu (MenuTreeItem& item, std::string, std::string);
-    void onMenuAudioVolume(MenuTreeItem& item, double volume);
-    void onMenuAudioVolumeSlider (MenuTreeItem& item);
+    void onMenuShiftSubtitlesSlider(AbstractMenuItem& item);
+	void onVLCAoutStringSelect(AbstractMenuItem& item, std::string, std::string, std::string i);
+    void onVLCAoutStringSelectListMenu (AbstractMenuItem& item, std::string, std::string);
+    void onMenuAudioVolume(AbstractMenuItem& item, double volume);
+    void onMenuAudioVolumeSlider (AbstractMenuItem& item);
 	
-    void onMenuAudioTrack (MenuTreeItem& item, int id);
-    void onMenuAudioTrackList (MenuTreeItem& item);
-    void onMenuVideoTrack (MenuTreeItem& item, int id);
-    void onMenuVideoTrackList (MenuTreeItem& item);
-	void onMenuVideoContrast (MenuTreeItem& item);
-	void onMenuVideoBrightness (MenuTreeItem& item);
-	void onMenuVideoHue (MenuTreeItem& item);
-	void onMenuVideoSaturation (MenuTreeItem& item);
-	void onMenuVideoGamma (MenuTreeItem& item);
-	void onMenuVideoAdjust (MenuTreeItem& item);
+    void onMenuAudioTrack (AbstractMenuItem& item, int id);
+    void onMenuAudioTrackList (AbstractMenuItem& item);
+    void onMenuVideoTrack (AbstractMenuItem& item, int id);
+    void onMenuVideoTrackList (AbstractMenuItem& item);
+	void onMenuVideoContrast (AbstractMenuItem& item);
+	void onMenuVideoBrightness (AbstractMenuItem& item);
+	void onMenuVideoHue (AbstractMenuItem& item);
+	void onMenuVideoSaturation (AbstractMenuItem& item);
+	void onMenuVideoGamma (AbstractMenuItem& item);
+	void onMenuVideoAdjust (AbstractMenuItem& item);
 
-    void onMenuFullscreen(MenuTreeItem& item, bool fs);
+    void onMenuFullscreen(AbstractMenuItem& item, bool fs);
 	
-	void onMenuExit(MenuTreeItem& item);
-	void onMenuSoundOptions(MenuTreeItem& item);
-	void onMenuRatio(MenuTreeItem& item);
-	void onMenuVideoAdjustOptions(MenuTreeItem& item);
-	void onMenuVideoOptions(MenuTreeItem& item);
-	void onPlaylistItem(MenuTreeItem& item, int index);
-	void onShowPlaylist(MenuTreeItem& item);
-	void onLanguageOptions(MenuTreeItem& item);
-	void onLanguageSelect(MenuTreeItem& item, std::string lang);
-	void onSetPlayerFonSize(MenuTreeItem& item, int size);
-	void onPlayerFonSize(MenuTreeItem& item);
-	void onSetVLCOptionInt(MenuTreeItem& item, std::string name, int enable);
-	void onSetVLCOption(MenuTreeItem& item, std::string name, bool enable);
-	void onPlayerOptions(MenuTreeItem& item);
-	void onMenuRoot(MenuTreeItem& item);
+	void onMenuExit(AbstractMenuItem& item);
+	void onMenuSoundOptions(AbstractMenuItem& item);
+	void onMenuRatio(AbstractMenuItem& item);
+	void onMenuVideoAdjustOptions(AbstractMenuItem& item);
+	void onMenuVideoOptions(AbstractMenuItem& item);
+	void onPlaylistItem(AbstractMenuItem& item, int index);
+	void onShowPlaylist(AbstractMenuItem& item);
+	void onLanguageOptions(AbstractMenuItem& item);
+	void onLanguageSelect(AbstractMenuItem& item, std::string lang);
+	void onSetPlayerFonSize(AbstractMenuItem& item, int size);
+	void onPlayerFonSize(AbstractMenuItem& item);
+	void onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable);
+	void onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable);
+	void onPlayerOptions(AbstractMenuItem& item);
+	void onMenuRoot(AbstractMenuItem& item);
 	/////////////// VLC EvtListener
 	virtual void vlcTimeChanged();
 	virtual void vlcPaused();
@@ -246,7 +246,7 @@ private:
 	void updateSubComponentsBounds();
 	void forceSetVideoTime(int64_t start);
 	void forceSetVideoTime(std::string const& name);
-	void restart(MenuTreeItem& item);
+	void restart(AbstractMenuItem& item);
 };
 
 #endif //VIDEO_COMPONENT

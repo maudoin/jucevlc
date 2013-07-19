@@ -6,7 +6,7 @@
 //==============================================================================
 class MenuTree;
 
-class SmartTreeViewItem  : public juce::TreeViewItem, public MenuTreeItem
+class SmartTreeViewItem  : public juce::TreeViewItem, public AbstractMenuItem
 {
 	MenuTree& owner;
 protected:
@@ -186,7 +186,7 @@ public:
 			clearSubItems();
         }
     }
-    MenuTreeItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
+    AbstractMenuItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
 		SmartTreeViewItem* item = new SmartTreeViewItem(owner, name, action, icon);
 		addSubItem(item);
@@ -236,7 +236,7 @@ public:
 };
 
 
-MenuTree::MenuTree() : itemImage(nullptr)
+MenuTree::MenuTree() 
 {
 
 	setIndentSize(0);

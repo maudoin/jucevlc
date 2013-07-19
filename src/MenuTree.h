@@ -4,28 +4,11 @@
 
 #include "juce.h"
 #include "AppProportionnalComponent.h"
-#include <boost/function.hpp>
+#include "AbstractMenu.h"
 	
-class MenuTreeItem;
-
-typedef boost::function<void (MenuTreeItem&)> AbstractAction;
-
-class MenuTreeItem
-{
-public:
-	virtual ~MenuTreeItem(){}
-    virtual MenuTreeItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
-	virtual void focusItemAsMenuShortcut() = 0;
-	virtual void forceSelection(bool force = true) = 0;
-	virtual void forceParentSelection(bool force = true) = 0;
-	virtual bool isMenuShortcut() = 0;
-};
-
 //==============================================================================
-class MenuTree : public virtual juce::TreeView, public AppProportionnalComponent
+class MenuTree : public virtual juce::TreeView, public virtual AbstractMenu
 {
-	AbstractAction rootAction;
-    juce::Drawable const* itemImage;
 public:
 	MenuTree();
 	virtual ~MenuTree();
@@ -34,11 +17,11 @@ public:
 
 	void resized();
 	void paint (juce::Graphics& g);
+
+	virtual void setRootAction(AbstractAction rootAction_){AbstractMenu::setRootAction(rootAction_);refresh();}
 	
-	void setRootAction(AbstractAction rootAction_){rootAction=rootAction_;refresh();}
-	
-	void setItemImage(juce::Drawable const* itemImage_){itemImage=itemImage_;}
-	juce::Drawable const* getItemImage() const { return itemImage; };
+	juce::Component* asComponent() {return this;}
+	juce::Component const* asComponent() const {return this;}
 };
 
 #endif //MENU_TREE_H
