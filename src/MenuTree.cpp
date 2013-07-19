@@ -193,10 +193,6 @@ public:
 		return item;
 	}
 
-	virtual MenuTreeItem* getMenuTreeItemParent()
-	{
-		return dynamic_cast<SmartTreeViewItem*>(getParentItem());;
-	}
 	virtual void forceSelection(bool force)
 	{
 		setSelected(force, true);

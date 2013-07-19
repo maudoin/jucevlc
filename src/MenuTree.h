@@ -16,7 +16,6 @@ public:
 	virtual ~MenuTreeItem(){}
     virtual MenuTreeItem* addAction(juce::String const& name, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
 	virtual void focusItemAsMenuShortcut() = 0;
-	virtual MenuTreeItem* getMenuTreeItemParent() = 0;
 	virtual void forceSelection(bool force = true) = 0;
 	virtual void forceParentSelection(bool force = true) = 0;
 	virtual bool isMenuShortcut() = 0;

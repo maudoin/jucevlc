@@ -865,26 +865,29 @@ void VideoComponent::onMenuListFiles(MenuTreeItem& item, FileMethod fileMethod)
 	}
 	else
 	{
+		//try to re-build file folder hierarchy
 		if(!f.isDirectory())
 		{
 			f = f.getParentDirectory();
 		}
-		juce::Array<juce::File> lifo;
+		juce::Array<juce::File> parentFolders;
 		juce::File p = f.getParentDirectory();
 		while(p.getFullPathName() != f.getFullPathName())
 		{
-			lifo.add(f);
+			parentFolders.add(f);
 			f = p;
 			p = f.getParentDirectory();
 		}
-		lifo.add(f);
+		parentFolders.add(f);
 
+		//re-create shortcuts as if the user browsed to the last used folder
 		MenuTreeItem* last =&item;
-		for(int i=lifo.size()-1;i>=0;--i)
+		for(int i=parentFolders.size()-1;i>=0;--i)
 		{
-			juce::File const& file(lifo[i]);
+			juce::File const& file(parentFolders[i]);
 			last = last->addAction( name(file), boost::bind(fileMethod, this, _1, file), getIcon(file));
 		}
+		//select the last item
 		if(last)
 		{
 			last->forceSelection();
