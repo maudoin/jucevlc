@@ -93,6 +93,9 @@
     <ClCompile Include="src\AppProportionnalComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\MenuBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
@@ -740,9 +743,6 @@
     <ClInclude Include="src\MenuTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\MenuTreeAction.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="msinttypes-r26\inttypes.h">
       <Filter>Header Files\msinttypes</Filter>
     </ClInclude>
@@ -756,6 +756,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Languages.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MenuBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

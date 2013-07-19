@@ -227,7 +227,7 @@ VideoComponent::VideoComponent()
 	
     vlc->SetEventCallBack(this);
 	
-	tree->setRootAction(boost::bind(&VideoComponent::onMenuRoot, this, _1));
+	tree->fillWith(boost::bind(&VideoComponent::onMenuRoot, this, _1));
  	
 	////////////////
 	tree->setScaleComponent(this);

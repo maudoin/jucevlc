@@ -155,6 +155,7 @@
     <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\Languages.cpp" />
+    <ClCompile Include="src\MenuBase.cpp" />
     <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
@@ -371,12 +372,13 @@
     <ClInclude Include="libvlc\include\vlc\vlc.h" />
     <ClInclude Include="msinttypes-r26\inttypes.h" />
     <ClInclude Include="msinttypes-r26\stdint.h" />
+    <ClInclude Include="src\AbstractMenu.h" />
     <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\ControlComponent.h" />
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\Languages.h" />
-    <ClInclude Include="src\MenuTreeAction.h" />
+    <ClInclude Include="src\MenuBase.h" />
     <ClInclude Include="src\MenuTree.h" />
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />

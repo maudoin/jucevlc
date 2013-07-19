@@ -4,22 +4,19 @@
 
 #include "juce.h"
 #include "AppProportionnalComponent.h"
-#include "AbstractMenu.h"
+#include "MenuBase.h"
 	
 //==============================================================================
-class MenuTree : public virtual juce::TreeView, public virtual AbstractMenu
+class MenuTree : public virtual juce::TreeView, public virtual MenuBase
 {
 public:
 	MenuTree();
 	virtual ~MenuTree();
-	virtual void refresh();
-	void setInitialMenu();
 
 	void resized();
-	void paint (juce::Graphics& g);
-
-	virtual void setRootAction(AbstractAction rootAction_){AbstractMenu::setRootAction(rootAction_);refresh();}
+	virtual void fillWith(AbstractAction rootAction_);
 	
+	void paint (juce::Graphics& g){MenuBase::paintMenuBackGround(g);}
 	juce::Component* asComponent() {return this;}
 	juce::Component const* asComponent() const {return this;}
 };
