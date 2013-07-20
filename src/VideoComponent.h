@@ -33,7 +33,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #endif
     juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<AbstractMenu> tree;
+    juce::ScopedPointer<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	bool sliderUpdating;
