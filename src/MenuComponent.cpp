@@ -4,22 +4,22 @@
 
 void NullAbstractAction(AbstractMenuItem&){};
 
-class MenuItem
+class MenuItem : public virtual AbstractMenuItem
 {
 protected:
-	int index;
 	juce::String name;
 	const juce::Drawable* icon;
 	AbstractAction action;
 	AbstractMenuItem::ActionEffect actionEffect;
+	bool isShortcut;
 public:
 
-    MenuItem (int index = -1, juce::String const& name = juce::String::empty, AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr)
-	:index(index)
-	,name(name)
+    MenuItem (juce::String const& name = juce::String::empty, AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr, bool isShortcut = false)
+	:name(name)
 	,icon(icon)
 	,action(action)
 	,actionEffect(actionEffect)
+	,isShortcut(isShortcut)
 	{
 	}
 
@@ -30,8 +30,9 @@ public:
 	virtual const juce::Drawable* getIcon(){ return icon;}
 	virtual juce::String const& getName(){ return name;}
 	virtual void execute(AbstractMenuItem & m){ return action(m);}
-	
 	virtual AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
+	virtual AbstractAction const& getAction()const{ return action; }
+	virtual bool isMenuShortcut(){ return isShortcut ;}
 	
 };
 
@@ -102,10 +103,13 @@ public:
 	{
 		listBoxSelectionCallback(lastRowselected);
 	}
-    virtual void add(MenuItem const& item)
+
+
+    virtual MenuItem& add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 	{
-		items.add(item);
+		items.add(MenuItem(name, actionEffect, action, icon, isShortcut));
         box.updateContent();
+		return *getItem(getNumRows()-1);
 	}
 	
 	MenuItem* getItem(int rowNumber)
@@ -156,11 +160,11 @@ MenuComponent::~MenuComponent()
 
 void MenuComponent::fillWith(AbstractAction rootAction_)
 {
+	MenuItem& root = recentList->add("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction_, itemImage);
 	if(!rootAction_.empty())
 	{
-		rootAction_(*this);
-        menuList->getListBox()->updateContent();
-		recentList->add(MenuItem(0, "Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction_, itemImage));
+		rootAction_(root);
+	    menuList->getListBox()->updateContent();
 	}
 	
 }
@@ -195,7 +199,7 @@ void MenuComponent::recentItemSelected(int /*lastRowselected*/)
 		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 		
 		menuList->clear();
-		item->execute(*this);
+		item->execute(*item);
 
 		resized();
 	}
@@ -208,24 +212,23 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 	{
 		switch(item->getActionEffect())
 		{
-			case STORE_AND_OPEN_CHILDREN:
+			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
 			{
+				recentList->add(item->getName(), item->getActionEffect(), item->getAction(), item->getIcon());
 				MenuItem copy = *item;
-				recentList->add(copy);
 				menuList->clear();
-				copy.execute(*this);
+				copy.execute(copy);
 				break;
 			}
-			case EXECUTE_ONLY:
+			case AbstractMenuItem::EXECUTE_ONLY:
 			{
-				item->execute(*this);
+				item->execute(*item);
 				break;
 			}
-			case REFRESH_MENU:
+			case AbstractMenuItem::REFRESH_MENU:
 			{
-				item->execute(*this);
-				//menuList->clear();
-				recentList->selectLastItem(juce::sendNotificationAsync);
+				item->execute(*item);
+				forceMenuRefresh();
 				break;
 			}
 		}
@@ -233,14 +236,18 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 	}
 }
 
-AbstractMenuItem* MenuComponent::addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+void MenuComponent::forceMenuRefresh()
 {
-	menuList->add(MenuItem(menuList->getNumRows(), name, actionEffect, action, icon));
-	return this;
+	recentList->selectLastItem(juce::sendNotificationAsync);
 }
-void MenuComponent::forceSelection(/*AbstractMenuItem& it*/bool force)
+
+void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut)
 {
-	//??
+	addMenuItem(shortcut?recentList:menuList, name, actionEffect, action, icon);
+}
+void MenuComponent::addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+{
+	target->add(name, actionEffect, action, icon);
 }
 bool MenuComponent::isMenuShortcut()
 {

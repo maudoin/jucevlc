@@ -20,8 +20,6 @@ public:
 		STORE_AND_OPEN_CHILDREN
 	};
 	virtual ~AbstractMenuItem(){}
-    virtual AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
-	virtual void forceSelection(bool force = true) = 0;
 	virtual bool isMenuShortcut() = 0;
 };
 //==============================================================================
@@ -32,6 +30,7 @@ public:
 	virtual ~AbstractMenu(){}
 
 	virtual void fillWith(AbstractAction rootAction_) = 0;
+	virtual void forceMenuRefresh() = 0;
 
 	
 	virtual void setItemImage(juce::Drawable const* itemImage_) = 0;
@@ -39,7 +38,17 @@ public:
 
 	virtual juce::Component* asComponent() = 0;
 	virtual juce::Component const* asComponent() const = 0;
-
+	
+	void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
+	{
+		addMenuItem(name, actionEffect, action, icon, false);
+	}
+	void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
+	{
+		addMenuItem(name, actionEffect, action, icon, true);
+	}
+protected:
+	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut) = 0;
 };
 
 

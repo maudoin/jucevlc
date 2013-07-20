@@ -6,7 +6,7 @@
 	
 class MenuItemList;
 //==============================================================================
-class MenuComponent : public virtual juce::Component, public virtual MenuBase, public virtual AbstractMenuItem
+class MenuComponent : public virtual juce::Component, public virtual MenuBase
 {
 	juce::ScopedPointer<MenuItemList> menuList;
 	juce::ScopedPointer<MenuItemList> recentList;
@@ -16,6 +16,7 @@ public:
 
 	void resized();
 	virtual void fillWith(AbstractAction rootAction_);
+	virtual void forceMenuRefresh();
 	
 	void paint (juce::Graphics& g);
 	juce::Component* asComponent() {return this;}
@@ -23,12 +24,12 @@ public:
 
 	void menuItemSelected(int /*lastRowselected*/);
 	void recentItemSelected(int /*lastRowselected*/);
-
 	
-	virtual AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr);
-	virtual void forceSelection(bool force = true);
 	virtual bool isMenuShortcut();
 
+protected:
+	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut);
+	virtual void addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon);
 };
 
 #endif //MENU_COMPONENT_H

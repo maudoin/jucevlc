@@ -117,6 +117,10 @@ public:
     }
     AbstractMenuItem* addAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
+		return addTreeAction(name, actionEffect, action, icon);
+    }
+    SmartTreeViewItem* addTreeAction(juce::String const& name, ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
+	{
 		SmartTreeViewItem* item = new SmartTreeViewItem(owner, name, actionEffect, action, icon);
 		addSubItem(item);
 		return item;
@@ -182,6 +186,41 @@ MenuTree::~MenuTree()
     deleteRootItem();
 }
 
+SmartTreeViewItem* getDeepestOpenParentItem(juce::TreeViewItem* root)
+{
+	SmartTreeViewItem* item = dynamic_cast<SmartTreeViewItem*>(root);
+	SmartTreeViewItem* result = item;
+
+	while (item != nullptr)
+	{
+		item = item->getSubItem(0) == nullptr ? nullptr: dynamic_cast<SmartTreeViewItem*>(item->getSubItem(0));
+
+		if (item != nullptr && item->isMenuShortcut())
+			result = item;
+	}
+
+	return result;
+}
+
+void MenuTree::forceMenuRefresh()
+{
+	SmartTreeViewItem* lastShortcut = getDeepestOpenParentItem(getRootItem());
+	if(!lastShortcut)
+	{
+		return;
+	}
+	lastShortcut->setSelected(true, true);
+}
+void MenuTree::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut)
+{
+	SmartTreeViewItem* lastShortcut = getDeepestOpenParentItem(getRootItem());
+	if(!lastShortcut)
+	{
+		return;
+	}
+	SmartTreeViewItem* added = lastShortcut->addTreeAction(name, actionEffect, action, icon);
+	added->setShortcutDisplay(shortcut);
+}
 
 void MenuTree::fillWith(AbstractAction rootAction)
 {
