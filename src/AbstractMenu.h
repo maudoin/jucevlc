@@ -28,8 +28,6 @@ class AbstractMenu : public AppProportionnalComponent
 public:
 	AbstractMenu(){}
 	virtual ~AbstractMenu(){}
-
-	virtual void fillWith(AbstractAction rootAction_) = 0;
 	virtual void forceMenuRefresh() = 0;
 
 	

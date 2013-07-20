@@ -12,7 +12,6 @@ public:
 	virtual ~MenuTree();
 
 	void resized();
-	virtual void fillWith(AbstractAction rootAction_);
 	
 	void paint (juce::Graphics& g){MenuBase::paintMenuBackGround(g);}
 	juce::Component* asComponent() {return this;}

@@ -222,22 +222,6 @@ void MenuTree::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEff
 	added->setShortcutDisplay(shortcut);
 }
 
-void MenuTree::fillWith(AbstractAction rootAction)
-{
-
-	deleteRootItem();
-
-	if(!rootAction.empty())
-	{
-		juce::TreeViewItem* const root
-			= new SmartTreeViewItem (*this, "Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction, itemImage);
-
-		setRootItem (root);
-
-		root->setSelected(true, true);
-	}
-	
-}
 void MenuTree::resized()
 {
 	int h = (int)(1.5*getFontHeight());

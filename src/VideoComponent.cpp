@@ -227,7 +227,8 @@ VideoComponent::VideoComponent()
 	
     vlc->SetEventCallBack(this);
 	
-	tree->fillWith(boost::bind(&VideoComponent::onMenuRoot, this, _1));
+	tree->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRoot, this, _1), getItemImage());
+	tree->forceMenuRefresh();
  	
 	////////////////
 	tree->setScaleComponent(this);

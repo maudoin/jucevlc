@@ -15,7 +15,6 @@ public:
 	virtual ~MenuComponent();
 
 	void resized();
-	virtual void fillWith(AbstractAction rootAction_);
 	virtual void forceMenuRefresh();
 	
 	void paint (juce::Graphics& g);
@@ -24,10 +23,11 @@ public:
 
 	void menuItemSelected(int /*lastRowselected*/);
 	void recentItemSelected(int /*lastRowselected*/);
-	
-	virtual bool isMenuShortcut();
 
 protected:
+	
+	void forceRecentItem(int index);
+
 	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut);
 	virtual void addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon);
 };

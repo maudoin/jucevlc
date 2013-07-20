@@ -105,11 +105,10 @@ public:
 	}
 
 
-    virtual MenuItem& add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 	{
 		items.add(MenuItem(name, actionEffect, action, icon, isShortcut));
         box.updateContent();
-		return *getItem(getNumRows()-1);
 	}
 	
 	MenuItem* getItem(int rowNumber)
@@ -157,18 +156,6 @@ MenuComponent::~MenuComponent()
 {
 }
 
-
-void MenuComponent::fillWith(AbstractAction rootAction_)
-{
-	MenuItem& root = recentList->add("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, rootAction_, itemImage);
-	if(!rootAction_.empty())
-	{
-		rootAction_(root);
-	    menuList->getListBox()->updateContent();
-	}
-	
-}
-
 void MenuComponent::paint (juce::Graphics& g)
 {
 	MenuBase::paintMenuBackGround(g);
@@ -189,9 +176,8 @@ void MenuComponent::resized()
 	Component::resized();
 }
 
-void MenuComponent::recentItemSelected(int /*lastRowselected*/)
+void MenuComponent::forceRecentItem(int row)
 {
-	int row = recentList->getListBox()->getSelectedRow();
 	MenuItem* item = recentList->getItem(row);
     if (item != nullptr)
 	{
@@ -204,6 +190,10 @@ void MenuComponent::recentItemSelected(int /*lastRowselected*/)
 		resized();
 	}
 }
+void MenuComponent::recentItemSelected(int /*lastRowselected*/)
+{
+	forceRecentItem(recentList->getListBox()->getSelectedRow());
+}
 	
 void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 {
@@ -215,30 +205,35 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
 			{
 				recentList->add(item->getName(), item->getActionEffect(), item->getAction(), item->getIcon());
+
 				MenuItem copy = *item;
 				menuList->clear();
 				copy.execute(copy);
+
+				resized();
 				break;
 			}
 			case AbstractMenuItem::EXECUTE_ONLY:
 			{
 				item->execute(*item);
+
+				resized();
 				break;
 			}
 			case AbstractMenuItem::REFRESH_MENU:
 			{
 				item->execute(*item);
+
 				forceMenuRefresh();
 				break;
 			}
 		}
-		resized();
 	}
 }
 
 void MenuComponent::forceMenuRefresh()
 {
-	recentList->selectLastItem(juce::sendNotificationAsync);
+	forceRecentItem(recentList->getNumRows()-1);
 }
 
 void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut)
@@ -248,8 +243,4 @@ void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::Acti
 void MenuComponent::addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 {
 	target->add(name, actionEffect, action, icon);
-}
-bool MenuComponent::isMenuShortcut()
-{
-	return false;
 }
