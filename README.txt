@@ -42,6 +42,9 @@ It controls:
 **Changelog**
 ==================
 
+0.70 (2013/07/20):
+- Revamped menu : top item are always visible when listing many files
+
 0.69 (2013/06/24):
 - UPNP remote media support and browsing
 
