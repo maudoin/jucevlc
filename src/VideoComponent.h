@@ -139,6 +139,11 @@ public:
     void onVLCOptionIntRangeMenu (AbstractMenuItem& item, std::string, const char* format, int min, int max, int defaultVal);
 	void onVLCOptionStringSelect(AbstractMenuItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (AbstractMenuItem& item, std::string);
+	void onMenuSearchSubtitles(AbstractMenuItem& item);
+	void onMenuSearchSubtitlesManually(AbstractMenuItem& item);
+	void onMenuSearchSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String name);
+	void onMenuSearchSubtitles(AbstractMenuItem& item, juce::String lang, juce::String name);
+	void onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String url);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item);
 	void onMenuSubtitleSelect(AbstractMenuItem& item, int i);
