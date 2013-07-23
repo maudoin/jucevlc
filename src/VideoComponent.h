@@ -140,7 +140,7 @@ public:
 	void onVLCOptionStringSelect(AbstractMenuItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (AbstractMenuItem& item, std::string);
 	void onMenuSearchSubtitles(AbstractMenuItem& item);
-	void onMenuSearchSubtitlesManually(AbstractMenuItem& item);
+	void onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang);
 	void onMenuSearchSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String name);
 	void onMenuSearchSubtitles(AbstractMenuItem& item, juce::String lang, juce::String name);
 	void onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String url);

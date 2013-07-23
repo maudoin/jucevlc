@@ -10,6 +10,8 @@
 
 #define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
+#define MAX_SUBTITLE_ARCHIVE_SIZE 1024*1024
+#define SUBTITLE_DOWNLOAD_TIMEOUT_MS 30000
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
@@ -913,6 +915,17 @@ std::string getPathExtensionWithoutDot(std::string const& path)
 	return path.substr(p+1);
 }
 
+//include the dot
+juce::String getPathExtensionWithoutDot(juce::String const& path)
+{
+	int p = path.lastIndexOf(".");
+	if(p == -1)
+	{
+		return juce::String::empty;
+	}
+	return path.substring(p+1);
+}
+
 void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path)
 {	
 	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList(path);
@@ -1311,7 +1324,7 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		menu->addMenuItem( juce::String::formatted(TRANS("No subtitles")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), -1==current?getItemImage():nullptr);
 	}
 	menu->addMenuItem( TRANS("Add..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenSubtitleFolder));
-	menu->addMenuItem( TRANS("Search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1));
+	menu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1));
 	menu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
 	menu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
 	menu->addMenuItem( OPT_TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
@@ -1330,78 +1343,95 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item)
 {
 	onMenuSearchSubtitlesSelectLanguage(item, vlc->getCurrentPlayListItem().c_str());
 }
-void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item)
+void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang)
 {
-	//TODO sfd
+	juce::TextEditor editor("Subtitle search");
+	
+	editor.setText(vlc->getCurrentPlayListItem().c_str());
+	editor.setLookAndFeel(&getLookAndFeel());
+	editor.setSize(3*(int)getWidth() / 4, 2*(int)menu->getFontHeight());
+
+    juce::CallOutBox callOut(editor, menu->asComponent()->getBounds(), this);
+
+	//relayout before callout window
+	menu->forceMenuRefresh();
+
+	callOut.runModalLoop();
+
+	onMenuSearchSubtitles(item, lang, editor.getText());
 }
 
 #define OPEN_SUBTITLES_LANGUAGUES(add) \
-   add("All", "all")\
-   add("English [en]", "en")\
-   add("Albanian [sq]", "sq")\
-   add("Arabic [ar]", "ar")\
-   add("Armenian [hy]", "hy")\
-   add("Basque [eu]", "eu")\
-   add("Bengali [bn]", "bn")\
-   add("Bosnian [bs]", "bs")\
-   add("Brazilian [pb]", "pb")\
-   add("Breton [br]", "br")\
-   add("Bulgarian [bg]", "bg")\
-   add("Burmese [my]", "my")\
-   add("Catalan [ca]", "ca")\
-   add("Chinese [zh]", "zh")\
-   add("Croation [hr]", "hr")\
-   add("Czech [cs]", "cs")\
-   add("Danish [da]", "da")\
-   add("Dutch [nl]", "nl")\
-   add("English [en]", "en")\
-   add("Esperanto [eo]", "eo")\
-   add("Estonian [et]", "et")\
-   add("Finnish [fi]", "fi")\
-   add("French [fr]", "fr")\
-   add("Galician [gl]", "gl")\
-   add("Georgian [ka]", "ka")\
-   add("German [de]", "de")\
-   add("Greek [el]", "el")\
-   add("Hebrew [he]", "he")\
-   add("Hindi [hi]", "hi")\
-   add("Hungarian [hu]", "hu")\
-   add("Icelandic [is]", "is")\
-   add("Indonesian [id]", "id")\
-   add("Italina [it]", "it")\
-   add("Japanese [ja]", "ja")\
-   add("Kazakh [kk]", "kk")\
-   add("Khmer [km]", "km")\
-   add("Korean [ko]", "ko")\
-   add("Latvian [lv]", "lv")\
-   add("Lithuanian [lt]", "lt")\
-   add("Luxembourgish [lb]", "lb")\
-   add("Macedonian [mk]", "mk")\
-   add("Malay [ms]", "ms")\
-   add("Malayalam [ml]", "ml")\
-   add("Mongolian [mn]", "mn")\
-   add("Norwegian [no]", "no")\
-   add("Occitan [oc]", "oc")\
-   add("Polish [pl]", "pl")\
-   add("Portuguese [pt]", "pt")\
-   add("Romanian [ro]", "ro")\
-   add("Russian [ru]", "ru")\
-   add("Serbian [sr]", "sr")\
-   add("Sinhalese [si]", "si")\
-   add("Slovak [sk]", "sk")\
-   add("Slovenian [sl]", "sl")\
-   add("Spanish [es]", "es")\
-   add("Swahili [sw]", "sw")\
-   add("Swedish [sv]", "sv")\
-   add("Tagalog [tl]", "tl")\
-   add("Telugu [te]", "te")\
-   add("Thai [th]", "th")\
-   add("Turkish [tr]", "tr")\
-   add("Ukrainian [uk]", "uk")\
-   add("Urdu [ur]", "ur")\
-   add("Vietnamese [vi]", "vi")
+add("all","en","All");\
+add("eng","en","English");\
+add("alb","sq","Albanian");\
+add("ara","ar","Arabic");\
+add("arm","hy","Armenian");\
+add("baq","eu","Basque");\
+add("ben","bn","Bengali");\
+add("bos","bs","Bosnian");\
+add("pob","pb","Portuguese-BR");\
+add("bre","br","Breton");\
+add("bul","bg","Bulgarian");\
+add("bur","my","Burmese");\
+add("cat","ca","Catalan");\
+add("chi","zh","Chinese");\
+add("hrv","hr","Croatian");\
+add("cze","cs","Czech");\
+add("dan","da","Danish");\
+add("dut","nl","Dutch");\
+add("eng","en","English");\
+add("epo","eo","Esperanto");\
+add("est","et","Estonian");\
+add("fin","fi","Finnish");\
+add("fre","fr","French");\
+add("glg","gl","Galician");\
+add("geo","ka","Georgian");\
+add("ger","de","German");\
+add("ell","el","Greek");\
+add("heb","he","Hebrew");\
+add("hin","hi","Hindi");\
+add("hun","hu","Hungarian");\
+add("ice","is","Icelandic");\
+add("ind","id","Indonesian");\
+add("ita","it","Italian");\
+add("jpn","ja","Japanese");\
+add("kaz","kk","Kazakh");\
+add("khm","km","Khmer");\
+add("kor","ko","Korean");\
+add("lav","lv","Latvian");\
+add("lit","lt","Lithuanian");\
+add("ltz","lb","Luxembourgish");\
+add("mac","mk","Macedonian");\
+add("may","ms","Malay");\
+add("mal","ml","Malayalam");\
+add("mon","mn","Mongolian");\
+add("nor","no","Norwegian");\
+add("oci","oc","Occitan");\
+add("per","fa","Farsi");\
+add("pol","pl","Polish");\
+add("por","pt","Portuguese");\
+add("rum","ro","Romanian");\
+add("rus","ru","Russian");\
+add("scc","sr","Serbian");\
+add("sin","si","Sinhalese");\
+add("slo","sk","Slovak");\
+add("slv","sl","Slovenian");\
+add("spa","es","Spanish");\
+add("swa","sw","Swahili");\
+add("swe","sv","Swedish");\
+add("syr","","Syriac");\
+add("tgl","tl","Tagalog");\
+add("tam","ta","Tamil");\
+add("tel","te","Telugu");\
+add("tha","th","Thai");\
+add("tur","tr","Turkish");\
+add("ukr","uk","Ukrainian");\
+add("urd","ur","Urdu");\
+add("vie","vi","Vietnamese");
 
-#define addItem(label, shortName) menu->addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , shortName, movieName));
+
+#define addItem(shortName, ui, label) menu->addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , shortName, movieName))
 
 void VideoComponent::onMenuSearchSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String movieName)
 {
@@ -1414,7 +1444,8 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String 
 	movieName = movieName.replace(" ", "%20");
 	movieName = movieName.replace("_", "%20");
 	movieName = movieName.replace(".", "%20");
-	std::string name = str( boost::format("http://api.opensubtitles.org/%s/search/moviename-%s/simplexml")%std::string(lang.toUTF8().getAddress())%std::string(movieName.toUTF8().getAddress()) );
+	std::string language=std::string(lang.toUTF8().getAddress());
+	std::string name = str( boost::format("http://www.opensubtitles.org/en/search/sublanguageid-%s/moviename-%s/simplexml")%language%std::string(movieName.toUTF8().getAddress()) );
 	juce::URL url(name.c_str());
 	
 
@@ -1452,16 +1483,44 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String 
 	}
 
 	
-	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1), getItemImage());
+	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
 	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , lang, movieName));
 }
+
+struct ZipEntrySorter
+{
+	std::vector< std::set<juce::String> > priorityExtensions;
+	ZipEntrySorter(std::set<juce::String> const& priorityExtensions_){priorityExtensions.push_back(priorityExtensions_);}
+	ZipEntrySorter(std::vector< std::set<juce::String> > const& priorityExtensions_):priorityExtensions(priorityExtensions_) {}
+	int rank(const juce::ZipFile::ZipEntry* f)
+	{
+		for(std::vector< std::set<juce::String> >::const_iterator it = priorityExtensions.begin();it != priorityExtensions.end();++it)
+		{
+			if(extensionMatch(*it, getPathExtensionWithoutDot(f->filename)))
+			{
+				return (it-priorityExtensions.begin());
+			}
+		}
+		return priorityExtensions.size();
+	}
+	int compareElements(const juce::ZipFile::ZipEntry* some, const juce::ZipFile::ZipEntry* other)
+	{
+		int r1 = rank(some);
+		int r2 = rank(other);
+		if(r1 == r2)
+		{
+			return some->uncompressedSize - other->uncompressedSize;
+		}
+		return r1 - r2;
+	}
+};
 void VideoComponent::onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
 {
 	juce::URL url(downloadUrl);
 
 
 	juce::StringPairArray response;
-	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 30000, &response));
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS, &response));
 	juce::StringArray const& headers = response.getAllKeys();
 	juce::String fileName = downloadUrl.fromLastOccurrenceOf("\\", false, false);
 	for(int i=0;i<headers.size();++i)
@@ -1477,16 +1536,60 @@ void VideoComponent::onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String 
 	}
 	if(pIStream.get())
 	{
-		juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
-		juce::File out(outPath);
-		out = out.getChildFile(fileName);
-		juce::FileOutputStream outStream(out);
-		if(outStream.openedOk())
+		juce::MemoryOutputStream memStream(10000);//10ko at least
+		int written = memStream.writeFromInputStream(*pIStream, MAX_SUBTITLE_ARCHIVE_SIZE);
+		if(written>0)
 		{
-			if(outStream.writeFromInputStream(*pIStream, 1024*1024)>0)
+			juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+
+
+			juce::MemoryInputStream memInput(memStream.getData(), written, false);
+			
+			juce::ZipFile zip(memInput);
+			if(zip.getNumEntries()==0)
 			{
-				onMenuOpenSubtitleFile(item,out);
+				juce::File out(outPath);
+				out = out.getChildFile(fileName);
+				juce::FileOutputStream outStream(out);
+				if(outStream.openedOk())
+				{
+					memInput.setPosition(0);
+					if(outStream.writeFromInputStream(memInput, written)>0)
+					{
+						onMenuOpenSubtitleFile(item,out);
+					}
+				}
+				return;
 			}
+			juce::Array<const juce::ZipFile::ZipEntry*> entries;
+			for(int i=0;i<zip.getNumEntries();++i)
+			{
+				entries.add(zip.getEntry(i));
+			}
+
+			std::set<juce::String> subExtensions;
+			EXTENSIONS_SUBTITLE(subExtensions.insert);
+			subExtensions.erase("txt");
+
+			//txt is ambiguous ,lesser priority
+			std::set<juce::String> txtExtension;
+			txtExtension.insert("txt");
+
+			std::vector< std::set<juce::String> > priorityExtensions;
+			priorityExtensions.push_back(subExtensions);
+			priorityExtensions.push_back(txtExtension);
+
+			//find the subtitles based on extension/size
+			ZipEntrySorter sorter(priorityExtensions);
+			entries.sort(sorter);
+
+			//output entry
+			juce::File out(outPath);
+			
+			const juce::ZipFile::ZipEntry* supposedSubtitle = entries.getFirst();
+			zip.uncompressEntry(zip.getIndexOfFileName(supposedSubtitle->filename), out, false);
+			
+			onMenuOpenSubtitleFile(item,out.getChildFile(supposedSubtitle->filename));
 		}
 	}
 }
