@@ -42,6 +42,9 @@ It controls:
 **Changelog**
 ==================
 
+0.71 (2013/07/24):
+- Search,Download,Extract and Load subtitles from opensubtitles.org
+
 0.70 (2013/07/20):
 - Revamped menu : top items are always visible when listing many files
 
