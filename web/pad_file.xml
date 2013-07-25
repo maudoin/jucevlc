@@ -205,7 +205,7 @@ patents cannot be used to render the program non-free.</EULA>
     <Site_Site_URL>http://jucevlc.sourceforge.net/</Site_Site_URL>
     <Site_Description_100>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.</Site_Description_100>
     <Site_Description_250>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse. Big fonts and no system popup dialogs</Site_Description_250>
-    <Site_Description_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    ---      Browse files and adjust settings using On Screen Display (O.S.D.)     ---     Subtitles selection via O.S.D. and synchronization using slider ---  Does not mess up your system: settings are stored in the application folder     ---   Keep last and favorite video folders and positions</Site_Description_450>
+    <Site_Description_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    ---      Browse files and adjust settings using On Screen Display (O.S.D.)     ---     Subtitles selection via O.S.D. and synchronization using slider ---  Search,Download,Extract and Load subtitles from opensubtitles.org --- Does not mess up your system: settings are stored in the application folder     ---   Keep last and favorite video folders and positions</Site_Description_450>
     <Site_Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Site_Keywords>
   </Site>
   <Press_Release>
@@ -222,7 +222,7 @@ patents cannot be used to render the program non-free.</EULA>
       <Char_Desc_45>Fullscreen video player based on VLC</Char_Desc_45>
       <Char_Desc_80>Fullscreen user firendly video player based on the popular vlc media player</Char_Desc_80>
       <Char_Desc_250>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse. Big fonts and no system popup dialogs</Char_Desc_250>
-      <Char_Desc_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    ---      Browse files and adjust settings using On Screen Display (O.S.D.)     ---     Subtitles selection via O.S.D. and synchronization using slider ---  Does not mess up your system: settings are stored in the application folder     ---   Keep last and favorite video folders and positions</Char_Desc_450>
+      <Char_Desc_450>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.  Browse and watch movies from your couch with a wireless mouse.    ---      Browse files and adjust settings using On Screen Display (O.S.D.)     ---     Subtitles selection via O.S.D. and synchronization using slider ---  Search,Download,Extract and Load subtitles from opensubtitles.org --- Does not mess up your system: settings are stored in the application folder     ---   Keep last and favorite video folders and positions</Char_Desc_450>
       <Char_Desc_2000>JuceVLC is VLC with a simple MediaCenter-like fullscreen User Interface.
 Browse and watch movies from your couch with a wireless mouse.
 
@@ -230,6 +230,7 @@ Features:
  *    Browse files and adjust settings using On Screen Display (O.S.D.)
  *    Big, customizable fonts size and no tiny popup dialogs
  *    Subtitles selection and synchronization using slider via O.S.D.
+ *    Search,Download,Extract and Load subtitles from opensubtitles.org
  *    Keep last and favorite video folders
  *    Does not mess up your system: settings are stored in the application folder
  *    Portable: Paste is on any usb key or external hard drive
@@ -237,8 +238,8 @@ Features:
  *    The "space-key" allows your relatives to play/pause when interupting your video;-)</Char_Desc_2000>
     </English>
     <French>
-      <Char_Desc_2000>JuceVLC propose une alternative à l'interface utilisateur du célèbre lecteur vidéo VLC. Vous avez en particulier la possibilité contrôler l'application tout en visionnant vos films en plein écran. Tout peut être contrôlé à l'aide d'une souris sans fil ordinaire en se tenant éloigné de l'écran pour une utilisation plus aisée, similaire à celle des smart TVs. Plusieurs paramètres sont entièrement personnalisables comme les sous-titres. Ce média center propose d'aller chercher vos films et vidéos dans votre ordinateur, puis de les lire tout en vous laissant libre de régler le volume, la qualité de l'image, la vitesse, le zoom mais également le contraste, la luminosité, la teinte, la saturation et le gamma.</Char_Desc_2000>
-      <Char_Desc_450>JuceVLC propose une alternative à l'interface utilisateur du célèbre lecteur vidéo VLC. Vous avez en particulier la possibilité contrôler l'application tout en visionnant vos films en plein écran. Tout peut être contrôlé à l'aide d'une souris sans fil ordinaire en se tenant éloigné de l'écran pour une utilisation plus aisée, similaire à celle des smart TVs. Plusieurs paramètres sont entièrement personnalisables comme les sous-titres.</Char_Desc_450>
+      <Char_Desc_2000>JuceVLC propose une alternative à l'interface utilisateur du célèbre lecteur vidéo VLC. Vous avez en particulier la possibilité contrôler l'application tout en visionnant vos films en plein écran. Tout peut être contrôlé à l'aide d'une souris sans fil ordinaire en se tenant éloigné de l'écran pour une utilisation plus aisée, similaire à celle des smart TVs. Plusieurs paramètres sont entièrement personnalisables comme les sous-titres, téléchargés automatiquement depuis internet. Ce média center propose d'aller chercher vos films et vidéos dans votre ordinateur, puis de les lire tout en vous laissant libre de régler le volume, la qualité de l'image, la vitesse, le zoom mais également le contraste, la luminosité, la teinte, la saturation et le gamma.</Char_Desc_2000>
+      <Char_Desc_450>JuceVLC propose une alternative à l'interface utilisateur du célèbre lecteur vidéo VLC. Vous avez en particulier la possibilité contrôler l'application tout en visionnant vos films en plein écran. Tout peut être contrôlé à l'aide d'une souris sans fil ordinaire en se tenant éloigné de l'écran pour une utilisation plus aisée, similaire à celle des smart TVs. Plusieurs paramètres sont entièrement personnalisables comme les sous-titres, téléchargés automatiquement depuis internet.</Char_Desc_450>
       <Char_Desc_250>JuceVLC propose une alternative à l'interface utilisateur du célèbre lecteur vidéo VLC. Vous avez en particulier la possibilité contrôler l'application à la manière d'un média center (texte de grande taille, menus plein écran).</Char_Desc_250>
       <Char_Desc_80>JuceVLC propose une interface utilisateur type média center pour le lecteur VLC</Char_Desc_80>
       <Char_Desc_45>Une nouvelle interface "médiacenter" pour VLC</Char_Desc_45>
