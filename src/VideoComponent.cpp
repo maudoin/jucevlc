@@ -1324,7 +1324,8 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		menu->addMenuItem( juce::String::formatted(TRANS("No subtitles")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), -1==current?getItemImage():nullptr);
 	}
 	menu->addMenuItem( TRANS("Add..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenSubtitleFolder));
-	menu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1));
+	menu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1));
+	menu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitleSeeker, this, _1));
 	menu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
 	menu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
 	menu->addMenuItem( OPT_TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
@@ -1339,9 +1340,13 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 	menu->addMenuItem( OPT_TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
 
 }
-void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item)
+void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item)
 {
-	onMenuSearchSubtitlesSelectLanguage(item, vlc->getCurrentPlayListItem().c_str());
+	onMenuSearchOpenSubtitlesSelectLanguage(item, vlc->getCurrentPlayListItem().c_str());
+}
+void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item)
+{
+	onMenuSearchSubtitleSeeker(item, vlc->getCurrentPlayListItem().c_str());
 }
 void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang)
 {
@@ -1358,7 +1363,7 @@ void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce:
 
 	callOut.runModalLoop();
 
-	onMenuSearchSubtitles(item, lang, editor.getText());
+	onMenuSearchOpenSubtitles(item, lang, editor.getText());
 }
 
 #define OPEN_SUBTITLES_LANGUAGUES(add) \
@@ -1431,13 +1436,13 @@ add("urd","ur","Urdu");\
 add("vie","vi","Vietnamese");
 
 
-#define addItem(shortName, ui, label) menu->addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , shortName, movieName))
+#define addItem(shortName, ui, label) menu->addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1 , shortName, movieName))
 
-void VideoComponent::onMenuSearchSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String movieName)
+void VideoComponent::onMenuSearchOpenSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String movieName)
 {
 	OPEN_SUBTITLES_LANGUAGUES(addItem);
 }
-void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String lang, juce::String movieName)
+void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::String lang, juce::String movieName)
 {
 	setBrowsingFiles(false);
 	movieName = movieName.replace("%", "%37");
@@ -1452,7 +1457,7 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String 
 	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 10000, 0));
 	if(!pIStream.get())
 	{
-		menu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , lang, movieName));
+		menu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1 , lang, movieName));
 		return;
 	}
 	juce::ScopedPointer<juce::XmlElement> e(juce::XmlDocument::parse(pIStream->readEntireStreamAsString()));
@@ -1473,7 +1478,7 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String 
 					juce::String user = sub->getChildElementAllSubText("user", juce::String::empty);
 					if(!name.isEmpty() && !downloadURL.isEmpty())
 					{
-						menu->addMenuItem(name + juce::String(" by ") + user + juce::String(" (") + language + juce::String(")"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadSubtitle, this, _1, downloadURL));
+						menu->addMenuItem(name + juce::String(" by ") + user + juce::String(" (") + language + juce::String(")"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadOpenSubtitle, this, _1, downloadURL));
 					}
 					sub = sub->getNextElement();
 				}
@@ -1484,9 +1489,141 @@ void VideoComponent::onMenuSearchSubtitles(AbstractMenuItem& item, juce::String 
 
 	
 	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
-	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitles, this, _1 , lang, movieName));
+	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1 , lang, movieName));
 }
 
+void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item, juce::String movieName)
+{
+	setBrowsingFiles(false);
+	movieName = movieName.replace("%", "%37");
+	movieName = movieName.replace(" ", "+");
+	movieName = movieName.replace("_", "+");
+	movieName = movieName.replace(".", "+");
+	std::string name = str( boost::format("http://api.subtitleseeker.com/search/?api_key=d24dcf4eeff7709e62e89385334da2b690da5bf4&q=%s")%std::string(movieName.toUTF8().getAddress()) );
+	juce::URL url(name.c_str());
+	
+
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 10000, 0));
+	if(!pIStream.get())
+	{
+		menu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeeker, this, _1 ,  movieName));
+		return;
+	}
+	juce::ScopedPointer<juce::XmlElement> e(juce::XmlDocument::parse(pIStream->readEntireStreamAsString()));
+	if(e.get() && e->getTagName() == "results")
+	{
+		juce::XmlElement* items(e->getChildByName("items"));
+		if(items)
+		{
+			juce::XmlElement* sub(items->getChildByName("item"));
+			if(sub)
+			{
+				setBrowsingFiles(true);
+				do
+				{
+					juce::String name = sub->getChildElementAllSubText("title", juce::String::empty);
+					juce::String year = sub->getChildElementAllSubText("year", juce::String::empty);
+					juce::String imdb = sub->getChildElementAllSubText("imdb", juce::String::empty);
+					if(!name.isEmpty())
+					{
+						menu->addMenuItem(name + juce::String(" (") + year + juce::String(")"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdb, this, _1, imdb));
+					}
+					sub = sub->getNextElement();
+				}
+				while(sub);
+			}
+		}
+	}
+
+	
+	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
+	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeeker, this, _1 ,  movieName));
+}
+
+void VideoComponent::onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce::String imdb)
+{
+	setBrowsingFiles(false);
+	std::string name = str( boost::format("http://api.subtitleseeker.com/get/title_languages/?api_key=d24dcf4eeff7709e62e89385334da2b690da5bf4&imdb=%s")%imdb);
+	juce::URL url(name.c_str());
+	
+
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 10000, 0));
+	if(!pIStream.get())
+	{
+		menu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdb, this, _1 ,  imdb));
+		return;
+	}
+	juce::ScopedPointer<juce::XmlElement> e(juce::XmlDocument::parse(pIStream->readEntireStreamAsString()));
+	if(e.get() && e->getTagName() == "results")
+	{
+		juce::XmlElement* items(e->getChildByName("items"));
+		if(items)
+		{
+			juce::XmlElement* sub(items->getChildByName("item"));
+			if(sub)
+			{
+				setBrowsingFiles(true);
+				do
+				{
+					juce::String lang = sub->getChildElementAllSubText("lang", juce::String::empty);
+					if(!lang.isEmpty())
+					{
+						menu->addMenuItem(lang, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdbLang, this, _1, imdb ,lang));
+					}
+					sub = sub->getNextElement();
+				}
+				while(sub);
+			}
+		}
+	}
+
+	
+	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
+	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdb, this, _1 , imdb));
+}
+void VideoComponent::onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, juce::String imdb, juce::String lang)
+{
+	setBrowsingFiles(false);
+	std::string name = str( boost::format("http://api.subtitleseeker.com/get/title_subtitles/?api_key=d24dcf4eeff7709e62e89385334da2b690da5bf4&imdb=%s&language=%s")%imdb%lang);
+	juce::URL url(name.c_str());
+	
+
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 10000, 0));
+	if(!pIStream.get())
+	{
+		menu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdbLang, this, _1 ,  imdb, lang));
+		return;
+	}
+	juce::ScopedPointer<juce::XmlElement> e(juce::XmlDocument::parse(pIStream->readEntireStreamAsString()));
+	if(e.get() && e->getTagName() == "results")
+	{
+		juce::XmlElement* items(e->getChildByName("items"));
+		if(items)
+		{
+			juce::XmlElement* sub(items->getChildByName("item"));
+			if(sub)
+			{
+				setBrowsingFiles(true);
+				do
+				{
+					juce::String release = sub->getChildElementAllSubText("release", juce::String::empty);
+					juce::String site = sub->getChildElementAllSubText("site", juce::String::empty);
+					juce::String url = sub->getChildElementAllSubText("url", juce::String::empty);
+					if(!lang.isEmpty())
+					{
+						menu->addMenuItem(site + ": " + release, AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadOpenSubtitle, this, _1, url));
+					}
+					sub = sub->getNextElement();
+				}
+				while(sub);
+			}
+		}
+	}
+
+	
+	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
+	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchSubtitleSeekerImdbLang, this, _1 ,  imdb, lang));
+}
 struct ZipEntrySorter
 {
 	std::vector< std::set<juce::String> > priorityExtensions;
@@ -1514,7 +1651,7 @@ struct ZipEntrySorter
 		return r1 - r2;
 	}
 };
-void VideoComponent::onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
+void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
 {
 	juce::URL url(downloadUrl);
 
@@ -1522,7 +1659,7 @@ void VideoComponent::onMenuDowloadSubtitle(AbstractMenuItem& item, juce::String 
 	juce::StringPairArray response;
 	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS, &response));
 	juce::StringArray const& headers = response.getAllKeys();
-	juce::String fileName = downloadUrl.fromLastOccurrenceOf("\\", false, false);
+	juce::String fileName = downloadUrl.fromLastOccurrenceOf("/", false, false);
 	for(int i=0;i<headers.size();++i)
 	{
 		juce::String const& h = headers[i];
