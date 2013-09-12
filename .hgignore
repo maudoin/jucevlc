@@ -33,6 +33,7 @@ Jucer.exe
 mpc-hc-master/**
 src/Nouveau dossier/**
 icons/iconic/vector/
+boost_*.dll
 syntax: regexp
 FontResource.cpp
 FontResource.h

@@ -271,6 +271,8 @@ VideoComponent::VideoComponent()
 
 	invokeLater = new vf::GuiCallQueue();
 
+	onMenuDowloadSubtitleSeeker(*(AbstractMenuItem *)(void*)0, "http://www.subtitleseeker.com/Download-movie-3053223/Were.the.Millers.Were.The.Millers.2013.720p.WEBRiP.PERFECT.ENGLISH-SUBTITLE" , "Subscene.com");
+
 }
 
 VideoComponent::~VideoComponent()
@@ -1611,7 +1613,7 @@ void VideoComponent::onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, 
 					juce::String url = sub->getChildElementAllSubText("url", juce::String::empty);
 					if(!lang.isEmpty())
 					{
-						menu->addMenuItem(site + ": " + release, AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadOpenSubtitle, this, _1, url));
+						menu->addMenuItem(site + ": " + release, AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadSubtitleSeeker, this, _1, url, site));
 					}
 					sub = sub->getNextElement();
 				}
@@ -1650,7 +1652,77 @@ struct ZipEntrySorter
 		}
 		return r1 - r2;
 	}
-};
+};/*
+#define PREV__MSVC_RUNTIME_CHECKS __MSVC_RUNTIME_CHECKS
+#undef __MSVC_RUNTIME_CHECKS
+#define PREV_DLL _DLL
+#undef _DLL
+#define PREV_DEBUG _DEBUG
+#undef _DEBUG*/
+#include <boost/regex.hpp> /*
+#define _DLL PREV_DLL 
+#define _DEBUG PREV_DEBUG
+#define __MSVC_RUNTIME_CHECKS PREV__MSVC_RUNTIME_CHECKS*/
+
+void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String downloadUrl, juce::String site)
+{
+	juce::URL url(downloadUrl);
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
+	juce::String fileName = downloadUrl.fromLastOccurrenceOf("/", false, false);
+	if(pIStream.get())
+	{
+		juce::MemoryOutputStream memStream(10000);//10ko at least
+		if(memStream.writeFromInputStream(*pIStream, MAX_SUBTITLE_ARCHIVE_SIZE)>0)
+		{
+			
+			
+			std::string ex("href=\"([^\"]*");
+			ex += site.toUTF8().getAddress();
+			ex += "[^\"]*)";
+			boost::regex expression(ex, boost::regex::icase); 
+
+			memStream.writeByte(0);
+		   boost::cmatch matches; 
+		   if(boost::regex_search((char*)memStream.getData(), matches, expression)) 
+		   {
+				juce::Process::openDocument(matches[1].str().c_str(),juce::String::empty);
+/*
+				juce::URL other(matches[1].str().c_str());
+				juce::ScopedPointer<juce::InputStream> pIStreamOther(other.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
+				if(pIStreamOther.get())
+				{	
+					memStream.reset();
+					memStream.writeFromInputStream(*pIStreamOther, MAX_SUBTITLE_ARCHIVE_SIZE);
+				}
+				else
+				{
+					menu->addMenuItem(TRANS(">")+matches[1].str().c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadSubtitleSeeker, this, _1, downloadUrl, site));
+
+					return;
+				}
+			*/		
+		   }
+		   else
+		   {
+				juce::Process::openDocument(downloadUrl,juce::String::empty);
+			   /*
+			    //get html
+			    juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+				juce::File out(outPath);
+				out = out.getChildFile(fileName+".html");
+				juce::FileOutputStream outStream(out);
+				if(outStream.openedOk())
+				{
+					if(outStream.write(memStream.getData(), memStream.getDataSize())>0)
+					{
+						onMenuOpenSubtitleFile(item,out);
+					}
+				}*/
+		   }
+
+		}
+	}
+}
 void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
 {
 	juce::URL url(downloadUrl);

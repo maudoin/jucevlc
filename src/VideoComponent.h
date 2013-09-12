@@ -148,7 +148,7 @@ public:
 	void onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce::String imdb);
 	void onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, juce::String imdb, juce::String lang);
 	void onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String url);
-	void onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String url);
+	void onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String url, juce::String site);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item);
 	void onMenuSubtitleSelect(AbstractMenuItem& item, int i);
