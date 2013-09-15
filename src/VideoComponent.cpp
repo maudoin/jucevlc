@@ -271,8 +271,6 @@ VideoComponent::VideoComponent()
 
 	invokeLater = new vf::GuiCallQueue();
 
-	onMenuDowloadSubtitleSeeker(*(AbstractMenuItem *)(void*)0, "http://www.subtitleseeker.com/Download-movie-3053223/Were.the.Millers.Were.The.Millers.2013.720p.WEBRiP.PERFECT.ENGLISH-SUBTITLE" , "Subscene.com");
-
 }
 
 VideoComponent::~VideoComponent()
@@ -573,7 +571,95 @@ void VideoComponent::broughtToFront()
 // DISPLAY
 //
 ////////////////////////////////////////////////////////////
+void menuItem(juce::Graphics& g, juce::Image const & i, int index, int total, float w, float h, std::string const& title)
+{
+	float itemW = w/total+1;
+	float itemH = w/total+1;
+	float spaceX = itemW/total;
+	float spaceY = itemH/total;//WTF ????
 
+	
+	float scale = itemW/i.getWidth();
+	float realItemW = itemW;
+	float realItemH = itemH * scale / (itemH/i.getHeight());
+
+	float reflectionScale = 0.3f;
+	float reflectionH = realItemH*reflectionScale;
+
+
+	float x = spaceX/2.f + (realItemW+spaceX) * index ;
+	float y = (h-realItemH-reflectionH-spaceY)/2.f;
+
+
+	float lineThickness = 1.5f;
+        
+	g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
+	
+		
+	int holeCount = 15;
+	float holeH = 0.5f*(realItemH+reflectionH+spaceY)/(float)holeCount;
+	float holeW = std::min(spaceX/2.f, holeH);
+	
+	g.setOpacity (1.f);
+
+	
+
+	//border
+	g.setColour(juce::Colour(255, 255, 255));
+	
+	float holesOriginY = y-spaceY/2.f+holeH;
+	for(int ih = 0;ih<holeCount;ih++)
+	{
+		g.fillRoundedRectangle(x-holeW-holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
+		g.fillRoundedRectangle(x+realItemW+holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
+	}
+	
+	float xLeft = x-1.5f*holeW;
+	float xRight = x+realItemW+1.5f*holeW;
+	g.drawLine(xLeft, y-2*holeH, xLeft, y + realItemH+reflectionH+4*holeH, lineThickness);
+	g.drawLine(xRight, y-2*holeH, xRight, y + realItemH+reflectionH+4*holeH, lineThickness);
+
+	//top
+	float prevLineBottom = y-holeH;
+	g.drawLine(x, y-2*holeH, x, prevLineBottom, lineThickness);
+	g.drawLine(x+realItemW, y-2*holeH, x+realItemW, prevLineBottom, lineThickness);
+	g.drawLine(x, prevLineBottom, x+realItemW, prevLineBottom, lineThickness);
+	
+
+	//picture
+	juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(x, y);
+	g.drawImageTransformed(i, tr, false);
+
+
+
+	//reflect
+	juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(x, y+realItemH+reflectionH);
+	g.drawImageTransformed(i, t, false);
+
+	//reflection
+	g.setGradientFill (juce::ColourGradient (juce::Colours::black,
+										x+realItemW/2.f, y+realItemH,
+										juce::Colours::purple.withAlpha(0.5f),
+										x+realItemW/2.f, y+realItemH+reflectionH,
+										false));
+	g.fillRect(x, y+realItemH, realItemW, reflectionH);
+	
+	//border
+	g.setColour(juce::Colour(255, 255, 255));
+	g.drawRect(x, y, realItemW, realItemH+reflectionH, lineThickness);
+
+	//title
+	float fontHeight = 2.f*holeH;
+	juce::Font f = g.getCurrentFont().withHeight(fontHeight);
+	f.setStyleFlags(juce::Font::plain);
+	g.setFont(f);
+	g.setColour (juce::Colours::grey);
+	g.drawFittedText(juce::String(title.c_str()),
+		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
+		(int)(realItemW), (int)(3.f*holeH), 
+		juce::Justification::centred, 3, 0.85f);
+
+}
 void VideoComponent::paint (juce::Graphics& g)
 {
 #ifdef BUFFER_DISPLAY
@@ -582,20 +668,32 @@ void VideoComponent::paint (juce::Graphics& g)
 		g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
 	}
 #else
-	if(!vlcNativePopupComponent->isVisible())
+	if(!vlcNativePopupComponent->isVisible() || vlc->isStopped() )
 	{
 		g.fillAll (juce::Colours::black);
-		g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2 );
+		if(menu->asComponent()->isVisible())
+		{
+			g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2 );
 
 		
-		juce::Font f = g.getCurrentFont().withHeight(menu->getFontHeight());
-		f.setStyleFlags(juce::Font::plain);
-		g.setFont(f);
-		g.setColour (juce::Colours::grey);
-		g.drawText(juce::String("Featuring VLC ") + vlc->getInfo().c_str(),(getWidth() - appImage.getWidth())/2,  
-			(getHeight() + appImage.getHeight())/2, appImage.getWidth(), 
-			(int)menu->getFontHeight(), 
-			juce::Justification::centred, true);
+			juce::Font f = g.getCurrentFont().withHeight(menu->getFontHeight());
+			f.setStyleFlags(juce::Font::plain);
+			g.setFont(f);
+			g.setColour (juce::Colours::grey);
+			g.drawText(juce::String("Featuring VLC ") + vlc->getInfo().c_str(),(getWidth() - appImage.getWidth())/2,  
+				(getHeight() + appImage.getHeight())/2, appImage.getWidth(), 
+				(int)menu->getFontHeight(), 
+				juce::Justification::centred, true);
+		}
+		else
+		{
+		
+			const int n=5;
+			for(int i=0;i<n;i++)
+			{
+				menuItem(g, appImage, i, n, (float)getWidth(), (float)getHeight(), "Full movie title here, including extension and release name (lengthy but spread on three lines at most)");
+			}
+		}
 	}
 	else
 	{
