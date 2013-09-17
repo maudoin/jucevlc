@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="64"
+   height="64"
+   id="svg3825"
+   sodipodi:version="0.32"
+   inkscape:version="0.48.2 r9819"
+   version="1.0"
+   sodipodi:docname="czara1_Mixe_arrow.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs
+     id="defs3827">
+    <linearGradient
+       id="linearGradient3785">
+      <stop
+         id="stop3787"
+         offset="0"
+         style="stop-color:#7040ff;stop-opacity:1;" />
+      <stop
+         id="stop3789"
+         offset="1"
+         style="stop-color:#ffa8ff;stop-opacity:0;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3779">
+      <stop
+         style="stop-color:#66006c;stop-opacity:1;"
+         offset="0"
+         id="stop3781" />
+      <stop
+         style="stop-color:#8997f9;stop-opacity:1;"
+         offset="1"
+         id="stop3783" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient8026">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop8028" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop8030" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient15728">
+      <stop
+         id="stop15730"
+         offset="0"
+         style="stop-color:#000097;stop-opacity:1;" />
+      <stop
+         id="stop15732"
+         offset="1"
+         style="stop-color:#6efff9;stop-opacity:1;" />
+    </linearGradient>
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective3833" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient8026"
+       id="linearGradient3000"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.5832282,0,0,0.61337141,-499.70763,-225.79868)"
+       x1="910.45056"
+       y1="373.7739"
+       x2="956.66882"
+       y2="438.39877" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3785"
+       id="linearGradient3003"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.64373897,0,0,-0.6080664,625.63958,290.79813)"
+       x1="962.52594"
+       y1="448.69214"
+       x2="929.513"
+       y2="411.56241" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3779"
+       id="linearGradient3006"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.62760754,0.00641531,-0.00641531,-0.62760754,611.69687,291.11088)"
+       x1="913.60236"
+       y1="368.14542"
+       x2="957.14807"
+       y2="451.01825" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3779"
+       id="linearGradient3795"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.62760754,0.00641531,-0.00641531,-0.62760754,611.69687,291.11088)"
+       x1="913.60236"
+       y1="368.14542"
+       x2="957.14807"
+       y2="451.01825" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3785"
+       id="linearGradient3797"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-0.64373897,0,0,-0.6080664,625.63958,290.79813)"
+       x1="962.52594"
+       y1="448.69214"
+       x2="929.513"
+       y2="411.56241" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.7896504"
+     inkscape:cx="27.086741"
+     inkscape:cy="11.289815"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1279"
+     inkscape:window-height="914"
+     inkscape:window-x="146"
+     inkscape:window-y="110"
+     inkscape:window-maximized="0" />
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g3791"
+       transform="matrix(0,1.6303701,1.6303701,0,-28.262325,2.6131904)">
+      <path
+         sodipodi:nodetypes="ccccscscc"
+         id="path15341"
+         d="M 31.94923,36.7311 18.124713,19.204927 4.1782478,37.117984 l 8.1813202,-0.0092 c 0,0 -1.03921,7.445838 3.095364,11.864782 4.134559,4.418883 13.742678,4.393094 13.742678,4.393094 0,0 -4.269676,-2.442808 -5.841822,-6.924035 -1.572147,-4.481182 -0.746586,-9.583341 -0.746586,-9.583341 L 31.94923,36.73141 z"
+         style="fill:url(#linearGradient3795);fill-opacity:1;fill-rule:evenodd;stroke:#000082;stroke-width:1.53142583;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         inkscape:connector-curvature="0" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         id="path15742"
+         d="M 25.595728,29.784323 18.696486,21.410655 7.3595705,35.748476 13.591003,35.723054 c 8.617854,-0.607593 6.266151,-5.719707 12.004725,-5.938792 z"
+         style="fill:url(#linearGradient3797);fill-opacity:1;fill-rule:evenodd;stroke:none"
+         inkscape:connector-curvature="0" />
+    </g>
+  </g>
+  <metadata
+     id="metadata22">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Open Clip Art Library</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title></dc:title>
+        <dc:date>2008-06-08T09:56:02</dc:date>
+        <dc:description>a mixed arrow</dc:description>
+        <dc:source>http://openclipart.org/detail/17306/mixe-arrow-by-czara1</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>czara1</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>arrow</rdf:li>
+            <rdf:li>arrow</rdf:li>
+            <rdf:li>clip art</rdf:li>
+            <rdf:li>clipart</rdf:li>
+            <rdf:li>clipart_issue</rdf:li>
+            <rdf:li>image</rdf:li>
+            <rdf:li>media</rdf:li>
+            <rdf:li>mix</rdf:li>
+            <rdf:li>mix</rdf:li>
+            <rdf:li>png</rdf:li>
+            <rdf:li>public domain</rdf:li>
+            <rdf:li>svg</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

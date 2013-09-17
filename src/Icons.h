@@ -78,6 +78,8 @@
 	extern const int gears_svgSize;
 	extern const char* exit_svg;
 	extern const int exit_svgSize;
+	extern const char* back_svg;
+    extern const int back_svgSize;
 
 
 #endif   // __ICONS__

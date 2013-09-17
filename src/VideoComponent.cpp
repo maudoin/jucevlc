@@ -3,6 +3,7 @@
 #include "Icons.h"
 #include "MenuComponent.h"
 #include "Languages.h"
+#include "FileSorter.h"
 #include <algorithm>
 #include <set>
 #include <boost/bind.hpp>
@@ -25,21 +26,21 @@
 
 
 
-#define EXTENSIONS_VIDEO(add) add("3g2");add("3gp");add("3gp2");add("3gpp");add("amv");add("asf");add("avi");add("bin");add("divx");add("drc");add("dv");add("f4v");add("flv");add("gxf");add("iso");add("m1v");add("m2v");\
-                         add("m2t");add("m2ts");add("m4v");add("mkv");add("mov");add("mp2");add("mp2v");add("mp4");add("mp4v");add("mpa");add("mpe");add("mpeg");add("mpeg1");\
-                         add("mpeg2");add("mpeg4");add("mpg");add("mpv2");add("mts");add("mtv");add("mxf");add("mxg");add("nsv");add("nuv");\
-                         add("ogg");add("ogm");add("ogv");add("ogx");add("ps");\
-                         add("rec");add("rm");add("rmvb");add("tod");add("ts");add("tts");add("vob");add("vro");add("webm");add("wm");add("wmv");add("flv");
+#define EXTENSIONS_VIDEO(add_) add_("3g2");add_("3gp");add_("3gp2");add_("3gpp");add_("amv");add_("asf");add_("avi");add_("bin");add_("divx");add_("drc");add_("dv");add_("f4v");add_("flv");add_("gxf");add_("iso");add_("m1v");add_("m2v");\
+                         add_("m2t");add_("m2ts");add_("m4v");add_("mkv");add_("mov");add_("mp2");add_("mp2v");add_("mp4");add_("mp4v");add_("mpa");add_("mpe");add_("mpeg");add_("mpeg1");\
+                         add_("mpeg2");add_("mpeg4");add_("mpg");add_("mpv2");add_("mts");add_("mtv");add_("mxf");add_("mxg");add_("nsv");add_("nuv");\
+                         add_("ogg");add_("ogm");add_("ogv");add_("ogx");add_("ps");\
+                         add_("rec");add_("rm");add_("rmvb");add_("tod");add_("ts");add_("tts");add_("vob");add_("vro");add_("webm");add_("wm");add_("wmv");add_("flv");
 
-#define EXTENSIONS_PLAYLIST(add) add("asx");add("b4s");add("cue");add("ifo");add("m3u");add("m3u8");add("pls");add("ram");add("rar");add("sdp");add("vlc");add("xspf");add("wvx");add("zip");add("conf");
+#define EXTENSIONS_PLAYLIST(add_) add_("asx");add_("b4s");add_("cue");add_("ifo");add_("m3u");add_("m3u8");add_("pls");add_("ram");add_("rar");add_("sdp");add_("vlc");add_("xspf");add_("wvx");add_("zip");add_("conf");
 
-#define EXTENSIONS_SUBTITLE(add) add("cdg");add("idx");add("srt"); \
-                            add("sub");add("utf");add("ass"); \
-                            add("ssa");add("aqt"); \
-                            add("jss");add("psb"); \
-                            add("rt");add("smi");add("txt"); \
-							add("smil");add("stl");add("usf"); \
-                            add("dks");add("pjs");add("mpl2");
+#define EXTENSIONS_SUBTITLE(add_) add_("cdg");add_("idx");add_("srt"); \
+                            add_("sub");add_("utf");add_("ass"); \
+                            add_("ssa");add_("aqt"); \
+                            add_("jss");add_("psb"); \
+                            add_("rt");add_("smi");add_("txt"); \
+							add_("smil");add_("stl");add_("usf"); \
+                            add_("dks");add_("pjs");add_("mpl2");
 
 
 #define EXTENSIONS_MEDIA(add) EXTENSIONS_VIDEO(add) EXTENSIONS_SUBTITLE(add) EXTENSIONS_PLAYLIST(add)
@@ -186,6 +187,7 @@ VideoComponent::VideoComponent()
 	EXTENSIONS_PLAYLIST(m_playlistExtensions.insert)
 	EXTENSIONS_SUBTITLE(m_subtitlesExtensions.insert)
 
+
 	m_suportedExtensions.push_back(m_videoExtensions);
 	m_suportedExtensions.push_back(m_subtitlesExtensions);
 	m_suportedExtensions.push_back(m_playlistExtensions);
@@ -270,6 +272,10 @@ VideoComponent::VideoComponent()
 	}
 
 	invokeLater = new vf::GuiCallQueue();
+
+	
+	m_iconMenu.setFilter(m_videoExtensions);
+	m_iconMenu.setMediaRootPath( m_settings.getValue(SETTINGS_LAST_OPEN_PATH).toUTF8().getAddress() );
 
 }
 
@@ -376,6 +382,8 @@ void VideoComponent::switchFullScreen()
 {
 	setFullScreen(juce::Desktop::getInstance().getKioskModeComponent() == nullptr);
 }
+
+
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
 {
 	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while moving on sub component
@@ -388,6 +396,11 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 		double mouseMoveValue = (e.x - min)/w;
 		controlComponent->slider().setMouseOverTime(e.x, (juce::int64)(mouseMoveValue*vlc->GetLength()));
 		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
+	}
+	if(e.eventComponent == this && (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+	{
+		m_iconMenu.highlight((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
+		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
 	}
 }
 
@@ -416,7 +429,27 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		}
 		if(e.mods.isLeftButtonDown())
 		{
-			if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
+			if( (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+			{
+				std::string media = m_iconMenu.clickOrGetMediaAt((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
+				if(!media.empty())
+				{
+					juce::File m(media.c_str());
+					if(m.isDirectory())
+					{
+						m_iconMenu.setMediaRootPath(media);
+						if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+					}
+					else
+					{
+						if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::appendAndPlay,this, media));
+					}
+				}
+			}
+			else
+			{
+				if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
+			}
 		}
 	}
 }
@@ -571,95 +604,6 @@ void VideoComponent::broughtToFront()
 // DISPLAY
 //
 ////////////////////////////////////////////////////////////
-void menuItem(juce::Graphics& g, juce::Image const & i, int index, int total, float w, float h, std::string const& title)
-{
-	float itemW = w/total+1;
-	float itemH = w/total+1;
-	float spaceX = itemW/total;
-	float spaceY = itemH/total;//WTF ????
-
-	
-	float scale = itemW/i.getWidth();
-	float realItemW = itemW;
-	float realItemH = itemH * scale / (itemH/i.getHeight());
-
-	float reflectionScale = 0.3f;
-	float reflectionH = realItemH*reflectionScale;
-
-
-	float x = spaceX/2.f + (realItemW+spaceX) * index ;
-	float y = (h-realItemH-reflectionH-spaceY)/2.f;
-
-
-	float lineThickness = 1.5f;
-        
-	g.setImageResamplingQuality (juce::Graphics::highResamplingQuality);
-	
-		
-	int holeCount = 15;
-	float holeH = 0.5f*(realItemH+reflectionH+spaceY)/(float)holeCount;
-	float holeW = std::min(spaceX/2.f, holeH);
-	
-	g.setOpacity (1.f);
-
-	
-
-	//border
-	g.setColour(juce::Colour(255, 255, 255));
-	
-	float holesOriginY = y-spaceY/2.f+holeH;
-	for(int ih = 0;ih<holeCount;ih++)
-	{
-		g.fillRoundedRectangle(x-holeW-holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
-		g.fillRoundedRectangle(x+realItemW+holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
-	}
-	
-	float xLeft = x-1.5f*holeW;
-	float xRight = x+realItemW+1.5f*holeW;
-	g.drawLine(xLeft, y-2*holeH, xLeft, y + realItemH+reflectionH+4*holeH, lineThickness);
-	g.drawLine(xRight, y-2*holeH, xRight, y + realItemH+reflectionH+4*holeH, lineThickness);
-
-	//top
-	float prevLineBottom = y-holeH;
-	g.drawLine(x, y-2*holeH, x, prevLineBottom, lineThickness);
-	g.drawLine(x+realItemW, y-2*holeH, x+realItemW, prevLineBottom, lineThickness);
-	g.drawLine(x, prevLineBottom, x+realItemW, prevLineBottom, lineThickness);
-	
-
-	//picture
-	juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(x, y);
-	g.drawImageTransformed(i, tr, false);
-
-
-
-	//reflect
-	juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(x, y+realItemH+reflectionH);
-	g.drawImageTransformed(i, t, false);
-
-	//reflection
-	g.setGradientFill (juce::ColourGradient (juce::Colours::black,
-										x+realItemW/2.f, y+realItemH,
-										juce::Colours::purple.withAlpha(0.5f),
-										x+realItemW/2.f, y+realItemH+reflectionH,
-										false));
-	g.fillRect(x, y+realItemH, realItemW, reflectionH);
-	
-	//border
-	g.setColour(juce::Colour(255, 255, 255));
-	g.drawRect(x, y, realItemW, realItemH+reflectionH, lineThickness);
-
-	//title
-	float fontHeight = 2.f*holeH;
-	juce::Font f = g.getCurrentFont().withHeight(fontHeight);
-	f.setStyleFlags(juce::Font::plain);
-	g.setFont(f);
-	g.setColour (juce::Colours::grey);
-	g.drawFittedText(juce::String(title.c_str()),
-		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
-		(int)(realItemW), (int)(3.f*holeH), 
-		juce::Justification::centred, 3, 0.85f);
-
-}
 void VideoComponent::paint (juce::Graphics& g)
 {
 #ifdef BUFFER_DISPLAY
@@ -687,12 +631,7 @@ void VideoComponent::paint (juce::Graphics& g)
 		}
 		else
 		{
-		
-			const int n=5;
-			for(int i=0;i<n;i++)
-			{
-				menuItem(g, appImage, i, n, (float)getWidth(), (float)getHeight(), "Full movie title here, including extension and release name (lengthy but spread on three lines at most)");
-			}
+			m_iconMenu.paintMenu(g, appImage, (float)getWidth(), (float)getHeight());
 		}
 	}
 	else
@@ -1116,46 +1055,6 @@ void VideoComponent::onMenuQueue (AbstractMenuItem& item, juce::String path)
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	vlc->addPlayListItem(path.toUTF8().getAddress());
 }
-bool extensionMatch(std::set<juce::String> const& e, juce::String const& ex)
-{
-	juce::String ext = ex.toLowerCase();
-	return e.end() != e.find(ext.startsWith(".")?ext.substring(1):ext);
-}
-bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
-{
-	return extensionMatch(e, f.getFileExtension());
-}
-struct FileSorter
-{
-	std::vector< std::set<juce::String> > priorityExtensions;
-	FileSorter(std::set<juce::String> const& priorityExtensions_){priorityExtensions.push_back(priorityExtensions_);}
-	FileSorter(std::vector< std::set<juce::String> > const& priorityExtensions_):priorityExtensions(priorityExtensions_) {}
-	int rank(juce::File const& f)
-	{
-		if(f.isDirectory())
-		{
-			return 0;
-		}
-		for(std::vector< std::set<juce::String> >::const_iterator it = priorityExtensions.begin();it != priorityExtensions.end();++it)
-		{
-			if(extensionMatch(*it, f))
-			{
-				return 1+(it-priorityExtensions.begin());
-			}
-		}
-		return priorityExtensions.size()+1;
-	}
-	int compareElements(juce::File const& some, juce::File const& other)
-	{
-		int r1 = rank(some);
-		int r2 = rank(other);
-		if(r1 == r2)
-		{
-			return some.getFileName().compareIgnoreCase(other.getFileName());
-		}
-		return r1 - r2;
-	}
-};
 juce::Drawable const* VideoComponent::getIcon(juce::String const& e)
 {
 	if(extensionMatch(m_videoExtensions, e))

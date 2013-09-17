@@ -151,8 +151,10 @@
     <ClCompile Include="juce\modules\juce_gui_extra\juce_gui_extra.cpp" />
     <ClCompile Include="src\AppProportionnalComponent.cpp" />
     <ClCompile Include="src\ControlComponent.cpp" />
+    <ClCompile Include="src\FileSorter.cpp" />
     <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\FontSerialization.cpp" />
+    <ClCompile Include="src\IconMenu.cpp" />
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\Languages.cpp" />
     <ClCompile Include="src\MenuBase.cpp" />
@@ -376,7 +378,9 @@
     <ClInclude Include="src\AbstractMenu.h" />
     <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\ControlComponent.h" />
+    <ClInclude Include="src\FileSorter.h" />
     <ClInclude Include="src\FontResource.h" />
+    <ClInclude Include="src\IconMenu.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\Languages.h" />
     <ClInclude Include="src\MenuBase.h" />

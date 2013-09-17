@@ -11,6 +11,7 @@
 #include <sstream>
 #include <set>
 #include "LookNFeel.h"
+#include "IconMenu.h"
 
 
 #define BUFFER_DISPLAY
@@ -69,6 +70,8 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	std::set<juce::String> m_playlistExtensions;
 	std::set<juce::String> m_subtitlesExtensions;
 	std::vector< std::set<juce::String> > m_suportedExtensions;
+
+	IconMenu m_iconMenu;
 
 public:
     VideoComponent();
