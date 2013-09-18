@@ -232,6 +232,8 @@ public:
 	void mouseDrag (const juce::MouseEvent& e);
     void mouseMove (const juce::MouseEvent& e);
     void mouseExit (const juce::MouseEvent& e);
+    void mouseWheelMove (const juce::MouseEvent& e,
+                                 const juce::MouseWheelDetails& wheel);
 	
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
     void broughtToFront();

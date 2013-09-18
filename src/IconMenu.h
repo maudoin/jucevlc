@@ -47,6 +47,8 @@ public:
 	void setFilter(std::set<juce::String> const & s){m_videoExtensions = s;};
 
 	void setMediaRootPath(std::string const& path);
+	void scrollDown();
+	void scrollUp();
 	void setCurrentMediaRootPath(std::string const& path);
 	void setMediaStartIndex(int index);
 	bool clickOrDrag(float xPos, float yPos, float w, float h);

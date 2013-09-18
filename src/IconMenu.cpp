@@ -61,18 +61,27 @@ bool IconMenu::clickOrDrag(float xPos, float yPos, float w, float h)
 	}
 	else if(leftRect.contains(xPos, yPos))
 	{
-		const juce::ScopedLock myScopedLock (m_mutex);
-		setMediaStartIndex(m_mediaPostersStartIndex - m_mediaPostersYCount);
+		scrollDown();
 		return true;
 	}
 	else if(rightRect.contains(xPos, yPos))
 	{
-		const juce::ScopedLock myScopedLock (m_mutex);
-		setMediaStartIndex(m_mediaPostersStartIndex + m_mediaPostersYCount);
+		scrollUp();
 		return true;
 	}
 
 	return false;
+}
+
+void IconMenu::scrollDown()
+{
+	const juce::ScopedLock myScopedLock (m_mutex);
+	setMediaStartIndex(m_mediaPostersStartIndex - m_mediaPostersYCount*m_mediaPostersXCount);
+}
+void IconMenu::scrollUp()
+{
+	const juce::ScopedLock myScopedLock (m_mutex);
+	setMediaStartIndex(m_mediaPostersStartIndex + m_mediaPostersYCount*m_mediaPostersXCount);
 }
 std::string IconMenu::getMediaAt(float xPos, float yPos, float w, float h)
 {
@@ -373,6 +382,6 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
 		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
 		(int)(realItemW), (int)(3.f*holeH), 
-		juce::Justification::centred, 3, 0.85f);
+		juce::Justification::centred, 3, 1.f);
 
 }

@@ -466,9 +466,34 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 				if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
 			}
 		}
+		
 	}
 }
 
+void VideoComponent::mouseWheelMove (const juce::MouseEvent& e,
+                                const juce::MouseWheelDetails& wheel)
+{
+		
+	if(e.eventComponent == this)
+	{
+		if( (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+		{
+			float delta = wheel.isReversed ? - wheel.deltaY : wheel.deltaY;
+			if(delta>0.f)
+			{
+				m_iconMenu.scrollDown();
+				if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+			}
+			else if(delta<0.f)
+			{
+				m_iconMenu.scrollUp();
+				if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+			}
+
+
+		}
+	}
+}
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
 	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while dragging on sub component
