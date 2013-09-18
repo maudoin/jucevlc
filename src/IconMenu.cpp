@@ -5,9 +5,14 @@
 #include "Icons.h"
 
 
+const int IconMenu::InvalidIndex = -1;
+
 IconMenu::IconMenu()
 	:m_mediaPostersXCount(5)
 	,m_mediaPostersYCount(2)
+	,m_leftArrowHighlighted(false)
+	,m_rightArrowHighlighted(false)
+	,m_sliderHighlighted(false)
 {
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
     upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
@@ -40,27 +45,67 @@ int IconMenu::getButtonIndexAt(float xPos, float yPos, float w, float h)
 		}
 		
 	}
-	return -1;
+	return InvalidIndex;
 }
-std::string IconMenu::clickOrGetMediaAt(float xPos, float yPos, float w, float h)
+bool IconMenu::clickOrDrag(float xPos, float yPos, float w, float h)
 {
-	//click arrows
-	return getMediaAt(xPos, yPos, w, h);
+	juce::Rectangle<float> sliderRect = computeSliderRect(w, h);
+	juce::Rectangle<float> leftRect = computeLeftArrowRect(sliderRect);
+	juce::Rectangle<float> rightRect = computeRightArrowRect(sliderRect);
+	if(sliderRect.contains(xPos, yPos))
+	{
+		int count=mediaCount();
+		int index = (int)( count * (xPos - sliderRect.getX()) / sliderRect.getWidth() ) - m_mediaPostersXCount*m_mediaPostersYCount / 2;
+		setMediaStartIndex(index);
+		return true;
+	}
+	else if(leftRect.contains(xPos, yPos))
+	{
+		const juce::ScopedLock myScopedLock (m_mutex);
+		setMediaStartIndex(m_mediaPostersStartIndex - m_mediaPostersYCount);
+		return true;
+	}
+	else if(rightRect.contains(xPos, yPos))
+	{
+		const juce::ScopedLock myScopedLock (m_mutex);
+		setMediaStartIndex(m_mediaPostersStartIndex + m_mediaPostersYCount);
+		return true;
+	}
+
+	return false;
 }
 std::string IconMenu::getMediaAt(float xPos, float yPos, float w, float h)
 {
 	return getMediaAt(getButtonIndexAt(xPos, yPos, w, h));
 }
+void IconMenu::setMediaRootPath(std::string const& path)
+{
+    const juce::ScopedLock myScopedLock (m_mutex);
+	m_mediaPostersRoot=path;
+		
+
+	juce::File file(m_mediaPostersRoot.c_str());
+	
+	juce::Array<juce::File> files;
+	file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
+	
+	m_currentFiles.clear();
+	for(juce::File* it = files.begin();it != files.end();++it)
+	{
+		if(extensionMatch(m_videoExtensions, it->getFileExtension()) || it->isDirectory())
+		{
+			m_currentFiles.add(*it);
+		}
+	}
+	m_currentFiles.sort(FileSorter(m_videoExtensions));
+	setMediaStartIndex(0);
+}
 void IconMenu::setMediaStartIndex(int index)
 {
     const juce::ScopedLock myScopedLock (m_mutex);
-
-	m_mediaPostersStartIndex = index;
-	m_currentFiles.clear();
-
-	juce::File file(m_mediaPostersRoot.c_str());
-	file.findChildFiles(m_currentFiles, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
-	m_currentFiles.sort(FileSorter(m_videoExtensions));
+	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+	int max = m_currentFiles.size()-countPerPage;
+	m_mediaPostersStartIndex = index<0?0:index>max?max:index;
 	
 }
 std::string IconMenu::getMediaAt(int index)
@@ -68,81 +113,133 @@ std::string IconMenu::getMediaAt(int index)
 	juce::File f=getMediaFileAt(index);
 	return f.exists()?f.getFullPathName().toUTF8().getAddress():std::string();
 }
-juce::File IconMenu::getMediaFileAt(int index)
+juce::File IconMenu::getMediaFileAt(int indexOnScreen)
 {
+	if(IconMenu::InvalidIndex == indexOnScreen)
+	{
+		return juce::File();
+	}
+
     const juce::ScopedLock myScopedLock (m_mutex);
-	if(index==0)
+	if(indexOnScreen==0)
 	{
 		juce::File f(m_mediaPostersRoot.c_str());
 		return f.getParentDirectory();
 	}
-
-	if(index>=0 && index<m_currentFiles.size())
+	
+	int indexInfolder = indexOnScreen + m_mediaPostersStartIndex;
+	if(indexInfolder>=0 && indexInfolder<m_currentFiles.size())
 	{
-		return m_currentFiles[index];
+		return m_currentFiles[indexInfolder];
 	}
 	return juce::File();
 }
-void IconMenu::highlight(float xPos, float yPos, float w, float h)
+bool IconMenu::highlight(float xPos, float yPos, float w, float h)
 {
+	juce::Rectangle<float>sliderRect = computeSliderRect(w, h);
+
+	int oldIndex = m_mediaPostersHightlight;
+	bool oldLeft = m_leftArrowHighlighted;
+	bool oldRight = m_rightArrowHighlighted;
+	bool oldSlider = m_sliderHighlighted;
+
 	m_mediaPostersHightlight = getButtonIndexAt(xPos, yPos, w, h);
+	m_sliderHighlighted = sliderRect.contains(xPos, yPos);
+	m_leftArrowHighlighted = computeLeftArrowRect(sliderRect).contains(xPos, yPos);
+	m_rightArrowHighlighted = computeRightArrowRect(sliderRect).contains(xPos, yPos);
+
+	return oldIndex != m_mediaPostersHightlight ||oldLeft != m_leftArrowHighlighted ||oldRight != m_rightArrowHighlighted || oldSlider != m_sliderHighlighted;
 }
 
+juce::Rectangle<float> IconMenu::computeSliderRect(float w, float h) const
+{
+	const float sliderRelativePos = 0.96f;
+	float sliderTop = sliderRelativePos*h;
+	float arrowW = h-sliderTop;
+	return juce::Rectangle<float>(arrowW, sliderTop, w-2.f*arrowW, arrowW);
+}
+juce::Rectangle<float> IconMenu::computeLeftArrowRect(juce::Rectangle<float> const& slider) const
+{
+	return juce::Rectangle<float>(0, slider.getY(), slider.getX(), slider.getHeight());
+}
+juce::Rectangle<float> IconMenu::computeRightArrowRect(juce::Rectangle<float> const& slider) const
+{
+	return juce::Rectangle<float>(slider.getX()+slider.getWidth(), slider.getY(), slider.getX(), slider.getHeight());
+}
+
+int IconMenu::mediaCount()
+{
+	const juce::ScopedLock myScopedLock (m_mutex);
+	return m_currentFiles.size();
+}
 void IconMenu::paintMenu(juce::Graphics& g, juce::Image const & appImage, float w, float h)
 {
-	float hList = 0.96f*h;
+	juce::Rectangle<float> sliderRect = computeSliderRect(w, h);
 	for(int i=0;i<m_mediaPostersXCount*m_mediaPostersYCount;i++)
 	{
-		paintItem(g, appImage, i,  w, hList);
+		paintItem(g, appImage, i,  w, sliderRect.getY());
 	}
-	
-	float sliderStart = m_mediaPostersStartIndex/(float)m_currentFiles.size();
-	float sliderEnd = (m_mediaPostersStartIndex+m_mediaPostersXCount*m_mediaPostersYCount)/(float)m_currentFiles.size();
+
+	int count=mediaCount();
+	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+	int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
+	float sliderStart = firstMediaIndex/(float)m_currentFiles.size();
+	float sliderEnd = (firstMediaIndex+countPerPage)/(float)m_currentFiles.size();
 	float sliderSize = sliderEnd-sliderStart;
 
-	float arrowH = h-hList;
-	float arrowW = arrowH;
 	
 	juce::ColourGradient gradient(juce::Colours::purple.brighter(),
-										w/2.f, hList,
+										w/2.f, sliderRect.getHeight(),
 										juce::Colours::purple.darker(),
 										w/2.f, h,
 										false);
 	
-	float sliderTotalScreenStart = arrowW;
-	float sliderTotalScreenW = w-2.f*arrowW;;
+	const float thick = 2.f;
+	const float thin = 1.f;
+	float thickness = m_sliderHighlighted?thick:thin;
 
-	juce::Rectangle<float> total(sliderTotalScreenStart, hList+arrowH/4.f, sliderTotalScreenW, arrowH/2.f);
+	juce::Rectangle<float> total(sliderRect.getX(), sliderRect.getY()+sliderRect.getHeight()/4.f, sliderRect.getWidth(), sliderRect.getHeight()/2.f);
 	g.setGradientFill(gradient);
 	g.fillRect(total);
 	g.setColour(juce::Colours::white);
-	g.drawRect(total, 2.f);
+	g.drawRect(total, thickness);
 	
-	juce::Rectangle<float> current(sliderTotalScreenStart+sliderTotalScreenW*sliderStart, hList, sliderTotalScreenW*sliderSize, arrowH);
+	float roundness = sliderRect.getHeight()/6.f;
+	
+	juce::Rectangle<float> current(sliderRect.getX()+sliderRect.getWidth()*sliderStart, sliderRect.getY(), sliderRect.getWidth()*sliderSize, sliderRect.getHeight());
 	g.setGradientFill(gradient);
-	g.fillRoundedRectangle(current, arrowH/6.f);
+	g.fillRoundedRectangle(current, roundness);
 	g.setColour(juce::Colours::white);
-	g.drawRoundedRectangle(current, arrowH/6.f, 2.f);
-
-	float arrowY = hList+arrowH/2.f;
+	g.drawRoundedRectangle(current, roundness, thickness);
+	
+	float arrowW = sliderRect.getX();
+	float arrowY = sliderRect.getY()+sliderRect.getHeight()/2.f;
 	juce::Path arrow;
-	arrow.addArrow(juce::Line<float>(arrowW, arrowY, 0 , arrowY),arrowH, arrowH, arrowW);
+	arrow.addArrow(juce::Line<float>(sliderRect.getX(), arrowY, 0 , arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
 	g.fillPath(arrow);
 
 	juce::Path arrowRight;
-	arrowRight.addArrow(juce::Line<float>(w-arrowW, arrowY, w, arrowY),arrowH, arrowH, arrowW);
+	arrowRight.addArrow(juce::Line<float>(w-sliderRect.getX(), arrowY, w, arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
 	
 	g.setColour(juce::Colours::purple);
 	g.fillPath(arrowRight);
 	g.fillPath(arrow);
 
 	g.setColour(juce::Colours::white);
-	g.strokePath(arrowRight, juce::PathStrokeType(2.f));
-	g.strokePath(arrow, juce::PathStrokeType(2.f));
+	thickness = m_rightArrowHighlighted?thick:thin;
+	g.strokePath(arrowRight, juce::PathStrokeType(thickness));
+	thickness = m_leftArrowHighlighted?thick:thin;
+	g.strokePath(arrow, juce::PathStrokeType(thickness));
 }
 
 void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, float w, float h)
 {
+	juce::File file=getMediaFileAt(index);
+	if(!file.exists())
+	{
+		return;
+	}
+
 	juce::Rectangle<float> rect = getButtonAt(index, w, h);
 	float itemW = rect.getWidth();
 	float itemH = rect.getHeight();
@@ -181,7 +278,6 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 
 	
 
-	juce::File file=getMediaFileAt(index);
 	if(index == 0)
 	{
 		upImage.get()->drawWithin (g, rect,
@@ -246,7 +342,7 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 	g.setColour (juce::Colours::grey);
-	g.drawFittedText(juce::String(file.getFileNameWithoutExtension()),
+	g.drawFittedText(file.exists()?(index == 0)?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
 		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
 		(int)(realItemW), (int)(3.f*holeH), 
 		juce::Justification::centred, 3, 0.85f);

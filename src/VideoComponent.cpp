@@ -399,8 +399,10 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 	}
 	if(e.eventComponent == this && (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
 	{
-		m_iconMenu.highlight((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
-		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+		if(m_iconMenu.highlight((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight()))
+		{
+			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+		}
 	}
 }
 
@@ -431,19 +433,28 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		{
 			if( (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
 			{
-				std::string media = m_iconMenu.clickOrGetMediaAt((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
+				bool repaint = m_iconMenu.clickOrDrag((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
+
+				std::string media = m_iconMenu.getMediaAt((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
 				if(!media.empty())
 				{
 					juce::File m(media.c_str());
 					if(m.isDirectory())
 					{
 						m_iconMenu.setMediaRootPath(media);
-						if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+						repaint = true;
 					}
 					else
 					{
+						repaint = false;
 						if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::appendAndPlay,this, media));
 					}
+				}
+
+				if(repaint)
+				{
+					//repaint on click
+					if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
 				}
 			}
 			else
@@ -458,6 +469,15 @@ void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 {
 	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while dragging on sub component
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
+
+	
+	if(e.eventComponent == this && (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+	{
+		if(m_iconMenu.clickOrDrag((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight()))
+		{
+			if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,e.eventComponent));
+		}
+	}
 
 }
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
