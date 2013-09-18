@@ -162,6 +162,7 @@ VideoComponent::VideoComponent()
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
 	,m_autoSubtitlesHeight(true)
+	,m_backgroundTasks("BG tasks")
 {    
 	Languages::getInstance();
 
@@ -281,10 +282,16 @@ VideoComponent::VideoComponent()
 	m_iconMenu.setFilter(m_frontpageExtensions);
 	m_iconMenu.setMediaRootPath( m_settings.getValue(SETTINGS_POSTER_BROWSER_ROOT_PATH).toUTF8().getAddress() );
 
+	m_backgroundTasks.addTimeSliceClient(this);
+	m_backgroundTasks.startThread();
+
 }
 
 VideoComponent::~VideoComponent()
 {   
+	m_backgroundTasks.removeTimeSliceClient(this);
+	m_backgroundTasks.stopThread(300);
+
 	//prevent processing
 	sliderUpdating = true;
 	videoUpdating = true;
@@ -326,6 +333,20 @@ VideoComponent::~VideoComponent()
 	juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
     // (the content component will be deleted automatically, so no need to do it here)
 
+}
+////////////////////////////////////////////////////////////
+//
+// BG thread
+//
+////////////////////////////////////////////////////////////
+
+int VideoComponent::useTimeSlice()
+{
+	if(m_iconMenu.updatePreviews())
+	{
+		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,this));
+	}
+	return 100;//ms before next call
 }
 
 ////////////////////////////////////////////////////////////
@@ -680,7 +701,7 @@ void VideoComponent::paint (juce::Graphics& g)
 		}
 		else
 		{
-			m_iconMenu.paintMenu(g, appImage, (float)getWidth(), (float)getHeight());
+			m_iconMenu.paintMenu(g, (float)getWidth(), (float)getHeight());
 		}
 	}
 	else
@@ -1708,17 +1729,9 @@ struct ZipEntrySorter
 		}
 		return r1 - r2;
 	}
-};/*
-#define PREV__MSVC_RUNTIME_CHECKS __MSVC_RUNTIME_CHECKS
-#undef __MSVC_RUNTIME_CHECKS
-#define PREV_DLL _DLL
-#undef _DLL
-#define PREV_DEBUG _DEBUG
-#undef _DEBUG*/
-#include <boost/regex.hpp> /*
-#define _DLL PREV_DLL 
-#define _DEBUG PREV_DEBUG
-#define __MSVC_RUNTIME_CHECKS PREV__MSVC_RUNTIME_CHECKS*/
+};
+
+#include <boost/regex.hpp>
 
 void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String downloadUrl, juce::String site)
 {
@@ -1737,7 +1750,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
 			ex += "[^\"]*)";
 			boost::regex expression(ex, boost::regex::icase); 
 
-			memStream.writeByte(0);
+			memStream.writeByte(0);//simulate end of c string
 		   boost::cmatch matches; 
 		   if(boost::regex_search((char*)memStream.getData(), matches, expression)) 
 		   {

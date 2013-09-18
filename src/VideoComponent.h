@@ -24,7 +24,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #else
 	juce::ComponentListener,
 #endif
-	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack
+	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack, juce::TimeSliceClient
 {
 #ifdef BUFFER_DISPLAY
 	juce::ScopedPointer<juce::Image> img;
@@ -70,6 +70,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	std::set<juce::String> m_playlistExtensions;
 	std::set<juce::String> m_subtitlesExtensions;
 	std::vector< std::set<juce::String> > m_suportedExtensions;
+	juce::TimeSliceThread m_backgroundTasks;
 
 	IconMenu m_iconMenu;
 
@@ -77,6 +78,8 @@ public:
     VideoComponent();
     virtual ~VideoComponent();
 	
+	
+    int useTimeSlice();
 
 	void appendAndPlay(std::string const&path);
 	void play();

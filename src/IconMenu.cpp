@@ -3,6 +3,8 @@
 #include <math.h>
 #include "FileSorter.h"
 #include "Icons.h"
+#include <boost/format.hpp>
+#include <boost/regex.hpp>
 
 
 const int IconMenu::InvalidIndex = -1;
@@ -14,6 +16,7 @@ IconMenu::IconMenu()
 	,m_rightArrowHighlighted(false)
 	,m_sliderHighlighted(false)
 {
+    appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
     upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 }
@@ -204,14 +207,14 @@ int IconMenu::mediaCount()
 	
 	return m_currentFiles.size() + (m_mediaPostersAbsoluteRoot != m_mediaPostersRoot?1:0);
 }
-void IconMenu::paintMenu(juce::Graphics& g, juce::Image const & appImage, float w, float h)
+void IconMenu::paintMenu(juce::Graphics& g, float w, float h)
 {
 	juce::Rectangle<float> sliderRect = computeSliderRect(w, h);
 	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
 	int count=mediaCount();
 	for(int i=0;i<std::min(count,countPerPage);i++)
 	{
-		paintItem(g, appImage, i,  w, sliderRect.getY());
+		paintItem(g,  i,  w, sliderRect.getY());
 	}
 	
 
@@ -269,7 +272,7 @@ void IconMenu::paintMenu(juce::Graphics& g, juce::Image const & appImage, float 
 	g.strokePath(arrow, juce::PathStrokeType(thickness));
 }
 
-void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, float w, float h)
+void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 {
 	juce::File file=getMediaFileAt(index);
 	if(!file.exists())
@@ -283,13 +286,26 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	float x = rect.getX();
 	float y = rect.getY();
 
-	
+	juce::Image image;
+	if(!file.isDirectory())
+	{
+		const juce::ScopedLock myScopedLock (m_imagesMutex);
+		std::map<std::string, juce::Image>::const_iterator it = m_iconPerFile.find(file.getFileName().toUTF8().getAddress());
+		if(it != m_iconPerFile.end())
+		{
+			image = it->second.isNull()?appImage:it->second;
+		}
+		else
+		{
+			image = appImage;
+		}
+	}
 	
 	float spaceX = itemW/m_mediaPostersXCount;
 	float spaceY = itemH/m_mediaPostersYCount;
-	float scale = itemW/i.getWidth();
+	float scale = itemW/image.getWidth();
 	float realItemW = itemW;
-	float realItemH = itemH * scale / (itemH/i.getHeight());
+	float realItemH = itemH * scale / (itemH/image.getHeight());
 
 	float reflectionScale = 0.3f;
 	float reflectionH = realItemH*reflectionScale;
@@ -352,12 +368,12 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	
 		//picture
 		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(x, y);
-		g.drawImageTransformed(i, tr, false);
+		g.drawImageTransformed(image, tr, false);
 
 
 		//reflect
 		juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(x, y+realItemH+reflectionH);
-		g.drawImageTransformed(i, t, false);
+		g.drawImageTransformed(image, t, false);
 
 		//reflection
 		g.setGradientFill (juce::ColourGradient (juce::Colours::black,
@@ -384,4 +400,83 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 		(int)(realItemW), (int)(3.f*holeH), 
 		juce::Justification::centred, 3, 1.f);
 
+}
+
+
+void IconMenu::storeImageInCache(juce::String const& movieName, juce::Image const& i)
+{
+	const juce::ScopedLock myScopedLock (m_imagesMutex);
+	m_iconPerFile.insert(std::map<std::string, juce::Image>::value_type(movieName.toUTF8().getAddress(), i));
+}
+bool IconMenu::updatePreviews()
+{
+	juce::Array<juce::File> files;
+	{
+		const juce::ScopedLock myScopedLock (m_imagesMutex);
+		files = m_currentFiles;
+	}
+	juce::File file ;
+	juce::String movieName ;
+	for(juce::File* it = files.begin();it != files.end();++it)
+	{
+		if(it->isDirectory())
+		{
+			continue;
+		}
+		const juce::ScopedLock myScopedLock (m_imagesMutex);
+		std::map<std::string, juce::Image>::const_iterator itImage = m_iconPerFile.find(it->getFileName().toUTF8().getAddress());
+		if(itImage == m_iconPerFile.end())
+		{
+			file = *it;
+			movieName = it->getFileNameWithoutExtension();
+			break;
+		}
+	}
+	if(movieName.isEmpty())
+	{
+		//all cache already fully setup
+		return false;
+	}
+	movieName = movieName.replace("%", "%37");
+	movieName = movieName.replace(" ", "%20");
+	movieName = movieName.replace("_", "%20");
+	movieName = movieName.replace(".", "%20");
+	movieName = movieName.replace("é", "e");
+	movieName = movieName.replace("è", "e");
+	movieName = movieName.replace("ô", "o");
+	movieName = movieName.replace("à", "a");
+	std::string name = str( boost::format("http://www.omdbapi.com/?i=&t=%s")%std::string(movieName.toUTF8().getAddress()) );
+	juce::URL url(name.c_str());
+	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 1000, 0));
+	if(!pIStream.get())
+	{
+		storeImageInCache(file.getFileName());
+		return false;
+	}
+	juce::MemoryOutputStream memStream(1000);//1ko at least
+	if(memStream.writeFromInputStream(*pIStream, 100000)<=0)//100ko max
+	{
+		storeImageInCache(file.getFileName());
+		return false;
+	}
+
+	std::string ex("\"Poster\":\"([^\"]*)");
+	boost::regex expression(ex, boost::regex::icase); 
+	
+	memStream.writeByte(0);//simulate end of c string
+	boost::cmatch matches; 
+	if(!boost::regex_search((char*)memStream.getData(), matches, expression)) 
+	{
+		storeImageInCache(file.getFileName());
+		return false;
+	}
+	juce::URL urlPoster(matches[1].str().c_str());
+	juce::ScopedPointer<juce::InputStream> pIStreamImage(urlPoster.createInputStream(false, 0, 0, "", 1000, 0));//1 sec timeout
+	if(!pIStreamImage.get())
+	{
+		storeImageInCache(file.getFileName());
+		return false;
+	}
+	storeImageInCache(file.getFileName(), juce::ImageFileFormat::loadFrom (*pIStreamImage));
+	return true;
 }

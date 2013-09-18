@@ -5,11 +5,13 @@
 #include "juce.h"
 #include <string>
 #include <set>
+#include <map>
 
 //==============================================================================
 class IconMenu
 {
 protected:
+    juce::Image appImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
     juce::ScopedPointer<juce::Drawable> upImage;
 	std::set<juce::String> m_videoExtensions;
@@ -24,6 +26,8 @@ protected:
 	bool m_leftArrowHighlighted;
 	bool m_rightArrowHighlighted;
 	bool m_sliderHighlighted;
+	juce::CriticalSection m_imagesMutex;
+	std::map<std::string, juce::Image> m_iconPerFile;
 
 	
 	juce::Rectangle<float> computeSliderRect(float w, float h) const;
@@ -35,9 +39,10 @@ protected:
 	std::string getMediaAt(int index);
 	juce::File getMediaFileAt(int index);
 
-	void paintItem(juce::Graphics& g, juce::Image const & i, int index, float w, float h);
+	void paintItem(juce::Graphics& g,  int index, float w, float h);
 
 	int mediaCount();
+	void storeImageInCache(juce::String const& path, juce::Image const& i = juce::Image::null);
 	
 	static const int InvalidIndex;
 public:
@@ -57,7 +62,9 @@ public:
 	
 	bool highlight(float xPos, float yPos, float w, float h);
 
-	void paintMenu(juce::Graphics& g, juce::Image const & i,  float w, float h);
+	void paintMenu(juce::Graphics& g, float w, float h);
+
+	bool updatePreviews();
 
 };
 //==============================================================================
