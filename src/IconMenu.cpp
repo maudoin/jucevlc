@@ -300,6 +300,10 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 			image = appImage;
 		}
 	}
+	else
+	{
+		image = appImage;
+	}
 	
 	float spaceX = itemW/m_mediaPostersXCount;
 	float spaceY = itemH/m_mediaPostersYCount;
