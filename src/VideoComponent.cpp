@@ -19,6 +19,7 @@
 #define SETTINGS_CROP "SETTINGS_CROP"
 #define SETTINGS_FONT_SIZE "SETTINGS_FONT_SIZE"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
+#define SETTINGS_POSTER_BROWSER_ROOT_PATH "SETTINGS_POSTER_BROWSER_ROOT_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
 #define SHORTCUTS_FILE "shortcuts.list"
@@ -212,7 +213,7 @@ VideoComponent::VideoComponent()
 	
     addChildComponent(controlComponent);
     addChildComponent (menu->asComponent());
-	setMenuTreeVisibleAndUpdateMenuButtonIcon(true);
+	setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 
 	sliderUpdating = false;
 	videoUpdating = false;
@@ -274,8 +275,11 @@ VideoComponent::VideoComponent()
 	invokeLater = new vf::GuiCallQueue();
 
 	
-	m_iconMenu.setFilter(m_videoExtensions);
-	m_iconMenu.setMediaRootPath( m_settings.getValue(SETTINGS_LAST_OPEN_PATH).toUTF8().getAddress() );
+	std::set<juce::String> m_frontpageExtensions;
+	EXTENSIONS_VIDEO(m_frontpageExtensions.insert)
+	EXTENSIONS_PLAYLIST(m_frontpageExtensions.insert)
+	m_iconMenu.setFilter(m_frontpageExtensions);
+	m_iconMenu.setMediaRootPath( m_settings.getValue(SETTINGS_POSTER_BROWSER_ROOT_PATH).toUTF8().getAddress() );
 
 }
 
@@ -441,7 +445,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 					juce::File m(media.c_str());
 					if(m.isDirectory())
 					{
-						m_iconMenu.setMediaRootPath(media);
+						m_iconMenu.setCurrentMediaRootPath(media);
 						repaint = true;
 					}
 					else
@@ -1142,10 +1146,20 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 			menu->addMenuItem(TRANS("Remove from favorites"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRemoveFavorite, this, _1, 
 				file.getFullPathName()), getItemImage());
 		}
+
+
+		menu->addMenuItem(TRANS("Set as frontpage"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetFrontPage, this, _1, 
+				file.getFullPathName()), getItemImage());
 		
 	}
 }
 
+void VideoComponent::onMenuSetFrontPage (AbstractMenuItem& item, juce::String path)
+{
+	m_settings.setValue(SETTINGS_POSTER_BROWSER_ROOT_PATH, path);
+	m_iconMenu.setMediaRootPath(path.toUTF8().getAddress());
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
+}
 void VideoComponent::onMenuOpenFile (AbstractMenuItem& item, juce::File file)
 {
 	if(!file.isDirectory())

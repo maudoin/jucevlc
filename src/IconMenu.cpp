@@ -81,13 +81,25 @@ std::string IconMenu::getMediaAt(float xPos, float yPos, float w, float h)
 void IconMenu::setMediaRootPath(std::string const& path)
 {
     const juce::ScopedLock myScopedLock (m_mutex);
+	m_mediaPostersAbsoluteRoot = path;
+	setCurrentMediaRootPath(path);
+}
+void IconMenu::setCurrentMediaRootPath(std::string const& path)
+{
+    const juce::ScopedLock myScopedLock (m_mutex);
 	m_mediaPostersRoot=path;
-		
 
 	juce::File file(m_mediaPostersRoot.c_str());
 	
 	juce::Array<juce::File> files;
-	file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
+	if(m_mediaPostersRoot.empty() ||!file.exists())
+	{
+		juce::File::findFileSystemRoots(files);
+	}
+	else
+	{
+		file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
+	}
 	
 	m_currentFiles.clear();
 	for(juce::File* it = files.begin();it != files.end();++it)
@@ -103,9 +115,18 @@ void IconMenu::setMediaRootPath(std::string const& path)
 void IconMenu::setMediaStartIndex(int index)
 {
     const juce::ScopedLock myScopedLock (m_mutex);
+	
+	int count=mediaCount();
 	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
-	int max = m_currentFiles.size()-countPerPage;
-	m_mediaPostersStartIndex = index<0?0:index>max?max:index;
+
+	if(count <= countPerPage)
+	{
+		m_mediaPostersStartIndex = 0;
+		return;
+	}
+
+	int max = count-countPerPage;
+	m_mediaPostersStartIndex = index<0?0:(index>max?max:index);
 	
 }
 std::string IconMenu::getMediaAt(int index)
@@ -121,13 +142,14 @@ juce::File IconMenu::getMediaFileAt(int indexOnScreen)
 	}
 
     const juce::ScopedLock myScopedLock (m_mutex);
-	if(indexOnScreen==0)
+	bool hasUpItem = m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
+	if( hasUpItem && indexOnScreen==0)
 	{
 		juce::File f(m_mediaPostersRoot.c_str());
 		return f.getParentDirectory();
 	}
 	
-	int indexInfolder = indexOnScreen + m_mediaPostersStartIndex;
+	int indexInfolder = indexOnScreen + m_mediaPostersStartIndex - (hasUpItem?1:0);
 	if(indexInfolder>=0 && indexInfolder<m_currentFiles.size())
 	{
 		return m_currentFiles[indexInfolder];
@@ -170,21 +192,27 @@ juce::Rectangle<float> IconMenu::computeRightArrowRect(juce::Rectangle<float> co
 int IconMenu::mediaCount()
 {
 	const juce::ScopedLock myScopedLock (m_mutex);
-	return m_currentFiles.size();
+	
+	return m_currentFiles.size() + (m_mediaPostersAbsoluteRoot != m_mediaPostersRoot?1:0);
 }
 void IconMenu::paintMenu(juce::Graphics& g, juce::Image const & appImage, float w, float h)
 {
 	juce::Rectangle<float> sliderRect = computeSliderRect(w, h);
-	for(int i=0;i<m_mediaPostersXCount*m_mediaPostersYCount;i++)
+	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+	int count=mediaCount();
+	for(int i=0;i<std::min(count,countPerPage);i++)
 	{
 		paintItem(g, appImage, i,  w, sliderRect.getY());
 	}
+	
 
-	int count=mediaCount();
-	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+	if(count <= countPerPage)
+	{
+		return;
+	}
 	int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
 	float sliderStart = firstMediaIndex/(float)m_currentFiles.size();
-	float sliderEnd = (firstMediaIndex+countPerPage)/(float)m_currentFiles.size();
+	float sliderEnd = (firstMediaIndex+countPerPage)/(float)count;
 	float sliderSize = sliderEnd-sliderStart;
 
 	
@@ -277,8 +305,8 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	g.setOpacity (1.f);
 
 	
-
-	if(index == 0)
+	bool isUpIcon = index == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
+	if(isUpIcon)
 	{
 		upImage.get()->drawWithin (g, rect,
 							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
@@ -342,7 +370,7 @@ void IconMenu::paintItem(juce::Graphics& g, juce::Image const & i, int index, fl
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 	g.setColour (juce::Colours::grey);
-	g.drawFittedText(file.exists()?(index == 0)?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
+	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
 		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
 		(int)(realItemW), (int)(3.f*holeH), 
 		juce::Justification::centred, 3, 0.85f);

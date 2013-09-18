@@ -14,6 +14,7 @@ protected:
     juce::ScopedPointer<juce::Drawable> upImage;
 	std::set<juce::String> m_videoExtensions;
 	std::string m_mediaPostersRoot;
+	std::string m_mediaPostersAbsoluteRoot;
 	int m_mediaPostersStartIndex;
 	int m_mediaPostersHightlight;
 	int m_mediaPostersXCount;
@@ -46,6 +47,7 @@ public:
 	void setFilter(std::set<juce::String> const & s){m_videoExtensions = s;};
 
 	void setMediaRootPath(std::string const& path);
+	void setCurrentMediaRootPath(std::string const& path);
 	void setMediaStartIndex(int index);
 	bool clickOrDrag(float xPos, float yPos, float w, float h);
 	std::string getMediaAt(float xPos, float yPos, float w, float h);

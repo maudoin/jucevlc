@@ -123,6 +123,7 @@ public:
 	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
 	void onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod);
 	
+	void onMenuSetFrontPage (AbstractMenuItem& item, juce::String path);
 	void onMenuAddFavorite (AbstractMenuItem& item, juce::String path);
 	void onMenuRemoveFavorite (AbstractMenuItem& item, juce::String path);
 	void mayPurgeFavorites();

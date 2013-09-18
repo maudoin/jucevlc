@@ -89,6 +89,7 @@ countries: fr be mc ch lu\n\
 \"Equalizer\" = \"Equaliseur\"\n\
 \"Quick menu\" = \"Raccourcis\"\n\
 \"Reset\" = \"Réinitialiser\"\n\
+\"Set as frontpage\" = \"Comme page d'accueil\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)
