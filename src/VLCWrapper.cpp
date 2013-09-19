@@ -20,6 +20,25 @@
 #include "vlc/plugins/vlc_threads.h"
 #include "vlc/plugins/vlc_aout_intf.h"
 
+class VLCInstancePtr
+{
+	libvlc_instance_t*ptr;
+public:
+	VLCInstancePtr():ptr(0){}
+	void mayInit( int argc , const char *const *argv )
+	{
+		if(ptr==0)
+		{
+			ptr = libvlc_new (0, NULL);
+		}
+	}
+	~VLCInstancePtr(){libvlc_release(ptr);}
+	libvlc_instance_t* get(){return ptr;}
+	const libvlc_instance_t* get()const{return ptr;}
+};
+
+VLCInstancePtr pVLCInstance_;        ///< The VLC instance.
+
 //----------------------------------- HELPERS
 class MediaListScopedLock
 {
@@ -130,9 +149,25 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
 	}
     return VLC_SUCCESS;
 }
+
+VLCUPNPMediaList::VLCUPNPMediaList()
+{
+	pVLCInstance_.mayInit(0, NULL);
+	//media_discoverer
+    pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_.get(),"upnp");
+
+	pUPNPMediaList_ = libvlc_media_discoverer_media_list(pMediaDiscoverer_);
+
+}
+VLCUPNPMediaList::~VLCUPNPMediaList()
+{
+	libvlc_media_list_release(pUPNPMediaList_) ;
+	libvlc_media_discoverer_release( pMediaDiscoverer_);
+
+}
+
 VLCWrapper::VLCWrapper(void)
-:	pVLCInstance_(0),
-	pMediaPlayer_(0),
+:	pMediaPlayer_(0),
     pEventManager_(0),
 	m_videoAdjustEnabled(0)
 {
@@ -146,21 +181,17 @@ VLCWrapper::VLCWrapper(void)
 
 	// init vlc modules, should be done only once
 	//pVLCInstance_ = libvlc_new (sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
-	pVLCInstance_ = libvlc_new (0, NULL);
+	pVLCInstance_.mayInit(0, NULL);
      
     // Create a media player playing environement
-    pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_);
+	pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_.get());
 	
-	//media_discoverer
-    pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_,"upnp");
-
-	pUPNPMediaList_ = libvlc_media_discoverer_media_list(pMediaDiscoverer_);
 
 	//list player
-    mlp = libvlc_media_list_player_new(pVLCInstance_);
+    mlp = libvlc_media_list_player_new(pVLCInstance_.get());
  
 	//media list
-    ml = libvlc_media_list_new(pVLCInstance_);
+    ml = libvlc_media_list_new(pVLCInstance_.get());
 
     /* Use our media list */
     libvlc_media_list_player_set_media_list(mlp, ml);
@@ -185,12 +216,9 @@ VLCWrapper::~VLCWrapper(void)
 	SetEventCallBack(0);
 	SetDisplayCallback(0);
     // Free the media_player
-	libvlc_media_list_release(pUPNPMediaList_) ;
-	libvlc_media_discoverer_release( pMediaDiscoverer_);
     libvlc_media_player_release (pMediaPlayer_);
     libvlc_media_list_player_release (mlp);
     libvlc_media_list_release (ml);
-	libvlc_release (pVLCInstance_);
 }
 
 void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
@@ -382,7 +410,7 @@ void VLCWrapper::SetInputCallBack(InputCallBack* cb)
     //var_Create( p_playlist, "fullscreen", VLC_VAR_BOOL | VLC_VAR_DOINHERIT );
     //var_Create( p_playlist, "video-on-top", VLC_VAR_BOOL | VLC_VAR_DOINHERIT );
 
-	vlc_object_t *obj = VLC_OBJECT(pVLCInstance_->p_libvlc_int);
+	vlc_object_t *obj = VLC_OBJECT(pVLCInstance_.get()->p_libvlc_int);
 //	var_DelCallback( obj, "intf-popupmenu", cb?popupCallback:0, cb );
 //	var_DelCallback( obj, "intf-toggle-fscontrol", cb?fullscreenControlCallback:0, cb );
 	var_AddCallback( obj, "intf-popupmenu", cb?popupCallback:0, cb );
@@ -843,9 +871,20 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 	}
 	return out;
 }
+void VLCWrapper::removePlaylistItem(int index)
+{
+	libvlc_media_list_remove_index(ml, index);
+}
+void VLCWrapper::clearPlayList()
+{
+	while(	libvlc_media_list_count(ml)> 0)
+	{
+		removePlaylistItem(0);
+	}
+}
 int VLCWrapper::addPlayListItem(std::string const& path)
 {
-	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_, path.c_str());
+	libvlc_media_t* pMedia = libvlc_media_new_path(pVLCInstance_.get(), path.c_str());
 	libvlc_media_list_add_media(ml, pMedia);
 	return libvlc_media_list_count(ml) -1;
 }
@@ -877,33 +916,33 @@ void VLCWrapper::playPlayListItem(int index)
 
 int VLCWrapper::getConfigOptionInt(const char* name) const
 {
-	return config_GetInt(pVLCInstance_, name);
+	return config_GetInt(pVLCInstance_.get(), name);
 }
 void VLCWrapper::setConfigOptionInt(const char* name, int value)
 {
-	config_PutInt(pVLCInstance_, name, value);
+	config_PutInt(pVLCInstance_.get(), name, value);
 }
 
 bool VLCWrapper::getConfigOptionBool(const char* name)const
 {
-	return (bool)config_GetInt(pVLCInstance_, name)!=0;
+	return (bool)(config_GetInt(pVLCInstance_.get(), name)!=0);
 }
 
 void VLCWrapper::setConfigOptionBool(const char* name, bool value)
 {
-	config_PutInt(pVLCInstance_, name, value);
+	config_PutInt(pVLCInstance_.get(), name, value);
 }
 
 std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigOptionInfoInt(const char* name)const
 {
-    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_, name );
+    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
     if( p_module_config->pf_update_list )
     {
        vlc_value_t val;
        val.i_int = p_module_config->value.i;
 
-       p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_, p_module_config->psz_name, val, val, NULL);
+       p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_.get(), p_module_config->psz_name, val, val, NULL);
 
        // assume in any case that dirty was set to true
        // because lazy programmes will use the same callback for
@@ -936,23 +975,23 @@ std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigO
 
 std::string VLCWrapper::getConfigOptionString(const char* name)const
 {
-	return config_GetPsz(pVLCInstance_, name);
+	return config_GetPsz(pVLCInstance_.get(), name);
 }
 
 void VLCWrapper::setConfigOptionString(const char* name, std::string const& value)
 {
-	config_PutPsz(pVLCInstance_, name, value.c_str());
+	config_PutPsz(pVLCInstance_.get(), name, value.c_str());
 }
 std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWrapper::getConfigOptionInfoString(const char* name)const
 {
-    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_, name );
+    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
     if( p_module_config->pf_update_list )
     {
         vlc_value_t val;
         val.psz_string = strdup(p_module_config->value.psz);
 
-        p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_, p_module_config->psz_name, val, val, NULL);
+        p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_.get(), p_module_config->psz_name, val, val, NULL);
 
         // assume in any case that dirty was set to true
         // because lazy programmes will use the same callback for
@@ -1043,8 +1082,7 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 	}
 }
 
-
-std::vector<std::pair<std::string, std::string> > VLCWrapper::getUPNPList(std::vector<std::string> const& path)
+std::vector<std::pair<std::string, std::string> > VLCUPNPMediaList::getUPNPList(std::vector<std::string> const& path)
 {
 	std::vector<std::pair<std::string, std::string> > list;
 	//readMediaList(pUPNPMediaList_, list);

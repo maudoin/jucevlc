@@ -1037,7 +1037,7 @@ juce::String getPathExtensionWithoutDot(juce::String const& path)
 
 void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path)
 {	
-	std::vector<std::pair<std::string, std::string> > list = vlc->getUPNPList(path);
+	std::vector<std::pair<std::string, std::string> > list = vlcMediaUPNPList.getUPNPList(path);
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{
 		if(std::string::npos == std::string(it->second).find("vlc://nop"))
@@ -2357,8 +2357,7 @@ void VideoComponent::vlcPaused()
 	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
 void VideoComponent::vlcStarted()
-{
-		
+{		
 	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::startedSynchronous,this));
 }

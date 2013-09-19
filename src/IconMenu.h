@@ -3,14 +3,22 @@
 
 
 #include "juce.h"
+#include "VLCWrapper.h"
 #include <string>
 #include <set>
 #include <map>
 
 //==============================================================================
-class IconMenu
+class IconMenu : public DisplayCallback, public EventCallBack
 {
 protected:
+    juce::CriticalSection imgCriticalSection;
+	juce::ScopedPointer<juce::Image> img;
+	juce::ScopedPointer<juce::Image::BitmapData> ptr;
+	juce::ScopedPointer<VLCWrapper> vlc;
+	juce::File currentThumbnail;
+	bool tumbTimeOK;
+
     juce::Image appImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
     juce::ScopedPointer<juce::Drawable> upImage;
@@ -42,7 +50,7 @@ protected:
 	void paintItem(juce::Graphics& g,  int index, float w, float h);
 
 	int mediaCount();
-	void storeImageInCache(juce::String const& path, juce::Image const& i = juce::Image::null);
+	bool storeImageInCache(juce::File const& path, juce::Image const& i = juce::Image::null);
 	
 	static const int InvalidIndex;
 public:
@@ -65,6 +73,16 @@ public:
 	void paintMenu(juce::Graphics& g, float w, float h);
 
 	bool updatePreviews();
+
+	
+	void *vlcLock(void **p_pixels);
+	void vlcUnlock(void *id, void *const *p_pixels);
+	void vlcDisplay(void *id);
+
+	void vlcTimeChanged();
+	void vlcPaused() {};
+	void vlcStarted() {};
+	void vlcStopped() {};
 
 };
 //==============================================================================

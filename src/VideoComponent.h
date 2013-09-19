@@ -37,6 +37,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
 	juce::ScopedPointer<VLCWrapper> vlc;
+	VLCUPNPMediaList vlcMediaUPNPList;
 	bool sliderUpdating;
 	bool videoUpdating;
     juce::ScopedPointer<juce::Drawable> itemImage;

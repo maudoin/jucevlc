@@ -90,12 +90,20 @@ public:
 	virtual void vlcStarted() = 0;
 	virtual void vlcStopped() = 0;
 };
-class VLCWrapper
+class VLCUPNPMediaList
 {
-    libvlc_instance_t*       pVLCInstance_;        ///< The VLC instance.
-	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
+	
 	libvlc_media_discoverer_t*   pMediaDiscoverer_;        ///< The VLC media Discoverer object.
 	libvlc_media_list_t* pUPNPMediaList_;
+public:
+	VLCUPNPMediaList(void);
+	~VLCUPNPMediaList(void);
+
+	std::vector<std::pair<std::string, std::string> > getUPNPList(std::vector<std::string> const& path);
+};
+class VLCWrapper
+{
+	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
     libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
     libvlc_media_list_t *ml;
     libvlc_media_list_player_t *mlp;
@@ -209,10 +217,10 @@ public:
 	void playPlayListItem(int index);
 	std::string getCurrentPlayListItem();
 	int getCurrentPlayListItemIndex();
+	void removePlaylistItem(int index);
+	void clearPlayList();
 
 	std::string getInfo() const;
-
-	std::vector<std::pair<std::string, std::string> > getUPNPList(std::vector<std::string> const& path);
 	
 	bool getConfigOptionBool(const char* name) const;
 	void setConfigOptionBool(const char* name, bool value);
