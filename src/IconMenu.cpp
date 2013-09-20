@@ -326,12 +326,27 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	
 	float spaceX = itemW/m_mediaPostersXCount;
 	float spaceY = itemH/m_mediaPostersYCount;
-	float scale = itemW/image.getWidth();
-	float realItemW = itemW;
-	float realItemH = itemH * scale / (itemH/image.getHeight());
-
 	float reflectionScale = 0.3f;
-	float reflectionH = realItemH*reflectionScale;
+	float imgHeightRatio = image.getHeight()*(1.f+reflectionScale)/image.getWidth();
+	float itemHeightRatio = itemH/itemW;
+	float scale;
+	float imageX;
+	if(imgHeightRatio > itemHeightRatio)
+	{
+		//scale on h
+		scale = itemH/(image.getHeight()*(1.f+reflectionScale));
+		imageX = x + (itemW-image.getWidth()*scale)/2;
+	}
+	else
+	{
+		//scale on w
+		scale = itemW/image.getWidth();
+		imageX = x;
+	}
+	float imageItemW = image.getWidth()*scale;
+	float imageItemH = image.getHeight()*scale;
+
+	float reflectionH = imageItemH*reflectionScale;
 
 
 	
@@ -341,13 +356,17 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	
 		
 	int holeCount = 15;
-	float holeH = 0.5f*(realItemH+reflectionH)/(float)holeCount;
+	float holeH = 0.5f*(itemH)/(float)holeCount;
 	float holeW = std::min(spaceX/2.f, holeH);
+	
+	float xLeft = x-1.5f*holeW;
+	float xRight = x+itemW+1.5f*holeW;
+	juce::Rectangle<float> rectWithBorders(xLeft, y-2*holeH, xRight-xLeft, itemH+6*holeH);
 	
 	if(index == m_mediaPostersHightlight)
 	{
 		g.setColour(juce::Colours::purple);
-		g.fillRect(rect);
+		g.fillRect(rectWithBorders);
 	}
 
 	if(file==currentThumbnail)
@@ -378,54 +397,45 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 		for(int ih = 0;ih<holeCount;ih++)
 		{
 			g.fillRoundedRectangle(x-holeW-holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
-			g.fillRoundedRectangle(x+realItemW+holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
+			g.fillRoundedRectangle(x+itemW+holeW/4.f, holesOriginY+ih*holeH*2.f, holeW, holeH, holeW/6.f);
 		}
 	
-		float xLeft = x-1.5f*holeW;
-		float xRight = x+realItemW+1.5f*holeW;
-		g.drawLine(xLeft, y-2*holeH, xLeft, y + realItemH+reflectionH+4*holeH, lineThickness);
-		g.drawLine(xRight, y-2*holeH, xRight, y + realItemH+reflectionH+4*holeH, lineThickness);
-
-		//top
-		/*
-		float prevLineBottom = y-holeH;
-		g.drawLine(x, y-2*holeH, x, prevLineBottom, lineThickness);
-		g.drawLine(x+realItemW, y-2*holeH, x+realItemW, prevLineBottom, lineThickness);
-		g.drawLine(x, prevLineBottom, x+realItemW, prevLineBottom, lineThickness);
-		*/
-	
+		g.drawLine(rectWithBorders.getTopLeft().x, rectWithBorders.getTopLeft().y, rectWithBorders.getBottomLeft().x, rectWithBorders.getBottomLeft().y, lineThickness);
+		g.drawLine(rectWithBorders.getTopRight().x, rectWithBorders.getTopRight().y, rectWithBorders.getBottomRight().x, rectWithBorders.getBottomRight().y, lineThickness);
+			
 		//picture
-		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(x, y);
+		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, y);
 		g.drawImageTransformed(image, tr, false);
 
 
 		//reflect
-		juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(x, y+realItemH+reflectionH);
+		juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(imageX, y+imageItemH+reflectionH);
 		g.drawImageTransformed(image, t, false);
 
 		//reflection
 		g.setGradientFill (juce::ColourGradient (juce::Colours::black,
-											x+realItemW/2.f, y+realItemH,
+											x+itemW/2.f, y+imageItemH,
 											juce::Colours::purple.withAlpha(0.5f),
-											x+realItemW/2.f, y+realItemH+reflectionH,
+											x+itemW/2.f, y+imageItemH+reflectionH,
 											false));
-		g.fillRect(x, y+realItemH, realItemW, reflectionH);
+		g.fillRect(x, y+imageItemH, itemW, reflectionH);
 	
 		//border
 		g.setColour(juce::Colour(255, 255, 255));
-		g.drawRect(x, y, realItemW, realItemH+reflectionH, lineThickness);
+		g.drawRect(x, y, itemW, imageItemH+reflectionH, lineThickness);
 	}
 
 
 	//title
 	float fontHeight = 2.f*holeH;
+	float titleHeight = 3.f*holeH;
 	juce::Font f = g.getCurrentFont().withHeight(fontHeight);
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 	g.setColour (juce::Colours::grey);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
-		(int)(x),  (int)(y+realItemH+reflectionH+holeH), 
-		(int)(realItemW), (int)(3.f*holeH), 
+		(int)(x),  (int)(y+itemH), 
+		(int)(itemW), (int)(titleHeight), 
 		juce::Justification::centred, 3, 1.f);
 
 }
