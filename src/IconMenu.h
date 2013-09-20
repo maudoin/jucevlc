@@ -16,6 +16,8 @@ protected:
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 	juce::ScopedPointer<VLCWrapper> vlc;
+	
+    juce::CriticalSection imgStatusCriticalSection;
 	juce::File currentThumbnail;
 	int currentThumbnailIndex;
 	bool tumbTimeOK;

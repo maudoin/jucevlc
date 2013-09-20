@@ -13,7 +13,7 @@ const int IconMenu::InvalidIndex = -1;
 
 IconMenu::IconMenu()
 	:m_mediaPostersXCount(5)
-	,m_mediaPostersYCount(3)
+	,m_mediaPostersYCount(2)
 	,m_leftArrowHighlighted(false)
 	,m_rightArrowHighlighted(false)
 	,m_sliderHighlighted(false)
@@ -403,7 +403,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	
 		const float holeRoundness = holeW/6.f;
 		const float holeBorderW = (sideStripWidth-holeW)/2.f;
-		const int holeCount =  std::floor(rectWithBorders.getHeight()/(2*holeH));
+		const int holeCount =  std::floor(rectWithBorders.getHeight()/(2.f*holeH));
 		const int holeBorderCount =  holeCount;
 		const float holeBorderH = (rectWithBorders.getHeight() - holeCount*holeH)/holeBorderCount;
 		for(float ih = rectWithBorders.getY();ih<=(rectWithBorders.getBottom()-holeBorderH);ih+=(holeH+holeBorderH))
@@ -439,13 +439,13 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 
 
 	//title
-	float titleHeight = rectWithBorders.getBottom()-(rect.getY()+imageItemH+reflectionH);
+	float titleHeight = rectWithBorders.getBottom()-rect.getBottom();
 	juce::Font f = g.getCurrentFont().withHeight(titleHeight/2);//usually on 2 lines
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 	g.setColour (juce::Colours::grey);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
-		(int)(x),  (int)(y+imageItemH+reflectionH), 
+		(int)(x),  (int)rect.getBottom(), 
 		(int)(itemW), (int)(titleHeight), 
 		juce::Justification::centredBottom, 3, 1.f);
 
@@ -459,13 +459,15 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 {
 	if(i.isNull())
 	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-		currentThumbnail = f;
+		{
+			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+			currentThumbnail = f;
+			tumbTimeOK = false;
+			currentThumbnailIndex = 0;
+		}
 		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
 		vlc->SetTime(0);
 		vlc->play();
-		tumbTimeOK = false;
-		currentThumbnailIndex = 0;
 		return true;
 	}
 	const juce::ScopedLock myScopedLock (m_imagesMutex);
@@ -475,7 +477,7 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 }
 void IconMenu::vlcTimeChanged()
 {
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
+	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 	tumbTimeOK = (vlc->GetTime() > vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR);//90%margin
 }
 bool IconMenu::updatePreviews()
@@ -484,12 +486,11 @@ bool IconMenu::updatePreviews()
 	{
 		bool done;
 		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
+			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 			done = currentThumbnail == juce::File::nonexistent;
 		}
 		if(done)
 		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 			//stop outside vlc callbacks
 			vlc->clearPlayList();
 			vlc->Stop();
@@ -497,7 +498,7 @@ bool IconMenu::updatePreviews()
 		}
 		else
 		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
+			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 			if(vlc->GetTime() < vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR)//90%margin
 			{
 				vlc->SetTime((int64_t)(vlc->GetLength()*THUMB_TIME_POS*currentThumbnailIndex));
@@ -592,15 +593,22 @@ void *IconMenu::vlcLock(void **p_pixels)
 void IconMenu::vlcUnlock(void *id, void *const *p_pixels)
 {
 	
-	if( currentThumbnailIndex>=thumbnailCount)
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-		storeImageInCache(currentThumbnail, img->createCopy());
-		currentThumbnail = juce::File::nonexistent;
-	}
-
+	juce::Image copy = img->createCopy();
 	imgCriticalSection.exit();
 			
+	juce::File processedThumbnail;
+	int processedThumbnailIndex;
+	{
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+		processedThumbnail = currentThumbnail;
+		processedThumbnailIndex = currentThumbnailIndex;
+	}
+	if( processedThumbnailIndex>=thumbnailCount)
+	{
+		storeImageInCache(processedThumbnail, copy);
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+		currentThumbnail = juce::File::nonexistent;
+	}
 	jassert(id == NULL); /* picture identifier, not needed here */
 }
 
