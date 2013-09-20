@@ -17,6 +17,7 @@ protected:
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 	juce::ScopedPointer<VLCWrapper> vlc;
 	juce::File currentThumbnail;
+	int currentThumbnailIndex;
 	bool tumbTimeOK;
 
     juce::Image appImage;

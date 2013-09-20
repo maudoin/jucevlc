@@ -290,7 +290,7 @@ VideoComponent::VideoComponent()
 VideoComponent::~VideoComponent()
 {   
 	m_backgroundTasks.removeTimeSliceClient(this);
-	m_backgroundTasks.stopThread(300);
+	m_backgroundTasks.stopThread(0);
 
 	//prevent processing
 	sliderUpdating = true;
@@ -342,7 +342,7 @@ VideoComponent::~VideoComponent()
 
 int VideoComponent::useTimeSlice()
 {
-	if(m_iconMenu.updatePreviews())
+	if(isFrontpageVisible() && m_iconMenu.updatePreviews())
 	{
 		if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,this));
 	}
@@ -407,7 +407,10 @@ void VideoComponent::switchFullScreen()
 {
 	setFullScreen(juce::Desktop::getInstance().getKioskModeComponent() == nullptr);
 }
-
+bool VideoComponent::isFrontpageVisible()
+{
+	return (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible();
+}
 
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
 {
@@ -422,7 +425,7 @@ void VideoComponent::mouseMove (const juce::MouseEvent& e)
 		controlComponent->slider().setMouseOverTime(e.x, (juce::int64)(mouseMoveValue*vlc->GetLength()));
 		//if(invokeLater)invokeLater->queuef(boost::bind  (&Component::repaint,boost::ref(controlComponent->slider())));
 	}
-	if(e.eventComponent == this && (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+	if(e.eventComponent == this && isFrontpageVisible())
 	{
 		if(m_iconMenu.highlight((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight()))
 		{
@@ -456,7 +459,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 		}
 		if(e.mods.isLeftButtonDown())
 		{
-			if( (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+			if( isFrontpageVisible())
 			{
 				bool repaint = m_iconMenu.clickOrDrag((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
 
@@ -497,7 +500,7 @@ void VideoComponent::mouseWheelMove (const juce::MouseEvent& e,
 		
 	if(e.eventComponent == this)
 	{
-		if( (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+		if( isFrontpageVisible())
 		{
 			float delta = wheel.isReversed ? - wheel.deltaY : wheel.deltaY;
 			if(delta>0.f)
@@ -521,7 +524,7 @@ void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();	
 
 	
-	if(e.eventComponent == this && (!vlcNativePopupComponent->isVisible() || vlc->isStopped()) && ! menu->asComponent()->isVisible())
+	if(e.eventComponent == this && isFrontpageVisible())
 	{
 		if(m_iconMenu.clickOrDrag((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight()))
 		{
