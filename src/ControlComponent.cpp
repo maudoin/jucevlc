@@ -310,7 +310,8 @@ void ControlComponent::resized()
 	int auxilliaryX = playPauseButtonSize+6*buttonSize;
 	int auxilliaryW = w - 2*auxilliaryX;
 	m_auxilliarySliderModeButton->setBounds (auxilliaryX-buttonSize, h-buttonSize, buttonSize, buttonSize);
-	m_auxilliaryControlComponent->setBounds (auxilliaryX, h-buttonSize+(buttonSize-sliderHeight)/2, auxilliaryW, sliderHeight);
+	int auxilliaryH = sliderHeight*4/5;
+	m_auxilliaryControlComponent->setBounds (auxilliaryX, h-buttonSize+(buttonSize-auxilliaryH)/2, auxilliaryW, auxilliaryH);
 
 	m_resetButton->setBounds (auxilliaryX+m_auxilliaryControlComponent->getWidth(), h-buttonSize, buttonSize, buttonSize);
 }
@@ -323,7 +324,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	float buttonSize = 0.5f*h;
 	float hMargin =buttonSize/22.f;
 	float sliderHeight = 0.3f*h;
-	float roundness = hMargin/2.f;
+	float roundness = buttonSize/4;
 	
 	///////////////// CONTROL ZONE:	
 	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
