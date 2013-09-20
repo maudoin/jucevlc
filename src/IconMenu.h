@@ -20,7 +20,7 @@ protected:
     juce::CriticalSection imgStatusCriticalSection;
 	juce::File currentThumbnail;
 	int currentThumbnailIndex;
-	bool tumbTimeOK;
+	bool thumbTimeOK;
 
     juce::Image appImage;
     juce::ScopedPointer<juce::Drawable> folderImage;

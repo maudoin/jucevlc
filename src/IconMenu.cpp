@@ -36,6 +36,11 @@ IconMenu::IconMenu()
 
 IconMenu::~IconMenu()
 {
+	//let vlc threads finish
+	thumbTimeOK = true;
+	currentThumbnailIndex=thumbnailCount;
+	currentThumbnail = juce::File::nonexistent;
+
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	vlc->Stop();
 	vlc->clearPlayList();
@@ -338,29 +343,6 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	juce::Rectangle<float> firstRect = getButtonAt(0, w, h);
 	float spaceX = firstRect.getX();
 	float spaceY = firstRect.getY();
-	float reflectionScale = 0.3f;
-	float imgHeightRatio = image.getHeight()*(1.f+reflectionScale)/image.getWidth();
-	float itemHeightRatio = itemH/itemW;
-	float scale;
-	float imageX;
-	if(imgHeightRatio > itemHeightRatio)
-	{
-		//scale on h
-		scale = itemH/(image.getHeight()*(1.f+reflectionScale));
-		imageX = x + (itemW-image.getWidth()*scale)/2;
-	}
-	else
-	{
-		//scale on w
-		scale = itemW/image.getWidth();
-		imageX = x;
-	}
-	float imageItemW = image.getWidth()*scale;
-	float imageItemH = image.getHeight()*scale;
-
-	float reflectionH = imageItemH*reflectionScale;
-
-
 	
 	float lineThickness = 1.5f;
         
@@ -371,6 +353,8 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	float holeH = holeW;	
 	juce::Rectangle<float> rectWithBorders(x-sideStripWidth, y-holeH, itemW+2.f*sideStripWidth, itemH+spaceY+2.f*holeH);
 	
+	float titleHeight = rectWithBorders.getBottom()-rect.getBottom();
+
 	if(index == m_mediaPostersHightlight)
 	{
 		g.setColour(juce::Colours::purple);
@@ -398,6 +382,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	}
 	else
 	{
+
 		//border
 		g.setColour(juce::Colour(255, 255, 255));
 	
@@ -416,38 +401,62 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 		g.drawLine(rectWithBorders.getRight(), rectWithBorders.getY(), rectWithBorders.getRight(), rectWithBorders.getBottom(), lineThickness);
 			
 		//picture
-		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, y);
+		//float reflectionScale = 0.3f;
+		float imgHeightRatio = (float)image.getHeight()/**(1.f+reflectionScale)*//(float)image.getWidth();
+		float itemHeightRatio = itemH/itemW;
+		float scale;
+		float imageX;
+		float imageY;
+		if(imgHeightRatio > itemHeightRatio)
+		{
+			//scale on h
+			scale = itemH/(image.getHeight()/**(1.f+reflectionScale)*/);
+			imageX = x + (itemW-image.getWidth()*scale)/2;
+			imageY = rect.getY();
+		}
+		else
+		{
+			//scale on w
+			scale = itemW/image.getWidth();
+			imageX = x;
+			imageY = rect.getBottom() - image.getHeight()*scale/**(1.f+reflectionScale)*/;
+		}
+		float imageItemW = image.getWidth()*scale;
+		float imageItemH = image.getHeight()*scale;
+
+		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
 		g.drawImageTransformed(image, tr, false);
 
 
 		//reflect
-		juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -scale*reflectionScale).translated(imageX, y+imageItemH+reflectionH);
+		float reflectionH = titleHeight;//imageItemH*reflectionScale;
+		juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -/*scale*reflectionScale*/titleHeight/image.getHeight()).translated(imageX, rectWithBorders.getBottom());
 		g.drawImageTransformed(image, t, false);
 
-		//reflection
-		g.setGradientFill (juce::ColourGradient (juce::Colours::purple.withAlpha(0.5f),
-											x+itemW/2.f, y+imageItemH,
-											juce::Colours::black.withAlpha(0.5f),
-											x+itemW/2.f, y+imageItemH+reflectionH,
+		//reflection floor
+		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.66f),
+											x+itemW/2.f, rect.getBottom(),
+											juce::Colours::purple.withAlpha(1.0f),
+											x+itemW/2.f, rectWithBorders.getBottom(),
 											false));
-		g.fillRect(x, y+imageItemH, itemW, reflectionH);
+		g.fillRect(x, rect.getBottom(), itemW, reflectionH);
 	
 		//border
 		g.setColour(juce::Colour(255, 255, 255));
-		g.drawRect(x, y, itemW, imageItemH+reflectionH, lineThickness);
+		g.drawRect(rect, lineThickness);
 	}
 
 
 	//title
-	float titleHeight = rectWithBorders.getBottom()-rect.getBottom();
-	juce::Font f = g.getCurrentFont().withHeight(titleHeight/2);//usually on 2 lines
+	const int maxTitleLineCount = 3;
+	juce::Font f = g.getCurrentFont().withHeight(titleHeight/maxTitleLineCount);//2 lines max
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
-	g.setColour (juce::Colours::grey);
+	g.setColour (juce::Colours::white);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
 		(int)(x),  (int)rect.getBottom(), 
 		(int)(itemW), (int)(titleHeight), 
-		juce::Justification::centredBottom, 3, 1.f);
+		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
 
 }
 
@@ -462,7 +471,7 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 			currentThumbnail = f;
-			tumbTimeOK = false;
+			thumbTimeOK = false;
 			currentThumbnailIndex = 0;
 		}
 		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
@@ -478,7 +487,7 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 void IconMenu::vlcTimeChanged()
 {
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-	tumbTimeOK = (vlc->GetTime() > vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR);//90%margin
+	thumbTimeOK = (vlc->GetTime() > vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR);//90%margin
 }
 bool IconMenu::updatePreviews()
 {
@@ -502,7 +511,7 @@ bool IconMenu::updatePreviews()
 			if(vlc->GetTime() < vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR)//90%margin
 			{
 				vlc->SetTime((int64_t)(vlc->GetLength()*THUMB_TIME_POS*currentThumbnailIndex));
-				tumbTimeOK = false;
+				thumbTimeOK = false;
 			}
 			//could process network code and stack another media though...
 			return false;
@@ -583,7 +592,7 @@ void *IconMenu::vlcLock(void **p_pixels)
 	{
 		*p_pixels = ptr->getLinePointer(currentThumbnailIndex>=thumbnailCount?0:(currentThumbnailIndex*thunmnailH));
 	}
-	if(tumbTimeOK)
+	if(thumbTimeOK)
 	{
 		currentThumbnailIndex++;
 	}
