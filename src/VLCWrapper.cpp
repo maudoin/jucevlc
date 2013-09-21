@@ -168,7 +168,7 @@ static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
     switch(pEvent->type)
     {
 		case libvlc_MediaPlayerTimeChanged:
-		    cb->vlcTimeChanged();
+		    cb->vlcTimeChanged(pEvent->u.media_player_time_changed.new_time);
             break;
 	   case libvlc_MediaPlayerPlaying :
 		    cb->vlcStarted();

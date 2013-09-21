@@ -127,7 +127,7 @@ public:
 		
 		g.setColour (juce::Colours::white);
 		g.drawFittedText (title,
-							2, 2,textWidth-4,getHeight()-4,
+							2, 2,(int)textWidth-4,getHeight()-4,
 							juce::Justification::centredLeft, 
 							1, //1 line
 							1.f//no h scale
@@ -2304,7 +2304,7 @@ void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 // VLC CALLBACKS
 //
 ////////////////////////////////////////////////////////////
-void VideoComponent::vlcTimeChanged()
+void VideoComponent::vlcTimeChanged(int64_t newTime)
 {
 	if(!vlc)
 	{
@@ -2314,16 +2314,16 @@ void VideoComponent::vlcTimeChanged()
 	{
 		mousehookset = vlc->setMouseInputCallBack(this);
 	}
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this));
+	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this, newTime));
 }
 
-void VideoComponent::updateTimeAndSlider()
+void VideoComponent::updateTimeAndSlider(int64_t newTime)
 {
 	if(!sliderUpdating)
 	{
 		videoUpdating = true;
-		controlComponent->slider().setValue(vlc->GetTime()*10000./vlc->GetLength(), juce::sendNotificationSync);
-		controlComponent->setTime(vlc->GetTime(), vlc->GetLength());
+		controlComponent->slider().setValue(newTime*10000./vlc->GetLength(), juce::sendNotificationSync);
+		controlComponent->setTime(newTime, vlc->GetLength());
 		if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
 	}

@@ -209,7 +209,7 @@ public:
 	void onPlayerOptions(AbstractMenuItem& item);
 	void onMenuRoot(AbstractMenuItem& item);
 	/////////////// VLC EvtListener
-	virtual void vlcTimeChanged();
+	virtual void vlcTimeChanged(int64_t newTime);
 	virtual void vlcPaused();
 	virtual void vlcStarted();
 	virtual void vlcStopped();
@@ -226,7 +226,7 @@ public:
     void paint (juce::Graphics& g);
 	
     virtual void resized();
-	void updateTimeAndSlider();
+	void updateTimeAndSlider(int64_t newTime);
 
     virtual void sliderValueChanged (juce::Slider* slider);
     virtual void buttonClicked (juce::Button* button);

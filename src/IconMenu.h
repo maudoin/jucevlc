@@ -82,7 +82,7 @@ public:
 	void vlcUnlock(void *id, void *const *p_pixels);
 	void vlcDisplay(void *id);
 
-	void vlcTimeChanged();
+	void vlcTimeChanged(int64_t newTime);
 	void vlcPaused() {};
 	void vlcStarted() {};
 	void vlcStopped() {};

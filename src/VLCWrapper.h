@@ -85,7 +85,7 @@ class EventCallBack
 {
 public:
 	virtual ~EventCallBack(){}
-	virtual void vlcTimeChanged() = 0;
+	virtual void vlcTimeChanged(int64_t newTime) = 0;
 	virtual void vlcPaused() = 0;
 	virtual void vlcStarted() = 0;
 	virtual void vlcStopped() = 0;

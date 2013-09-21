@@ -37,11 +37,13 @@ IconMenu::IconMenu()
 IconMenu::~IconMenu()
 {
 	//let vlc threads finish
-	thumbTimeOK = true;
-	currentThumbnailIndex=thumbnailCount;
-	currentThumbnail = juce::File::nonexistent;
+	{
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+		thumbTimeOK = true;
+		currentThumbnailIndex=thumbnailCount;
+		currentThumbnail = juce::File::nonexistent;
+	}
 
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	vlc->Stop();
 	vlc->clearPlayList();
 	while(vlc->getCurrentPlayList().size()>0 ||vlc->isPlaying() )
@@ -465,8 +467,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 
 #include <iostream>
 
-#define THUMB_TIME_POS 0.1
-#define THUMB_TIME_POS_ERROR 0.9
+#define THUMB_TIME_POS_PERCENT 30
 bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 {
 	if(i.isNull())
@@ -478,7 +479,6 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 			currentThumbnailIndex = 0;
 		}
 		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
-		vlc->SetTime(0);
 		vlc->play();
 		return true;
 	}
@@ -487,10 +487,10 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 	m_iconPerFile.insert(std::map<std::string, juce::Image>::value_type(f.getFileName().toUTF8().getAddress(), i));
 	return true;
 }
-void IconMenu::vlcTimeChanged()
+void IconMenu::vlcTimeChanged(int64_t newTime)
 {
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-	thumbTimeOK = (vlc->GetTime() > vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR);//90%margin
+	thumbTimeOK = newTime > (currentThumbnailIndex*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100);
 }
 bool IconMenu::updatePreviews()
 {
@@ -511,9 +511,9 @@ bool IconMenu::updatePreviews()
 		else
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			if(vlc->GetTime() < vlc->GetLength()*currentThumbnailIndex*THUMB_TIME_POS*THUMB_TIME_POS_ERROR)//90%margin
+			if(vlc->isPlaying() && vlc->GetTime() < (currentThumbnailIndex*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100))
 			{
-				vlc->SetTime((int64_t)(vlc->GetLength()*THUMB_TIME_POS*currentThumbnailIndex));
+				vlc->SetTime((int64_t)(currentThumbnailIndex*THUMB_TIME_POS_PERCENT*vlc->GetLength()/100));
 				thumbTimeOK = false;
 			}
 			//could process network code and stack another media though...
