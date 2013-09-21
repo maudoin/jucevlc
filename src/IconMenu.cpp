@@ -8,7 +8,7 @@
 
 #define thunmnailW 300
 #define thunmnailH 200
-#define thumbnailCount 1
+#define thumbnailCount 2
 const int IconMenu::InvalidIndex = -1;
 
 IconMenu::IconMenu()
@@ -28,7 +28,7 @@ IconMenu::IconMenu()
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	vlc = new VLCWrapper();
 	vlc->Mute();
-	vlc->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
+	vlc->SetBufferFormat(thunmnailW, thunmnailH, ptr->lineStride);
 	vlc->SetDisplayCallback(this);
 	vlc->SetEventCallBack(this);
 
@@ -601,7 +601,7 @@ void *IconMenu::vlcLock(void **p_pixels)
 	imgCriticalSection.enter();
 	if(ptr)
 	{
-		*p_pixels = ptr->getLinePointer(processedThumbnailIndex>=thumbnailCount?0:(processedThumbnailIndex*thunmnailH));
+		*p_pixels = ptr->getLinePointer(std::min(processedThumbnailIndex,thumbnailCount-1)*thunmnailH);
 	}
 	if(startingThumbTimeOK)
 	{
