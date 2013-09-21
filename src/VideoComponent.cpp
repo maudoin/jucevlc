@@ -89,24 +89,29 @@ class TitleComponent   : public juce::Component
 {
 	juce::Component* m_componentToMove;
 	juce::ComponentDragger dragger;
+	std::string m_title;
+	bool m_allowDrag;
 public:
 	TitleComponent(juce::Component* componentToMove)
 		:juce::Component("Title")
 		,m_componentToMove(componentToMove)
+		,m_allowDrag(false)
 	{
 		setOpaque(false);
 	}
 	virtual ~TitleComponent(){}
+	void setTitle(std::string const& title){m_title=title;}
+	void allowDrag(bool allow){m_allowDrag=allow;}
 	void paint (juce::Graphics& g)
 	{
-		char* title = "JuceVLC player";
-
+		char* title = m_title.empty()? "JuceVLC player":m_title.c_str();
 		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		float textWidth = f.getStringWidthFloat(title);
-		int rightBorder = (int)(getWidth() - textWidth);
+		float rightBorder = std::max(getWidth() - textWidth, getWidth()*0.1f);
+		textWidth = std::min(textWidth, getWidth() - rightBorder);
 		juce::Path path;
 		path.lineTo(textWidth+rightBorder-2, 0);
 		path.quadraticTo(textWidth+rightBorder/2.f, getHeight()-2.f, textWidth, getHeight()-2.f);
@@ -122,7 +127,7 @@ public:
 		
 		g.setColour (juce::Colours::white);
 		g.drawFittedText (title,
-							2, 2,getWidth()-4,getHeight()-4,
+							2, 2,textWidth-4,getHeight()-4,
 							juce::Justification::centredLeft, 
 							1, //1 line
 							1.f//no h scale
@@ -130,7 +135,7 @@ public:
 	}
 	void mouseDown (const juce::MouseEvent& e)
 	{
-		if(e.eventComponent == this && isVisible())
+		if(e.eventComponent == this && isVisible() && m_allowDrag)
 		{
 			dragger.startDraggingComponent (m_componentToMove, e.getEventRelativeTo(m_componentToMove));
 		}
@@ -138,7 +143,7 @@ public:
 
 	void mouseDrag (const juce::MouseEvent& e)
 	{
-		if(e.eventComponent == this && isVisible())
+		if(e.eventComponent == this && isVisible() && m_allowDrag)
 		{
 			dragger.dragComponent (m_componentToMove, e.getEventRelativeTo(m_componentToMove), nullptr);
 		}
@@ -764,7 +769,8 @@ void VideoComponent::resized()
 #endif//BUFFER_DISPLAY
     if (titleBar != nullptr)
     {
-        titleBar->setVisible (! (isFullScreen() ));
+        titleBar->setVisible (menu->asComponent()->isVisible() || !isFullScreen());
+		titleBar->allowDrag(!isFullScreen());
 		titleBar->setBounds(0, 0, getWidth()/3, (int)menu->getItemHeight());
 		titleBar->toFront(false);
     }
@@ -2340,7 +2346,8 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
 		bool showControls = vlc->isPlaying() || vlc->isPaused();
 		controlComponent->setVisible(showControls);
-		titleBar->setVisible(!isFullScreen() && showControls);
+		titleBar->setVisible((menu->asComponent()->isVisible() || !isFullScreen()) && showControls);
+		titleBar->allowDrag(!isFullScreen());
 	}
 	else
 	{
@@ -2361,11 +2368,13 @@ void VideoComponent::vlcPaused()
 }
 void VideoComponent::vlcStarted()
 {		
+	titleBar->setTitle(vlc->getCurrentPlayListItem());
 	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::startedSynchronous,this));
 }
 void VideoComponent::vlcStopped()
 {
+	titleBar->setTitle(std::string());
 	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
 }

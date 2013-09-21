@@ -17,6 +17,7 @@
 #define BUFFER_DISPLAY
 #undef BUFFER_DISPLAY
 
+class TitleComponent;
 class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
 #ifdef BUFFER_DISPLAY
@@ -55,7 +56,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::Drawable> clockImage;
     juce::Image appImage;
 	LnF lnf;
-    juce::ScopedPointer<juce::Component> titleBar;
+    juce::ScopedPointer<TitleComponent> titleBar;
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
