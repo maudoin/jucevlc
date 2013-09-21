@@ -151,6 +151,8 @@ public:
     *   @param [in] newTime The new media position in milliseconds. */
     void SetTime(int64_t newTime);
 
+	bool isSeekable();
+
     /** Mutes the audio output of playback.
     *   @param [in] mute True or false. */
     void Mute(bool mute = true);

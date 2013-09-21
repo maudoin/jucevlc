@@ -906,6 +906,10 @@ std::string VLCWrapper::getCurrentPlayListItem()
 	return getMediaName(media);
 }
 
+bool VLCWrapper::isSeekable()
+{
+	return libvlc_media_player_is_seekable(pMediaPlayer_);
+}
 int VLCWrapper::getCurrentPlayListItemIndex()
 {
 	libvlc_media_t* media = libvlc_media_player_get_media(pMediaPlayer_);

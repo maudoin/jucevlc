@@ -480,7 +480,17 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 		}
 		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
 		vlc->play();
-		return true;
+		if(vlc->isSeekable())
+		{
+			//start playing to generate thumbnail
+			return true;
+		}
+		else
+		{
+			//cancel thumbnail && fallthrough to store nothing
+			vlc->clearPlayList();
+			vlc->Stop();
+		}
 	}
 	const juce::ScopedLock myScopedLock (m_imagesMutex);
 	std::cerr << f.getFileName().toUTF8().getAddress() << std::endl;
