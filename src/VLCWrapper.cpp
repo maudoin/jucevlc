@@ -25,11 +25,18 @@ class VLCInstancePtr
 	libvlc_instance_t*ptr;
 public:
 	VLCInstancePtr():ptr(0){}
-	void mayInit( int argc , const char *const *argv )
+	void mayInit()
 	{
 		if(ptr==0)
 		{
-			ptr = libvlc_new (0, NULL);
+		static const char * const vlc_args[] = {
+			"--no-video-title-show"
+			,"--ignore-config" // Don't use VLC's config
+			,"-I", "dumy"      // No special interface
+			//,"--plugin-path=./plugins"
+			//,"--video-filter=crop"
+		};
+			ptr = libvlc_new (4, vlc_args);
 		}
 	}
 	~VLCInstancePtr(){libvlc_release(ptr);}
@@ -38,6 +45,101 @@ public:
 };
 
 VLCInstancePtr pVLCInstance_;        ///< The VLC instance.
+
+//------------------------------------ VLC internal code (incomplete libVLC workaround)
+
+
+static inline void lock_input(libvlc_media_player_t *mp)
+{
+    vlc_mutex_lock(&mp->input.lock);
+}
+
+static inline void unlock_input(libvlc_media_player_t *mp)
+{
+    vlc_mutex_unlock(&mp->input.lock);
+}
+/*
+ * Retrieve the input thread. Be sure to release the object
+ * once you are done with it. (libvlc Internal)
+ */
+input_thread_t *libvlc_get_input_thread( libvlc_media_player_t *p_mi )
+{
+    input_thread_t *p_input_thread;
+
+    assert( p_mi );
+
+    lock_input(p_mi);
+    p_input_thread = p_mi->input.p_thread;
+    if( p_input_thread )
+        vlc_object_hold( p_input_thread );
+    else
+        libvlc_printerr( "No active input" );
+    unlock_input(p_mi);
+
+    return p_input_thread;
+}
+/*
+ * Remember to release the returned vout_thread_t.
+ */
+static vout_thread_t **GetVouts( libvlc_media_player_t *p_mi, size_t *n )
+{
+    input_thread_t *p_input = libvlc_get_input_thread( p_mi );
+    if( !p_input )
+    {
+        *n = 0;
+        return NULL;
+    }
+
+    vout_thread_t **pp_vouts;
+    if (input_Control( p_input, INPUT_GET_VOUTS, &pp_vouts, n))
+    {
+        *n = 0;
+        pp_vouts = NULL;
+    }
+    vlc_object_release (p_input);
+    return pp_vouts;
+}
+
+/*
+ * Remember to release the returned audio_output_t since it is locked at
+ * the end of this function.
+ */
+static audio_output_t *GetAOut( libvlc_media_player_t *mp )
+{
+    assert( mp != NULL );
+
+    input_thread_t *p_input = libvlc_get_input_thread( mp );
+    if( p_input == NULL )
+        return NULL;
+
+    audio_output_t * p_aout = input_GetAout( p_input );
+    vlc_object_release( p_input );
+    if( p_aout == NULL )
+        libvlc_printerr( "No active audio output" );
+    return p_aout;
+}
+
+static vout_thread_t *GetVout (libvlc_media_player_t *mp, size_t num)
+{
+    vout_thread_t *p_vout = NULL;
+    size_t n;
+    vout_thread_t **pp_vouts = GetVouts (mp, &n);
+    if (pp_vouts == NULL)
+        goto err;
+
+    if (num < n)
+        p_vout = pp_vouts[num];
+
+    for (size_t i = 0; i < n; i++)
+        if (i != num)
+            vlc_object_release (pp_vouts[i]);
+    libvlc_free (pp_vouts);
+
+    if (p_vout == NULL)
+err:
+        libvlc_printerr ("Video output not active");
+    return p_vout;
+}
 
 //----------------------------------- HELPERS
 class MediaListScopedLock
@@ -152,7 +254,7 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
 
 VLCUPNPMediaList::VLCUPNPMediaList()
 {
-	pVLCInstance_.mayInit(0, NULL);
+	pVLCInstance_.mayInit();
 	//media_discoverer
     pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_.get(),"upnp");
 
@@ -171,21 +273,17 @@ VLCWrapper::VLCWrapper(void)
     pEventManager_(0),
 	m_videoAdjustEnabled(0)
 {
-	static const char * const vlc_args[] = {
-		"-I", "dumy"      // No special interface
-		,"--ignore-config" // Don't use VLC's config
-        ,"--no-video-title-show"
-		,"--plugin-path=./plugins"
-		//,"--video-filter=crop"
-	};
 
 	// init vlc modules, should be done only once
-	//pVLCInstance_ = libvlc_new (sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
-	pVLCInstance_.mayInit(0, NULL);
+	pVLCInstance_.mayInit();
      
     // Create a media player playing environement
 	pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_.get());
-	
+    vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
+	if(p_vout)
+	{
+		var_SetBool( p_vout, "video-title-show", false );
+	}
 
 	//list player
     mlp = libvlc_media_list_player_new(pVLCInstance_.get());
@@ -420,97 +518,6 @@ void VLCWrapper::SetInputCallBack(InputCallBack* cb)
 
 
 
-static inline void lock_input(libvlc_media_player_t *mp)
-{
-    vlc_mutex_lock(&mp->input.lock);
-}
-
-static inline void unlock_input(libvlc_media_player_t *mp)
-{
-    vlc_mutex_unlock(&mp->input.lock);
-}
-/*
- * Retrieve the input thread. Be sure to release the object
- * once you are done with it. (libvlc Internal)
- */
-input_thread_t *libvlc_get_input_thread( libvlc_media_player_t *p_mi )
-{
-    input_thread_t *p_input_thread;
-
-    assert( p_mi );
-
-    lock_input(p_mi);
-    p_input_thread = p_mi->input.p_thread;
-    if( p_input_thread )
-        vlc_object_hold( p_input_thread );
-    else
-        libvlc_printerr( "No active input" );
-    unlock_input(p_mi);
-
-    return p_input_thread;
-}
-/*
- * Remember to release the returned vout_thread_t.
- */
-static vout_thread_t **GetVouts( libvlc_media_player_t *p_mi, size_t *n )
-{
-    input_thread_t *p_input = libvlc_get_input_thread( p_mi );
-    if( !p_input )
-    {
-        *n = 0;
-        return NULL;
-    }
-
-    vout_thread_t **pp_vouts;
-    if (input_Control( p_input, INPUT_GET_VOUTS, &pp_vouts, n))
-    {
-        *n = 0;
-        pp_vouts = NULL;
-    }
-    vlc_object_release (p_input);
-    return pp_vouts;
-}
-
-/*
- * Remember to release the returned audio_output_t since it is locked at
- * the end of this function.
- */
-static audio_output_t *GetAOut( libvlc_media_player_t *mp )
-{
-    assert( mp != NULL );
-
-    input_thread_t *p_input = libvlc_get_input_thread( mp );
-    if( p_input == NULL )
-        return NULL;
-
-    audio_output_t * p_aout = input_GetAout( p_input );
-    vlc_object_release( p_input );
-    if( p_aout == NULL )
-        libvlc_printerr( "No active audio output" );
-    return p_aout;
-}
-
-static vout_thread_t *GetVout (libvlc_media_player_t *mp, size_t num)
-{
-    vout_thread_t *p_vout = NULL;
-    size_t n;
-    vout_thread_t **pp_vouts = GetVouts (mp, &n);
-    if (pp_vouts == NULL)
-        goto err;
-
-    if (num < n)
-        p_vout = pp_vouts[num];
-
-    for (size_t i = 0; i < n; i++)
-        if (i != num)
-            vlc_object_release (pp_vouts[i]);
-    libvlc_free (pp_vouts);
-
-    if (p_vout == NULL)
-err:
-        libvlc_printerr ("Video output not active");
-    return p_vout;
-}
 
 
 bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
