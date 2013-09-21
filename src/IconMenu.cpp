@@ -388,7 +388,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	
 		const float holeRoundness = holeW/6.f;
 		const float holeBorderW = (sideStripWidth-holeW)/2.f;
-		const int holeCount =  std::floor(rectWithBorders.getHeight()/(2.f*holeH));
+		const int holeCount =  (int)std::floor(rectWithBorders.getHeight()/(2.f*holeH));
 		const int holeBorderCount =  holeCount;
 		const float holeBorderH = (rectWithBorders.getHeight() - holeCount*holeH)/holeBorderCount;
 		for(float ih = rectWithBorders.getY();ih<=(rectWithBorders.getBottom()-holeBorderH);ih+=(holeH+holeBorderH))
@@ -434,11 +434,14 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 		g.drawImageTransformed(image, t, false);
 
 		//reflection floor
-		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.66f),
+		juce::ColourGradient grad (juce::Colours::purple.withAlpha(0.33f),
 											x+itemW/2.f, rect.getBottom(),
-											juce::Colours::purple.withAlpha(1.0f),
+											juce::Colours::black.withAlpha(1.0f),
 											x+itemW/2.f, rectWithBorders.getBottom(),
-											false));
+											false);
+		
+		grad.addColour(0.66, juce::Colours::purple.withAlpha(.66f));
+		g.setGradientFill (grad);	
 		g.fillRect(x, rect.getBottom(), itemW, reflectionH);
 	
 		//border
