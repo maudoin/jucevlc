@@ -474,9 +474,9 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 	{
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			currentThumbnail = f;
-			thumbTimeOK = false;
-			currentThumbnailIndex = 0;
+			currentThumbnail = f;//nothing writen at destination "f"
+			thumbTimeOK = false;//current image at wrong time
+			currentThumbnailIndex = 0;//no image ready
 		}
 		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
 		vlc->play();
@@ -490,7 +490,7 @@ bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
 void IconMenu::vlcTimeChanged(int64_t newTime)
 {
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-	thumbTimeOK = newTime > (currentThumbnailIndex*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100);
+	thumbTimeOK = newTime > ((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100);//current image at right time
 }
 bool IconMenu::updatePreviews()
 {
@@ -511,10 +511,10 @@ bool IconMenu::updatePreviews()
 		else
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			if(vlc->isPlaying() && vlc->GetTime() < (currentThumbnailIndex*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100))
+			if(vlc->isPlaying() && vlc->GetTime() < ((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100))
 			{
-				vlc->SetTime((int64_t)(currentThumbnailIndex*THUMB_TIME_POS_PERCENT*vlc->GetLength()/100));
-				thumbTimeOK = false;
+				vlc->SetTime((int64_t)((1+currentThumbnailIndex)*THUMB_TIME_POS_PERCENT*vlc->GetLength()/100));
+				thumbTimeOK = false;//current image at wrong time
 			}
 			//could process network code and stack another media though...
 			return false;
@@ -590,14 +590,24 @@ bool IconMenu::updatePreviews()
 
 void *IconMenu::vlcLock(void **p_pixels)
 {
+	int processedThumbnailIndex;
+	int startingThumbTimeOK;
+	{
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+		processedThumbnailIndex = currentThumbnailIndex;
+		startingThumbTimeOK = thumbTimeOK;//current image at right time
+	}
+
 	imgCriticalSection.enter();
 	if(ptr)
 	{
-		*p_pixels = ptr->getLinePointer(currentThumbnailIndex>=thumbnailCount?0:(currentThumbnailIndex*thunmnailH));
+		*p_pixels = ptr->getLinePointer(processedThumbnailIndex>=thumbnailCount?0:(processedThumbnailIndex*thunmnailH));
 	}
-	if(thumbTimeOK)
+	if(startingThumbTimeOK)
 	{
-		currentThumbnailIndex++;
+		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+		currentThumbnailIndex++;//prev image ready
+		thumbTimeOK = false;//current image at wrong time
 	}
 	return NULL; /* picture identifier, not needed here */
 }
@@ -612,14 +622,15 @@ void IconMenu::vlcUnlock(void *id, void *const *p_pixels)
 	int processedThumbnailIndex;
 	{
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		processedThumbnail = currentThumbnail;
-		processedThumbnailIndex = currentThumbnailIndex;
+		processedThumbnail = currentThumbnail;//done writing (and where)
+		processedThumbnailIndex = currentThumbnailIndex;//images ready?
 	}
-	if( processedThumbnailIndex>=thumbnailCount)
+	if( processedThumbnailIndex>=thumbnailCount && processedThumbnail != juce::File::nonexistent)
 	{
+		//images ready and not done writing
 		storeImageInCache(processedThumbnail, copy);
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnail = juce::File::nonexistent;
+		currentThumbnail = juce::File::nonexistent;//done writing
 	}
 	jassert(id == NULL); /* picture identifier, not needed here */
 }
