@@ -34,6 +34,7 @@ mpc-hc-master/**
 src/Nouveau dossier/**
 icons/iconic/vector/
 boost_*.dll
+thumbnails
 syntax: regexp
 FontResource.cpp
 FontResource.h

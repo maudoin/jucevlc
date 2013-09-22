@@ -295,7 +295,7 @@ VideoComponent::VideoComponent()
 VideoComponent::~VideoComponent()
 {   
 	m_backgroundTasks.removeTimeSliceClient(this);
-	m_backgroundTasks.stopThread(0);
+	m_backgroundTasks.stopThread(30000);//wait 30sec max!
 
 	//prevent processing
 	sliderUpdating = true;

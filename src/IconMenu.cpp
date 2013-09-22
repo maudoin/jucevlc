@@ -8,7 +8,7 @@
 #include <boost/regex.hpp>
 
 const int IconMenu::InvalidIndex = -1;
-
+#define MAX_THUMBNAILS_PRELOAD_TIME_MS 500
 IconMenu::IconMenu()
 	:m_mediaPostersXCount(5)
 	,m_mediaPostersYCount(2)
@@ -136,6 +136,10 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 		}
 	}
 	m_currentFiles.sort(FileSorter(m_videoExtensions));
+
+	
+	m_imageCatalog.preload(m_currentFiles, MAX_THUMBNAILS_PRELOAD_TIME_MS);
+
 	setMediaStartIndex(0);
 }
 void IconMenu::setMediaStartIndex(int index)
@@ -452,7 +456,7 @@ bool IconMenu::updatePreviews()
 		{
 			continue;
 		}
-		if(!m_imageCatalog.contains(*it))
+		if(m_imageCatalog.get(*it).isNull())
 		{
 			//process this one
 			juce::File &file = *it;
@@ -466,6 +470,7 @@ bool IconMenu::updatePreviews()
 		}
 	}
 	//nothing to do
+	m_imageCatalog.maySaveCache();
 	return false;
 
 }

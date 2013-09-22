@@ -18,10 +18,10 @@ juce::Image PosterFinder::findPoster(juce::File const& file)
 	movieName = movieName.replace(" ", "%20");
 	movieName = movieName.replace("_", "%20");
 	movieName = movieName.replace(".", "%20");
-	movieName = movieName.replace("é", "e");
-	movieName = movieName.replace("è", "e");
-	movieName = movieName.replace("ô", "o");
-	movieName = movieName.replace("à", "a");
+	movieName = movieName.replace("\u00E9", "e");//é
+	movieName = movieName.replace("\u00E9", "e");//è
+	movieName = movieName.replace("\u00F4", "o");//ô
+	movieName = movieName.replace("\u00E0", "a");//à
 	std::string name = str( boost::format("http://www.omdbapi.com/?i=&t=%s")%std::string(movieName.toUTF8().getAddress()) );
 	juce::URL url(name.c_str());
 	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 1000, 0));

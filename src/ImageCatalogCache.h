@@ -5,24 +5,28 @@
 #include "juce.h"
 #include <string>
 #include <map>
-
+class ImageCatalog;
 //==============================================================================
 class ImageCatalogCache
 {
 protected:
-	std::map<std::string, juce::Image> m_iconPerFile;
+	juce::CriticalSection m_mutex;
+	juce::File m_cacheFile;
+	typedef std::pair<juce::int64, juce::int64> AddressAndLastUse;
+	typedef std::map<std::string, AddressAndLastUse> AddressAndLastUsePerFileMap;
+	AddressAndLastUsePerFileMap m_imagesCacheAdresses;
 
 	
 	
 public:
-	ImageCatalogCache();
+	ImageCatalogCache(juce::File const& f);
 	~ImageCatalogCache();
 	//save full cache
-	void saveCache();
+	void saveCache(std::map<std::string, juce::Image> const& newEntries);
 	//save full cache
 	void loadCacheIndex();
 	//save full cache
-	juce::Image loadCachedFile(juce::File const& f);
+	juce::Image loadCachedFile(std::string const& f);
 
 };
 //==============================================================================
