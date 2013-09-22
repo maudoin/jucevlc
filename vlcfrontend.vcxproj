@@ -156,12 +156,16 @@
     <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\IconMenu.cpp" />
     <ClCompile Include="src\Icons.cpp" />
+    <ClCompile Include="src\ImageCatalog.cpp" />
+    <ClCompile Include="src\ImageCatalogCache.cpp" />
     <ClCompile Include="src\Languages.cpp" />
     <ClCompile Include="src\MenuBase.cpp" />
     <ClCompile Include="src\MenuComponent.cpp" />
     <ClCompile Include="src\MenuTree.cpp" />
     <ClCompile Include="src\Execute.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\PosterFinder.cpp" />
+    <ClCompile Include="src\Thumbnailer.cpp" />
     <ClCompile Include="src\VideoComponent.cpp" />
     <ClCompile Include="src\VLCWrapper.cpp" />
     <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp" />
@@ -382,6 +386,8 @@
     <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\IconMenu.h" />
     <ClInclude Include="src\Icons.h" />
+    <ClInclude Include="src\ImageCatalog.h" />
+    <ClInclude Include="src\ImageCatalogCache.h" />
     <ClInclude Include="src\Languages.h" />
     <ClInclude Include="src\MenuBase.h" />
     <ClInclude Include="src\MenuComponent.h" />
@@ -389,6 +395,8 @@
     <ClInclude Include="src\Execute.h" />
     <ClInclude Include="src\FontSerialization.h" />
     <ClInclude Include="src\LookNFeel.h" />
+    <ClInclude Include="src\PosterFinder.h" />
+    <ClInclude Include="src\Thumbnailer.h" />
     <ClInclude Include="src\VideoComponent.h" />
     <ClInclude Include="src\VLCWrapper.h" />
     <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />

@@ -3,24 +3,15 @@
 
 
 #include "juce.h"
-#include "VLCWrapper.h"
+#include "ImageCatalog.h"
+#include "Thumbnailer.h"
 #include <string>
 #include <set>
-#include <map>
 
 //==============================================================================
-class IconMenu : public DisplayCallback, public EventCallBack
+class IconMenu
 {
 protected:
-    juce::CriticalSection imgCriticalSection;
-	juce::ScopedPointer<juce::Image> img;
-	juce::ScopedPointer<juce::Image::BitmapData> ptr;
-	juce::ScopedPointer<VLCWrapper> vlc;
-	
-    juce::CriticalSection imgStatusCriticalSection;
-	juce::File currentThumbnail;
-	int currentThumbnailIndex;
-	bool thumbTimeOK;
 
     juce::Image appImage;
     juce::ScopedPointer<juce::Drawable> folderImage;
@@ -37,8 +28,9 @@ protected:
 	bool m_leftArrowHighlighted;
 	bool m_rightArrowHighlighted;
 	bool m_sliderHighlighted;
-	juce::CriticalSection m_imagesMutex;
-	std::map<std::string, juce::Image> m_iconPerFile;
+	
+	ImageCatalog m_imageCatalog;
+	Thumbnailer m_thumbnailer;
 
 	
 	juce::Rectangle<float> computeSliderRect(float w, float h) const;
@@ -77,15 +69,6 @@ public:
 
 	bool updatePreviews();
 
-	
-	void *vlcLock(void **p_pixels);
-	void vlcUnlock(void *id, void *const *p_pixels);
-	void vlcDisplay(void *id);
-
-	void vlcTimeChanged(int64_t newTime);
-	void vlcPaused() {};
-	void vlcStarted() {};
-	void vlcStopped() {};
 
 };
 //==============================================================================

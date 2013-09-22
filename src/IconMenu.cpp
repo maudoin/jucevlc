@@ -3,12 +3,10 @@
 #include <math.h>
 #include "FileSorter.h"
 #include "Icons.h"
+#include "PosterFinder.h"
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
 
-#define thunmnailW 300
-#define thunmnailH 200
-#define thumbnailCount 2
 const int IconMenu::InvalidIndex = -1;
 
 IconMenu::IconMenu()
@@ -17,39 +15,18 @@ IconMenu::IconMenu()
 	,m_leftArrowHighlighted(false)
 	,m_rightArrowHighlighted(false)
 	,m_sliderHighlighted(false)
-	,img(new juce::Image(juce::Image::RGB, thunmnailW, thunmnailH*thumbnailCount, false))
-	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
+	,m_thumbnailer(m_imageCatalog)
 {
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
     folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
     upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 
 	
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-	vlc = new VLCWrapper();
-	vlc->Mute();
-	vlc->SetBufferFormat(thunmnailW, thunmnailH, ptr->lineStride);
-	vlc->SetDisplayCallback(this);
-	vlc->SetEventCallBack(this);
 
 }
 
 IconMenu::~IconMenu()
 {
-	//let vlc threads finish
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		thumbTimeOK = true;
-		currentThumbnailIndex=thumbnailCount;
-		currentThumbnail = juce::File::nonexistent;
-	}
-
-	vlc->Stop();
-	vlc->clearPlayList();
-	while(vlc->getCurrentPlayList().size()>0 ||vlc->isPlaying() )
-	{
-		//busy 
-	}
 }
 	
 juce::Rectangle<float> IconMenu::getButtonAt(int index, float w, float h)
@@ -326,18 +303,9 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 	juce::Image image;
 	if(!file.isDirectory())
 	{
-		const juce::ScopedLock myScopedLock (m_imagesMutex);
-		std::map<std::string, juce::Image>::const_iterator it = m_iconPerFile.find(file.getFileName().toUTF8().getAddress());
-		if(it != m_iconPerFile.end())
-		{
-			image = it->second.isNull()?appImage:it->second;
-		}
-		else
-		{
-			image = appImage;
-		}
+		image = m_imageCatalog.get(file);
 	}
-	else
+	if(image.isNull())
 	{
 		image = appImage;
 	}
@@ -363,9 +331,9 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 		g.fillRect(rectWithBorders);
 	}
 
-	if(file==currentThumbnail)
+	if(m_thumbnailer.busyOn(file))
 	{
-		g.setColour(juce::Colours::red);
+		g.setColour(juce::Colours::purple.brighter());
 		g.fillRect(rect);
 	}
 	g.setOpacity (1.f);
@@ -465,187 +433,40 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 
 }
 
-#include <iostream>
-
-#define THUMB_TIME_POS_PERCENT 30
-bool IconMenu::storeImageInCache(juce::File const& f, juce::Image const& i)
-{
-	if(i.isNull())
-	{
-		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			currentThumbnail = f;//nothing writen at destination "f"
-			thumbTimeOK = false;//current image at wrong time
-			currentThumbnailIndex = 0;//no image ready
-		}
-		vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
-		vlc->play();
-		if(vlc->isSeekable())
-		{
-			//start playing to generate thumbnail
-			return true;
-		}
-		else
-		{
-			//cancel thumbnail && fallthrough to store nothing
-			vlc->clearPlayList();
-			vlc->Stop();
-		}
-	}
-	const juce::ScopedLock myScopedLock (m_imagesMutex);
-	std::cerr << f.getFileName().toUTF8().getAddress() << std::endl;
-	m_iconPerFile.insert(std::map<std::string, juce::Image>::value_type(f.getFileName().toUTF8().getAddress(), i));
-	return true;
-}
-void IconMenu::vlcTimeChanged(int64_t newTime)
-{
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-	thumbTimeOK = newTime > ((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100);//current image at right time
-}
 bool IconMenu::updatePreviews()
 {
-	if(vlc->getCurrentPlayList().size()>0 || vlc->isPlaying())
+	if(m_thumbnailer.workStep())
 	{
-		bool done;
-		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			done = currentThumbnail == juce::File::nonexistent;
-		}
-		if(done)
-		{
-			//stop outside vlc callbacks
-			vlc->clearPlayList();
-			vlc->Stop();
-			return true;
-		}
-		else
-		{
-			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			if(vlc->isPlaying() && vlc->GetTime() < ((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*vlc->GetLength()/100))
-			{
-				vlc->SetTime((int64_t)((1+currentThumbnailIndex)*THUMB_TIME_POS_PERCENT*vlc->GetLength()/100));
-				thumbTimeOK = false;//current image at wrong time
-			}
-			//could process network code and stack another media though...
-			return false;
-		}
+		//generation updated, refresh now
+		return true;
 	}
 
 	juce::Array<juce::File> files;
 	{
-		const juce::ScopedLock myScopedLock (m_imagesMutex);
+		const juce::ScopedLock myScopedLock (m_mutex);
 		files = m_currentFiles;
 	}
-	juce::File file ;
-	juce::String movieName ;
 	for(juce::File* it = files.begin();it != files.end();++it)
 	{
 		if(it->isDirectory())
 		{
 			continue;
 		}
-		const juce::ScopedLock myScopedLock (m_imagesMutex);
-		std::map<std::string, juce::Image>::const_iterator itImage = m_iconPerFile.find(it->getFileName().toUTF8().getAddress());
-		if(itImage == m_iconPerFile.end())
+		if(!m_imageCatalog.contains(*it))
 		{
-			file = *it;
-			movieName = it->getFileNameWithoutExtension();
-			break;
+			//process this one
+			juce::File &file = *it;
+			juce::Image poster = PosterFinder::findPoster(file);
+			if(!poster.isNull())
+			{
+				m_imageCatalog.storeImageInCache(file, poster);
+				return true;
+			}
+			return m_thumbnailer.startGeneration(file);
 		}
 	}
-	if(movieName.isEmpty())
-	{
-		//all cache already fully setup
-		return false;
-	}
-	movieName = movieName.replace("%", "%37");
-	movieName = movieName.replace(" ", "%20");
-	movieName = movieName.replace("_", "%20");
-	movieName = movieName.replace(".", "%20");
-	movieName = movieName.replace("é", "e");
-	movieName = movieName.replace("è", "e");
-	movieName = movieName.replace("ô", "o");
-	movieName = movieName.replace("à", "a");
-	std::string name = str( boost::format("http://www.omdbapi.com/?i=&t=%s")%std::string(movieName.toUTF8().getAddress()) );
-	juce::URL url(name.c_str());
-	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 1000, 0));
-	if(!pIStream.get())
-	{
-		return storeImageInCache(file);
-	}
-	juce::MemoryOutputStream memStream(1000);//1ko at least
-	if(memStream.writeFromInputStream(*pIStream, 100000)<=0)//100ko max
-	{
-		return storeImageInCache(file);
-	}
+	//nothing to do
+	return false;
 
-	std::string ex("\"Poster\":\"([^\"]*)");
-	boost::regex expression(ex, boost::regex::icase); 
-	
-	memStream.writeByte(0);//simulate end of c string
-	boost::cmatch matches; 
-	if(!boost::regex_search((char*)memStream.getData(), matches, expression)) 
-	{
-		return storeImageInCache(file);
-	}
-	juce::URL urlPoster(matches[1].str().c_str());
-	juce::ScopedPointer<juce::InputStream> pIStreamImage(urlPoster.createInputStream(false, 0, 0, "", 1000, 0));//1 sec timeout
-	if(!pIStreamImage.get())
-	{
-		return storeImageInCache(file);
-	}
-	return storeImageInCache(file, juce::ImageFileFormat::loadFrom (*pIStreamImage));
 }
 
-
-void *IconMenu::vlcLock(void **p_pixels)
-{
-	int processedThumbnailIndex;
-	int startingThumbTimeOK;
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		processedThumbnailIndex = currentThumbnailIndex;
-		startingThumbTimeOK = thumbTimeOK;//current image at right time
-	}
-
-	imgCriticalSection.enter();
-	if(ptr)
-	{
-		*p_pixels = ptr->getLinePointer(std::min(processedThumbnailIndex,thumbnailCount-1)*thunmnailH);
-	}
-	if(startingThumbTimeOK)
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnailIndex++;//prev image ready
-		thumbTimeOK = false;//current image at wrong time
-	}
-	return NULL; /* picture identifier, not needed here */
-}
-
-void IconMenu::vlcUnlock(void *id, void *const *p_pixels)
-{
-	
-	juce::Image copy = img->createCopy();
-	imgCriticalSection.exit();
-			
-	juce::File processedThumbnail;
-	int processedThumbnailIndex;
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		processedThumbnail = currentThumbnail;//done writing (and where)
-		processedThumbnailIndex = currentThumbnailIndex;//images ready?
-	}
-	if( processedThumbnailIndex>=thumbnailCount && processedThumbnail != juce::File::nonexistent)
-	{
-		//images ready and not done writing
-		storeImageInCache(processedThumbnail, copy);
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnail = juce::File::nonexistent;//done writing
-	}
-	jassert(id == NULL); /* picture identifier, not needed here */
-}
-
-void IconMenu::vlcDisplay(void *id)
-{
-	jassert(id == NULL);
-}
