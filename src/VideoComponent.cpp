@@ -2439,7 +2439,7 @@ void VideoComponent::stoppedSynchronous()
 	{
 		setAlpha(1.f);
 		vlcNativePopupComponent->setVisible(false);
-		setMenuTreeVisibleAndUpdateMenuButtonIcon(true);
+		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		getPeer()->getComponent().removeComponentListener(this);
 	}
 }
