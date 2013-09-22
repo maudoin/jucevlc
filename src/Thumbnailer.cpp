@@ -11,7 +11,8 @@
 #define thunmnailH 200
 #define thumbnailCount 2
 
-#define THUMB_TIME_POS_PERCENT 30
+#define THUMB_TIME_POS_PERCENT 20
+#define THUMBNAIL_GENERATION_TIMEOUT 5000
 
 Thumbnailer::Thumbnailer(ImageCatalog& imageCatalogToFeed)
 	:img(new juce::Image(juce::Image::RGB, thunmnailW, thunmnailH*thumbnailCount, false))
@@ -60,6 +61,7 @@ bool Thumbnailer::startGeneration(juce::File const& f)
 		currentThumbnail = f;//nothing writen at destination "f"
 		thumbTimeOK = false;//current image at wrong time
 		currentThumbnailIndex = 0;//no image ready
+		startTime = juce::Time::currentTimeMillis();
 	}
 	vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
 	vlc->play();
@@ -90,7 +92,7 @@ bool Thumbnailer::workStep()
 		bool done;
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			done = currentThumbnail == juce::File::nonexistent;
+			done = currentThumbnail == juce::File::nonexistent || ((juce::Time::currentTimeMillis() - startTime)>THUMBNAIL_GENERATION_TIMEOUT);
 		}
 		if(done)
 		{

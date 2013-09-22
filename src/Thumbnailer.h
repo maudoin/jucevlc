@@ -21,6 +21,7 @@ protected:
 	juce::File currentThumbnail;
 	int currentThumbnailIndex;
 	bool thumbTimeOK;
+	juce::int64 startTime;
 	ImageCatalog& m_imageCatalogToFeed;
 	
 public:
