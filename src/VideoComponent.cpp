@@ -104,7 +104,7 @@ public:
 	void allowDrag(bool allow){m_allowDrag=allow;}
 	void paint (juce::Graphics& g)
 	{
-		char* title = m_title.empty()? "JuceVLC player":m_title.c_str();
+		juce::String title = juce::String::fromUTF8(m_title.empty()? "JuceVLC player":m_title.c_str());
 		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
@@ -471,7 +471,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 				std::string media = m_iconMenu.getMediaAt((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
 				if(!media.empty())
 				{
-					juce::File m(media.c_str());
+					juce::File m(juce::String::fromUTF8(media.c_str()));
 					if(m.isDirectory())
 					{
 						m_iconMenu.setCurrentMediaRootPath(media);
@@ -1051,7 +1051,7 @@ void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std
 	{
 		if(std::string::npos == std::string(it->second).find("vlc://nop"))
 		{
-			menu->addMenuItem( it->first.c_str(), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, juce::String(it->second.c_str())), getIcon(getPathExtensionWithoutDot(it->first).c_str()));
+			menu->addMenuItem( it->first.c_str(), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, juce::String::fromUTF8(it->second.c_str())), getIcon(getPathExtensionWithoutDot(it->first).c_str()));
 		}
 		else
 		{

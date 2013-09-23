@@ -115,7 +115,7 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
     const juce::ScopedLock myScopedLock (m_mutex);
 	m_mediaPostersRoot=path;
 
-	juce::File file(m_mediaPostersRoot.c_str());
+	juce::File file(juce::String::fromUTF8(m_mediaPostersRoot.c_str()));
 	
 	juce::Array<juce::File> files;
 	if(m_mediaPostersRoot.empty() ||!file.exists())
@@ -175,7 +175,7 @@ juce::File IconMenu::getMediaFileAt(int indexOnScreen)
 	bool hasUpItem = m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
 	if( hasUpItem && indexOnScreen==0)
 	{
-		juce::File f(m_mediaPostersRoot.c_str());
+		juce::File f(juce::String::fromUTF8(m_mediaPostersRoot.c_str()));
 		return f.getParentDirectory();
 	}
 	

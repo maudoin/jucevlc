@@ -17,7 +17,6 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 {
 	juce::int64 now = juce::Time::currentTimeMillis();
 
-	
 	typedef std::pair<juce::Image, juce::int64> ImageAndTime;
 	typedef std::map<std::string, ImageAndTime> TempImageAndTimePerName;
 	TempImageAndTimePerName toDump;
@@ -76,7 +75,7 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 		//index with 0 addresses
 		for(TempImageAndTimePerName::const_iterator it = toDump.begin();it != toDump.end();++it)
 		{
-			out->writeString(it->first.c_str());//name
+			out->writeString(juce::String::fromUTF8(it->first.c_str()));//name
 			imagesCacheAdressAdress.insert(AddressPerFileMap::value_type(it->first, out->getPosition()));
 			out->writeInt64(0xFFFFFFFF);//dummy address, fixed below
 			out->writeInt64(it->second.second);//time
