@@ -13,12 +13,17 @@ ImageCatalog::~ImageCatalog()
 	maySaveCache();
 }
 
+void ImageCatalog::storeImageInCacheAndSetChanged(juce::File const& f, juce::Image const& i)
+{
+	storeImageInCache(f, i);
+	m_changedSinceLastSave = true;
+}
+
 void ImageCatalog::storeImageInCache(juce::File const& f, juce::Image const& i)
 {
 	const juce::ScopedLock myScopedLock (m_imagesMutex);
 	std::cerr << f.getFileName().toUTF8().getAddress() << std::endl;
 	m_iconPerFile.insert(std::map<std::string, juce::Image>::value_type(f.getFileName().toUTF8().getAddress(), i));
-	m_changedSinceLastSave = true;
 }
 void ImageCatalog::preload(juce::Array<juce::File> const& files, juce::int64 maxTimeMs)
 {

@@ -21,6 +21,7 @@ public:
 	ImageCatalog();
 	virtual ~ImageCatalog();
 	
+	void storeImageInCacheAndSetChanged(juce::File const& f, juce::Image const& i = juce::Image::null);
 	void storeImageInCache(juce::File const& path, juce::Image const& i = juce::Image::null);
 	juce::Image get(juce::File const& file);
 	void maySaveCache();

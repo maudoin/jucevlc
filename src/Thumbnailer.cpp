@@ -157,7 +157,7 @@ void Thumbnailer::vlcUnlock(void *id, void *const *p_pixels)
 	if( processedThumbnailIndex>=thumbnailCount && processedThumbnail != juce::File::nonexistent)
 	{
 		//images ready and not done writing
-		m_imageCatalogToFeed.storeImageInCache(processedThumbnail, copy);
+		m_imageCatalogToFeed.storeImageInCacheAndSetChanged(processedThumbnail, copy);
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 		currentThumbnail = juce::File::nonexistent;//done writing
 	}

@@ -3,6 +3,9 @@
 #include "ImageCatalog.h"
 
 #define CACHE_EXPIRATION_MS (1000*60*60*24*12) //half month
+#define TEMPORARY_ADDRESS 0xFFFFFFFF
+
+
 ImageCatalogCache::ImageCatalogCache(juce::File const& f)
 	:m_cacheFile(f)
 {
@@ -70,14 +73,13 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 		typedef std::map<std::string, juce::int64> AddressPerFileMap;
 		AddressPerFileMap imagesCacheAdressAdress;
 		AddressPerFileMap imagesCacheActualAdress;
-	
 		out->writeInt(toDump.size());
 		//index with 0 addresses
 		for(TempImageAndTimePerName::const_iterator it = toDump.begin();it != toDump.end();++it)
 		{
 			out->writeString(juce::String::fromUTF8(it->first.c_str()));//name
 			imagesCacheAdressAdress.insert(AddressPerFileMap::value_type(it->first, out->getPosition()));
-			out->writeInt64(0xFFFFFFFF);//dummy address, fixed below
+			out->writeInt64(TEMPORARY_ADDRESS);//dummy address, fixed below
 			out->writeInt64(it->second.second);//time
 		}
 		//images
@@ -140,7 +142,7 @@ juce::Image ImageCatalogCache::loadCachedFile(std::string const& f)
 {
     const juce::ScopedLock myScopedLock (m_mutex);
 	AddressAndLastUsePerFileMap::const_iterator it = m_imagesCacheAdresses.find(f);
-	if(it == m_imagesCacheAdresses.end())
+	if(it == m_imagesCacheAdresses.end() || it->second.first==TEMPORARY_ADDRESS)
 	{
 		return juce::Image::null;
 	}

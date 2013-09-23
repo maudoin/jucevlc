@@ -45,7 +45,6 @@ protected:
 	void paintItem(juce::Graphics& g,  int index, float w, float h);
 
 	int mediaCount();
-	bool storeImageInCache(juce::File const& path, juce::Image const& i = juce::Image::null);
 	
 	static const int InvalidIndex;
 public:

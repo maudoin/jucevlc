@@ -463,7 +463,7 @@ bool IconMenu::updatePreviews()
 			juce::Image poster = PosterFinder::findPoster(file);
 			if(!poster.isNull())
 			{
-				m_imageCatalog.storeImageInCache(file, poster);
+				m_imageCatalog.storeImageInCacheAndSetChanged(file, poster);
 				return true;
 			}
 			return m_thumbnailer.startGeneration(file);
