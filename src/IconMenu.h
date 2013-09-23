@@ -43,6 +43,7 @@ protected:
 	juce::File getMediaFileAt(int index);
 
 	void paintItem(juce::Graphics& g,  int index, float w, float h);
+	bool updateFilePreview(juce::File const& f);
 
 	int mediaCount();
 	

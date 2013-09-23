@@ -436,7 +436,25 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h)
 		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
 
 }
-
+bool IconMenu::updateFilePreview(juce::File const& f)
+{
+	if(f.isDirectory())
+	{
+		return false;
+	}
+	if(m_imageCatalog.get(f).isNull())
+	{
+		//process this one
+		juce::Image poster = PosterFinder::findPoster(f);
+		if(!poster.isNull())
+		{
+			m_imageCatalog.storeImageInCacheAndSetChanged(f, poster);
+			return true;
+		}
+		return m_thumbnailer.startGeneration(f);
+	}
+	return false;
+}
 bool IconMenu::updatePreviews()
 {
 	if(m_thumbnailer.workStep())
@@ -450,23 +468,25 @@ bool IconMenu::updatePreviews()
 		const juce::ScopedLock myScopedLock (m_mutex);
 		files = m_currentFiles;
 	}
+	
+	//process visible items first
+	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+	int count=mediaCount();
+	for(int i=0;i<std::min(count,countPerPage);i++)
+	{
+		bool isUpIcon = i == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
+		if(!isUpIcon && updateFilePreview(getMediaFileAt(i)))
+		{
+			return true;
+		}
+	}
+	
+	//process all current folder items
 	for(juce::File* it = files.begin();it != files.end();++it)
 	{
-		if(it->isDirectory())
+		if(updateFilePreview(*it))
 		{
-			continue;
-		}
-		if(m_imageCatalog.get(*it).isNull())
-		{
-			//process this one
-			juce::File &file = *it;
-			juce::Image poster = PosterFinder::findPoster(file);
-			if(!poster.isNull())
-			{
-				m_imageCatalog.storeImageInCacheAndSetChanged(file, poster);
-				return true;
-			}
-			return m_thumbnailer.startGeneration(file);
+			return true;
 		}
 	}
 	//nothing to do
