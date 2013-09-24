@@ -5,7 +5,7 @@
 Portable Application installation
 ------------------
 
-Extract the archive on any folder and run **JuceVLC.exe**
+Either extract the "exeOnly" archive on your existing VLC or JuceVLC folder and run **JuceVLC.exe** or install using the complete setup.
 You can use the installer multiple times:
 * once for your computer, activating shortcut creation, 
 * and again for your usb key or external hard drive.
@@ -19,6 +19,8 @@ The application can be executed from a usb key or an external drive as its setti
 
 Menu
 ------------------
+The frontpage root folder can be setup from the main menu. Choose "Open" and select the desired folder then select "Use as frontpage" at the end of the list.
+
 The main menu is accessible by right clicking on the video or using the third playback control bar icon (folder in a blue dot).
 
 The main menu can be hidden bu left clicking on the video or using the third playback control bar icon (red cross over a folder in a blue dot).
@@ -41,6 +43,10 @@ It controls:
 
 **Changelog**
 ==================
+
+0.80 (2013/09/24):
+- New frontpage movie browser with posters or thumbnails (thanks to Mark Pietras for the motivation/inspiration)</li>
+- libVLC 2.0.8
 
 0.71 (2013/07/24):
 - Search,Download,Extract and Load subtitles from opensubtitles.org
