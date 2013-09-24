@@ -325,10 +325,6 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	}
 
 	juce::Rectangle<float> rect = getButtonAt(index, w, h);
-	float itemW = rect.getWidth();
-	float itemH = rect.getHeight();
-	float x = rect.getX();
-	float y = rect.getY();
 
 	juce::Image image = m_imageCatalog.get(file);
 	if(image.isNull() && !file.isDirectory())
@@ -347,7 +343,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	float sideStripWidth = 2.f*spaceX/3.f;		
 	float holeW = 2.f*sideStripWidth/3.f;
 	float holeH = holeW;	
-	juce::Rectangle<float> rectWithBorders(x-sideStripWidth, y-holeH, itemW+2.f*sideStripWidth, itemH+spaceY+2.f*holeH);
+	juce::Rectangle<float> rectWithBorders(rect.getX()-sideStripWidth, rect.getY()-holeH, rect.getWidth()+2.f*sideStripWidth, rect.getHeight()+spaceY+2.f*holeH);
 	
 	float titleHeight = rectWithBorders.getBottom()-rect.getBottom();
 	const int maxTitleLineCount = 3;
@@ -370,20 +366,24 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	}
 
 	
-	juce::Rectangle<float> busyRect(rect);
-	float folderImageOffset = rectWithBorders.getBottom()-rect.getBottom()-holeH;
+	juce::Rectangle<float> imageTargetRect(rect);
 	if(file.isDirectory())
 	{
 		folderImage.get()->drawWithin (g, rectWithBorders,
 							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
-
-		busyRect.translate(0, folderImageOffset);
+		
+		//scales are specific to folderImage layout
+		float xMarginRelative = 0.04f;
+		float yTopMarginRelative = 0.22f;
+		float yBottomMarginAbsolute = titleHeight;
+		imageTargetRect=rectWithBorders.translated(rectWithBorders.getWidth()*xMarginRelative, rectWithBorders.getHeight()*yTopMarginRelative);
+		imageTargetRect.setSize(rectWithBorders.getWidth()*(1.f-2.f*xMarginRelative), rectWithBorders.getHeight()*(1.f-yTopMarginRelative)-yBottomMarginAbsolute);
 	}
 	
 	if(m_thumbnailer.busyOn(file))
 	{
 		g.setColour(juce::Colours::purple.brighter());
-		g.fillRect(busyRect);
+		g.fillRect(imageTargetRect);
 	}
 
 	if(!file.isDirectory())
@@ -412,32 +412,27 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	{
 		//picture
 		float imgHeightRatio = (float)image.getHeight()/(float)image.getWidth();
-		float itemHeightRatio = itemH/itemW;
+		float itemHeightRatio = imageTargetRect.getHeight()/imageTargetRect.getWidth();
 		float scale;
 		float imageX;
 		float imageY;
 		if(imgHeightRatio > itemHeightRatio)
 		{
 			//scale on h
-			scale = itemH/(image.getHeight());
-			imageX = x + (itemW-image.getWidth()*scale)/2;
-			imageY = rect.getY();
+			scale = imageTargetRect.getHeight()/(image.getHeight());
+			imageX = imageTargetRect.getX() + (imageTargetRect.getWidth()-image.getWidth()*scale)/2;
+			imageY = imageTargetRect.getY();
 		}
 		else
 		{
 			//scale on w
-			scale = itemW/image.getWidth();
-			imageX = x;
-			imageY = rect.getBottom() - image.getHeight()*scale;
+			scale = imageTargetRect.getWidth()/image.getWidth();
+			imageX = imageTargetRect.getX();
+			imageY = imageTargetRect.getBottom() - image.getHeight()*scale;
 		}
 		float imageItemW = image.getWidth()*scale;
 		float imageItemH = image.getHeight()*scale;
-
-		if(file.isDirectory())
-		{
-			imageY += folderImageOffset;
-		}
-
+		
 		
 		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
 		g.drawImageTransformed(image, tr, false);
@@ -452,18 +447,18 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 
 			//reflection floor
 			juce::ColourGradient grad (juce::Colours::purple.withAlpha(0.33f),
-												x+itemW/2.f, rect.getBottom(),
+												imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, imageTargetRect.getBottom(),
 												juce::Colours::black.withAlpha(1.0f),
-												x+itemW/2.f, rectWithBorders.getBottom(),
+												imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, rectWithBorders.getBottom(),
 												false);
 		
 			grad.addColour(0.66, juce::Colours::purple.withAlpha(.66f));
 			g.setGradientFill (grad);	
-			g.fillRect(x, rect.getBottom(), itemW, reflectionH);
+			g.fillRect(imageTargetRect.getX(), imageTargetRect.getBottom(), imageTargetRect.getWidth(), reflectionH);
 	
 			//border
 			g.setColour(juce::Colour(255, 255, 255));
-			g.drawRect(rect, lineThickness);
+			g.drawRect(imageTargetRect, lineThickness);
 		}
 	}
 
@@ -474,8 +469,8 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	g.setFont(f);
 	g.setColour (juce::Colours::white);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
-		(int)(x),  (int)rect.getBottom(), 
-		(int)(itemW), (int)(titleHeight), 
+		(int)(rect.getX()),  (int)rect.getBottom(), 
+		(int)(rect.getWidth()), (int)(titleHeight), 
 		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
 
 }
