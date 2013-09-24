@@ -54,11 +54,11 @@ bool Thumbnailer::busyOn(juce::File const& f)const
 	return currentThumbnail == f;
 }
 
-bool Thumbnailer::startGeneration(juce::File const& f)
+bool Thumbnailer::startGeneration(juce::File const& entryToCreate, juce::File const& f)
 {
 	{
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnail = f;//nothing writen at destination "f"
+		currentThumbnail = entryToCreate;//nothing writen at destination "f"
 		thumbTimeOK = false;//current image at wrong time
 		currentThumbnailIndex = 0;//no image ready
 		startTime = juce::Time::currentTimeMillis();

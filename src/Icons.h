@@ -40,6 +40,8 @@
 	extern const int blue_svgSize;
 	extern const char* folder_svg;
 	extern const int folder_svgSize;
+	extern const char* folderPurple_svg;
+	extern const int folderPurple_svgSize;
 	extern const char* folderShortcut_svg;
 	extern const int folderShortcut_svgSize;
 	extern const char* hideFolderShortcut_svg;

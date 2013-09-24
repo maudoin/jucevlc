@@ -23,13 +23,13 @@ protected:
 	int m_mediaPostersHightlight;
 	int m_mediaPostersXCount;
 	int m_mediaPostersYCount;
-	juce::CriticalSection m_mutex;
+	mutable juce::CriticalSection m_mutex;
 	juce::Array<juce::File> m_currentFiles;
 	bool m_leftArrowHighlighted;
 	bool m_rightArrowHighlighted;
 	bool m_sliderHighlighted;
 	
-	ImageCatalog m_imageCatalog;
+	mutable ImageCatalog m_imageCatalog;//its a cache
 	Thumbnailer m_thumbnailer;
 
 	
@@ -37,15 +37,16 @@ protected:
 	juce::Rectangle<float> computeLeftArrowRect(juce::Rectangle<float> const& slider) const;
 	juce::Rectangle<float> computeRightArrowRect(juce::Rectangle<float> const& slider) const;
 	
-	juce::Rectangle<float> getButtonAt(int index, float w, float h);
-	int getButtonIndexAt(float xPos, float yPos, float w, float h);
-	std::string getMediaAt(int index);
-	juce::File getMediaFileAt(int index);
+	juce::Rectangle<float> getButtonAt(int index, float w, float h)const;
+	int getButtonIndexAt(float xPos, float yPos, float w, float h)const;
+	std::string getMediaAt(int index)const;
+	juce::File getMediaFileAt(int index)const;
 
-	void paintItem(juce::Graphics& g,  int index, float w, float h);
+	void paintItem(juce::Graphics& g,  int index, float w, float h)const;
 	bool updateFilePreview(juce::File const& f);
+	juce::File findFirstMovie(juce::File const& f)const;
 
-	int mediaCount();
+	int mediaCount()const;
 	
 	static const int InvalidIndex;
 public:
@@ -60,12 +61,12 @@ public:
 	void setCurrentMediaRootPath(std::string const& path);
 	void setMediaStartIndex(int index);
 	bool clickOrDrag(float xPos, float yPos, float w, float h);
-	std::string getMediaAt(float xPos, float yPos, float w, float h);
+	std::string getMediaAt(float xPos, float yPos, float w, float h)const;
 
 	
 	bool highlight(float xPos, float yPos, float w, float h);
 
-	void paintMenu(juce::Graphics& g, float w, float h);
+	void paintMenu(juce::Graphics& g, float w, float h)const;
 
 	bool updatePreviews();
 

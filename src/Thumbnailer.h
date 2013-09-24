@@ -29,7 +29,7 @@ public:
 	virtual ~Thumbnailer();
 	
 	//return false is file does not support generation
-	bool startGeneration(juce::File const& f);
+	bool startGeneration(juce::File const& entryToCreate, juce::File const& f);
 	//return true if an image was generated
 	bool workStep();
 
