@@ -116,9 +116,13 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 	m_mediaPostersRoot=path;
 
 	juce::File file(juce::String::fromUTF8(m_mediaPostersRoot.c_str()));
+	if(!file.exists())
+	{
+		m_mediaPostersRoot=std::string();
+	}
 	
 	juce::Array<juce::File> files;
-	if(m_mediaPostersRoot.empty() ||!file.exists())
+	if(m_mediaPostersRoot.empty())
 	{
 		juce::File::findFileSystemRoots(files);
 	}
@@ -262,58 +266,72 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 	}
 	
 
-	if(count <= countPerPage)
+	if(count > countPerPage)
 	{
-		return;
+		int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
+		float sliderStart = firstMediaIndex/(float)m_currentFiles.size();
+		float sliderEnd = (firstMediaIndex+countPerPage)/(float)count;
+		float sliderSize = sliderEnd-sliderStart;
+
+	
+		juce::ColourGradient gradient(juce::Colours::purple.brighter(),
+											w/2.f, sliderRect.getHeight(),
+											juce::Colours::purple.darker(),
+											w/2.f, h,
+											false);
+	
+		const float thick = 2.f;
+		const float thin = 1.f;
+		float thickness = m_sliderHighlighted?thick:thin;
+
+		juce::Rectangle<float> total(sliderRect.getX(), sliderRect.getY()+sliderRect.getHeight()/4.f, sliderRect.getWidth(), sliderRect.getHeight()/2.f);
+		g.setGradientFill(gradient);
+		g.fillRect(total);
+		g.setColour(juce::Colours::white);
+		g.drawRect(total, thickness);
+	
+		float roundness = sliderRect.getHeight()/6.f;
+	
+		juce::Rectangle<float> current(sliderRect.getX()+sliderRect.getWidth()*sliderStart, sliderRect.getY(), sliderRect.getWidth()*sliderSize, sliderRect.getHeight());
+		g.setGradientFill(gradient);
+		g.fillRoundedRectangle(current, roundness);
+		g.setColour(juce::Colours::white);
+		g.drawRoundedRectangle(current, roundness, thickness);
+	
+		float arrowW = sliderRect.getX();
+		float arrowY = sliderRect.getY()+sliderRect.getHeight()/2.f;
+		juce::Path arrow;
+		arrow.addArrow(juce::Line<float>(sliderRect.getX(), arrowY, 0 , arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
+		g.fillPath(arrow);
+
+		juce::Path arrowRight;
+		arrowRight.addArrow(juce::Line<float>(w-sliderRect.getX(), arrowY, w, arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
+	
+		g.setColour(juce::Colours::purple);
+		g.fillPath(arrowRight);
+		g.fillPath(arrow);
+
+		g.setColour(juce::Colours::white);
+		thickness = m_rightArrowHighlighted?thick:thin;
+		g.strokePath(arrowRight, juce::PathStrokeType(thickness));
+		thickness = m_leftArrowHighlighted?thick:thin;
+		g.strokePath(arrow, juce::PathStrokeType(thickness));
 	}
-	int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
-	float sliderStart = firstMediaIndex/(float)m_currentFiles.size();
-	float sliderEnd = (firstMediaIndex+countPerPage)/(float)count;
-	float sliderSize = sliderEnd-sliderStart;
 
-	
-	juce::ColourGradient gradient(juce::Colours::purple.brighter(),
-										w/2.f, sliderRect.getHeight(),
-										juce::Colours::purple.darker(),
-										w/2.f, h,
-										false);
-	
-	const float thick = 2.f;
-	const float thin = 1.f;
-	float thickness = m_sliderHighlighted?thick:thin;
-
-	juce::Rectangle<float> total(sliderRect.getX(), sliderRect.getY()+sliderRect.getHeight()/4.f, sliderRect.getWidth(), sliderRect.getHeight()/2.f);
-	g.setGradientFill(gradient);
-	g.fillRect(total);
-	g.setColour(juce::Colours::white);
-	g.drawRect(total, thickness);
-	
-	float roundness = sliderRect.getHeight()/6.f;
-	
-	juce::Rectangle<float> current(sliderRect.getX()+sliderRect.getWidth()*sliderStart, sliderRect.getY(), sliderRect.getWidth()*sliderSize, sliderRect.getHeight());
-	g.setGradientFill(gradient);
-	g.fillRoundedRectangle(current, roundness);
-	g.setColour(juce::Colours::white);
-	g.drawRoundedRectangle(current, roundness, thickness);
-	
-	float arrowW = sliderRect.getX();
-	float arrowY = sliderRect.getY()+sliderRect.getHeight()/2.f;
-	juce::Path arrow;
-	arrow.addArrow(juce::Line<float>(sliderRect.getX(), arrowY, 0 , arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
-	g.fillPath(arrow);
-
-	juce::Path arrowRight;
-	arrowRight.addArrow(juce::Line<float>(w-sliderRect.getX(), arrowY, w, arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
-	
-	g.setColour(juce::Colours::purple);
-	g.fillPath(arrowRight);
-	g.fillPath(arrow);
-
-	g.setColour(juce::Colours::white);
-	thickness = m_rightArrowHighlighted?thick:thin;
-	g.strokePath(arrowRight, juce::PathStrokeType(thickness));
-	thickness = m_leftArrowHighlighted?thick:thin;
-	g.strokePath(arrow, juce::PathStrokeType(thickness));
+	if(m_mediaPostersRoot.empty())
+	{
+		//help
+		juce::Font f = g.getCurrentFont().withHeight(sliderRect.getHeight());
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+		g.setColour (juce::Colours::white);
+		g.drawFittedText(TRANS("You may set this frontpage root folder from the right click file browser menu (end of list)"),
+			  (int)(sliderRect.getX()),
+			  (int)(sliderRect.getY()-2.f*sliderRect.getHeight()), 
+			  (int)sliderRect.getWidth(), 
+			  (int)(2.f*sliderRect.getHeight()), 
+			juce::Justification::centred, 2);
+	}
 }
 
 void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
