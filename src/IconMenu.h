@@ -11,6 +11,9 @@
 //==============================================================================
 class IconMenu
 {
+public:
+	
+	typedef std::pair<juce::File, bool> PathAndImage;
 protected:
 
     juce::Image appImage;
@@ -23,8 +26,9 @@ protected:
 	int m_mediaPostersHightlight;
 	int m_mediaPostersXCount;
 	int m_mediaPostersYCount;
+	mutable juce::CriticalSection m_currentFilesMutex;
+	juce::Array<PathAndImage> m_currentFiles;
 	mutable juce::CriticalSection m_mutex;
-	juce::Array<juce::File> m_currentFiles;
 	bool m_leftArrowHighlighted;
 	bool m_rightArrowHighlighted;
 	bool m_sliderHighlighted;
@@ -41,14 +45,16 @@ protected:
 	int getButtonIndexAt(float xPos, float yPos, float w, float h)const;
 	std::string getMediaAt(int index)const;
 	juce::File getMediaFileAt(int index)const;
+	int getFileIndexAtScreenIndex(int indexOnScreen)const;
 
 	void paintItem(juce::Graphics& g,  int index, float w, float h)const;
-	bool updateFilePreview(juce::File const& f);
+	bool updateFilePreview(PathAndImage& pathAndImageLoadedFlag);
 	juce::File findFirstMovie(juce::File const& f)const;
 
 	int mediaCount()const;
 	
 	static const int InvalidIndex;
+	static const int UpFolderIndex;
 public:
 	IconMenu();
 	virtual ~IconMenu();

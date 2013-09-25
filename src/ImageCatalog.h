@@ -26,7 +26,7 @@ public:
 	juce::Image get(juce::File const& file);
 	void maySaveCache();
 	
-	void preload(juce::Array<juce::File> const& files, juce::int64 maxTimeMs);
+	void preload(juce::Array<std::pair<juce::File, bool> > & files, juce::int64 maxTimeMs);
 
 
 };

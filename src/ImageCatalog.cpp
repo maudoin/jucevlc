@@ -25,28 +25,23 @@ void ImageCatalog::storeImageInCache(juce::File const& f, juce::Image const& i)
 	std::cerr << f.getFileName().toUTF8().getAddress() << std::endl;
 	m_iconPerFile.insert(std::map<std::string, juce::Image>::value_type(f.getFileName().toUTF8().getAddress(), i));
 }
-void ImageCatalog::preload(juce::Array<juce::File> const& files, juce::int64 maxTimeMs)
+void ImageCatalog::preload(juce::Array<std::pair<juce::File, bool> > & files, juce::int64 maxTimeMs)
 {
 	juce::int64 now = juce::Time::currentTimeMillis();
 	
-	for(juce::File* it = files.begin();(it != files.end()) && ((juce::Time::currentTimeMillis() - now )<maxTimeMs);++it)
+	for(std::pair<juce::File, bool>* it = files.begin();(it != files.end()) && ((juce::Time::currentTimeMillis() - now )<maxTimeMs);++it)
 	{
-		juce::File const& file(*it);
+		juce::File const& file(it->first);
 		juce::Image cached = m_cache.loadCachedFile(file.getFileName().toUTF8().getAddress());
 		if(!cached.isNull())
 		{
 			storeImageInCache(file, cached);
+			it->second = true;
 		}
 	}
 }
 juce::Image ImageCatalog::get(juce::File const& file)
 {
-	juce::Image cached = m_cache.loadCachedFile(file.getFileName().toUTF8().getAddress());
-	if(!cached.isNull())
-	{
-		storeImageInCache(file, cached);
-		return cached;
-	}
 	const juce::ScopedLock myScopedLock (m_imagesMutex);
 	std::map<std::string, juce::Image>::const_iterator it = m_iconPerFile.find(file.getFileName().toUTF8().getAddress());
 	if(it != m_iconPerFile.end())
@@ -55,6 +50,12 @@ juce::Image ImageCatalog::get(juce::File const& file)
 	}
 	else
 	{
+		juce::Image cached = m_cache.loadCachedFile(file.getFileName().toUTF8().getAddress());
+		if(!cached.isNull())
+		{
+			storeImageInCache(file, cached);
+			return cached;
+		}
 		return juce::Image::null;
 	}
 

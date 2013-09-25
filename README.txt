@@ -43,6 +43,8 @@ It controls:
 
 **Changelog**
 ==================
+0.81 (2013/09/25):
+- Fixes endless/useless files scanning
 
 0.80 (2013/09/24):
 - New frontpage movie browser with posters or thumbnails (thanks to Mark Pietras for the motivation/inspiration)</li>

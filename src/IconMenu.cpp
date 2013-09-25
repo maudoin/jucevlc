@@ -8,6 +8,8 @@
 #include <boost/regex.hpp>
 
 const int IconMenu::InvalidIndex = -1;
+const int IconMenu::UpFolderIndex = -2;
+
 #define MAX_THUMBNAILS_PRELOAD_TIME_MS 500
 IconMenu::IconMenu()
 	:m_mediaPostersXCount(5)
@@ -110,6 +112,17 @@ void IconMenu::setMediaRootPath(std::string const& path)
 	m_mediaPostersAbsoluteRoot = path;
 	setCurrentMediaRootPath(path);
 }
+
+struct PathAndImageSorter : public FileSorter
+{
+	PathAndImageSorter(std::set<juce::String> const& priorityExtensions_):FileSorter(priorityExtensions_){}
+	PathAndImageSorter(std::vector< std::set<juce::String> > const& priorityExtensions_):FileSorter(priorityExtensions_) {}
+	int compareElements(IconMenu::PathAndImage const& some, IconMenu::PathAndImage const& other)
+	{
+		return FileSorter::compareElements(some.first, other.first);
+	}
+};
+
 void IconMenu::setCurrentMediaRootPath(std::string const& path)
 {
     const juce::ScopedLock myScopedLock (m_mutex);
@@ -131,18 +144,22 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 		file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
 	}
 	
-	m_currentFiles.clear();
-	for(juce::File* it = files.begin();it != files.end();++it)
 	{
-		if(extensionMatch(m_videoExtensions, it->getFileExtension()) || it->isDirectory())
+		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
+		m_currentFiles.clear();
+		for(juce::File* it = files.begin();it != files.end();++it)
 		{
-			m_currentFiles.add(*it);
+			if(::extensionMatch(m_videoExtensions, it->getFileExtension()) || it->isDirectory())
+			{
+				m_currentFiles.add(PathAndImage(*it, false));
+			}
 		}
+		m_currentFiles.sort(PathAndImageSorter(m_videoExtensions));
+
+		m_imageCatalog.preload(m_currentFiles, MAX_THUMBNAILS_PRELOAD_TIME_MS);
 	}
-	m_currentFiles.sort(FileSorter(m_videoExtensions));
 
 	
-	m_imageCatalog.preload(m_currentFiles, MAX_THUMBNAILS_PRELOAD_TIME_MS);
 
 	setMediaStartIndex(0);
 }
@@ -196,25 +213,47 @@ std::string IconMenu::getMediaAt(int index)const
 }
 juce::File IconMenu::getMediaFileAt(int indexOnScreen)const
 {
-	if(IconMenu::InvalidIndex == indexOnScreen)
+	int indexInfolder = getFileIndexAtScreenIndex(indexOnScreen);
+	if(indexInfolder >= 0)
+	{
+		const juce::ScopedLock currentFilesMutexScopedLock (m_currentFilesMutex);
+		if( indexInfolder<m_currentFiles.size() )
+		{
+			return m_currentFiles[indexInfolder].first;
+		}
+	}
+
+	if(indexInfolder == IconMenu::UpFolderIndex)
+	{
+		const juce::ScopedLock myScopedLock (m_mutex);
+		return juce::File(juce::String::fromUTF8(m_mediaPostersRoot.c_str())).getParentDirectory();
+	}
+	else
 	{
 		return juce::File();
+	}
+}
+int IconMenu::getFileIndexAtScreenIndex(int indexOnScreen)const
+{
+	if(IconMenu::InvalidIndex == indexOnScreen)
+	{
+		return IconMenu::InvalidIndex;
 	}
 
     const juce::ScopedLock myScopedLock (m_mutex);
 	bool hasUpItem = m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
 	if( hasUpItem && indexOnScreen==0)
 	{
-		juce::File f(juce::String::fromUTF8(m_mediaPostersRoot.c_str()));
-		return f.getParentDirectory();
+		return IconMenu::UpFolderIndex;
 	}
 	
 	int indexInfolder = indexOnScreen + m_mediaPostersStartIndex - (hasUpItem?1:0);
-	if(indexInfolder>=0 && indexInfolder<m_currentFiles.size())
+		
+	if(indexInfolder>=0)
 	{
-		return m_currentFiles[indexInfolder];
+		return indexInfolder;
 	}
-	return juce::File();
+	return IconMenu::InvalidIndex;
 }
 bool IconMenu::highlight(float xPos, float yPos, float w, float h)
 {
@@ -251,9 +290,15 @@ juce::Rectangle<float> IconMenu::computeRightArrowRect(juce::Rectangle<float> co
 
 int IconMenu::mediaCount() const
 {
+	int fileCount;
+	{
+		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
+		fileCount = m_currentFiles.size();
+	}
+
 	const juce::ScopedLock myScopedLock (m_mutex);
 	
-	return m_currentFiles.size() + (m_mediaPostersAbsoluteRoot != m_mediaPostersRoot?1:0);
+	return fileCount + (m_mediaPostersAbsoluteRoot != m_mediaPostersRoot?1:0);
 }
 void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 {
@@ -269,7 +314,7 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 	if(count > countPerPage)
 	{
 		int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
-		float sliderStart = firstMediaIndex/(float)m_currentFiles.size();
+		float sliderStart = firstMediaIndex/(float)count;
 		float sliderEnd = (firstMediaIndex+countPerPage)/(float)count;
 		float sliderSize = sliderEnd-sliderStart;
 
@@ -492,8 +537,14 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
 
 }
-bool IconMenu::updateFilePreview(juce::File const& f)
+bool IconMenu::updateFilePreview(PathAndImage & pathAndImageLoadedFlag)
 {
+	if(pathAndImageLoadedFlag.second)
+	{
+		//already processed
+		return false;
+	}
+	juce::File const& f(pathAndImageLoadedFlag.first);
 	juce::File fileToAnalyse;
 	fileToAnalyse = f.isDirectory()?findFirstMovie(f):f;
 	if(!fileToAnalyse.exists())
@@ -507,10 +558,13 @@ bool IconMenu::updateFilePreview(juce::File const& f)
 		if(!poster.isNull())
 		{
 			m_imageCatalog.storeImageInCacheAndSetChanged(f, poster);
+			pathAndImageLoadedFlag.second = true;
 			return true;
 		}
 		return m_thumbnailer.startGeneration(f, fileToAnalyse);
 	}
+	//found in cache, update flag
+	pathAndImageLoadedFlag.second = true;
 	return false;
 }
 bool IconMenu::updatePreviews()
@@ -521,30 +575,33 @@ bool IconMenu::updatePreviews()
 		return true;
 	}
 
-	juce::Array<juce::File> files;
-	{
-		const juce::ScopedLock myScopedLock (m_mutex);
-		files = m_currentFiles;
-	}
 	
-	//process visible items first
-	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
-	int count=mediaCount();
-	for(int i=0;i<std::min(count,countPerPage);i++)
+		
 	{
-		bool isUpIcon = i == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
-		if(!isUpIcon && updateFilePreview(getMediaFileAt(i)))
+		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
+		//process visible items first
+		int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
+		int count=mediaCount();
+		for(int i=0;i<std::min(count,countPerPage);i++)
 		{
-			return true;
+			int fileIndex = getFileIndexAtScreenIndex(i);
+			if(fileIndex >= 0 && fileIndex < m_currentFiles.size() && updateFilePreview(m_currentFiles[fileIndex]) )
+			{
+				return true;
+			}
 		}
 	}
+
 	
-	//process all current folder items
-	for(juce::File* it = files.begin();it != files.end();++it)
 	{
-		if(updateFilePreview(*it))
+		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
+		//process all current folder items
+		for(PathAndImage* it = m_currentFiles.begin();it != m_currentFiles.end();++it)
 		{
-			return true;
+			if(updateFilePreview(*it))
+			{
+				return true;
+			}
 		}
 	}
 	//nothing to do
