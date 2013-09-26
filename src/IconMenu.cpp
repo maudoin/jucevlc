@@ -125,17 +125,16 @@ struct PathAndImageSorter : public FileSorter
 
 void IconMenu::setCurrentMediaRootPath(std::string const& path)
 {
-    const juce::ScopedLock myScopedLock (m_mutex);
-	m_mediaPostersRoot=path;
+	std::string newRoot = path;
 
-	juce::File file(juce::String::fromUTF8(m_mediaPostersRoot.c_str()));
+	juce::File file(juce::String::fromUTF8(newRoot.c_str()));
 	if(!file.exists())
 	{
-		m_mediaPostersRoot=std::string();
+		newRoot=std::string();
 	}
 	
 	juce::Array<juce::File> files;
-	if(m_mediaPostersRoot.empty())
+	if(newRoot.empty())
 	{
 		juce::File::findFileSystemRoots(files);
 	}
@@ -144,6 +143,10 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 		file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
 	}
 	
+	{
+		const juce::ScopedLock myScopedLock (m_mutex);
+		m_mediaPostersRoot=newRoot;
+	}
 	{
 		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
 		m_currentFiles.clear();
@@ -191,9 +194,10 @@ juce::File IconMenu::findFirstMovie(juce::File const& file)const
 }
 void IconMenu::setMediaStartIndex(int index)
 {
-    const juce::ScopedLock myScopedLock (m_mutex);
 	
 	int count=mediaCount();
+
+    const juce::ScopedLock myScopedLock (m_mutex);
 	int countPerPage=m_mediaPostersXCount*m_mediaPostersYCount;
 
 	if(count <= countPerPage)
