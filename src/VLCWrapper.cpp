@@ -2,6 +2,8 @@
 // http://www.codeproject.com/info/cpol10.aspx
 
 #include "VLCWrapper.h"
+#define LIBVLC_USE_PTHREAD_CANCEL
+#define ssize_t int
 #include "vlc\vlc.h"
 #include "vlc\libvlc_events.h"
 #include <boost/cstdint.hpp>
@@ -18,7 +20,8 @@
 #include <assert.h>
 #include "vlc/media_player_internal.h"
 #include "vlc/plugins/vlc_threads.h"
-#include "vlc/plugins/vlc_aout_intf.h"
+#include "vlc/plugins/vlc_aout.h"
+#include "vlc_playlist.h"
 
 class VLCInstancePtr
 {
@@ -654,7 +657,7 @@ void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& 
 	audio_output_t *p_aout = GetAOut (pMediaPlayer_);
 	if(p_aout)
 	{
-		aout_EnableFilter( pMediaPlayer_, filter.c_str(), !v.empty() );
+		playlist_EnableAudioFilter( pl_Get(pMediaPlayer_), filter.c_str(), !v.empty() );
 		var_SetString( p_aout, name,v.c_str());
 
 		vlc_object_release (p_aout);
@@ -948,41 +951,22 @@ std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigO
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
-    if( p_module_config->pf_update_list )
-    {
-       vlc_value_t val;
-       val.i_int = p_module_config->value.i;
-
-       p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_.get(), p_module_config->psz_name, val, val, NULL);
-
-       // assume in any case that dirty was set to true
-       // because lazy programmes will use the same callback for
-       // this, like the one behind the refresh push button?
-       p_module_config->b_dirty = false;
-    }
-
 	std::pair<int,std::vector<std::pair<int, std::string> >> info;
-	if(p_module_config->pi_list)
-	{
-		for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
-		{
-			info.second.push_back(std::pair<int, std::string>(p_module_config->pi_list[i_index], p_module_config->ppsz_list_text[i_index]));
-		}
-	}
-	else
-	{
-		for( int i_index = p_module_config->min.i; i_index <= p_module_config->max.i; i_index++ )
-		{
-			std::ostringstream oss;
-			oss<<i_index;
-			info.second.push_back(std::pair<int, std::string>(i_index, oss.str()));
-		}
-	}
-	info.first = p_module_config->value.i;
 
+    int64_t *values;
+    char **texts;
+    ssize_t count = config_GetIntChoices( (vlc_object_t*)p_module_config, p_module_config->psz_name,
+                                          &values, &texts );
+    for( ssize_t i = 0; i < count; i++ )
+    {
+		info.second.push_back(std::pair<int, std::string>(values[i], texts[i]));
+        libvlc_free( texts[i] );
+	}
+	
+    libvlc_free( texts );
+    libvlc_free( values );
 	return info;
 }
-
 
 std::string VLCWrapper::getConfigOptionString(const char* name)const
 {
@@ -997,40 +981,22 @@ std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWra
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
-    if( p_module_config->pf_update_list )
-    {
-        vlc_value_t val;
-        val.psz_string = strdup(p_module_config->value.psz);
-
-        p_module_config->pf_update_list((vlc_object_t*)pVLCInstance_.get(), p_module_config->psz_name, val, val, NULL);
-
-        // assume in any case that dirty was set to true
-        // because lazy programmes will use the same callback for
-        // this, like the one behind the refresh push button?
-        p_module_config->b_dirty = false;
-
-        free( val.psz_string );
-    }
-
 	std::pair<std::string,std::vector<std::pair<std::string, std::string> >> info;
-	if(p_module_config->ppsz_list)
-	{
-		for( int i_index = 0; i_index < p_module_config->i_list; i_index++ )
-		{
-			if( !p_module_config->ppsz_list[i_index] )
-			{
-			
-				info.second.push_back(std::pair<std::string, std::string>("", ""));
-				  continue;
-			}
 
-			info.second.push_back(std::pair<std::string, std::string>(p_module_config->ppsz_list[i_index], 
-				(p_module_config->ppsz_list_text &&
-									p_module_config->ppsz_list_text[i_index])?
-									p_module_config->ppsz_list_text[i_index] :
-									p_module_config->ppsz_list[i_index]));
-		}
-	}
+    char **values, **texts;
+    ssize_t count = config_GetPszChoices( (vlc_object_t*)p_module_config, p_module_config->psz_name,
+                                          &values, &texts );
+    for( ssize_t i = 0; i < count && texts; i++ )
+    {
+        if( texts[i] == NULL || values[i] == NULL )
+            continue;
+
+		info.second.push_back(std::pair<std::string, std::string>(values[i], texts[i]));
+        libvlc_free( texts[i] );
+        libvlc_free( values[i] );
+    }
+    libvlc_free( texts );
+    libvlc_free( values );
 	info.first = p_module_config->value.psz;
 
 	return info;
