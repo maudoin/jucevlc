@@ -22,9 +22,9 @@ Thumbnailer::Thumbnailer(ImageCatalog& imageCatalogToFeed)
 	
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 	vlc = new VLCWrapper();
-	vlc->Mute();
 	vlc->SetBufferFormat(thunmnailW, thunmnailH, ptr->lineStride);
 	vlc->SetDisplayCallback(this);
+	vlc->SetAudioCallback(this);
 	vlc->SetEventCallBack(this);
 
 }
@@ -65,6 +65,8 @@ bool Thumbnailer::startGeneration(juce::File const& entryToCreate, juce::File co
 	}
 	vlc->addPlayListItem(f.getFullPathName().toUTF8().getAddress());
 	vlc->play();
+	vlc->setAudioTrack(-1);
+	vlc->Mute();
 	if(vlc->isSeekable())
 	{
 		//start playing to generate thumbnail
