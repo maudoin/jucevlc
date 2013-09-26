@@ -267,7 +267,6 @@ private:
 	void updateSubComponentsBounds();
 	void forceSetVideoTime(int64_t start);
 	void forceSetVideoTime(std::string const& name);
-	void restart(AbstractMenuItem& item);
 	bool isFrontpageVisible();
 };
 

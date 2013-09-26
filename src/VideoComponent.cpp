@@ -1230,15 +1230,6 @@ void VideoComponent::onMenuOpenFile (AbstractMenuItem& item, juce::File file)
 		}
 	}
 }
-void VideoComponent::restart(AbstractMenuItem& item)
-{
-	int64_t pos = vlc->GetTime();
-	vlc->Stop();
-	vlc->play();
-	forceSetVideoTime(pos);
-
-}
-
 void VideoComponent::onVLCOptionIntSelect(AbstractMenuItem& item, std::string name, int v)
 {
 	vlc->setConfigOptionInt(name.c_str(), v);
@@ -1253,7 +1244,6 @@ void VideoComponent::onVLCOptionIntListMenu(AbstractMenuItem& item, std::string 
 	{
 		menu->addMenuItem( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCOptionIntSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
 	}
-	menu->addMenuItem( TRANS("Apply"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::restart, this, _1), getItemImage());
 
 }
 
@@ -1271,7 +1261,6 @@ void VideoComponent::onVLCOptionStringMenu (AbstractMenuItem& item, std::string 
 	{
 		menu->addMenuItem( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCOptionStringSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionString(name.c_str())?getItemImage():nullptr);
 	}
-	menu->addMenuItem( TRANS("Apply"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::restart, this, _1));
 
 }
 void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
@@ -1369,7 +1358,6 @@ void VideoComponent::onVLCOptionIntRangeMenu(AbstractMenuItem& item, std::string
 	vlc->setConfigOptionInt(attr.c_str(), (int)slider.getValue());
 	m_settings.setValue(attr.c_str(), (int)slider.getValue());
 }
-#define OPT_TRANS(label) ( juce::String("*") + TRANS(label) )
 
 void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 {
@@ -1416,16 +1404,16 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 	menu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitleSeeker, this, _1));
 	menu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
 	menu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
-	menu->addMenuItem( OPT_TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	menu->addMenuItem( OPT_TRANS("Opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	menu->addMenuItem( OPT_TRANS("Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
-	menu->addMenuItem( OPT_TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	menu->addMenuItem( OPT_TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	menu->addMenuItem( OPT_TRANS("Outline Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
-	menu->addMenuItem( OPT_TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
-	menu->addMenuItem( OPT_TRANS("Background Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
-	menu->addMenuItem( OPT_TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
-	menu->addMenuItem( OPT_TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
+	menu->addMenuItem( TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
+	menu->addMenuItem( TRANS("Opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	menu->addMenuItem( TRANS("Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
+	menu->addMenuItem( TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
+	menu->addMenuItem( TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	menu->addMenuItem( TRANS("Outline Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
+	menu->addMenuItem( TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
+	menu->addMenuItem( TRANS("Background Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
+	menu->addMenuItem( TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
+	menu->addMenuItem( TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
 
 }
 void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item)
@@ -2179,9 +2167,9 @@ void VideoComponent::onMenuVideoOptions(AbstractMenuItem& item)
 	menu->addMenuItem( TRANS("Aspect Ratio"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRatio, this, _1));
 	menu->addMenuItem( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoTrackList, this, _1));
 	menu->addMenuItem( TRANS("Adjust"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoAdjustOptions, this, _1));
-	menu->addMenuItem( OPT_TRANS("Quality"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
-	menu->addMenuItem( OPT_TRANS("Deinterlace"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
-	menu->addMenuItem( OPT_TRANS("Deint. mode"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
+//menu->addMenuItem( TRANS("Quality"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_QUALITY)));
+	menu->addMenuItem( TRANS("Deinterlace"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_VIDEO_DEINTERLACE)));
+	menu->addMenuItem( TRANS("Deint. mode"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE)));
 }
 void VideoComponent::onMenuExit(AbstractMenuItem& item)
 {
