@@ -9,7 +9,7 @@
 
 class ImageCatalog;
 //==============================================================================
-class Thumbnailer : public DisplayCallback, public EventCallBack
+class Thumbnailer : public DisplayCallback, public EventCallBack, public AudioCallback
 {
 protected:
     juce::CriticalSection imgCriticalSection;
@@ -44,6 +44,12 @@ public:
 	void vlcPaused() {};
 	void vlcStarted() {};
 	void vlcStopped() {};
+	
+	void vlcAudioPlay(const void *samples, unsigned count, int64_t pts) {};
+	void vlcAudioPause(int64_t pts) {};
+	void vlcAudioResume(int64_t pts) {};
+	void vlcAudioFush(int64_t pts) {};
+	void vlcAudioDrain() {};
 
 };
 //==============================================================================

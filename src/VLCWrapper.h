@@ -92,6 +92,15 @@ public:
 	virtual void vlcStarted() = 0;
 	virtual void vlcStopped() = 0;
 };
+class AudioCallback
+{
+public:
+	virtual void vlcAudioPlay(const void *samples, unsigned count, int64_t pts)=0;
+	virtual void vlcAudioPause(int64_t pts)=0;
+	virtual void vlcAudioResume(int64_t pts)=0;
+	virtual void vlcAudioFush(int64_t pts)=0;
+	virtual void vlcAudioDrain()=0;
+};
 class VLCUPNPMediaList
 {
 	
@@ -122,6 +131,7 @@ public:
     void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
     void SetInputCallBack(InputCallBack* cb);
     bool setMouseInputCallBack(MouseInputCallBack* cb);
+	void SetAudioCallback(AudioCallback* cb);
 
 	void loadSubtitle(const char* pSubPathName);
 

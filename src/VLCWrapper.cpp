@@ -330,7 +330,41 @@ void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
 	}
 }
 	 	
- 
+
+static void vlcAudioPlay(void *pUserData, const void *samples, unsigned count, int64_t pts)
+{
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+	if(cb)cb->vlcAudioPlay(samples, count, pts);
+}
+static void vlcAudioPause(void *pUserData, int64_t pts)
+{
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+	if(cb)cb->vlcAudioPause(pts);
+}
+static void vlcAudioResume(void *pUserData, int64_t pts)
+{
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+	if(cb)cb->vlcAudioResume(pts);
+}
+static void vlcAudioFush(void *pUserData, int64_t pts)
+{
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+	if(cb)cb->vlcAudioFush(pts);
+}
+static void vlcAudioDrain(void *pUserData)
+{
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+	if(cb)cb->vlcAudioDrain();
+}
+
+void VLCWrapper::SetAudioCallback(AudioCallback* cb)
+{
+	if(cb)
+	{
+		libvlc_audio_set_callbacks (pMediaPlayer_, vlcAudioPlay, vlcAudioPause, vlcAudioResume, vlcAudioFush, vlcAudioDrain, cb);
+	}
+}
+	 	
 void VLCWrapper::SetEventCallBack(EventCallBack* cb)
 {
 	if(cb)
@@ -911,7 +945,7 @@ std::string VLCWrapper::getCurrentPlayListItem()
 
 bool VLCWrapper::isSeekable()
 {
-	return libvlc_media_player_is_seekable(pMediaPlayer_);
+	return libvlc_media_player_is_seekable(pMediaPlayer_)!=0;
 }
 int VLCWrapper::getCurrentPlayListItemIndex()
 {
