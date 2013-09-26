@@ -42,6 +42,7 @@
 #define CONFIG_STRING_OPTION_AUDIO_DEVICE "audio-device"
 #define CONFIG_INT_OPTION_AUDIO_CHANNELS "audio-channels"
 #define CONFIG_STRING_OPTION_AUDIO_VISUAL "audio-visual"
+#define CONFIG_STRING_OPTION_AUDIO_OUT "audio"
 
 
 struct libvlc_instance_t;
