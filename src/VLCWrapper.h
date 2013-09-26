@@ -41,6 +41,7 @@
 #define CONFIG_BOOL_OPTION_AUDIO_EQUALIZER_2PASS "equalizer-2pass"
 #define CONFIG_STRING_OPTION_AUDIO_DEVICE "audio-device"
 #define CONFIG_INT_OPTION_AUDIO_CHANNELS "audio-channels"
+#define CONFIG_STRING_OPTION_AUDIO_VISUAL "audio-visual"
 
 
 struct libvlc_instance_t;
