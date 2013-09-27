@@ -43,6 +43,9 @@ It controls:
 
 **Changelog**
 ==================
+0.82 (2013/09/27):
+- Fixes frontpage lockups when changing folder
+
 0.81 (2013/09/25):
 - Fixes endless/useless files scanning
 
