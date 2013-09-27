@@ -22,7 +22,7 @@ public:
 		//cFont = loadFont( "font.bin");
 		cFont = loadFont( TeenData, TeenSize);
 	}
-	const juce::Typeface::Ptr getTypefaceForFont (const juce::Font &font)
+	juce::Typeface::Ptr getTypefaceForFont (const juce::Font &font)
 	{
 		if (cFont)
 		{

@@ -8,6 +8,7 @@
 #include <set>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
+#include "InvokeLater.h"
 
 #define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
@@ -278,7 +279,7 @@ VideoComponent::VideoComponent()
 		centreWithSize(800, 600);
 	}
 
-	invokeLater = new vf::GuiCallQueue();
+	invokeLater = new InvokeLater();
 
 	
 	std::set<juce::String> m_frontpageExtensions;

@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -37,9 +36,10 @@ public:
          #else
           shadersAvailable (false),
          #endif
-          needsUpdate (true)
+          hasInitialised (false),
+          needsUpdate (1), lastMMLockReleaseTime (0)
     {
-        nativeContext = new NativeContext (component, pixFormat, contextToShare);
+        nativeContext = new NativeContext (component, pixFormat, contextToShare, c.useMultisampling);
 
         if (nativeContext->createdOk())
             context.nativeContext = nativeContext;
@@ -65,32 +65,31 @@ public:
        #if ! JUCE_ANDROID
         stopThread (10000);
        #endif
+        hasInitialised = false;
     }
 
     //==============================================================================
-    void paint (Graphics&)
-    {
-        if (ComponentPeer* const peer = component.getPeer())
-            peer->addMaskedRegion (peer->getComponent().getLocalArea (&component, component.getLocalBounds()));
-    }
+    void paint (Graphics&) override {}
 
-    void invalidateAll()
+    bool invalidateAll() override
     {
         validArea.clear();
         triggerRepaint();
+        return false;
     }
 
-    void invalidate (const Rectangle<int>& area)
+    bool invalidate (const Rectangle<int>& area) override
     {
-        validArea.subtract (area);
+        validArea.subtract (area * scale);
         triggerRepaint();
+        return false;
     }
 
-    void releaseResources() {}
+    void releaseResources() override {}
 
     void triggerRepaint()
     {
-        needsUpdate = true;
+        needsUpdate = 1;
 
        #if JUCE_ANDROID
         if (nativeContext != nullptr)
@@ -118,7 +117,7 @@ public:
         return true;
     }
 
-    void clearRegionInFrameBuffer (const RectangleList& list, const float scaleFactor)
+    void clearRegionInFrameBuffer (const RectangleList<int>& list)
     {
         glClearColor (0, 0, 0, 0);
         glEnable (GL_SCISSOR_TEST);
@@ -129,8 +128,7 @@ public:
 
         for (const Rectangle<int>* i = list.begin(), * const e = list.end(); i != e; ++i)
         {
-            const Rectangle<int> r ((i->toFloat() * scaleFactor).getSmallestIntegerContainer());
-            glScissor (r.getX(), imageH - r.getBottom(), r.getWidth(), r.getHeight());
+            glScissor (i->getX(), imageH - i->getBottom(), i->getWidth(), i->getHeight());
             glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         }
 
@@ -143,8 +141,14 @@ public:
     {
         ScopedPointer<MessageManagerLock> mmLock;
 
-        if (context.renderComponents && needsUpdate)
+        const bool isUpdating = needsUpdate.compareAndSetBool (0, 1);
+
+        if (context.renderComponents && isUpdating)
         {
+            // This avoids hogging the message thread when doing intensive rendering.
+            if (lastMMLockReleaseTime + 1 >= Time::getMillisecondCounter())
+                wait (2);
+
             mmLock = new MessageManagerLock (this);  // need to acquire this before locking the context.
             if (! mmLock->lockWasGained())
                 return false;
@@ -156,21 +160,22 @@ public:
         NativeContext::Locker locker (*nativeContext);
 
         JUCE_CHECK_OPENGL_ERROR
-        glViewport (0, 0, viewportArea.getWidth(), viewportArea.getHeight());
 
         if (context.renderer != nullptr)
         {
+            glViewport (0, 0, viewportArea.getWidth(), viewportArea.getHeight());
+            context.currentRenderScale = scale;
             context.renderer->renderOpenGL();
             clearGLError();
         }
 
         if (context.renderComponents)
         {
-            if (needsUpdate)
+            if (isUpdating)
             {
-                needsUpdate = false;
                 paintComponent();
                 mmLock = nullptr;
+                lastMMLockReleaseTime = Time::getMillisecondCounter();
             }
 
             glViewport (0, 0, viewportArea.getWidth(), viewportArea.getHeight());
@@ -183,19 +188,23 @@ public:
 
     void updateViewportSize (bool canTriggerUpdate)
     {
-        const double newScale = Desktop::getInstance().getDisplays()
-                                    .getDisplayContaining (component.getScreenBounds().getCentre()).scale;
-
-        Rectangle<int> newArea (roundToInt (component.getWidth() * newScale),
-                                roundToInt (component.getHeight() * newScale));
-
-        if (scale != newScale || viewportArea != newArea)
+        if (ComponentPeer* peer = component.getPeer())
         {
-            scale = newScale;
-            viewportArea = newArea;
+            const double newScale = Desktop::getInstance().getDisplays()
+                                        .getDisplayContaining (component.getScreenBounds().getCentre()).scale;
 
-            if (canTriggerUpdate)
-                invalidateAll();
+            Rectangle<int> newArea (peer->getComponent().getLocalArea (&component, component.getLocalBounds())
+                                                        .withPosition (0, 0)
+                                     * newScale);
+
+            if (scale != newScale || viewportArea != newArea)
+            {
+                scale = newScale;
+                viewportArea = newArea;
+
+                if (canTriggerUpdate)
+                    invalidateAll();
+            }
         }
     }
 
@@ -209,18 +218,18 @@ public:
         if (! ensureFrameBufferSize())
             return;
 
-        RectangleList invalid (viewportArea);
+        RectangleList<int> invalid (viewportArea);
         invalid.subtract (validArea);
         validArea = viewportArea;
 
         if (! invalid.isEmpty())
         {
-            clearRegionInFrameBuffer (invalid, (float) scale);
+            clearRegionInFrameBuffer (invalid);
 
             {
                 ScopedPointer<LowLevelGraphicsContext> g (createOpenGLGraphicsContext (context, cachedImageFrameBuffer));
-                g->addTransform (AffineTransform::scale ((float) scale));
                 g->clipToRectangleList (invalid);
+                g->addTransform (AffineTransform::scale ((float) scale));
 
                 paintOwner (*g);
                 JUCE_CHECK_OPENGL_ERROR
@@ -243,14 +252,14 @@ public:
         glBindTexture (GL_TEXTURE_2D, cachedImageFrameBuffer.getTextureID());
 
         const Rectangle<int> cacheBounds (cachedImageFrameBuffer.getWidth(), cachedImageFrameBuffer.getHeight());
-        context.copyTexture (cacheBounds, cacheBounds, cacheBounds.getWidth(), cacheBounds.getHeight());
+        context.copyTexture (cacheBounds, cacheBounds, cacheBounds.getWidth(), cacheBounds.getHeight(), false);
         glBindTexture (GL_TEXTURE_2D, 0);
         JUCE_CHECK_OPENGL_ERROR
     }
 
     void paintOwner (LowLevelGraphicsContext& llgc)
     {
-        Graphics g (&llgc);
+        Graphics g (llgc);
 
        #if JUCE_ENABLE_REPAINT_DEBUGGING
         g.saveState();
@@ -275,8 +284,21 @@ public:
        #endif
     }
 
+    void handleResize()
+    {
+        updateViewportSize (true);
+
+       #if JUCE_MAC
+        if (hasInitialised)
+        {
+            [nativeContext->view update];
+            renderFrame();
+        }
+       #endif
+    }
+
     //==============================================================================
-    void run()
+    void run() override
     {
         {
             // Allow the message thread to finish setting-up the context before using it..
@@ -285,19 +307,16 @@ public:
                 return;
         }
 
-        nativeContext->makeActive();
         initialiseOnThread();
 
-       #if JUCE_USE_OPENGL_SHADERS && ! JUCE_OPENGL_ES
-        shadersAvailable = OpenGLShaderProgram::getLanguageVersion() > 0;
-       #endif
+        hasInitialised = true;
 
         while (! threadShouldExit())
         {
-            const uint32 frameRenderStartTime = Time::getMillisecondCounter();
-
-            if (renderFrame())
-                waitForNextFrame (frameRenderStartTime);
+            if (! renderFrame())
+                wait (5); // failed to render, so avoid a tight fail-loop.
+            else if (! context.continuousRepaint)
+                wait (-1);
         }
 
         shutdownOnThread();
@@ -305,13 +324,22 @@ public:
 
     void initialiseOnThread()
     {
+        // On android, this can get called twice, so drop any previous state..
         associatedObjectNames.clear();
         associatedObjects.clear();
+        cachedImageFrameBuffer.release();
 
-        nativeContext->initialiseOnRenderThread();
+        context.makeActive();
+        nativeContext->initialiseOnRenderThread (context);
+
         glViewport (0, 0, component.getWidth(), component.getHeight());
 
         context.extensions.initialise();
+        nativeContext->setSwapInterval (1);
+
+       #if JUCE_USE_OPENGL_SHADERS && ! JUCE_OPENGL_ES
+        shadersAvailable = OpenGLShaderProgram::getLanguageVersion() > 0;
+       #endif
 
         if (context.renderer != nullptr)
             context.renderer->newOpenGLContextCreated();
@@ -322,18 +350,11 @@ public:
         if (context.renderer != nullptr)
             context.renderer->openGLContextClosing();
 
+        cachedImageFrameBuffer.release();
         nativeContext->shutdownOnRenderThread();
 
         associatedObjectNames.clear();
         associatedObjects.clear();
-    }
-
-    void waitForNextFrame (const uint32 frameRenderStartTime)
-    {
-        const int defaultFPS = 60;
-
-        const int elapsed = (int) (Time::getMillisecondCounter() - frameRenderStartTime);
-        wait (jmax (1, (1000 / defaultFPS - 1) - elapsed));
     }
 
     //==============================================================================
@@ -349,7 +370,7 @@ public:
     Component& component;
 
     OpenGLFrameBuffer cachedImageFrameBuffer;
-    RectangleList validArea;
+    RectangleList<int> validArea;
     Rectangle<int> viewportArea;
     double scale;
 
@@ -357,8 +378,9 @@ public:
     ReferenceCountedArray<ReferenceCountedObject> associatedObjects;
 
     WaitableEvent canPaintNowFlag, finishedPaintingFlag;
-    bool volatile shadersAvailable;
-    bool volatile needsUpdate;
+    bool shadersAvailable, hasInitialised;
+    Atomic<int> needsUpdate;
+    uint32 lastMMLockReleaseTime;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CachedImage)
 };
@@ -404,7 +426,7 @@ public:
         detach();
     }
 
-    void componentMovedOrResized (bool /*wasMoved*/, bool /*wasResized*/)
+    void componentMovedOrResized (bool /*wasMoved*/, bool /*wasResized*/) override
     {
         Component& comp = *getComponent();
 
@@ -415,20 +437,20 @@ public:
              && context.nativeContext != nullptr)
         {
             if (CachedImage* const c = CachedImage::get (comp))
-                c->updateViewportSize (true);
+                c->handleResize();
 
-            context.nativeContext->updateWindowPosition (comp.getTopLevelComponent()
-                                                            ->getLocalArea (&comp, comp.getLocalBounds()));
+            if (ComponentPeer* peer = comp.getTopLevelComponent()->getPeer())
+                context.nativeContext->updateWindowPosition (peer->getAreaCoveredBy (comp));
         }
     }
 
-    void componentPeerChanged()
+    void componentPeerChanged() override
     {
         detach();
         componentVisibilityChanged();
     }
 
-    void componentVisibilityChanged()
+    void componentVisibilityChanged() override
     {
         Component& comp = *getComponent();
 
@@ -444,14 +466,14 @@ public:
     }
 
    #if JUCE_DEBUG || JUCE_LOG_ASSERTIONS
-    void componentBeingDeleted (Component& component)
+    void componentBeingDeleted (Component& c) override
     {
         /* You must call detach() or delete your OpenGLContext to remove it
            from a component BEFORE deleting the component that it is using!
         */
         jassertfalse;
 
-        ComponentMovementWatcher::componentBeingDeleted (component);
+        ComponentMovementWatcher::componentBeingDeleted (c);
     }
    #endif
 
@@ -460,7 +482,18 @@ private:
 
     static bool canBeAttached (const Component& comp) noexcept
     {
-        return comp.getWidth() > 0 && comp.getHeight() > 0 && comp.isShowing();
+        return comp.getWidth() > 0 && comp.getHeight() > 0 && isShowingOrMinimised (comp);
+    }
+
+    static bool isShowingOrMinimised (const Component& c)
+    {
+        if (! c.isVisible())
+            return false;
+
+        if (Component* p = c.getParentComponent())
+            return isShowingOrMinimised (*p);
+
+        return c.getPeer() != nullptr;
     }
 
     static bool isAttached (const Component& comp) noexcept
@@ -483,6 +516,10 @@ private:
     {
         Component& comp = *getComponent();
 
+       #if JUCE_MAC
+        [[(NSView*) comp.getWindowHandle() window] disableScreenUpdatesUntilFlush];
+       #endif
+
         if (CachedImage* const oldCachedImage = CachedImage::get (comp))
             oldCachedImage->stop(); // (must stop this before detaching it from the component)
 
@@ -493,8 +530,9 @@ private:
 
 //==============================================================================
 OpenGLContext::OpenGLContext()
-    : nativeContext (nullptr), renderer (nullptr), contextToShareWith (nullptr),
-      renderComponents (true)
+    : nativeContext (nullptr), renderer (nullptr), currentRenderScale (1.0),
+      contextToShareWith (nullptr), renderComponents (true),
+      useMultisampling (false), continuousRepaint (false)
 {
 }
 
@@ -521,6 +559,11 @@ void OpenGLContext::setComponentPaintingEnabled (bool shouldPaintComponent) noex
     renderComponents = shouldPaintComponent;
 }
 
+void OpenGLContext::setContinuousRepainting (bool shouldContinuouslyRepaint) noexcept
+{
+    continuousRepaint = shouldContinuouslyRepaint;
+}
+
 void OpenGLContext::setPixelFormat (const OpenGLPixelFormat& preferredPixelFormat) noexcept
 {
     // This method must not be called when the context has already been attached!
@@ -537,6 +580,15 @@ void OpenGLContext::setNativeSharedContext (void* nativeContextToShareWith) noex
     jassert (nativeContext == nullptr);
 
     contextToShareWith = nativeContextToShareWith;
+}
+
+void OpenGLContext::setMultisamplingEnabled (bool b) noexcept
+{
+    // This method must not be called when the context has already been attached!
+    // Call it before attaching your context, or use detach() first, before calling this!
+    jassert (nativeContext == nullptr);
+
+    useMultisampling = b;
 }
 
 void OpenGLContext::attachTo (Component& component)
@@ -566,24 +618,37 @@ Component* OpenGLContext::getTargetComponent() const noexcept
     return attachment != nullptr ? attachment->getComponent() : nullptr;
 }
 
+static ThreadLocalValue<OpenGLContext*> currentThreadActiveContext;
+
 OpenGLContext* OpenGLContext::getCurrentContext()
 {
-   #if JUCE_ANDROID
-    NativeContext* const nc = NativeContext::getActiveContext();
-    if (nc == nullptr)
-        return nullptr;
-
-    CachedImage* currentContext = CachedImage::get (nc->component);
-   #else
-    CachedImage* currentContext = dynamic_cast <CachedImage*> (Thread::getCurrentThread());
-   #endif
-
-    return currentContext != nullptr ? &currentContext->context : nullptr;
+    return currentThreadActiveContext.get();
 }
 
-bool OpenGLContext::makeActive() const noexcept     { return nativeContext != nullptr && nativeContext->makeActive(); }
-bool OpenGLContext::isActive() const noexcept       { return nativeContext != nullptr && nativeContext->isActive(); }
-void OpenGLContext::deactivateCurrentContext()      { NativeContext::deactivateCurrentContext(); }
+bool OpenGLContext::makeActive() const noexcept
+{
+    OpenGLContext*& current = currentThreadActiveContext.get();
+
+    if (nativeContext != nullptr && nativeContext->makeActive())
+    {
+        current = const_cast<OpenGLContext*> (this);
+        return true;
+    }
+
+    current = nullptr;
+    return false;
+}
+
+bool OpenGLContext::isActive() const noexcept
+{
+    return nativeContext != nullptr && nativeContext->isActive();
+}
+
+void OpenGLContext::deactivateCurrentContext()
+{
+    NativeContext::deactivateCurrentContext();
+    currentThreadActiveContext.get() = nullptr;
+}
 
 void OpenGLContext::triggerRepaint()
 {
@@ -619,8 +684,10 @@ void* OpenGLContext::getRawContext() const noexcept
 
 OpenGLContext::CachedImage* OpenGLContext::getCachedImage() const noexcept
 {
-    Component* const comp = getTargetComponent();
-    return comp != nullptr ? CachedImage::get (*comp) : nullptr;
+    if (Component* const comp = getTargetComponent())
+        return CachedImage::get (*comp);
+
+    return nullptr;
 }
 
 bool OpenGLContext::areShadersAvailable() const
@@ -668,7 +735,8 @@ void OpenGLContext::setAssociatedObject (const char* name, ReferenceCountedObjec
 
 void OpenGLContext::copyTexture (const Rectangle<int>& targetClipArea,
                                  const Rectangle<int>& anchorPosAndTextureSize,
-                                 const int contextWidth, const int contextHeight)
+                                 const int contextWidth, const int contextHeight,
+                                 bool flippedVertically)
 {
     if (contextWidth <= 0 || contextHeight <= 0)
         return;
@@ -718,12 +786,13 @@ void OpenGLContext::copyTexture (const Rectangle<int>& targetClipArea,
 
                     prog.addShader ("uniform sampler2D imageTexture;"
                                     "uniform " JUCE_HIGHP " float textureBounds[4];"
+                                    "uniform " JUCE_HIGHP " vec2 vOffsetAndScale;"
                                     "varying " JUCE_HIGHP " vec2 pixelPos;"
                                     "void main()"
                                     "{"
                                      JUCE_HIGHP " vec2 texturePos = (pixelPos - vec2 (textureBounds[0], textureBounds[1]))"
                                                                       "/ vec2 (textureBounds[2], textureBounds[3]);"
-                                     "gl_FragColor = texture2D (imageTexture, vec2 (texturePos.x, 1.0 - texturePos.y));"
+                                     "gl_FragColor = texture2D (imageTexture, vec2 (texturePos.x, vOffsetAndScale.x + vOffsetAndScale.y * texturePos.y));"
                                     "}",
                                     GL_FRAGMENT_SHADER);
                     prog.link();
@@ -736,19 +805,23 @@ void OpenGLContext::copyTexture (const Rectangle<int>& targetClipArea,
                     : positionAttribute (prog, "position"),
                       screenSize (prog, "screenSize"),
                       imageTexture (prog, "imageTexture"),
-                      textureBounds (prog, "textureBounds")
+                      textureBounds (prog, "textureBounds"),
+                      vOffsetAndScale (prog, "vOffsetAndScale")
                 {}
 
-                void set (const float targetWidth, const float targetHeight, const Rectangle<float>& bounds) const
+                void set (const float targetWidth, const float targetHeight, const Rectangle<float>& bounds, bool flipVertically) const
                 {
                     const GLfloat m[] = { bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() };
                     textureBounds.set (m, 4);
                     imageTexture.set (0);
                     screenSize.set (targetWidth, targetHeight);
+
+                    vOffsetAndScale.set (flipVertically ? 0.0f : 1.0f,
+                                         flipVertically ? 1.0f : -1.0f);
                 }
 
                 OpenGLShaderProgram::Attribute positionAttribute;
-                OpenGLShaderProgram::Uniform screenSize, imageTexture, textureBounds;
+                OpenGLShaderProgram::Uniform screenSize, imageTexture, textureBounds, vOffsetAndScale;
             };
 
             OpenGLShaderProgram program;
@@ -763,16 +836,17 @@ void OpenGLContext::copyTexture (const Rectangle<int>& targetClipArea,
         const GLshort vertices[] = { left, bottom, right, bottom, left, top, right, top };
 
         const OverlayShaderProgram& program = OverlayShaderProgram::select (*this);
-        program.params.set ((float) contextWidth, (float) contextHeight, anchorPosAndTextureSize.toFloat());
+        program.params.set ((float) contextWidth, (float) contextHeight, anchorPosAndTextureSize.toFloat(), flippedVertically);
 
-        extensions.glVertexAttribPointer (program.params.positionAttribute.attributeID, 2, GL_SHORT, GL_FALSE, 4, vertices);
-        extensions.glEnableVertexAttribArray (program.params.positionAttribute.attributeID);
+        const GLuint index = (GLuint) program.params.positionAttribute.attributeID;
+        extensions.glVertexAttribPointer (index, 2, GL_SHORT, GL_FALSE, 4, vertices);
+        extensions.glEnableVertexAttribArray (index);
         JUCE_CHECK_OPENGL_ERROR
 
         glDrawArrays (GL_TRIANGLE_STRIP, 0, 4);
 
         extensions.glUseProgram (0);
-        extensions.glDisableVertexAttribArray (program.params.positionAttribute.attributeID);
+        extensions.glDisableVertexAttribArray (index);
     }
     #if JUCE_USE_OPENGL_FIXED_FUNCTION
     else

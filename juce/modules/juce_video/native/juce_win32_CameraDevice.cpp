@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -171,9 +170,14 @@ public:
         for (int i = viewerComps.size(); --i >= 0;)
             viewerComps.getUnchecked(i)->ownerDeleted();
 
+        if (sampleGrabber != nullptr)
+        {
+            sampleGrabber->SetCallback (nullptr, 0);
+            sampleGrabber = nullptr;
+        }
+
         callback = nullptr;
         graphBuilder = nullptr;
-        sampleGrabber = nullptr;
         mediaControl = nullptr;
         filter = nullptr;
         captureGraphBuilder = nullptr;
@@ -445,7 +449,7 @@ public:
             owner = nullptr;
         }
 
-        void paint (Graphics& g)
+        void paint (Graphics& g) override
         {
             g.setColour (Colours::black);
             g.setImageResamplingQuality (Graphics::lowResamplingQuality);
@@ -456,7 +460,7 @@ public:
                 g.fillAll (Colours::black);
         }
 
-        void changeListenerCallback (ChangeBroadcaster*)
+        void changeListenerCallback (ChangeBroadcaster*) override
         {
             const int64 now = Time::currentTimeMillis();
 
@@ -677,7 +681,16 @@ private:
     class GrabberCallback   : public ComBaseClassHelperBase <ISampleGrabberCB>
     {
     public:
-        GrabberCallback (DShowCameraDeviceInteral& cam)  : owner (cam) {}
+        GrabberCallback (DShowCameraDeviceInteral& cam)
+            : ComBaseClassHelperBase <ISampleGrabberCB> (0), owner (cam) {}
+
+        JUCE_COMRESULT QueryInterface (REFIID refId, void** result)
+        {
+            if (refId == IID_ISampleGrabberCB)
+                return castToType <ISampleGrabberCB> (result);
+
+            return ComBaseClassHelperBase<ISampleGrabberCB>::QueryInterface (refId, result);
+        }
 
         STDMETHODIMP SampleCB (double, IMediaSample*)  { return E_FAIL; }
 

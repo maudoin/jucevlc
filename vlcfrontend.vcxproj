@@ -158,6 +158,7 @@
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\ImageCatalog.cpp" />
     <ClCompile Include="src\ImageCatalogCache.cpp" />
+    <ClCompile Include="src\InvokeLater.cpp" />
     <ClCompile Include="src\Languages.cpp" />
     <ClCompile Include="src\MenuBase.cpp" />
     <ClCompile Include="src\MenuComponent.cpp" />
@@ -168,8 +169,6 @@
     <ClCompile Include="src\Thumbnailer.cpp" />
     <ClCompile Include="src\VideoComponent.cpp" />
     <ClCompile Include="src\VLCWrapper.cpp" />
-    <ClCompile Include="vf\modules\vf_concurrent\vf_concurrent.cpp" />
-    <ClCompile Include="vf\modules\vf_core\vf_core.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="boost\include\boost\aligned_storage.hpp" />
@@ -388,6 +387,7 @@
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\ImageCatalog.h" />
     <ClInclude Include="src\ImageCatalogCache.h" />
+    <ClInclude Include="src\InvokeLater.h" />
     <ClInclude Include="src\Languages.h" />
     <ClInclude Include="src\MenuBase.h" />
     <ClInclude Include="src\MenuComponent.h" />
@@ -399,8 +399,6 @@
     <ClInclude Include="src\Thumbnailer.h" />
     <ClInclude Include="src\VideoComponent.h" />
     <ClInclude Include="src\VLCWrapper.h" />
-    <ClInclude Include="vf\modules\vf_concurrent\vf_concurrent.h" />
-    <ClInclude Include="vf\modules\vf_core\vf_core.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\vlc.ico" />

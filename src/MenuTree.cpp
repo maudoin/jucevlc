@@ -1,7 +1,5 @@
 #include "MenuTree.h"
 
-#include <modules\vf_core\vf_core.h>
-
 class SmartTreeViewItem  : public juce::TreeViewItem, public AbstractMenuItem
 {
 	AbstractMenu& owner;

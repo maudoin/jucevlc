@@ -111,7 +111,7 @@ Languages::Languages()
 		{
 			return;
 		}
-		juce::LocalisedStrings *l = new juce::LocalisedStrings (res[i]);
+		juce::LocalisedStrings *l = new juce::LocalisedStrings (res[i], false);
 		all.push_back( l );
 		add(m_languages, l->getLanguageName().toUTF8(), res[i].getFullPathName());
 	}
@@ -161,7 +161,7 @@ void  Languages::dumpDefaultIfMissing(std::string const& name, juce::String cons
 		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
 		f.appendText(content,true);
 		add(m_languages, name.c_str(), f.getFullPathName());
-		all.push_back(new juce::LocalisedStrings (content));
+		all.push_back(new juce::LocalisedStrings (content, false));
 	}
 }
 
@@ -186,7 +186,7 @@ void Languages::setCurrentLanguage(std::string name)
 	juce::File f(it->second.c_str());
 	if(f.exists())
 	{
-		juce::LocalisedStrings::setCurrentMappings (new juce::LocalisedStrings(f));
+		juce::LocalisedStrings::setCurrentMappings (new juce::LocalisedStrings(f, false));
 	}
 	
 }

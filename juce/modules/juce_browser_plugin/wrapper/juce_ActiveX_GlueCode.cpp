@@ -1,24 +1,23 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission is granted to use this software under the terms of either:
+   a) the GPL v2 (or any later version)
+   b) the Affero GPL v3
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   Details of these licenses can be found at: www.gnu.org/licenses
 
    JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
    A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
-  ------------------------------------------------------------------------------
+   ------------------------------------------------------------------------------
 
    To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   available: visit www.juce.com for more information.
 
   ==============================================================================
 */
@@ -148,7 +147,7 @@ public:
 private:
     StringPool identifierPool;
 
-    static DISPID getHashFromString (const String::CharPointerType& s) noexcept
+    static DISPID getHashFromString (const String::CharPointerType s) noexcept
     {
         return (DISPID) (pointer_sized_int) s.getAddress();
     }
@@ -175,8 +174,8 @@ public:
 
     HRESULT __stdcall QueryInterface (REFIID id, void __RPC_FAR* __RPC_FAR* result)
     {
-        if (id == IID_IUnknown)         { AddRef(); *result = (IUnknown*)  this; return S_OK; }
-        else if (id == IID_IDispatch)   { AddRef(); *result = (IDispatch*) this; return S_OK; }
+        if (id == IID_IUnknown)    { AddRef(); *result = (IUnknown*)  this; return S_OK; }
+        if (id == IID_IDispatch)   { AddRef(); *result = (IDispatch*) this; return S_OK; }
 
         *result = 0;
         return E_NOINTERFACE;
@@ -448,13 +447,13 @@ public:
     }
 
     //==============================================================================
-    void paint (Graphics& g)
+    void paint (Graphics& g) override
     {
         if (child == nullptr || ! child->isOpaque())
             g.fillAll (Colours::white);
     }
 
-    void resized()
+    void resized() override
     {
         if (child != nullptr)
             child->setBounds (getLocalBounds());
@@ -595,12 +594,12 @@ public:
 
     HRESULT __stdcall QueryInterface (REFIID id, void __RPC_FAR* __RPC_FAR* result)
     {
-        if (id == IID_IUnknown)                 { AddRef(); *result = (IUnknown*) this; return S_OK; }
-        else if (id == IID_IDispatch)           { AddRef(); *result = (IDispatch*) this; return S_OK; }
-        else if (id == IID_IObjectWithSite)     { AddRef(); *result = (IObjectWithSite*) this; return S_OK; }
-        else if (id == IID_IObjectSafety)       { AddRef(); *result = (IObjectSafety*) this; return S_OK; }
-        else if (id == IID_IOleInPlaceObject)   { AddRef(); *result = (IOleInPlaceObject*) this; return S_OK; }
-        else if (id == IID_IOleWindow)          { AddRef(); *result = (IOleWindow*) (IOleInPlaceObject*) this; return S_OK; }
+        if (id == IID_IUnknown)            { AddRef(); *result = (IUnknown*) this; return S_OK; }
+        if (id == IID_IDispatch)           { AddRef(); *result = (IDispatch*) this; return S_OK; }
+        if (id == IID_IObjectWithSite)     { AddRef(); *result = (IObjectWithSite*) this; return S_OK; }
+        if (id == IID_IObjectSafety)       { AddRef(); *result = (IObjectSafety*) this; return S_OK; }
+        if (id == IID_IOleInPlaceObject)   { AddRef(); *result = (IOleInPlaceObject*) this; return S_OK; }
+        if (id == IID_IOleWindow)          { AddRef(); *result = (IOleWindow*) (IOleInPlaceObject*) this; return S_OK; }
 
         *result = 0;
         return E_NOINTERFACE;
@@ -754,8 +753,8 @@ public:
 
     HRESULT __stdcall QueryInterface (REFIID id, void __RPC_FAR* __RPC_FAR* result)
     {
-        if (id == IID_IUnknown)             { AddRef(); *result = (IUnknown*) this; return S_OK; }
-        else if (id == IID_IClassFactory)   { AddRef(); *result = (IClassFactory*) this; return S_OK; }
+        if (id == IID_IUnknown)        { AddRef(); *result = (IUnknown*) this; return S_OK; }
+        if (id == IID_IClassFactory)   { AddRef(); *result = (IClassFactory*) this; return S_OK; }
 
         *result = nullptr;
         return E_NOINTERFACE;

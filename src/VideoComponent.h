@@ -7,7 +7,6 @@
 #include "ControlComponent.h"
 #include "AbstractMenu.h"
 #include "AppProportionnalComponent.h"
-#include <modules\vf_concurrent\vf_concurrent.h>
 #include <sstream>
 #include <set>
 #include "LookNFeel.h"
@@ -17,6 +16,7 @@
 #define BUFFER_DISPLAY
 #undef BUFFER_DISPLAY
 
+class InvokeLater;
 class TitleComponent;
 class VideoComponent   : public juce::Component , public juce::KeyListener, 
 	
@@ -65,7 +65,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::PropertiesFile m_settings;
 	juce::PropertiesFile m_mediaTimes;
 	juce::StringArray m_shortcuts;
-    juce::ScopedPointer<vf::GuiCallQueue> invokeLater;
+    juce::ScopedPointer<InvokeLater> invokeLater;
 	bool m_canHideOSD;
 	bool m_autoSubtitlesHeight;
 	std::set<juce::String> m_videoExtensions;

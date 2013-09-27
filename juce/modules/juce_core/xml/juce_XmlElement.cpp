@@ -1,24 +1,27 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-11 by Raw Material Software Ltd.
+   This file is part of the juce_core module of the JUCE library.
+   Copyright (c) 2013 - Raw Material Software Ltd.
 
-  ------------------------------------------------------------------------------
+   Permission to use, copy, modify, and/or distribute this software for any purpose with
+   or without fee is hereby granted, provided that the above copyright notice and this
+   permission notice appear in all copies.
 
-   JUCE can be redistributed and/or modified under the terms of the GNU General
-   Public License (Version 2), as published by the Free Software Foundation.
-   A copy of the license is included in the JUCE distribution, or can be found
-   online at www.gnu.org/licenses.
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD
+   TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN
+   NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+   DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+   IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-   JUCE is distributed in the hope that it will be useful, but WITHOUT ANY
-   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-   A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   ------------------------------------------------------------------------------
 
-  ------------------------------------------------------------------------------
+   NOTE! This permissive ISC license applies ONLY to files within the juce_core module!
+   All other JUCE modules are covered by a dual GPL/commercial license, so if you are
+   using any other modules, be sure to check that you also comply with their license.
 
-   To release a closed-source product which uses JUCE, commercial licenses are
-   available: visit www.rawmaterialsoftware.com/juce for more information.
+   For more details, visit www.juce.com
 
   ==============================================================================
 */
@@ -29,9 +32,8 @@ XmlElement::XmlAttributeNode::XmlAttributeNode (const XmlAttributeNode& other) n
 {
 }
 
-XmlElement::XmlAttributeNode::XmlAttributeNode (const String& name_, const String& value_) noexcept
-    : name (name_),
-      value (value_)
+XmlElement::XmlAttributeNode::XmlAttributeNode (const String& n, const String& v) noexcept
+    : name (n), value (v)
 {
    #if JUCE_DEBUG
     // this checks whether the attribute name string contains any illegal characters..
@@ -46,14 +48,14 @@ inline bool XmlElement::XmlAttributeNode::hasName (const String& nameToMatch) co
 }
 
 //==============================================================================
-XmlElement::XmlElement (const String& tagName_) noexcept
-    : tagName (tagName_)
+XmlElement::XmlElement (const String& tag) noexcept
+    : tagName (tag)
 {
     // the tag name mustn't be empty, or it'll look like a text element!
-    jassert (tagName_.containsNonWhitespaceChars())
+    jassert (tag.containsNonWhitespaceChars())
 
     // The tag can't contain spaces or other characters that would create invalid XML!
-    jassert (! tagName_.containsAnyOf (" <>/&"));
+    jassert (! tag.containsAnyOf (" <>/&"));
 }
 
 XmlElement::XmlElement (int /*dummy*/) noexcept
@@ -207,7 +209,7 @@ namespace XmlOutputFunctions
         }
     }
 
-    static void writeSpaces (OutputStream& out, const int numSpaces)
+    static void writeSpaces (OutputStream& out, const size_t numSpaces)
     {
         out.writeRepeatedByte (' ', numSpaces);
     }
@@ -220,7 +222,7 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
     using namespace XmlOutputFunctions;
 
     if (indentationLevel >= 0)
-        writeSpaces (outputStream, indentationLevel);
+        writeSpaces (outputStream, (size_t) indentationLevel);
 
     if (! isTextElement())
     {
@@ -228,7 +230,7 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
         outputStream << tagName;
 
         {
-            const int attIndent = indentationLevel + tagName.length() + 1;
+            const size_t attIndent = (size_t) (indentationLevel + tagName.length() + 1);
             int lineLen = 0;
 
             for (const XmlAttributeNode* att = attributes; att != nullptr; att = att->nextListItem)
@@ -254,7 +256,6 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
         {
             outputStream.writeByte ('>');
 
-
             bool lastWasTextNode = false;
 
             for (XmlElement* child = firstChildElement; child != nullptr; child = child->nextListItem)
@@ -278,7 +279,7 @@ void XmlElement::writeElementAsText (OutputStream& outputStream,
             if (indentationLevel >= 0 && ! lastWasTextNode)
             {
                 outputStream << newLine;
-                writeSpaces (outputStream, indentationLevel);
+                writeSpaces (outputStream, (size_t) indentationLevel);
             }
 
             outputStream.write ("</", 2);
@@ -363,24 +364,30 @@ bool XmlElement::writeToFile (const File& file,
 }
 
 //==============================================================================
-bool XmlElement::hasTagName (const String& tagNameWanted) const noexcept
+bool XmlElement::hasTagName (const String& possibleTagName) const noexcept
 {
-   #if JUCE_DEBUG
-    // if debugging, check that the case is actually the same, because
-    // valid xml is case-sensitive, and although this lets it pass, it's
-    // better not to..
-    if (tagName.equalsIgnoreCase (tagNameWanted))
-    {
-        jassert (tagName == tagNameWanted);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-   #else
-    return tagName.equalsIgnoreCase (tagNameWanted);
-   #endif
+    const bool matches = tagName.equalsIgnoreCase (possibleTagName);
+
+    // XML tags should be case-sensitive, so although this method allows a
+    // case-insensitive match to pass, you should try to avoid this.
+    jassert ((! matches) || tagName == possibleTagName);
+
+    return matches;
+}
+
+String XmlElement::getNamespace() const
+{
+    return tagName.upToFirstOccurrenceOf (":", false, false);
+}
+
+String XmlElement::getTagNameWithoutNamespace() const
+{
+    return tagName.fromLastOccurrenceOf (":", false, false);
+}
+
+bool XmlElement::hasTagNameIgnoringNamespace (const String& possibleTagName) const
+{
+    return hasTagName (possibleTagName) || getTagNameWithoutNamespace() == possibleTagName;
 }
 
 XmlElement* XmlElement::getNextElementWithTagName (const String& requiredTagName) const
@@ -463,10 +470,7 @@ bool XmlElement::getBoolAttribute (const String& attributeName, const bool defau
     {
         if (att->hasName (attributeName))
         {
-            juce_wchar firstChar = att->value[0];
-
-            if (CharacterFunctions::isWhitespace (firstChar))
-                firstChar = att->value.trimStart() [0];
+            const juce_wchar firstChar = *(att->value.getCharPointer().findEndOfWhitespace());
 
             return firstChar == '1'
                 || firstChar == 't'
@@ -500,22 +504,19 @@ void XmlElement::setAttribute (const String& attributeName, const String& value)
     }
     else
     {
-        XmlAttributeNode* att = attributes;
-
-        for (;;)
+        for (XmlAttributeNode* att = attributes; ; att = att->nextListItem)
         {
             if (att->hasName (attributeName))
             {
                 att->value = value;
                 break;
             }
-            else if (att->nextListItem == nullptr)
+
+            if (att->nextListItem == nullptr)
             {
                 att->nextListItem = new XmlAttributeNode (attributeName, value);
                 break;
             }
-
-            att = att->nextListItem;
         }
     }
 }
@@ -527,22 +528,20 @@ void XmlElement::setAttribute (const String& attributeName, const int number)
 
 void XmlElement::setAttribute (const String& attributeName, const double number)
 {
-    setAttribute (attributeName, String (number));
+    setAttribute (attributeName, String (number, 20));
 }
 
 void XmlElement::removeAttribute (const String& attributeName) noexcept
 {
-    LinkedListPointer<XmlAttributeNode>* att = &attributes;
-
-    while (att->get() != nullptr)
+    for (LinkedListPointer<XmlAttributeNode>* att = &attributes;
+         att->get() != nullptr;
+         att = &(att->get()->nextListItem))
     {
         if (att->get()->hasName (attributeName))
         {
             delete att->removeNext();
             break;
         }
-
-        att = &(att->get()->nextListItem);
     }
 }
 
@@ -599,9 +598,7 @@ bool XmlElement::replaceChildElement (XmlElement* const currentChildElement,
 {
     if (newNode != nullptr)
     {
-        LinkedListPointer<XmlElement>* const p = firstChildElement.findPointerTo (currentChildElement);
-
-        if (p != nullptr)
+        if (LinkedListPointer<XmlElement>* const p = firstChildElement.findPointerTo (currentChildElement))
         {
             if (currentChildElement != newNode)
                 delete p->replaceNext (newNode);
@@ -705,9 +702,7 @@ void XmlElement::deleteAllChildElements() noexcept
 
 void XmlElement::deleteAllChildElementsWithTagName (const String& name) noexcept
 {
-    XmlElement* child = firstChildElement;
-
-    while (child != nullptr)
+    for (XmlElement* child = firstChildElement; child != nullptr;)
     {
         XmlElement* const nextChild = child->nextListItem;
 
@@ -733,9 +728,7 @@ XmlElement* XmlElement::findParentElementOf (const XmlElement* const elementToLo
         if (elementToLookFor == child)
             return this;
 
-        XmlElement* const found = child->findParentElementOf (elementToLookFor);
-
-        if (found != nullptr)
+        if (XmlElement* const found = child->findParentElementOf (elementToLookFor))
             return found;
     }
 
@@ -795,15 +788,13 @@ String XmlElement::getAllSubText() const
     for (const XmlElement* child = firstChildElement; child != nullptr; child = child->nextListItem)
         mem << child->getAllSubText();
 
-    return mem.toString();
+    return mem.toUTF8();
 }
 
 String XmlElement::getChildElementAllSubText (const String& childTagName,
                                               const String& defaultReturnValue) const
 {
-    const XmlElement* const child = getChildByName (childTagName);
-
-    if (child != nullptr)
+    if (const XmlElement* const child = getChildByName (childTagName))
         return child->getAllSubText();
 
     return defaultReturnValue;
@@ -823,9 +814,7 @@ void XmlElement::addTextElement (const String& text)
 
 void XmlElement::deleteAllTextElements() noexcept
 {
-    XmlElement* child = firstChildElement;
-
-    while (child != nullptr)
+    for (XmlElement* child = firstChildElement; child != nullptr;)
     {
         XmlElement* const next = child->nextListItem;
 

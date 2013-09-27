@@ -36,6 +36,8 @@ icons/iconic/vector/
 boost_*.dll
 thumbnails
 plugins208
+vlcfrontendDebug.exp
+vlcfrontendDebug.lib
 syntax: regexp
 FontResource.cpp
 FontResource.h
