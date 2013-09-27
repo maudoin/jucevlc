@@ -62,10 +62,10 @@ CFLAGS   :=  -g -O0 -Wall $(Preprocessors)
 CodeLiteDir:=E:\dev\CodeLite
 UNIT_TEST_PP_SRC_DIR:=e:\dev\UnitTest++-1.3
 Objects0=$(IntermediateDirectory)/src_AppProportionnalComponent$(ObjectSuffix) $(IntermediateDirectory)/src_ControlComponent$(ObjectSuffix) $(IntermediateDirectory)/src_Execute$(ObjectSuffix) $(IntermediateDirectory)/src_FileSorter$(ObjectSuffix) $(IntermediateDirectory)/src_FontResource$(ObjectSuffix) $(IntermediateDirectory)/src_FontSerialization$(ObjectSuffix) $(IntermediateDirectory)/src_IconMenu$(ObjectSuffix) $(IntermediateDirectory)/src_Icons$(ObjectSuffix) $(IntermediateDirectory)/src_ImageCatalog$(ObjectSuffix) $(IntermediateDirectory)/src_ImageCatalogCache$(ObjectSuffix) \
-	$(IntermediateDirectory)/src_Languages$(ObjectSuffix) $(IntermediateDirectory)/src_Main$(ObjectSuffix) $(IntermediateDirectory)/src_MenuBase$(ObjectSuffix) $(IntermediateDirectory)/src_MenuComponent$(ObjectSuffix) $(IntermediateDirectory)/src_MenuTree$(ObjectSuffix) $(IntermediateDirectory)/src_PosterFinder$(ObjectSuffix) $(IntermediateDirectory)/src_Thumbnailer$(ObjectSuffix) $(IntermediateDirectory)/src_VideoComponent$(ObjectSuffix) $(IntermediateDirectory)/src_VLCWrapper$(ObjectSuffix) $(IntermediateDirectory)/src_resources.rc$(ObjectSuffix) \
-	
+	$(IntermediateDirectory)/src_Languages$(ObjectSuffix) $(IntermediateDirectory)/src_Main$(ObjectSuffix) $(IntermediateDirectory)/src_MenuBase$(ObjectSuffix) $(IntermediateDirectory)/src_MenuComponent$(ObjectSuffix) $(IntermediateDirectory)/src_MenuTree$(ObjectSuffix) $(IntermediateDirectory)/src_PosterFinder$(ObjectSuffix) $(IntermediateDirectory)/src_Thumbnailer$(ObjectSuffix) $(IntermediateDirectory)/src_VideoComponent$(ObjectSuffix) $(IntermediateDirectory)/src_VLCWrapper$(ObjectSuffix) $(IntermediateDirectory)/src_InvokeLater$(ObjectSuffix) \
+	$(IntermediateDirectory)/src_resources.rc$(ObjectSuffix) 
 
-Objects1=$(IntermediateDirectory)/juce_core_juce_core$(ObjectSuffix) $(IntermediateDirectory)/juce_data_structures_juce_data_structures$(ObjectSuffix) $(IntermediateDirectory)/juce_events_juce_events$(ObjectSuffix) $(IntermediateDirectory)/juce_graphics_juce_graphics$(ObjectSuffix) $(IntermediateDirectory)/juce_gui_basics_juce_gui_basics$(ObjectSuffix) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(ObjectSuffix) $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(ObjectSuffix) $(IntermediateDirectory)/vf_core_vf_core$(ObjectSuffix) 
+Objects1=$(IntermediateDirectory)/juce_core_juce_core$(ObjectSuffix) $(IntermediateDirectory)/juce_data_structures_juce_data_structures$(ObjectSuffix) $(IntermediateDirectory)/juce_events_juce_events$(ObjectSuffix) $(IntermediateDirectory)/juce_graphics_juce_graphics$(ObjectSuffix) $(IntermediateDirectory)/juce_gui_basics_juce_gui_basics$(ObjectSuffix) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(ObjectSuffix) 
 
 
 
@@ -245,6 +245,14 @@ $(IntermediateDirectory)/src_VLCWrapper$(DependSuffix): ../../src/VLCWrapper.cpp
 $(IntermediateDirectory)/src_VLCWrapper$(PreprocessSuffix): ../../src/VLCWrapper.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_VLCWrapper$(PreprocessSuffix) "../../src/VLCWrapper.cpp"
 
+$(IntermediateDirectory)/src_InvokeLater$(ObjectSuffix): ../../src/InvokeLater.cpp $(IntermediateDirectory)/src_InvokeLater$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/dev/vlcfrontend/src/InvokeLater.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_InvokeLater$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_InvokeLater$(DependSuffix): ../../src/InvokeLater.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/src_InvokeLater$(ObjectSuffix) -MF$(IntermediateDirectory)/src_InvokeLater$(DependSuffix) -MM "../../src/InvokeLater.cpp"
+
+$(IntermediateDirectory)/src_InvokeLater$(PreprocessSuffix): ../../src/InvokeLater.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_InvokeLater$(PreprocessSuffix) "../../src/InvokeLater.cpp"
+
 $(IntermediateDirectory)/src_resources.rc$(ObjectSuffix): ../../src/resources.rc
 	$(RcCompilerName) -i "E:/dev/vlcfrontend/src/resources.rc" $(RcCmpOptions)   $(ObjectSwitch)$(IntermediateDirectory)/src_resources.rc$(ObjectSuffix) $(RcIncludePath)
 $(IntermediateDirectory)/juce_core_juce_core$(ObjectSuffix): ../../juce/modules/juce_core/juce_core.cpp $(IntermediateDirectory)/juce_core_juce_core$(DependSuffix)
@@ -294,22 +302,6 @@ $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(DependSuffix): ../../juc
 
 $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(PreprocessSuffix): ../../juce/modules/juce_gui_extra/juce_gui_extra.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(PreprocessSuffix) "../../juce/modules/juce_gui_extra/juce_gui_extra.cpp"
-
-$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(ObjectSuffix): ../../vf/modules/vf_concurrent/vf_concurrent.cpp $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/dev/vlcfrontend/vf/modules/vf_concurrent/vf_concurrent.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(DependSuffix): ../../vf/modules/vf_concurrent/vf_concurrent.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(ObjectSuffix) -MF$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(DependSuffix) -MM "../../vf/modules/vf_concurrent/vf_concurrent.cpp"
-
-$(IntermediateDirectory)/vf_concurrent_vf_concurrent$(PreprocessSuffix): ../../vf/modules/vf_concurrent/vf_concurrent.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(PreprocessSuffix) "../../vf/modules/vf_concurrent/vf_concurrent.cpp"
-
-$(IntermediateDirectory)/vf_core_vf_core$(ObjectSuffix): ../../vf/modules/vf_core/vf_core.cpp $(IntermediateDirectory)/vf_core_vf_core$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/dev/vlcfrontend/vf/modules/vf_core/vf_core.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/vf_core_vf_core$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/vf_core_vf_core$(DependSuffix): ../../vf/modules/vf_core/vf_core.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/vf_core_vf_core$(ObjectSuffix) -MF$(IntermediateDirectory)/vf_core_vf_core$(DependSuffix) -MM "../../vf/modules/vf_core/vf_core.cpp"
-
-$(IntermediateDirectory)/vf_core_vf_core$(PreprocessSuffix): ../../vf/modules/vf_core/vf_core.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/vf_core_vf_core$(PreprocessSuffix) "../../vf/modules/vf_core/vf_core.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
@@ -374,6 +366,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/src_VLCWrapper$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/src_VLCWrapper$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/src_VLCWrapper$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/src_InvokeLater$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/src_InvokeLater$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/src_InvokeLater$(PreprocessSuffix)
 	$(RM) $(IntermediateDirectory)/resources.rc$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/juce_core_juce_core$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/juce_core_juce_core$(DependSuffix)
@@ -393,12 +388,6 @@ clean:
 	$(RM) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/juce_gui_extra_juce_gui_extra$(PreprocessSuffix)
-	$(RM) $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(ObjectSuffix)
-	$(RM) $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(DependSuffix)
-	$(RM) $(IntermediateDirectory)/vf_concurrent_vf_concurrent$(PreprocessSuffix)
-	$(RM) $(IntermediateDirectory)/vf_core_vf_core$(ObjectSuffix)
-	$(RM) $(IntermediateDirectory)/vf_core_vf_core$(DependSuffix)
-	$(RM) $(IntermediateDirectory)/vf_core_vf_core$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 	$(RM) $(OutputFile).exe
 	$(RM) "../.build-debug/JuceVLC"

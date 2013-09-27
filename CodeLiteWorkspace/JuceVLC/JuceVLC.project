@@ -27,11 +27,11 @@
     <File Name="../../src/Thumbnailer.cpp"/>
     <File Name="../../src/VideoComponent.cpp"/>
     <File Name="../../src/VLCWrapper.cpp"/>
+    <File Name="../../src/InvokeLater.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <File Name="../../src/AbstractMenu.h"/>
     <File Name="../../src/AppProportionnalComponent.h"/>
-    <File Name="../../src/ControlComponent.h"/>
     <File Name="../../src/Execute.h"/>
     <File Name="../../src/FileSorter.h"/>
     <File Name="../../src/FontResource.h"/>
@@ -49,6 +49,7 @@
     <File Name="../../src/Thumbnailer.h"/>
     <File Name="../../src/VideoComponent.h"/>
     <File Name="../../src/VLCWrapper.h"/>
+    <File Name="../../src/InvokeLater.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="resources">
     <File Name="../../src/resources.rc"/>
@@ -175,12 +176,7 @@
       <File Name="../../juce/modules/juce_gui_basics/juce_gui_basics.cpp"/>
       <File Name="../../juce/modules/juce_gui_extra/juce_gui_extra.cpp"/>
     </VirtualDirectory>
-  </VirtualDirectory>
-  <VirtualDirectory Name="vf">
-    <VirtualDirectory Name="src">
-      <File Name="../../vf/modules/vf_concurrent/vf_concurrent.cpp"/>
-      <File Name="../../vf/modules/vf_core/vf_core.cpp"/>
-    </VirtualDirectory>
+    <File Name="../../src/ControlComponent.h"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

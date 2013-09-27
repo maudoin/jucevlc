@@ -207,7 +207,7 @@ private:
   #endif
 
 //==============================================================================
-#elif JUCE_GCC
+#elif JUCE_GCC && !JUCE_MINGW
   #define JUCE_ATOMICS_GCC 1        // GCC with intrinsics
 
   #if JUCE_IOS || JUCE_ANDROID // (64-bit ops will compile but not link on these mobile OSes)
@@ -332,7 +332,7 @@ inline Type Atomic<Type>::operator--() noexcept
   #if JUCE_ATOMICS_MAC
     return sizeof (Type) == 4 ? (Type) OSAtomicDecrement32Barrier ((JUCE_MAC_ATOMICS_VOLATILE int32_t*) &value)
                               : (Type) OSAtomicDecrement64Barrier ((JUCE_MAC_ATOMICS_VOLATILE int64_t*) &value);
-  #elif JUCE_ATOMICS_WINDOWS
+  #elif JUCE_ATOMICS_WINDOWS || JUCE_MINGW
     return sizeof (Type) == 4 ? (Type) juce_InterlockedDecrement ((volatile long*) &value)
                               : (Type) juce_InterlockedDecrement64 ((volatile __int64*) &value);
   #elif JUCE_ATOMICS_GCC

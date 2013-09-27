@@ -354,6 +354,11 @@ namespace MACAddressHelpers
         }
     }
 
+    struct ASTAT
+    {
+        ADAPTER_STATUS adapt;
+        NAME_BUFFER    NameBuff [30];
+    };
     void getViaNetBios (Array<MACAddress>& result)
     {
         DynamicLibrary dll ("netapi32.dll");
@@ -384,11 +389,6 @@ namespace MACAddressHelpers
                     ncb.ncb_command = NCBASTAT;
                     ncb.ncb_lana_num = enums.lana[i];
 
-                    struct ASTAT
-                    {
-                        ADAPTER_STATUS adapt;
-                        NAME_BUFFER    NameBuff [30];
-                    };
 
                     ASTAT astat;
                     zerostruct (astat);
