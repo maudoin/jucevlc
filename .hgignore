@@ -41,3 +41,5 @@ vlcfrontendDebug.lib
 syntax: regexp
 FontResource.cpp
 FontResource.h
+CodeLiteWorkspace/CodeLiteWorkspace.tags
+CodeLiteWorkspace/CodeLiteWorkspace.workspace.session

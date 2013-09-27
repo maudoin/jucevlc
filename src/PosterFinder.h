@@ -2,6 +2,7 @@
 #define POSTERFINDER_H
 
 
+#include "AppConfig.h"
 #include "juce.h"
 
 class ImageCatalog;

@@ -2,6 +2,7 @@
 #ifndef CONTORL_COMPONENT_H
 #define CONTORL_COMPONENT_H
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "AppProportionnalComponent.h"
 #include <sstream>

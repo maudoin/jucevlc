@@ -2,6 +2,7 @@
 #ifndef FONTSERIALIZATION
 #define FONTSERIALIZATION
 
+#include "AppConfig.h"
 #include "juce.h"
 
 

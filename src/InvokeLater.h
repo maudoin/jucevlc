@@ -1,6 +1,7 @@
 #ifndef INVOKE_LATER
 #define INVOKE_LATER
 
+#include "AppConfig.h"
 #include "juce.h"
 #include <list>
 #include <boost/function.hpp>

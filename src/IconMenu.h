@@ -2,6 +2,7 @@
 #define ICON_MENU_H
 
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "ImageCatalog.h"
 #include "Thumbnailer.h"

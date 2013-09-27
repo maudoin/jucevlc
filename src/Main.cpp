@@ -1,4 +1,5 @@
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "VideoComponent.h"
 

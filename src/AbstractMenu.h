@@ -2,6 +2,7 @@
 #define ABSTRACT_MENU_H
 
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "AppProportionnalComponent.h"
 #include <boost/function.hpp>

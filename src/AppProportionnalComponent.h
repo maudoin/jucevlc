@@ -1,6 +1,7 @@
 #ifndef APPPROPORTIONNALCOMPONENT
 #define APPPROPORTIONNALCOMPONENT
 
+#include "AppConfig.h"
 #include "juce.h"
 
 class AppProportionnalComponent : public juce::ComponentListener

@@ -2,6 +2,7 @@
 #define IMAGECATALOG_H
 
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "ImageCatalogCache.h"
 #include <string>

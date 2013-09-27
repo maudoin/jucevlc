@@ -1,6 +1,7 @@
 #ifndef LOOKANDFEEL
 #define LOOKANDFEEL
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "FontSerialization.h"
 #include "AppProportionnalComponent.h"

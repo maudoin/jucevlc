@@ -2,6 +2,7 @@
 #define THUMBNAILER_H
 
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "VLCWrapper.h"
 #include <string>

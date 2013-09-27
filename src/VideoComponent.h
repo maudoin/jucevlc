@@ -2,6 +2,7 @@
 #ifndef VIDEO_COMPONENT
 #define VIDEO_COMPONENT
 
+#include "AppConfig.h"
 #include "juce.h"
 #include "VLCWrapper.h"
 #include "ControlComponent.h"
