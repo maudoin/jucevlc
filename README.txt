@@ -50,7 +50,7 @@ It controls:
 - Fixes endless/useless files scanning
 
 0.80 (2013/09/24):
-- New frontpage movie browser with posters or thumbnails (thanks to Mark Pietras for the motivation/inspiration)</li>
+- New frontpage movie browser with posters or thumbnails (thanks to Mark Pietras for the motivation/inspiration)
 - libVLC 2.0.8
 
 0.71 (2013/07/24):
