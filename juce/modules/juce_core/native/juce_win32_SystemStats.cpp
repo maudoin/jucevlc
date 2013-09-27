@@ -404,7 +404,7 @@ static String getLocaleValue (LCID locale, LCTYPE key, const char* defaultValue)
 String SystemStats::getUserLanguage()     { return getLocaleValue (LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME,  "en"); }
 String SystemStats::getUserRegion()       { return getLocaleValue (LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, "US"); }
 #ifdef JUCE_MINGW
-String SystemStats::getDisplayLanguage()  { return getLocaleValue (MAKELCID (GetUserDefaultUILanguage(), SORT_DEFAULT), LOCALE_SISO639LANGNAME, "en"); }
-#else
 String SystemStats::getDisplayLanguage()  { return getLocaleValue (MAKELCID (GetUserDefaultLangID(), SORT_DEFAULT), LOCALE_SISO639LANGNAME, "en"); }
+#else
+String SystemStats::getDisplayLanguage()  { return getLocaleValue (MAKELCID (GetUserDefaultUILanguage(), SORT_DEFAULT), LOCALE_SISO639LANGNAME, "en"); }
 #endif

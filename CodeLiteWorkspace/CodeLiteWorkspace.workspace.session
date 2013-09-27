@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Session Name="E:\dev\vlcfrontend\CodeLiteWorkspace\CodeLiteWorkspace.workspace">
+  <int Value="14" Name="m_selectedTab"/>
+  <wxString Value="E:\dev\vlcfrontend\CodeLiteWorkspace\CodeLiteWorkspace.workspace" Name="m_workspaceName"/>
+  <TabInfoArray Name="TabInfoArray">
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\src\VLCWrapper.cpp" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="6" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_core\native\juce_win32_SystemStats.cpp" Name="FileName"/>
+      <int Value="382" Name="FirstVisibleLine"/>
+      <int Value="409" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_events\juce_events.cpp" Name="FileName"/>
+      <int Value="38" Name="FirstVisibleLine"/>
+      <int Value="53" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\vf\modules\vf_core\vf_core.h" Name="FileName"/>
+      <int Value="305" Name="FirstVisibleLine"/>
+      <int Value="323" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\vf\modules\vf_core\functor\vf_Bind.h" Name="FileName"/>
+      <int Value="58" Name="FirstVisibleLine"/>
+      <int Value="82" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_graphics\juce_graphics.cpp" Name="FileName"/>
+      <int Value="18" Name="FirstVisibleLine"/>
+      <int Value="36" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\CodeLiteWorkspace\JuceVLC\d2d1.h" Name="FileName"/>
+      <int Value="2052" Name="FirstVisibleLine"/>
+      <int Value="2059" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\libvlc\include\vlc\plugins\vlc_threads.h" Name="FileName"/>
+      <int Value="392" Name="FirstVisibleLine"/>
+      <int Value="402" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\AppConfig.h" Name="FileName"/>
+      <int Value="37" Name="FirstVisibleLine"/>
+      <int Value="61" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_graphics\native\juce_win32_DirectWriteTypeLayout.cpp" Name="FileName"/>
+      <int Value="366" Name="FirstVisibleLine"/>
+      <int Value="26" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_graphics\geometry\juce_EdgeTable.cpp" Name="FileName"/>
+      <int Value="13" Name="FirstVisibleLine"/>
+      <int Value="27" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\vf\modules\vf_core\native\vf_win32_FPUFlags.cpp" Name="FileName"/>
+      <int Value="111" Name="FirstVisibleLine"/>
+      <int Value="139" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\vf\modules\vf_concurrent\vf_concurrent.cpp" Name="FileName"/>
+      <int Value="36" Name="FirstVisibleLine"/>
+      <int Value="38" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_core\native\juce_win32_Network.cpp" Name="FileName"/>
+      <int Value="38" Name="FirstVisibleLine"/>
+      <int Value="44" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="E:\dev\vlcfrontend\juce\modules\juce_core\memory\juce_Atomic.h" Name="FileName"/>
+      <int Value="202" Name="FirstVisibleLine"/>
+      <int Value="203" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+    </TabInfo>
+  </TabInfoArray>
+  <SerializedObject Name="m_breakpoints">
+    <long Value="0" Name="Count"/>
+  </SerializedObject>
+</Session>

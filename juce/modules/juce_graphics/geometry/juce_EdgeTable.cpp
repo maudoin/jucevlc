@@ -25,6 +25,9 @@
 
 const int juce_edgeTableDefaultEdgesPerLine = 32;
 
+#ifdef JUCE_MINGW
+	#include <malloc.h>
+#endif
 //==============================================================================
 EdgeTable::EdgeTable (const Rectangle<int>& bounds_,
                       const Path& path, const AffineTransform& transform)

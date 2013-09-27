@@ -56,7 +56,10 @@
 #endif
 
 #ifndef    JUCE_USE_DIRECTWRITE
- //#define JUCE_USE_DIRECTWRITE
+
+#ifdef JUCE_MINGW
+ #define JUCE_USE_DIRECTWRITE 0
+#endif
 #endif
 
 //==============================================================================

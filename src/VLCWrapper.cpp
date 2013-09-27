@@ -2,9 +2,8 @@
 // http://www.codeproject.com/info/cpol10.aspx
 
 #include "VLCWrapper.h"
+#define LIBVLC_USE_PTHREAD_CANCEL
 #ifdef _MSC_VER
-
-	#define LIBVLC_USE_PTHREAD_CANCEL
 	#define ssize_t int
 #else
 	#define MODULE_STRING "wrapper"

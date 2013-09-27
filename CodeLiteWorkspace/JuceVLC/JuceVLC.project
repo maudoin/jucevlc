@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="JuceVLC" InternalType="GUI">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="../../src/AppProportionnalComponent.cpp"/>
+    <File Name="../../src/ControlComponent.cpp"/>
+    <File Name="../../src/Execute.cpp"/>
+    <File Name="../../src/FileSorter.cpp"/>
+    <File Name="../../src/FontResource.cpp"/>
+    <File Name="../../src/FontSerialization.cpp"/>
+    <File Name="../../src/IconMenu.cpp"/>
+    <File Name="../../src/Icons.cpp"/>
+    <File Name="../../src/ImageCatalog.cpp"/>
+    <File Name="../../src/ImageCatalogCache.cpp"/>
+    <File Name="../../src/Languages.cpp"/>
+    <File Name="../../src/Main.cpp"/>
+    <File Name="../../src/MenuBase.cpp"/>
+    <File Name="../../src/MenuComponent.cpp"/>
+    <File Name="../../src/MenuTree.cpp"/>
+    <File Name="../../src/PosterFinder.cpp"/>
+    <File Name="../../src/Thumbnailer.cpp"/>
+    <File Name="../../src/VideoComponent.cpp"/>
+    <File Name="../../src/VLCWrapper.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <File Name="../../src/AbstractMenu.h"/>
+    <File Name="../../src/AppProportionnalComponent.h"/>
+    <File Name="../../src/ControlComponent.h"/>
+    <File Name="../../src/Execute.h"/>
+    <File Name="../../src/FileSorter.h"/>
+    <File Name="../../src/FontResource.h"/>
+    <File Name="../../src/FontSerialization.h"/>
+    <File Name="../../src/IconMenu.h"/>
+    <File Name="../../src/Icons.h"/>
+    <File Name="../../src/ImageCatalog.h"/>
+    <File Name="../../src/ImageCatalogCache.h"/>
+    <File Name="../../src/Languages.h"/>
+    <File Name="../../src/LookNFeel.h"/>
+    <File Name="../../src/MenuBase.h"/>
+    <File Name="../../src/MenuComponent.h"/>
+    <File Name="../../src/MenuTree.h"/>
+    <File Name="../../src/PosterFinder.h"/>
+    <File Name="../../src/Thumbnailer.h"/>
+    <File Name="../../src/VideoComponent.h"/>
+    <File Name="../../src/VLCWrapper.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="resources">
+    <File Name="../../src/resources.rc"/>
+    <File Name="../../src/vlc.ico"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="vlc">
+    <File Name="../../libvlc/include/vlc/deprecated.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_events.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_internal.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media_discoverer.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media_library.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media_list.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media_list_player.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_media_player.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_structures.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_version.h"/>
+    <File Name="../../libvlc/include/vlc/libvlc_vlm.h"/>
+    <File Name="../../libvlc/include/vlc/media_player_internal.h"/>
+    <File Name="../../libvlc/include/vlc/vlc.h"/>
+    <VirtualDirectory Name="plugin">
+      <File Name="../../libvlc/include/vlc/plugins/vlc_about.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_access.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_aout.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_aout_volume.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_arrays.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_art_finder.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_atomic.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_avcodec.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_bits.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_block.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_block_helper.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_charset.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_codec.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_common.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_config.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_config_cat.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_configuration.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_cpu.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_demux.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_dialog.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_epg.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_es.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_es_out.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_events.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_filter.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_fingerprinter.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_fourcc.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_fs.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_gcrypt.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_http.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_httpd.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_image.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_inhibit.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_input.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_input_item.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_keys.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_main.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_md5.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_media_library.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_messages.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_meta.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_mime.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_modules.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_mouse.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_mtime.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_network.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_objects.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_opengl.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_picture.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_picture_fifo.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_picture_pool.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_playlist.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_plugin.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_probe.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_rand.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_services_discovery.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_sout.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_spu.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_stream.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_strings.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_subpicture.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_text_style.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_threads.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_tls.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_url.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_variables.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_video_splitter.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_vlm.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_vout.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_vout_display.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_vout_osd.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_vout_window.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_xlib.h"/>
+      <File Name="../../libvlc/include/vlc/plugins/vlc_xml.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="juce">
+    <VirtualDirectory Name="include">
+      <File Name="../../juce/AppConfig.h"/>
+      <File Name="../../juce/juce.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_AbstractFifo.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_Array.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_ArrayAllocationBase.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_DynamicObject.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_ElementComparator.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_HashMap.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_LinkedListPointer.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_NamedValueSet.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_OwnedArray.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_PropertySet.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_ReferenceCountedArray.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_ScopedValueSetter.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_SortedSet.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_SparseSet.h"/>
+      <File Name="../../juce/modules/juce_core/containers/juce_Variant.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="src">
+      <File Name="../../juce/modules/juce_core/juce_core.cpp"/>
+      <File Name="../../juce/modules/juce_data_structures/juce_data_structures.cpp"/>
+      <File Name="../../juce/modules/juce_events/juce_events.cpp"/>
+      <File Name="../../juce/modules/juce_graphics/juce_graphics.cpp"/>
+      <File Name="../../juce/modules/juce_gui_basics/juce_gui_basics.cpp"/>
+      <File Name="../../juce/modules/juce_gui_extra/juce_gui_extra.cpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="vf">
+    <VirtualDirectory Name="src">
+      <File Name="../../vf/modules/vf_concurrent/vf_concurrent.cpp"/>
+      <File Name="../../vf/modules/vf_core/vf_core.cpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-O0;-Wall -fpermissive" C_Options="-g;-O0;-Wall" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../../src"/>
+        <IncludePath Value="../../libvlc/include"/>
+        <IncludePath Value="../../libvlc/include/vlc"/>
+        <IncludePath Value="../../libvlc/include/vlc/plugins"/>
+        <IncludePath Value="../../vf"/>
+        <IncludePath Value="../../juce"/>
+        <IncludePath Value="../../boost/include"/>
+        <Preprocessor Value="JUCE_MINGW"/>
+      </Compiler>
+      <Linker Options="-mwindows" Required="yes">
+        <LibraryPath Value="../../libvlc/lib"/>
+        <LibraryPath Value="../../boost/lib"/>
+        <Library Value="vlc"/>
+        <Library Value="vlccore"/>
+        <Library Value="boost_regex-vc100-mt-s-1_43"/>
+        <Library Value="libimm32"/>
+        <Library Value="libglu32"/>
+        <Library Value="libshell32"/>
+        <Library Value="libole32"/>
+        <Library Value="libws2_32"/>
+        <Library Value="libimm32"/>
+        <Library Value="libwinmm"/>
+        <Library Value="libversion"/>
+        <Library Value="libwininet"/>
+        <Library Value="libopengl32"/>
+        <Library Value="libuuid"/>
+        <Library Value="liboleaut32"/>
+        <Library Value="libshlwapi"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O2;-Wall;$(shell wx-config --cflags)" C_Options="-O2;-Wall" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" UseDifferentPCHFlags="no" PCHFlags="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="$(shell wx-config --libs);-mwindows" Required="yes"/>
+      <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="no"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

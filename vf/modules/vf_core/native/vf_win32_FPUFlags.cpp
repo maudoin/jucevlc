@@ -29,6 +29,7 @@
   IN THE SOFTWARE.
 */
 /*============================================================================*/
+#ifndef JUCE_MINGW
 
 FPUFlags FPUFlags::getCurrent ()
 {
@@ -135,3 +136,4 @@ void FPUFlags::setCurrent (const FPUFlags& flags)
   if (result != 0)
     Throw (std::runtime_error ("error in _controlfp_s"));
 }
+#endif
