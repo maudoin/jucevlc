@@ -2,8 +2,13 @@
 // http://www.codeproject.com/info/cpol10.aspx
 
 #include "VLCWrapper.h"
-#define LIBVLC_USE_PTHREAD_CANCEL
-#define ssize_t int
+#ifdef _MSC_VER
+
+	#define LIBVLC_USE_PTHREAD_CANCEL
+	#define ssize_t int
+#else
+	#define MODULE_STRING "wrapper"
+#endif
 #include "vlc\vlc.h"
 #include "vlc\libvlc_events.h"
 #include <boost/cstdint.hpp>
@@ -21,6 +26,9 @@
 #include "vlc/media_player_internal.h"
 #include "vlc/plugins/vlc_threads.h"
 #include "vlc/plugins/vlc_aout.h"
+#ifndef _MSC_VER
+	#include "vlc/plugins/vlc_vout.h"
+#endif
 #include "vlc_playlist.h"
 
 class VLCInstancePtr
@@ -121,7 +129,6 @@ static audio_output_t *GetAOut( libvlc_media_player_t *mp )
         libvlc_printerr( "No active audio output" );
     return p_aout;
 }
-
 static vout_thread_t *GetVout (libvlc_media_player_t *mp, size_t num)
 {
     vout_thread_t *p_vout = NULL;
@@ -964,28 +971,28 @@ void VLCWrapper::playPlayListItem(int index)
 
 int VLCWrapper::getConfigOptionInt(const char* name) const
 {
-	return config_GetInt(pVLCInstance_.get(), name);
+	return config_GetInt(pVLCInstance_.get()->p_libvlc_int, name);
 }
 void VLCWrapper::setConfigOptionInt(const char* name, int value)
 {
-	config_PutInt(pVLCInstance_.get(), name, value);
+	config_PutInt(pVLCInstance_.get()->p_libvlc_int, name, value);
 }
 
 bool VLCWrapper::getConfigOptionBool(const char* name)const
 {
-	return (bool)(config_GetInt(pVLCInstance_.get(), name)!=0);
+	return (bool)(config_GetInt(pVLCInstance_.get()->p_libvlc_int, name)!=0);
 }
 
 void VLCWrapper::setConfigOptionBool(const char* name, bool value)
 {
-	config_PutInt(pVLCInstance_.get(), name, value);
+	config_PutInt(pVLCInstance_.get()->p_libvlc_int, name, value);
 }
 
-std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigOptionInfoInt(const char* name)const
+std::pair<int, std::vector<std::pair<int, std::string> > > VLCWrapper::getConfigOptionInfoInt(const char* name)const
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
-	std::pair<int,std::vector<std::pair<int, std::string> >> info;
+	std::pair<int,std::vector<std::pair<int, std::string> > > info;
 
     int64_t *values;
     char **texts;
@@ -1004,18 +1011,18 @@ std::pair<int, std::vector<std::pair<int, std::string> >> VLCWrapper::getConfigO
 
 std::string VLCWrapper::getConfigOptionString(const char* name)const
 {
-	return config_GetPsz(pVLCInstance_.get(), name);
+	return config_GetPsz(pVLCInstance_.get()->p_libvlc_int, name);
 }
 
 void VLCWrapper::setConfigOptionString(const char* name, std::string const& value)
 {
-	config_PutPsz(pVLCInstance_.get(), name, value.c_str());
+	config_PutPsz(pVLCInstance_.get()->p_libvlc_int, name, value.c_str());
 }
-std::pair<std::string, std::vector<std::pair<std::string, std::string> >> VLCWrapper::getConfigOptionInfoString(const char* name)const
+std::pair<std::string, std::vector<std::pair<std::string, std::string> > > VLCWrapper::getConfigOptionInfoString(const char* name)const
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
 	
-	std::pair<std::string,std::vector<std::pair<std::string, std::string> >> info;
+	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > info;
 
     char **values, **texts;
     ssize_t count = config_GetPszChoices( (vlc_object_t*)p_module_config, p_module_config->psz_name,

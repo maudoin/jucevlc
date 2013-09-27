@@ -157,7 +157,8 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 				m_currentFiles.add(PathAndImage(*it, false));
 			}
 		}
-		m_currentFiles.sort(PathAndImageSorter(m_videoExtensions));
+		PathAndImageSorter sorter(m_videoExtensions);
+		m_currentFiles.sort(sorter);
 
 		m_imageCatalog.preload(m_currentFiles, MAX_THUMBNAILS_PRELOAD_TIME_MS);
 	}
@@ -171,7 +172,8 @@ juce::File IconMenu::findFirstMovie(juce::File const& file)const
 	
 	juce::Array<juce::File> files;
 	file.findChildFiles(files, juce::File::findFilesAndDirectories|juce::File::ignoreHiddenFiles, false, "*");
-	files.sort(FileSorter(m_videoExtensions));
+	FileSorter sorter(m_videoExtensions);
+	files.sort(sorter);
 	//try movies
 	for(juce::File* it = files.begin();it != files.end();++it)
 	{
@@ -589,7 +591,7 @@ bool IconMenu::updatePreviews()
 		for(int i=0;i<std::min(count,countPerPage);i++)
 		{
 			int fileIndex = getFileIndexAtScreenIndex(i);
-			if(fileIndex >= 0 && fileIndex < m_currentFiles.size() && updateFilePreview(m_currentFiles[fileIndex]) )
+			if(fileIndex >= 0 && fileIndex < m_currentFiles.size() && updateFilePreview(m_currentFiles.getReference(fileIndex)) )
 			{
 				return true;
 			}

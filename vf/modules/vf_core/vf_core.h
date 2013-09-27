@@ -321,7 +321,7 @@
 #  include <tr1/functional>
 # endif
 
-#elif JUCE_LINUX
+#elif JUCE_LINUX || JUCE_MINGW
 # include <tr1/functional>
 
 #else

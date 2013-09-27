@@ -1,4 +1,4 @@
-#include "Languages.h"
+ï»¿#include "Languages.h"
 #include "juce.h"
 #include <algorithm>
 #include <iterator>
@@ -12,24 +12,24 @@ countries: fr be mc ch lu\n\
 \"Audio Volume: %.f%%\" = \"Volume audio: %.f%%\"\n\
 \"Speed: %.f%%\" = \"Vitesse: %.f%%\"\n\
 \"Zoom: %.f%%\" = \"Zoom: %.f%%\"\n\
-\"Audio offset: %+.3fs\" = \"Décalage audio: %+.3fs\"\n\
-\"Subtitles offset: %+.3fs\" = \"Décalage sous-titres: %+.3fs\"\n\
+\"Audio offset: %+.3fs\" = \"DÃ©calage audio: %+.3fs\"\n\
+\"Subtitles offset: %+.3fs\" = \"DÃ©calage sous-titres: %+.3fs\"\n\
 \"Play All\" = \"Lire Tout\"\n\
 \"Add All\" = \"Ajouter Tout\"\n\
-\"All videos...\" = \"Toutes les vidéos...\"\n\
+\"All videos...\" = \"Toutes les vidÃ©os...\"\n\
 \"Add to favorites\" = \"Ajouter aux favoris\"\n\
 \"Remove from favorites\" = \"Retirer des favoris\"\n\
-\"Disable\" = \"Désactiver\"\n\
+\"Disable\" = \"DÃ©sactiver\"\n\
 \"Slot %d\" = \"Piste %d\"\n\
 \"No subtitles\" = \"Pas de sous-titres\"\n\
 \"Add...\" = \"Ajouter...\"\n\
-\"Delay\" = \"Décalage\"\n\
+\"Delay\" = \"DÃ©calage\"\n\
 \"Auto\" = \"Automatique\"\n\
 \"Original\" = \"Original\"\n\
 \"Volume\" = \"Volume\"\n\
 \"Select Track\" = \"Piste\"\n\
-\"FullScreen\" = \"Plein écran\"\n\
-\"Windowed\" = \"Fenêtré\"\n\
+\"FullScreen\" = \"Plein Ã©cran\"\n\
+\"Windowed\" = \"FenÃªtrÃ©\"\n\
 \"Speed\" = \"Vitesse de lecture\"\n\
 \"Zoom\" = \"Zoom\"\n\
 \"Aspect Ratio\" = \"Proportions\"\n\
@@ -44,35 +44,35 @@ countries: fr be mc ch lu\n\
 \"Apply\" = \"Appliquer\"\n\
 \"Position\" = \"Position\"\n\
 \"Subtitle pos.: %+.f\" = \"Pos. sous-titres: %+.f\"\n\
-\"Opacity\" = \"Opacité\"\n\
+\"Opacity\" = \"OpacitÃ©\"\n\
 \"Background\" = \"Fond\"\n\
-\"Background opacity\" = \"Opacité fond\"\n\
+\"Background opacity\" = \"OpacitÃ© fond\"\n\
 \"Background color\" = \"Couleur fond\"\n\
-\"Opacity: %.0f\" = \"Opacité: %+.f\"\n\
+\"Opacity: %.0f\" = \"OpacitÃ©: %+.f\"\n\
 \"Shadow\" = \"Ombre\"\n\
 \"Shadow color\" = \"Couleur ombre\"\n\
-\"Shadow opacity\" = \"Opacité ombre\"\n\
+\"Shadow opacity\" = \"OpacitÃ© ombre\"\n\
 \"Size\" = \"Taille\"\n\
 \"Outline\" = \"Contour\"\n\
-\"Outline opacity\" = \"Opacité contour\"\n\
+\"Outline opacity\" = \"OpacitÃ© contour\"\n\
 \"Outline color\" = \"Couleur contour\"\n\
 \"Contrast: %+.3fs\" = \"Contraste: %+.3fs\"\n\
-\"Brightness: %+.3f\" = \"Luminosité: %+.3f\"\n\
+\"Brightness: %+.3f\" = \"LuminositÃ©: %+.3f\"\n\
 \"Hue\" = \"Teinte\"\n\
 \"Saturation: %+.3f\" = \"Saturation: %+.3f\"\n\
 \"Gamma: %+.3f\" = \"Gamma: %+.3f\"\n\
 \"Enable\" = \"Activer\"\n\
 \"Contrast\" = \"Contraste\"\n\
-\"Brightness\" = \"Luminosité\"\n\
+\"Brightness\" = \"LuminositÃ©\"\n\
 \"Saturation\" = \"Saturation\"\n\
 \"Gamma\" = \"Gamma\"\n\
 \"Adjust\" = \"Ajuster\"\n\
-\"Quality\" = \"Qualité\"\n\
-\"Deinterlace\" = \"Désentrelacement\"\n\
-\"Deint. mode\" = \"Mode de désentr.\"\n\
+\"Quality\" = \"QualitÃ©\"\n\
+\"Deinterlace\" = \"DÃ©sentrelacement\"\n\
+\"Deint. mode\" = \"Mode de dÃ©sentr.\"\n\
 \"Menu font size\" = \"Taille du texte (menu)\"\n\
-\"Hardware\" = \"Accélération Matérielle\"\n\
-\"No hardware\" = \"Désactiver Accélération\"\n\
+\"Hardware\" = \"AccÃ©lÃ©ration MatÃ©rielle\"\n\
+\"No hardware\" = \"DÃ©sactiver AccÃ©lÃ©ration\"\n\
 \"Thin\" = \"Fin\"\n\
 \"Thick\" = \"Epais\"\n\
 \"None\" = \"Aucun\"\n\
@@ -82,13 +82,13 @@ countries: fr be mc ch lu\n\
 \"Large\" = \"Grand\"\n\
 \"Larger\" = \"Plus grand\"\n\
 \"Automatic\" = \"Automatique\"\n\
-\"Custom\" = \"Personnalisé\"\n\
-\"Setup\" = \"Définir\"\n\
+\"Custom\" = \"PersonnalisÃ©\"\n\
+\"Setup\" = \"DÃ©finir\"\n\
 \"Color\" = \"Couleur\"\n\
 \"Outline Color\" = \"Couleur du contour\"\n\
 \"Equalizer\" = \"Equaliseur\"\n\
 \"Quick menu\" = \"Raccourcis\"\n\
-\"Reset\" = \"Réinitialiser\"\n\
+\"Reset\" = \"RÃ©initialiser\"\n\
 \"Set as frontpage\" = \"Comme page d'accueil\"\n\
 \"You may set this frontpage root folder from the right click file browser menu (end of list)\" = \"Choisissez le dossier racine de cette page d'accueil depuis le selecteur de fichier accessible via un clic droit (fin de liste)\"\n\
 ";
@@ -127,7 +127,7 @@ Languages::Languages()
 
 
 	//setup current locale
-	for(std::vector<juce::LocalisedStrings*>::const_iterator it = all.begin();it != all.end();++it)
+	for(std::vector<juce::LocalisedStrings*>::iterator it = all.begin();it != all.end();++it)
 	{
 		if(*it && (*it)->getCountryCodes().contains(juce::SystemStats::getUserRegion (), true ))//ignore case
 		{
@@ -153,16 +153,15 @@ void Languages::clear()
 	juce::LocalisedStrings::setCurrentMappings (nullptr);
 }
 
-void  Languages::dumpDefaultIfMissing(std::string const& name, std::string const& content, std::vector<juce::LocalisedStrings*> & all)
+void  Languages::dumpDefaultIfMissing(std::string const& name, juce::String const& content, std::vector<juce::LocalisedStrings*> & all)
 {
 	std::map<std::string, std::string>::const_iterator it = m_languages.find(name);
 	if(it == m_languages.end())
 	{
 		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
-		juce::String charContent(content.c_str());
-		f.appendText(charContent);
+		f.appendText(content,true);
 		add(m_languages, name.c_str(), f.getFullPathName());
-		all.push_back(new juce::LocalisedStrings (charContent));
+		all.push_back(new juce::LocalisedStrings (content));
 	}
 }
 
@@ -199,11 +198,10 @@ std::vector<std::string> Languages::getLanguages() const
 {
 	std::vector<std::string> keys;
 
-	std::transform(
-    m_languages.begin(),
-    m_languages.end(),
-    std::back_inserter(keys),
-    [](const std::map<std::string,std::string>::value_type &pair){return pair.first;});
+	for(std::map<std::string,std::string>::const_iterator it=m_languages.begin();it!=m_languages.begin();++it)
+	{
+		keys.push_back(it->first);
+	}
 	return keys;
 }
 

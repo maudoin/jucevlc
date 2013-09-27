@@ -1,6 +1,7 @@
 #ifndef APP_LANGUAGES_H
 #define APP_LANGUAGES_H
 
+#include "juce.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -17,7 +18,7 @@ private:
 	
 	Languages();
 	~Languages();
-	void dumpDefaultIfMissing(std::string const& name, std::string const& content, std::vector<juce::LocalisedStrings*> & all);
+	void dumpDefaultIfMissing(std::string const& name, juce::String const& content, std::vector<juce::LocalisedStrings*> & all);
 public:
 
 	static Languages& getInstance();

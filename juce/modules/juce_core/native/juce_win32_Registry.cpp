@@ -131,6 +131,10 @@ String WindowsRegistry::getValue (const String& regValuePath, const String& defa
 
 String WindowsRegistry::getValueWow64 (const String& regValuePath, const String& defaultValue)
 {
+#ifdef JUCE_MINGW
+#define KEY_WOW64_64KEY 0x0100
+#endif
+
     return RegistryKeyWrapper::getValue (regValuePath, defaultValue, KEY_WOW64_64KEY);
 }
 

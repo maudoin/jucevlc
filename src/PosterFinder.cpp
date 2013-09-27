@@ -6,7 +6,7 @@
 
 namespace PosterFinder
 {
-juce::Image PosterFinder::findPoster(juce::File const& file)
+juce::Image findPoster(juce::File const& file)
 {
 	juce::String movieName = file.getFileNameWithoutExtension();
 	if(movieName.isEmpty())
@@ -18,10 +18,10 @@ juce::Image PosterFinder::findPoster(juce::File const& file)
 	movieName = movieName.replace(" ", "%20");
 	movieName = movieName.replace("_", "%20");
 	movieName = movieName.replace(".", "%20");
-	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E9"), "e");//é
-	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E9"), "e");//è
-	movieName = movieName.replace(juce::CharPointer_UTF8("\u00F4"), "o");//ô
-	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E0"), "a");//à
+	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E9"), "e");//Ã©
+	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E9"), "e");//Ã¨
+	movieName = movieName.replace(juce::CharPointer_UTF8("\u00F4"), "o");//Ã´
+	movieName = movieName.replace(juce::CharPointer_UTF8("\u00E0"), "a");//Ã 
 	std::string name = str( boost::format("http://www.omdbapi.com/?i=&t=%s")%std::string(movieName.toUTF8().getAddress()) );
 	juce::URL url(juce::CharPointer_UTF8(name.c_str()));
 	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", 1000, 0));

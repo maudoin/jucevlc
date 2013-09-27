@@ -51,13 +51,13 @@ void outputBufferAsInlcudeFile(const void* data, size_t size, juce::String const
 	juce::File fontFile = beginWrite(destFilePathCC);
 	if (!fontFile.hasWriteAccess ())
 	{
-		printf ("initialise ERROR can't write to destination file: %s\n", fontFile.getFullPathName().toUTF8());
+		printf ("initialise ERROR can't write to destination file: %s\n", fontFile.getFullPathName().toUTF8().getAddress());
 		return;
 	}
 	juce::File hFile = beginWrite(destFilePathH);
 	if (!hFile.hasWriteAccess ())
 	{
-		printf ("initialise ERROR can't write to destination file: %s\n", hFile.getFullPathName().toUTF8());
+		printf ("initialise ERROR can't write to destination file: %s\n", hFile.getFullPathName().toUTF8().getAddress());
 		return;
 	}
 	
@@ -114,7 +114,7 @@ void serializeFont(juce::String const& fontName, juce::String const& outCPP, juc
 	}
 
 
-	printf ("Fserialize::serializeFont looking for font in system list [%s]\n", fontName.toUTF8());
+	printf ("Fserialize::serializeFont looking for font in system list [%s]\n", fontName.toUTF8().getAddress());
 	
 	juce::Array <juce::Font> systemFonts;
 	juce::Font::findFonts (systemFonts);

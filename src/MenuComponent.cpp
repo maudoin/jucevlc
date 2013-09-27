@@ -95,7 +95,7 @@ public:
 		{
 			return;
 		}
-		MenuItem& item = items[rowNumber];
+		MenuItem& item = items.getReference(rowNumber);
 		paintMenuItem(g, width, height, rowIsSelected, item.getName(), item.getIcon(), isShortcut);
     }
 	

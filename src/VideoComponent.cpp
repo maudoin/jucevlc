@@ -369,7 +369,7 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 {
 	if(key.isKeyCurrentlyDown(juce::KeyPress::returnKey) && key.getModifiers().isAltDown())
 	{
-		if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::switchFullScreen,this));
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::switchFullScreen,this));
 		return true;
 	}
 	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
@@ -895,7 +895,7 @@ void VideoComponent::vlcUnlock(void *id, void *const *p_pixels)
 
 void VideoComponent::vlcDisplay(void *id)
 {
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::repaint,this));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::repaint,this));
 	jassert(id == NULL);
 }
 #else
@@ -1174,7 +1174,8 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 		
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false);
-		destArray.sort(FileSorter(m_suportedExtensions));
+		FileSorter sorter(m_suportedExtensions);
+		destArray.sort(sorter);
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
@@ -1183,7 +1184,7 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 		}
 		destArray.clear();
 		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
-		destArray.sort(FileSorter(m_suportedExtensions));
+		destArray.sort(sorter);
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
@@ -1891,7 +1892,8 @@ void VideoComponent::onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::Fil
 
 		destArray.clear();
 		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
-		destArray.sort(FileSorter(m_subtitlesExtensions));
+		FileSorter sorter(m_subtitlesExtensions);
+		destArray.sort(sorter);
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& file(destArray[i]);
@@ -2306,7 +2308,7 @@ void VideoComponent::vlcTimeChanged(int64_t newTime)
 	{
 		mousehookset = vlc->setMouseInputCallBack(this);
 	}
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::updateTimeAndSlider,this, newTime));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::updateTimeAndSlider,this, newTime));
 }
 
 void VideoComponent::updateTimeAndSlider(int64_t newTime)
@@ -2316,7 +2318,7 @@ void VideoComponent::updateTimeAndSlider(int64_t newTime)
 		videoUpdating = true;
 		controlComponent->slider().setValue(newTime*10000./vlc->GetLength(), juce::sendNotificationSync);
 		controlComponent->setTime(newTime, vlc->GetLength());
-		if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::repaint,controlComponent.get()));
+		if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::repaint,controlComponent.get()));
 		videoUpdating =false;
 	}
 	handleIdleTimeAndControlsVisibility();
@@ -2356,19 +2358,19 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 }
 void VideoComponent::vlcPaused()
 {
-	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
 void VideoComponent::vlcStarted()
 {		
 	titleBar->setTitle(vlc->getCurrentPlayListItem());
-	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::startedSynchronous,this));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::startedSynchronous,this));
 }
 void VideoComponent::vlcStopped()
 {
 	titleBar->setTitle(std::string());
-	if(invokeLater)invokeLater->queuef(std::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::stoppedSynchronous,this));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::stoppedSynchronous,this));
 }
 
 void VideoComponent::vlcPopupCallback(bool rightClick)
@@ -2382,7 +2384,7 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 	bool showMenu = rightClick || vlc->isStopped();
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
-	if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 	
 }
 void VideoComponent::vlcFullScreenControlCallback()
@@ -2397,7 +2399,7 @@ void VideoComponent::vlcMouseMove(int x, int y, int button)
 	if(controlsExpired || vlc->isPaused())
 	{
 		//reactivateControls
-		if(invokeLater)invokeLater->queuef(std::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 	}
 }
 void VideoComponent::vlcMouseClick(int x, int y, int button)

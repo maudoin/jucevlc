@@ -35,6 +35,7 @@ src/Nouveau dossier/**
 icons/iconic/vector/
 boost_*.dll
 thumbnails
+plugins208
 syntax: regexp
 FontResource.cpp
 FontResource.h

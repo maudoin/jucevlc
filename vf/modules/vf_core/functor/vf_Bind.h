@@ -84,7 +84,7 @@
     using std::tr1::placeholders::_2;
   #endif
 
-#elif JUCE_LINUX
+#elif JUCE_LINUX || JUCE_MINGW
   using std::tr1::bind;
   using std::tr1::placeholders::_1;
   using std::tr1::placeholders::_2;
