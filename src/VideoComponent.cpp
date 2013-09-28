@@ -812,6 +812,9 @@ void VideoComponent::forceSetVideoTime(std::string const& name)
 		forceSetVideoTime(time*1000);
 	}
 }
+//shuffled addition:
+//srand(unsigned(time(NULL)));
+//std::random_shuffle(pathes.begin(), pathes.end());
 void VideoComponent::appendAndPlay(std::string const& path)
 {
 	saveCurrentMediaTime();
@@ -2117,6 +2120,18 @@ void VideoComponent::onMenuVideoTrackList (AbstractMenuItem& item)
 		menu->addMenuItem(it->second.c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuVideoTrack, this, _1, it->first), it->first==current?getItemImage():nullptr);
 	}
 }
+void VideoComponent::onVLCAudioChannelSelect(AbstractMenuItem& item)
+{
+	setBrowsingFiles(false);
+
+	VLCWrapper::AudioChannel c = vlc->getAudioChannel();
+
+	menu->addMenuItem(TRANS("Stereo"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Stereo), c==VLCWrapper::VLCWrapperAudioChannel_Stereo?getItemImage():nullptr);
+	menu->addMenuItem(TRANS("Reverse"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_RStereo), c==VLCWrapper::VLCWrapperAudioChannel_RStereo?getItemImage():nullptr);
+	menu->addMenuItem(TRANS("Left"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Left), c==VLCWrapper::VLCWrapperAudioChannel_Left?getItemImage():nullptr);
+	menu->addMenuItem(TRANS("Right"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Right), c==VLCWrapper::VLCWrapperAudioChannel_Right?getItemImage():nullptr);
+	menu->addMenuItem(TRANS("Dolby"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Dolbys), c==VLCWrapper::VLCWrapperAudioChannel_Dolbys?getItemImage():nullptr);
+}
 void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
@@ -2127,6 +2142,7 @@ void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 	menu->addMenuItem( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuAudioTrackList, this, _1));
 	bool currentStatus=vlc->getConfigOptionBool(CONFIG_STRING_OPTION_AUDIO_OUT);
 	menu->addMenuItem( currentStatus?TRANS("Disable"):TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setConfigOptionBool, vlc.get(), CONFIG_STRING_OPTION_AUDIO_OUT, !currentStatus));
+	menu->addMenuItem( TRANS("Channel"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCAudioChannelSelect, this, _1));
 //	menu->addMenuItem( TRANS("Audio visu."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_AUDIO_VISUAL)));
 }
 
@@ -2210,7 +2226,7 @@ void VideoComponent::onShowPlaylist(AbstractMenuItem& item)
 	int i=0;
 	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
 	{	
-		menu->addMenuItem(it->c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onPlaylistItem, this, _1, i), i==current?getItemImage():nullptr);
+		menu->addMenuItem(juce::CharPointer_UTF8(it->c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onPlaylistItem, this, _1, i), i==current?getItemImage():nullptr);
 		++i;
 	}
 	

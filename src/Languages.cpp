@@ -94,6 +94,12 @@ countries: fr be mc ch lu\n\
 \"Reset\" = \"Réinitialiser\"\n\
 \"Set as frontpage\" = \"Comme page d'accueil\"\n\
 \"You may set this frontpage root folder from the right click file browser menu (end of list)\" = \"Choisissez le dossier racine de cette page d'accueil depuis le selecteur de fichier accessible via un clic droit (fin de liste)\"\n\
+\"Channel\" = \"Canal\"\n\
+\"Stereo\" = \"Stéreo\"\n\
+\"Reverse\" = \"Inverse\"\n\
+\"Left\" = \"Gauche\"\n\
+\"Right\" = \"Droite\"\n\
+\"Dolby\" = \"Dolby\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

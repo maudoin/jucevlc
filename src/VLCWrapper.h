@@ -124,6 +124,7 @@ public:
 	VLCWrapper(void);
 	~VLCWrapper(void);
 
+
     /** Set window for media output.
     *   @param [in] pHwnd window, on Windows a HWND handle. */
     void SetOutputWindow(void* pHwnd);
@@ -177,7 +178,6 @@ public:
     double getVolume();
     void setVolume(double volume);    
 
-	
 	void setScale (double ratio);
 	double getScale () const;
 	void setRate (double rate);
@@ -226,6 +226,18 @@ public:
 
 	void setAoutFilterOptionString(const char* name, std::string const&  filter, std::string const& v);
 	std::string getAoutFilterOptionString(const char* name);
+
+	enum AudioChannel
+	{     
+		 VLCWrapperAudioChannel_Error 	
+		,VLCWrapperAudioChannel_Stereo 	
+		,VLCWrapperAudioChannel_RStereo 	
+		,VLCWrapperAudioChannel_Left 	
+		,VLCWrapperAudioChannel_Right 	
+		,VLCWrapperAudioChannel_Dolbys 	
+	};
+    AudioChannel getAudioChannel();
+    void setAudioChannel(AudioChannel i);
 
 	std::vector<std::string> getCurrentPlayList();
 	int addPlayListItem(std::string const& path);

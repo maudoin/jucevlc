@@ -485,6 +485,53 @@ void VLCWrapper::setVolume( double volume )
 {
     libvlc_audio_set_volume(pMediaPlayer_, (int)volume);
 }
+VLCWrapper::AudioChannel VLCWrapper::getAudioChannel()
+{
+	switch(libvlc_audio_get_channel (pMediaPlayer_))
+	{
+	case libvlc_AudioChannel_Stereo:
+		return VLCWrapperAudioChannel_Stereo;
+	case libvlc_AudioChannel_RStereo:
+		return VLCWrapperAudioChannel_RStereo;
+	case libvlc_AudioChannel_Left:
+		return VLCWrapperAudioChannel_Left;
+	case libvlc_AudioChannel_Right:
+		return VLCWrapperAudioChannel_Right;
+	case libvlc_AudioChannel_Dolbys:
+		return VLCWrapperAudioChannel_Dolbys;
+	case libvlc_AudioChannel_Error:
+	default:
+		return VLCWrapperAudioChannel_Error;
+	}
+}
+void VLCWrapper::setAudioChannel(VLCWrapper::AudioChannel i)
+{
+	libvlc_audio_output_channel_t c;
+	switch(i)
+	{
+	case VLCWrapperAudioChannel_Stereo:
+		c = libvlc_AudioChannel_Stereo;
+		break;
+	case VLCWrapperAudioChannel_RStereo:
+		c = libvlc_AudioChannel_RStereo;
+		break;
+	case VLCWrapperAudioChannel_Left:
+		c = libvlc_AudioChannel_Left;
+		break;
+	case VLCWrapperAudioChannel_Right:
+		c = libvlc_AudioChannel_Right;
+		break;
+	case VLCWrapperAudioChannel_Dolbys:
+		c = libvlc_AudioChannel_Dolbys;
+		break;
+	case VLCWrapperAudioChannel_Error:
+	default:
+		return ;
+	}
+	libvlc_audio_set_channel (pMediaPlayer_, c);
+
+}
+
 
 void VLCWrapper::loadSubtitle(const char* pSubPathName)
 {
