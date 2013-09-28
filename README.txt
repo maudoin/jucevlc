@@ -11,7 +11,7 @@ You can use the installer multiple times:
 * and again for your usb key or external hard drive.
 Since it does not store anything in the registry subsequent installs won't affect the previous ones (except for optionnal shortcut creation obviously)
 
-All files except JuceVLC.exe are taken from VLC so you can paste JuceVLC.exe in an existing VLC installation (2.0.0 and up).
+All files except JuceVLC.exe are taken from VLC so you can paste JuceVLC.exe in an existing VLC installation (2.1.0 and up).
 The application can be executed from a usb key or an external drive as its settings are stored along the exe file
 
 **Under Windows 7 it is not recommanded to extract the application in "Program Files" as Windows won't allow the settings to written.**
@@ -43,6 +43,10 @@ It controls:
 
 **Changelog**
 ==================
+0.83 (2013/09/29):
+- Audio channel selection
+- libVLC 2.1.0
+
 0.82 (2013/09/27):
 - Fixes frontpage lockups when changing folder
 

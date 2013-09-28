@@ -7,8 +7,8 @@
 !define APP_NAME "JuceVLC"
 !define COMP_NAME "Matthieu A."
 !define WEB_SITE "http://jucevlc.sourceforge.net/"
-!define VERSION "00.82.00.00"
-!define V "0.82"
+!define VERSION "00.83.00.00"
+!define V "0.83"
 !define COPYRIGHT "Matthieu A. © 2013"
 !define DESCRIPTION "JuceVLC Video Player"
 !define INSTALLER_NAME "${APP_NAME}setup-${V}.exe"
@@ -161,6 +161,7 @@ Delete "$INSTDIR\libvlc.dll"
 Delete  "$INSTDIR\uninstall.exe"
 Delete  "$INSTDIR\France.lang.sample"
 Delete  "$INSTDIR\thumbnails"
+Delete  "$INSTDIR\README.txt"
 !ifdef WEB_SITE
 Delete "$INSTDIR\${APP_NAME} website.url"
 !endif
