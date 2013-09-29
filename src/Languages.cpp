@@ -168,7 +168,8 @@ void  Languages::dumpDefaultIfMissing(std::string const& name, juce::String cons
 	if(it == m_languages.end())
 	{
 		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
-		f.appendText(content,true);
+		f.deleteFile();
+		f.appendText(content,true, true);
 		add(m_languages, name.c_str(), f.getFullPathName());
 		all.push_back(new juce::LocalisedStrings (content, false));
 	}
