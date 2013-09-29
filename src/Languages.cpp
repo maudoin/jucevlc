@@ -207,7 +207,7 @@ std::vector<std::string> Languages::getLanguages() const
 {
 	std::vector<std::string> keys;
 
-	for(std::map<std::string,std::string>::const_iterator it=m_languages.begin();it!=m_languages.begin();++it)
+	for(std::map<std::string,std::string>::const_iterator it=m_languages.begin();it!=m_languages.end();++it)
 	{
 		keys.push_back(it->first);
 	}
