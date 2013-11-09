@@ -20,7 +20,8 @@ IconMenu::IconMenu()
 	,m_thumbnailer(m_imageCatalog)
 {
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
-    folderImage = juce::Drawable::createFromImageData (folderPurple_svg, folderPurple_svgSize);
+    folderBackImage = juce::Drawable::createFromImageData (verticalFolderback_svg, verticalFolderback_svgSize);
+    folderFrontImage = juce::Drawable::createFromImageData (verticalFolderfront_svg, verticalFolderfront_svgSize);
     upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 
 	
@@ -438,12 +439,12 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	juce::Rectangle<float> imageTargetRect(rect);
 	if(file.isDirectory())
 	{
-		folderImage.get()->drawWithin (g, rectWithBorders,
+		folderBackImage.get()->drawWithin (g, rectWithBorders,
 							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
 		
 		//scales are specific to folderImage layout
-		float xMarginRelative = 0.04f;
-		float yTopMarginRelative = 0.22f;
+		float xMarginRelative = 0.02f;
+		float yTopMarginRelative = 0.15f;
 		float yBottomMarginAbsolute = titleHeight;
 		imageTargetRect=rectWithBorders.translated(rectWithBorders.getWidth()*xMarginRelative, rectWithBorders.getHeight()*yTopMarginRelative);
 		imageTargetRect.setSize(rectWithBorders.getWidth()*(1.f-2.f*xMarginRelative), rectWithBorders.getHeight()*(1.f-yTopMarginRelative)-yBottomMarginAbsolute);
@@ -529,6 +530,12 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 			g.setColour(juce::Colour(255, 255, 255));
 			g.drawRect(imageTargetRect, lineThickness);
 		}
+	}
+
+	if(file.isDirectory())
+	{
+		folderFrontImage.get()->drawWithin (g, rectWithBorders,
+							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
 	}
 
 
