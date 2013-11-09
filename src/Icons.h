@@ -46,6 +46,10 @@
 	extern const int verticalFolderback_svgSize;
 	extern const char* harddisk_svg;
 	extern const int harddisk_svgSize;
+	extern const char* disk_svg;
+	extern const int disk_svgSize;
+	extern const char* usb_svg;
+	extern const int usb_svgSize;
 	extern const char* folderShortcut_svg;
 	extern const int folderShortcut_svgSize;
 	extern const char* hideFolderShortcut_svg;

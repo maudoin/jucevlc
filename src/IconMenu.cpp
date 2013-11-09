@@ -22,6 +22,9 @@ IconMenu::IconMenu()
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
     folderBackImage = juce::Drawable::createFromImageData (verticalFolderback_svg, verticalFolderback_svgSize);
     folderFrontImage = juce::Drawable::createFromImageData (verticalFolderfront_svg, verticalFolderfront_svgSize);
+    driveImage = juce::Drawable::createFromImageData (harddisk_svg, harddisk_svgSize);
+    diskImage = juce::Drawable::createFromImageData (disk_svg, disk_svgSize);
+    usbImage = juce::Drawable::createFromImageData (usb_svg, usb_svgSize);
     upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 
 	
@@ -153,7 +156,7 @@ void IconMenu::setCurrentMediaRootPath(std::string const& path)
 		m_currentFiles.clear();
 		for(juce::File* it = files.begin();it != files.end();++it)
 		{
-			if(::extensionMatch(m_videoExtensions, it->getFileExtension()) || it->isDirectory())
+			if(it->exists() && ( ::extensionMatch(m_videoExtensions, it->getFileExtension()) || it->isDirectory()) )
 			{
 				m_currentFiles.add(PathAndImage(*it, false));
 			}
@@ -395,12 +398,6 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	}
 
 	juce::Rectangle<float> rect = getButtonAt(index, w, h);
-
-	juce::Image image = m_imageCatalog.get(file);
-	if(image.isNull() && !file.isDirectory())
-	{
-		image = appImage;
-	}
 	
 	juce::Rectangle<float> firstRect = getButtonAt(0, w, h);
 	float spaceX = firstRect.getX();
@@ -434,117 +431,136 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
 		return;
 	}
-
 	
-	juce::Rectangle<float> imageTargetRect(rect);
-	if(file.isDirectory())
+	bool isRoot = file.getParentDirectory().getFullPathName() == file.getFullPathName();
+	if(isRoot)
 	{
-		folderBackImage.get()->drawWithin (g, rectWithBorders,
+		//drive
+		juce::Drawable const* image = file.isOnCDRomDrive()?diskImage.get():file.isOnRemovableDrive()?usbImage.get():driveImage.get();
+		float s = std::min(rect.getWidth(), rect.getHeight());
+		image->drawWithin (g, rect.withSize(s, s),
 							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
-		
-		//scales are specific to folderImage layout
-		float xMarginRelative = 0.02f;
-		float yTopMarginRelative = 0.15f;
-		float yBottomMarginAbsolute = titleHeight;
-		imageTargetRect=rectWithBorders.translated(rectWithBorders.getWidth()*xMarginRelative, rectWithBorders.getHeight()*yTopMarginRelative);
-		imageTargetRect.setSize(rectWithBorders.getWidth()*(1.f-2.f*xMarginRelative), rectWithBorders.getHeight()*(1.f-yTopMarginRelative)-yBottomMarginAbsolute);
 	}
-	
-	if(m_thumbnailer.busyOn(file))
+	else
 	{
-		g.setColour(juce::Colours::purple.brighter());
-		g.fillRect(imageTargetRect);
-	}
-
-	if(!file.isDirectory())
-	{
-
-		//border
-		g.setColour(juce::Colour(255, 255, 255));
 	
-		const float holeRoundness = holeW/6.f;
-		const float holeBorderW = (sideStripWidth-holeW)/2.f;
-		const int holeCount =  (int)std::floor(rectWithBorders.getHeight()/(2.f*holeH));
-		const int holeBorderCount =  holeCount;
-		const float holeBorderH = (rectWithBorders.getHeight() - holeCount*holeH)/holeBorderCount;
-		for(float ih = rectWithBorders.getY();ih<=(rectWithBorders.getBottom()-holeBorderH);ih+=(holeH+holeBorderH))
+		juce::Image image = m_imageCatalog.get(file);
+		if(image.isNull() && !file.isDirectory())
 		{
-			g.fillRoundedRectangle(rectWithBorders.getX()+holeBorderW, ih, holeW, holeH, holeRoundness);
-			g.fillRoundedRectangle(rect.getRight()+holeBorderW, ih, holeW, holeH, holeRoundness);
+			image = appImage;
 		}
 	
-		g.drawLine(rectWithBorders.getX(), rectWithBorders.getY(), rectWithBorders.getX(), rectWithBorders.getBottom(), lineThickness);
-		g.drawLine(rectWithBorders.getRight(), rectWithBorders.getY(), rectWithBorders.getRight(), rectWithBorders.getBottom(), lineThickness);
-			
-	}
-
-	if(!image.isNull())
-	{
-		//picture
-		float imgHeightRatio = (float)image.getHeight()/(float)image.getWidth();
-		float itemHeightRatio = imageTargetRect.getHeight()/imageTargetRect.getWidth();
-		float scale;
-		float imageX;
-		float imageY;
-		if(imgHeightRatio > itemHeightRatio)
+		juce::Rectangle<float> imageTargetRect(rect);
+		if(file.isDirectory())
 		{
-			//scale on h
-			scale = imageTargetRect.getHeight()/(image.getHeight());
-			imageX = imageTargetRect.getX() + (imageTargetRect.getWidth()-image.getWidth()*scale)/2;
-			imageY = imageTargetRect.getY();
+			folderBackImage.get()->drawWithin (g, rectWithBorders,
+								juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
+		
+			//scales are specific to folderImage layout
+			float xMarginRelative = 0.02f;
+			float yTopMarginRelative = 0.15f;
+			float yBottomMarginAbsolute = titleHeight;
+			imageTargetRect=rectWithBorders.translated(rectWithBorders.getWidth()*xMarginRelative, rectWithBorders.getHeight()*yTopMarginRelative);
+			imageTargetRect.setSize(rectWithBorders.getWidth()*(1.f-2.f*xMarginRelative), rectWithBorders.getHeight()*(1.f-yTopMarginRelative)-yBottomMarginAbsolute);
 		}
-		else
+	
+		if(m_thumbnailer.busyOn(file))
 		{
-			//scale on w
-			scale = imageTargetRect.getWidth()/image.getWidth();
-			imageX = imageTargetRect.getX();
-			imageY = imageTargetRect.getBottom() - image.getHeight()*scale;
+			g.setColour(juce::Colours::purple.brighter());
+			g.fillRect(imageTargetRect);
 		}
-		float imageItemW = image.getWidth()*scale;
-		float imageItemH = image.getHeight()*scale;
-		
-		
-		juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
-		g.drawImageTransformed(image, tr, false);
 
 		if(!file.isDirectory())
 		{
 
-			//reflect
-			float reflectionH = titleHeight;
-			juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -titleHeight/image.getHeight()).translated(imageX, rectWithBorders.getBottom());
-			g.drawImageTransformed(image, t, false);
-
-			//reflection floor
-			juce::ColourGradient grad (juce::Colours::purple.withAlpha(0.33f),
-												imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, imageTargetRect.getBottom(),
-												juce::Colours::black.withAlpha(1.0f),
-												imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, rectWithBorders.getBottom(),
-												false);
-		
-			grad.addColour(0.66, juce::Colours::purple.withAlpha(.66f));
-			g.setGradientFill (grad);	
-			g.fillRect(imageTargetRect.getX(), imageTargetRect.getBottom(), imageTargetRect.getWidth(), reflectionH);
-	
 			//border
 			g.setColour(juce::Colour(255, 255, 255));
-			g.drawRect(imageTargetRect, lineThickness);
+	
+			const float holeRoundness = holeW/6.f;
+			const float holeBorderW = (sideStripWidth-holeW)/2.f;
+			const int holeCount =  (int)std::floor(rectWithBorders.getHeight()/(2.f*holeH));
+			const int holeBorderCount =  holeCount;
+			const float holeBorderH = (rectWithBorders.getHeight() - holeCount*holeH)/holeBorderCount;
+			for(float ih = rectWithBorders.getY();ih<=(rectWithBorders.getBottom()-holeBorderH);ih+=(holeH+holeBorderH))
+			{
+				g.fillRoundedRectangle(rectWithBorders.getX()+holeBorderW, ih, holeW, holeH, holeRoundness);
+				g.fillRoundedRectangle(rect.getRight()+holeBorderW, ih, holeW, holeH, holeRoundness);
+			}
+	
+			g.drawLine(rectWithBorders.getX(), rectWithBorders.getY(), rectWithBorders.getX(), rectWithBorders.getBottom(), lineThickness);
+			g.drawLine(rectWithBorders.getRight(), rectWithBorders.getY(), rectWithBorders.getRight(), rectWithBorders.getBottom(), lineThickness);
+			
 		}
-	}
 
-	if(file.isDirectory())
-	{
-		folderFrontImage.get()->drawWithin (g, rectWithBorders,
-							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
-	}
+		if(!image.isNull())
+		{
+			//picture
+			float imgHeightRatio = (float)image.getHeight()/(float)image.getWidth();
+			float itemHeightRatio = imageTargetRect.getHeight()/imageTargetRect.getWidth();
+			float scale;
+			float imageX;
+			float imageY;
+			if(imgHeightRatio > itemHeightRatio)
+			{
+				//scale on h
+				scale = imageTargetRect.getHeight()/(image.getHeight());
+				imageX = imageTargetRect.getX() + (imageTargetRect.getWidth()-image.getWidth()*scale)/2;
+				imageY = imageTargetRect.getY();
+			}
+			else
+			{
+				//scale on w
+				scale = imageTargetRect.getWidth()/image.getWidth();
+				imageX = imageTargetRect.getX();
+				imageY = imageTargetRect.getBottom() - image.getHeight()*scale;
+			}
+			float imageItemW = image.getWidth()*scale;
+			float imageItemH = image.getHeight()*scale;
+		
+		
+			juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
+			g.drawImageTransformed(image, tr, false);
 
+			if(!file.isDirectory())
+			{
+
+				//reflect
+				float reflectionH = titleHeight;
+				juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -titleHeight/image.getHeight()).translated(imageX, rectWithBorders.getBottom());
+				g.drawImageTransformed(image, t, false);
+
+				//reflection floor
+				juce::ColourGradient grad (juce::Colours::purple.withAlpha(0.33f),
+													imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, imageTargetRect.getBottom(),
+													juce::Colours::black.withAlpha(1.0f),
+													imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, rectWithBorders.getBottom(),
+													false);
+		
+				grad.addColour(0.66, juce::Colours::purple.withAlpha(.66f));
+				g.setGradientFill (grad);	
+				g.fillRect(imageTargetRect.getX(), imageTargetRect.getBottom(), imageTargetRect.getWidth(), reflectionH);
+	
+				//border
+				g.setColour(juce::Colour(255, 255, 255));
+				g.drawRect(imageTargetRect, lineThickness);
+			}
+		}
+
+		if(file.isDirectory())
+		{
+			folderFrontImage.get()->drawWithin (g, rectWithBorders,
+								juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
+		}
+
+	}
 
 	//title
 	juce::Font f = g.getCurrentFont().withHeight(titleHeight/maxTitleLineCount);
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 	g.setColour (juce::Colours::white);
-	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():file.getFileNameWithoutExtension():juce::String::empty,
+	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():
+		(isRoot?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileNameWithoutExtension()):juce::String::empty,
 		(int)(rect.getX()),  (int)rect.getBottom(), 
 		(int)(rect.getWidth()), (int)(titleHeight), 
 		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
@@ -558,6 +574,14 @@ bool IconMenu::updateFilePreview(PathAndImage & pathAndImageLoadedFlag)
 		return false;
 	}
 	juce::File const& f(pathAndImageLoadedFlag.first);
+
+	
+	if(f.getParentDirectory().getFullPathName() == f.getFullPathName())
+	{
+		//root (hd, disk, usb)
+		return false;
+	}
+
 	juce::File fileToAnalyse;
 	fileToAnalyse = f.isDirectory()?findFirstMovie(f):f;
 	if(!fileToAnalyse.exists())

@@ -20,6 +20,9 @@ protected:
     juce::Image appImage;
     juce::ScopedPointer<juce::Drawable> folderBackImage;
     juce::ScopedPointer<juce::Drawable> folderFrontImage;
+    juce::ScopedPointer<juce::Drawable> driveImage;
+    juce::ScopedPointer<juce::Drawable> diskImage;
+    juce::ScopedPointer<juce::Drawable> usbImage;
     juce::ScopedPointer<juce::Drawable> upImage;
 	std::set<juce::String> m_videoExtensions;
 	std::string m_mediaPostersRoot;
