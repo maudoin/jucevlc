@@ -107,6 +107,8 @@ class VLCUPNPMediaList
 	
 	libvlc_media_discoverer_t*   pMediaDiscoverer_;        ///< The VLC media Discoverer object.
 	libvlc_media_list_t* pUPNPMediaList_;
+
+	void init();
 public:
 	VLCUPNPMediaList(void);
 	~VLCUPNPMediaList(void);

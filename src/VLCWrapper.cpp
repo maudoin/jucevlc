@@ -263,17 +263,30 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
 
 VLCUPNPMediaList::VLCUPNPMediaList()
 {
+	init();
+}
+
+void VLCUPNPMediaList::init()
+{
 	pVLCInstance_.mayInit();
+
 	//media_discoverer
     pMediaDiscoverer_ = libvlc_media_discoverer_new_from_name(pVLCInstance_.get(),"upnp");
 
-	pUPNPMediaList_ = libvlc_media_discoverer_media_list(pMediaDiscoverer_);
+	//pMediaDiscoverer_ creation may have failed
+	pUPNPMediaList_ = (pMediaDiscoverer_ == NULL)?NULL:libvlc_media_discoverer_media_list(pMediaDiscoverer_);
 
 }
 VLCUPNPMediaList::~VLCUPNPMediaList()
 {
-	libvlc_media_list_release(pUPNPMediaList_) ;
-	libvlc_media_discoverer_release( pMediaDiscoverer_);
+	if(pUPNPMediaList_ != NULL)
+	{
+		libvlc_media_list_release(pUPNPMediaList_) ;
+	}
+	if(pMediaDiscoverer_ != NULL)
+	{
+		libvlc_media_discoverer_release( pMediaDiscoverer_);
+	}
 
 }
 
@@ -1148,8 +1161,17 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 
 std::vector<std::pair<std::string, std::string> > VLCUPNPMediaList::getUPNPList(std::vector<std::string> const& path)
 {
+
+	if(pUPNPMediaList_ == NULL)
+	{
+		init();
+	}
+	//second and last chance this time
 	std::vector<std::pair<std::string, std::string> > list;
-	//readMediaList(pUPNPMediaList_, list);
+	if(pUPNPMediaList_ == NULL)
+	{
+		return list;
+	}
 
 	std::deque<std::string> nameList;
 	std::copy(path.begin(), path.end(), std::back_inserter(nameList));

@@ -69,6 +69,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir)/msinttypes-r26;$(ProjectDir)/boost/include;$(ProjectDir)/libvlc/include;$(ProjectDir)/libvlc/include/vlc/plugins;$(ProjectDir)/juce;$(ProjectDir)/vf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
