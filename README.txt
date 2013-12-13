@@ -43,6 +43,11 @@ It controls:
 
 **Changelog**
 ==================
+0.84 (2013/12/13):
+- Fix startup crash when network connection is unavailable
+- Better frontpage drive/folder icons
+- libVLC 2.1.2
+
 0.83 (2013/09/29):
 - Audio channel selection
 - libVLC 2.1.0
