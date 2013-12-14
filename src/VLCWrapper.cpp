@@ -293,7 +293,11 @@ VLCUPNPMediaList::~VLCUPNPMediaList()
 VLCWrapper::VLCWrapper(void)
 :	pMediaPlayer_(0),
     pEventManager_(0),
-	m_videoAdjustEnabled(0)
+	m_videoAdjustEnabled(0),
+    m_pEventCallBack(0),
+    m_pInputCallBack(0),
+    m_pMouseInputCallBack(0),
+	m_pAudioCallback(0)
 {
 
 	// init vlc modules, should be done only once
@@ -386,6 +390,15 @@ void VLCWrapper::SetAudioCallback(AudioCallback* cb)
 	 	
 void VLCWrapper::SetEventCallBack(EventCallBack* cb)
 {
+	if(m_pEventCallBack)
+	{
+		libvlc_event_detach (pEventManager_, libvlc_MediaPlayerTimeChanged, HandleVLCEvents, m_pEventCallBack);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPlaying, HandleVLCEvents, m_pEventCallBack);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPausableChanged, HandleVLCEvents, m_pEventCallBack);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPaused, HandleVLCEvents, m_pEventCallBack);
+	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerStopped, HandleVLCEvents, m_pEventCallBack);
+	}
+	m_pEventCallBack = cb;
 	if(cb)
 	{
 	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerTimeChanged, HandleVLCEvents, cb);
@@ -393,14 +406,6 @@ void VLCWrapper::SetEventCallBack(EventCallBack* cb)
 	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerPausableChanged, HandleVLCEvents, cb);
 	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerPaused, HandleVLCEvents, cb);
 	    libvlc_event_attach (pEventManager_, libvlc_MediaPlayerStopped, HandleVLCEvents, cb);
-	}
-	else
-	{
-		libvlc_event_detach (pEventManager_, libvlc_MediaPlayerTimeChanged, HandleVLCEvents, cb);
-	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPlaying, HandleVLCEvents, cb);
-	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPausableChanged, HandleVLCEvents, cb);
-	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerPaused, HandleVLCEvents, cb);
-	    libvlc_event_detach (pEventManager_, libvlc_MediaPlayerStopped, HandleVLCEvents, cb);
 	}
 }
 void VLCWrapper::SetBufferFormat(int imageWidth, int imageHeight, int imageStride)
@@ -608,14 +613,18 @@ void VLCWrapper::setSubtitleIndex(int i)
 
 void VLCWrapper::SetInputCallBack(InputCallBack* cb)
 {
-    //var_Create( p_playlist, "fullscreen", VLC_VAR_BOOL | VLC_VAR_DOINHERIT );
-    //var_Create( p_playlist, "video-on-top", VLC_VAR_BOOL | VLC_VAR_DOINHERIT );
-
 	vlc_object_t *obj = VLC_OBJECT(pVLCInstance_.get()->p_libvlc_int);
-//	var_DelCallback( obj, "intf-popupmenu", cb?popupCallback:0, cb );
-//	var_DelCallback( obj, "intf-toggle-fscontrol", cb?fullscreenControlCallback:0, cb );
-	var_AddCallback( obj, "intf-popupmenu", cb?popupCallback:0, cb );
-	var_AddCallback( obj, "intf-toggle-fscontrol", cb?fullscreenControlCallback:0, cb );
+	if(m_pInputCallBack)
+	{
+		var_DelCallback( obj, "intf-popupmenu", popupCallback, m_pInputCallBack );
+		var_DelCallback( obj, "intf-toggle-fscontrol", fullscreenControlCallback, m_pInputCallBack );
+	}
+	m_pInputCallBack = cb;
+	if(cb != 0)
+	{
+		var_AddCallback( obj, "intf-popupmenu", popupCallback, cb );
+		var_AddCallback( obj, "intf-toggle-fscontrol", fullscreenControlCallback, cb );
+	}
 
 }
 
@@ -625,14 +634,24 @@ void VLCWrapper::SetInputCallBack(InputCallBack* cb)
 
 bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
 {
-
 	//var_Create (obj, "key-pressed", VLC_VAR_INTEGER);
     vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
 	if(p_vout)
 	{
-		var_AddCallback( p_vout, "mouse-moved", cb?onMouseMoveCallback:0, cb );
-		var_AddCallback( p_vout, "mouse-clicked", cb?onMouseClickCallback:0, cb );
+		if(m_pMouseInputCallBack)
+		{
+			var_DelCallback( p_vout, "mouse-moved", onMouseMoveCallback, m_pMouseInputCallBack );
+			var_DelCallback( p_vout, "mouse-clicked", onMouseClickCallback, m_pMouseInputCallBack );
+		}
+		m_pMouseInputCallBack=cb;
+		
+		if(cb != 0)
+		{
+			var_AddCallback( p_vout, "mouse-moved", onMouseMoveCallback, cb );
+			var_AddCallback( p_vout, "mouse-clicked", onMouseClickCallback, cb );
+		}
 	
+
 		vlc_object_release (p_vout);
 	}
 	return p_vout != 0;

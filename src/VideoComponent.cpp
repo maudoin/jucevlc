@@ -835,6 +835,10 @@ void VideoComponent::appendAndPlay(std::string const& path)
 #else
     resized();
 #endif
+	
+	//force mouseinput to be set again when the media starts to play
+	vlc->setMouseInputCallBack(NULL);
+    vlc->SetEventCallBack(this);
 
 	vlc->playPlayListItem(index);
 	
@@ -2216,6 +2220,9 @@ void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
 	catch(std::exception const& )
 	{
 	}
+	//force mouseinput to be set again when the media starts to play
+	vlc->setMouseInputCallBack(NULL);
+    vlc->SetEventCallBack(this);
 
 	vlc->playPlayListItem(index);
 
