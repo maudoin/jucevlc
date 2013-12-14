@@ -1379,6 +1379,11 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 
 	int cnt = vlc->getSubtitlesCount();
 	int current = vlc->getCurrentSubtitleIndex();
+	if(current>0)
+	{
+		//vlc seems 1 indexed, not 0 indexed..
+		current --;
+	}
 	if(cnt)
 	{
 		//int commonCharacters = 0;
@@ -1403,10 +1408,10 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		//	}
 		//}
 
-		menu->addMenuItem( juce::String::formatted(TRANS("Disable")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, 0), (0==current||-1==current)?getItemImage():nullptr);
+		menu->addMenuItem( juce::String::formatted(TRANS("Disable")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), (-1==current)?getItemImage():nullptr);
 		for(int i = 1;i<cnt;++i)
 		{
-			menu->addMenuItem( juce::String::formatted(TRANS("Slot %d"), i), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, i), i==current?getItemImage():nullptr);
+			menu->addMenuItem( juce::String::formatted(TRANS("Slot %d"), i), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, i+1), i==current?getItemImage():nullptr);
 		}
 	}
 	else
