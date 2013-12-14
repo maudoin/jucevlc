@@ -26,6 +26,7 @@ Desktop::Desktop()
     : mouseSources (new MouseInputSource::SourceList()),
       mouseClickCounter (0), mouseWheelCounter (0),
       kioskModeComponent (nullptr),
+      m_bailoutKioskOnFocusLost (true),
       allowedOrientations (allOrientations),
       masterScaleFactor ((float) getDefaultMasterScale())
 {

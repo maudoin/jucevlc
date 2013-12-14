@@ -171,6 +171,10 @@ public:
     */
     Component* getKioskModeComponent() const noexcept               { return kioskModeComponent; }
 
+	bool bailoutKioskOnFocusLost()const{ return m_bailoutKioskOnFocusLost;}
+
+	void setBailoutKioskOnFocusLost(bool bailoutKioskOnFocusLost){ m_bailoutKioskOnFocusLost = bailoutKioskOnFocusLost;}
+
     //==============================================================================
     /** Returns the number of components that are currently active as top-level
         desktop windows.
@@ -425,6 +429,7 @@ private:
     WeakReference<LookAndFeel> currentLookAndFeel;
 
     Component* kioskModeComponent;
+	bool m_bailoutKioskOnFocusLost;
     Rectangle<int> kioskComponentOriginalBounds;
 
     int allowedOrientations;

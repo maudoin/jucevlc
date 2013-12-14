@@ -400,6 +400,7 @@ void VideoComponent::switchPlayPause()
 
 void VideoComponent::setFullScreen(bool fs)
 {
+	juce::Desktop::getInstance().setBailoutKioskOnFocusLost(false);
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
 	if(!fs)
 	{
