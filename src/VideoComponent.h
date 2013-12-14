@@ -92,6 +92,7 @@ public:
 	void setFullScreen(bool fs = true);
 	void switchFullScreen();
 	void switchPlayPause();
+	void showVolumeSlider(double value);
 	void showVolumeSlider();
 	void showPlaybackSpeedSlider();
 	void showZoomSlider();

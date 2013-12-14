@@ -261,9 +261,8 @@ VideoComponent::VideoComponent()
 
 	vlc->SetInputCallBack(this);
 	mousehookset=  false;
-
 	
-	showVolumeSlider();
+	showVolumeSlider(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 
 	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);  
 	
@@ -271,7 +270,7 @@ VideoComponent::VideoComponent()
 
 	initFromSettings();
 
-    setVisible (true);
+	setVisible (true);
 	
 	if(!isFullScreen())
 	{
@@ -493,7 +492,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 			}
 			else
 			{
-				if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, vlc->isStopped()));
+				if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 			}
 		}
 		
@@ -924,9 +923,13 @@ void VideoComponent::componentVisibilityChanged(Component &  component)
 
 void VideoComponent::showVolumeSlider()
 {
+	showVolumeSlider(vlc->getVolume());
+}
+void VideoComponent::showVolumeSlider(double value)
+{
 	controlComponent->auxilliaryControlComponent().show(TRANS("Audio Volume: %.f%%"),
 		boost::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
-		vlc->getVolume(), 100., 1., 200., .1);
+		value, 100., 1., 200., .1);
 }
 void VideoComponent::showPlaybackSpeedSlider ()
 {
@@ -2526,7 +2529,7 @@ void VideoComponent::initFromSettings()
 	{
 		vlc->setConfigOptionString("audio-filter", AOUT_FILTER_EQUALIZER);
 	}
-	
+
 }
 
 	
