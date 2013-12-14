@@ -450,7 +450,8 @@ void VideoComponent::mouseExit (const juce::MouseEvent& e)
 
 void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
-	
+	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setAlpha,this, 1.f));
+
 	//DBG ( "click " << e.eventComponent->getName() );
 	if(e.eventComponent == this)
 	{
