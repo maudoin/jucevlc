@@ -50,8 +50,8 @@
   </Company_Info>
   <Program_Info>
     <Program_Name>JuceVLC</Program_Name>
-    <Program_Version>0.84</Program_Version>
-    <Program_Release_Month>13</Program_Release_Month>
+    <Program_Version>0.85</Program_Version>
+    <Program_Release_Month>15</Program_Release_Month>
     <Program_Release_Day>12</Program_Release_Day>
     <Program_Release_Year>2013</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
@@ -101,7 +101,7 @@
     </Application_URLs>
     <Download_URLs>
       <Primary_Download_URL>http://sourceforge.net/projects/jucevlc/files/latest/download</Primary_Download_URL>
-      <Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.84.exe</Secondary_Download_URL>
+      <Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.85.exe</Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
     </Download_URLs>
@@ -209,11 +209,11 @@ patents cannot be used to render the program non-free.</EULA>
     <Site_Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Site_Keywords>
   </Site>
   <Press_Release>
-    <Press_Release>JuceVLC 0.84 is out</Press_Release>
-    <Headline>JuceVLC 0.84 is out</Headline>
-    <Summary>JuceVLC 0.84 has a new movies thumnails/posters browser</Summary>
+    <Press_Release>JuceVLC 0.85 is out</Press_Release>
+    <Headline>JuceVLC 0.85 is out</Headline>
+    <Summary>JuceVLC 0.85 has a new movies thumnails/posters browser</Summary>
     <Keywords>vlc,video,player,media-center,fullscreen,user interface</Keywords>
-    <Press_Release_Plain>JuceVLC 0.84 fixes a startup crash and now uses VLC 2.1.2. See http://jucevlc.sourceforge.net/</Press_Release_Plain>
+    <Press_Release_Plain>JuceVLC 0.85 fixes multiple bugs (subtitles menu, fullscreen, controls). See http://jucevlc.sourceforge.net/</Press_Release_Plain>
     <Related_URL>http://jucevlc.sourceforge.net/</Related_URL>
   </Press_Release>
   <Program_Descriptions>

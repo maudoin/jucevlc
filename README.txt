@@ -43,6 +43,13 @@ It controls:
 
 **Changelog**
 ==================
+0.85 (2013/12/15):
+- Fix subtitle index selection menu and disable option
+- Fullscreen mode is not left anymore when loosing focus
+- Fix controls not always hiding/showing automatically when they should
+- Improve end of video management (wrongfully translucent menu)
+- Fix broken initial audio volume value
+
 0.84 (2013/12/13):
 - Fix startup crash when network connection is unavailable
 - Better frontpage drive/folder icons
