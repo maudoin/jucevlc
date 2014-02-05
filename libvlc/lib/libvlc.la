@@ -23,8 +23,8 @@ dependency_libs=' -L/home/jb/vlc-2.1/contrib/i686-w64-mingw32/lib /home/jb/vlc-2
 weak_library_names=''
 
 # Version information for libvlc.
-current=8
-age=3
+current=9
+age=4
 revision=0
 
 # Is this an already installed library?
