@@ -152,6 +152,37 @@ public:
 };
 	
 
+class BackgoundUPNP : public juce::Thread
+{
+	juce::CriticalSection mutex;
+	juce::ScopedPointer<VLCUPNPMediaList> vlcMediaUPNPList;
+public:
+	BackgoundUPNP():juce::Thread("BackgoundUPNP")
+	{
+		startThread();
+	}
+	~BackgoundUPNP()
+	{
+		stopThread(2000);
+	}
+	void run()
+	{
+		VLCUPNPMediaList* built = new VLCUPNPMediaList();
+		juce::CriticalSection::ScopedLockType l(mutex);
+		vlcMediaUPNPList = built;
+	}
+	
+	std::vector<std::pair<std::string, std::string> > getUPNPList(std::vector<std::string> const& path)
+	{
+		
+		juce::CriticalSection::ScopedLockType l(mutex);
+		if(vlcMediaUPNPList)
+		{
+			return vlcMediaUPNPList->getUPNPList(path);
+		}
+		return std::vector<std::pair<std::string, std::string> >();
+	}
+};
 ////////////////////////////////////////////////////////////
 //
 // MAIN COMPONENT
@@ -171,6 +202,8 @@ VideoComponent::VideoComponent()
 	,m_backgroundTasks("BG tasks")
 {    
 	Languages::getInstance();
+
+	vlcMediaUPNPList = new BackgoundUPNP();
 
 	//m_toolTip = new juce::TooltipWindow( this,50);
 
@@ -1059,7 +1092,7 @@ juce::String getPathExtensionWithoutDot(juce::String const& path)
 
 void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path)
 {	
-	std::vector<std::pair<std::string, std::string> > list = vlcMediaUPNPList.getUPNPList(path);
+	std::vector<std::pair<std::string, std::string> > list = vlcMediaUPNPList->getUPNPList(path);
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{
 		if(std::string::npos == std::string(it->second).find("vlc://nop"))
