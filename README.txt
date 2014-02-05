@@ -43,6 +43,9 @@ It controls:
 
 **Changelog**
 ==================
+0.86 (2014/02/14):
+- libVLC 2.1.3
+
 0.85 (2013/12/15):
 - Fix subtitle index selection menu and disable option
 - Fullscreen mode is not left anymore when loosing focus
