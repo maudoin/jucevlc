@@ -112,8 +112,8 @@ public:
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		float textWidth = f.getStringWidthFloat(title);
-		float rightBorder = std::max(getWidth() - textWidth, getWidth()*0.1f);
-		textWidth = std::min(textWidth, getWidth() - rightBorder);
+		float rightBorder = 2.f*getHeight();
+		textWidth = getWidth() - rightBorder;
 		juce::Path path;
 		path.lineTo(textWidth+rightBorder-2, 0);
 		path.quadraticTo(textWidth+rightBorder/2.f, getHeight()-2.f, textWidth, getHeight()-2.f);
@@ -765,7 +765,7 @@ void VideoComponent::updateSubComponentsBounds()
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 3*(int)menu->getItemHeight();
 	
-    menu->asComponent()->setBounds (w-treeWidth, hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2);
+    menu->asComponent()->setBounds (w-treeWidth,(int) menu->getItemHeight()+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2-(int)menu->getItemHeight());
 	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
 }
 	
@@ -807,7 +807,7 @@ void VideoComponent::resized()
     {
         titleBar->setVisible (menu->asComponent()->isVisible() || !isFullScreen());
 		titleBar->allowDrag(!isFullScreen());
-		titleBar->setBounds(0, 0, getWidth()/3, (int)menu->getItemHeight());
+		titleBar->setBounds(0, 0, getWidth(), (int)menu->getItemHeight());
 		titleBar->toFront(false);
     }
     if (resizableBorder != nullptr)
