@@ -122,20 +122,17 @@ public:
 		path.lineTo(0.f, 0.f);
 		
 		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
-											getWidth()/2.f, getHeight(),
+											getWidth()/2.f, (float)getHeight(),
 											juce::Colours::black,
-											getWidth()/2.f, 0,
+											getWidth()/2.f, 0.f,
 											false));
-
-		//g.setColour (juce::Colours::darkgrey.withAlpha(0.5f));
 		g.fillPath(path);
 		
 		g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
-											getWidth()/2.f, getHeight(),
+											getWidth()/2.f, (float)getHeight(),
 											juce::Colours::black,
-											getWidth()/2.f, 0,
+											getWidth()/2.f, 0.f,
 											false));
-		//g.setColour (juce::Colours::lightgrey.withAlpha(0.5f));
 		g.strokePath(path, juce::PathStrokeType(1.f));
 
 		
@@ -2358,11 +2355,12 @@ void VideoComponent::onColorTheme(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 
-	menu->addMenuItem( juce::String::formatted("Original"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, -1), 0>m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( juce::String::formatted("Red"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 255), 255==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( juce::String::formatted("Green"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 90), 90==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( juce::String::formatted("Blue"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 170), 170==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( juce::String::formatted("Custom"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSelectColorTheme, this, _1), nullptr);
+	menu->addMenuItem( TRANS("Original"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, -1), 0>m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( TRANS("Grey"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 666), 666==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( TRANS("Red"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 255), 255==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( TRANS("Green"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 90), 90==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( TRANS("Blue"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 170), 170==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( TRANS("Custom"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSelectColorTheme, this, _1), nullptr);
 }
 void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable)
 {

@@ -68,8 +68,26 @@ public:
     
 };
 
+juce::DrawableShape::RelativeFillType changeSaturation(juce::DrawableShape::RelativeFillType const& fill, float newSaturation)
+{
+	juce::DrawableShape::RelativeFillType f = fill;
+	if(f.fill.gradient)
+	{
+		for(int i=0;i<f.fill.gradient->getNumColours();++i)
+		{
+			f.fill.gradient->setColour(i, f.fill.gradient->getColour(i).withSaturation(newSaturation));
+		}
+	}
+	f.fill.colour = f.fill.colour.withSaturation(newSaturation);
+
+	return f;
+}
 juce::DrawableShape::RelativeFillType changeHue(juce::DrawableShape::RelativeFillType const& fill, float newHue)
 {
+	if(newHue>1.f)
+	{
+		return changeSaturation(fill, 0);
+	}
 	juce::DrawableShape::RelativeFillType f = fill;
 	if(f.fill.gradient)
 	{
@@ -85,6 +103,11 @@ juce::DrawableShape::RelativeFillType changeHue(juce::DrawableShape::RelativeFil
 
 bool ChangeShapeHue(juce::DrawableShape& d, juce::String const& shapeName, float newHue)
 {
+	if(newHue < 0.f)
+	{
+		//no hue change, do not proceed further
+		return false;
+	}
 	if(d.getName() == shapeName)
 	{
 		d.setFill(changeHue(d.getFill(), newHue));
@@ -113,4 +136,21 @@ juce::Drawable* buildFolderFrontImage(float hue)
 juce::Drawable* buildBackImage(float hue)
 {
 	return applyTheme("path15341", hue, applyTheme("path15742", hue, juce::Drawable::createFromImageData (back_svg, back_svgSize)));
+}
+
+
+juce::Colour getThemeBaseColor(float hue)
+{
+	if(hue<0.)
+	{
+		return juce::Colours::purple;
+	}
+	else if(hue>1.)
+	{
+		return juce::Colours::darkgrey;
+	}
+	else
+	{
+		return juce::Colours::purple.withHue(hue);
+	}
 }

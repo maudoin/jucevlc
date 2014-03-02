@@ -35,14 +35,7 @@ IconMenu::~IconMenu()
 	
 juce::Colour IconMenu::getThemeBaseColor()const
 {
-	if(m_colorThemeHue<0)
-	{
-		return juce::Colours::purple;
-	}
-	else
-	{
-		return juce::Colours::purple.withHue(getColorThemeHueAsFloat());
-	}
+	return ::getThemeBaseColor(getColorThemeHueAsFloat());
 }
 void IconMenu::setColorThemeHue(int hue)
 {
@@ -574,7 +567,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	juce::Font f = g.getCurrentFont().withHeight(titleHeight/maxTitleLineCount);
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
-	g.setColour (juce::Colours::white);
+	g.setColour (file.isDirectory()?juce::Colours::black:juce::Colours::white);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():
 		(isRoot?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileNameWithoutExtension()):juce::String::empty,
 		(int)(rect.getX()),  (int)rect.getBottom(), 
