@@ -800,6 +800,9 @@
     <ClInclude Include="src\ImagesTheme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\HueSelector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\vlc.ico">

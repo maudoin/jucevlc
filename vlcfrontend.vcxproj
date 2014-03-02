@@ -385,6 +385,7 @@
     <ClInclude Include="src\ControlComponent.h" />
     <ClInclude Include="src\FileSorter.h" />
     <ClInclude Include="src\FontResource.h" />
+    <ClInclude Include="src\HueSelector.h" />
     <ClInclude Include="src\IconMenu.h" />
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\ImageCatalog.h" />

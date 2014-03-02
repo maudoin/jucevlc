@@ -68,15 +68,9 @@ public:
     
 };
 
-bool ChangeShapeHue(juce::DrawableShape& d, juce::String const& shapeName, float newHue)
+juce::DrawableShape::RelativeFillType changeHue(juce::DrawableShape::RelativeFillType const& fill, float newHue)
 {
-	if(d.getName() != shapeName)
-	{
-		return true;
-	}
-
-
-	juce::DrawableShape::RelativeFillType f = d.getFill();
+	juce::DrawableShape::RelativeFillType f = fill;
 	if(f.fill.gradient)
 	{
 		for(int i=0;i<f.fill.gradient->getNumColours();++i)
@@ -85,9 +79,22 @@ bool ChangeShapeHue(juce::DrawableShape& d, juce::String const& shapeName, float
 		}
 	}
 	f.fill.colour = f.fill.colour.withHue(newHue);
-	d.setFill(f);
 
-	return false;
+	return f;
+}
+
+bool ChangeShapeHue(juce::DrawableShape& d, juce::String const& shapeName, float newHue)
+{
+	if(d.getName() == shapeName)
+	{
+		d.setFill(changeHue(d.getFill(), newHue));
+		d.setStrokeFill(changeHue(d.getStrokeFill(), newHue));
+		//found, do not proceed further
+		return false;
+	}
+
+	//proceed to next shape
+	return true;
 }
 
 inline juce::Drawable* applyTheme(juce::String const& shapeName, float newHue, juce::Drawable* d)

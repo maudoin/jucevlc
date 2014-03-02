@@ -1,5 +1,6 @@
 
 #include "VideoComponent.h"
+#include "HueSelector.h"
 #include "Icons.h"
 #include "MenuComponent.h"
 #include "Languages.h"
@@ -120,11 +121,22 @@ public:
 		path.lineTo(0.f, getHeight()-2.f);
 		path.lineTo(0.f, 0.f);
 		
-		g.setColour (juce::Colours::purple.withAlpha(0.75f));
-		g.fillPath(path);
+		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+											getWidth()/2.f, getHeight(),
+											juce::Colours::black,
+											getWidth()/2.f, 0,
+											false));
 
-		g.setColour (juce::Colours::purple.brighter());
-		g.strokePath(path, juce::PathStrokeType(2));
+		//g.setColour (juce::Colours::darkgrey.withAlpha(0.5f));
+		g.fillPath(path);
+		
+		g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+											getWidth()/2.f, getHeight(),
+											juce::Colours::black,
+											getWidth()/2.f, 0,
+											false));
+		//g.setColour (juce::Colours::lightgrey.withAlpha(0.5f));
+		g.strokePath(path, juce::PathStrokeType(1.f));
 
 		
 		g.setColour (juce::Colours::white);
@@ -2328,101 +2340,12 @@ void VideoComponent::onSetColorTheme(AbstractMenuItem& item, int hue)
 }
 
 //==============================================================================
-class HueSelectorMarker  : public juce::Component
-{
-public:
-    HueSelectorMarker()
-    {
-        setInterceptsMouseClicks (false, false);
-    }
-
-    void paint (juce::Graphics& g) override
-    {
-        const float cw = (float) getWidth();
-        const float ch = (float) getHeight();
-
-        juce::Path p;
-        p.addTriangle (1.0f, 1.0f,
-                       cw * 0.3f, ch * 0.5f,
-                       1.0f, ch - 1.0f);
-
-        p.addTriangle (cw - 1.0f, 1.0f,
-                       cw * 0.7f, ch * 0.5f,
-                       cw - 1.0f, ch - 1.0f);
-
-        g.setColour (juce::Colours::white.withAlpha (0.75f));
-        g.fillPath (p);
-
-        g.setColour (juce::Colours::black.withAlpha (0.75f));
-        g.strokePath (p, juce::PathStrokeType (1.2f));
-    }
-
-private:
-    JUCE_DECLARE_NON_COPYABLE (HueSelectorMarker)
-};
-
-class HueSelectorComp  : public juce::Component
-{
-public:
-    HueSelectorComp (float hue, const int edgeSize)
-        : h (hue), edge (edgeSize)
-    {
-        addAndMakeVisible (&marker);
-    }
-
-    void paint (juce::Graphics& g) override
-    {
-        juce::ColourGradient cg;
-        cg.isRadial = false;
-        cg.point1.setXY (0.0f, (float) edge);
-        cg.point2.setXY (0.0f, (float) (getHeight() - edge));
-
-        for (float i = 0.0f; i <= 1.0f; i += 0.02f)
-            cg.addColour (i, juce::Colour (i, 1.0f, 1.0f, 1.0f));
-
-        g.setGradientFill (cg);
-        g.fillRect (getLocalBounds().reduced (edge));
-    }
-
-    void updateIfNeeded() 
-    {
-        marker.setBounds (0, juce::roundToInt ((getHeight() - edge * 2) * h), getWidth(), edge * 2);
-    }
-
-    void mouseDown (const juce::MouseEvent& e) override
-    {
-        mouseDrag (e);
-    }
-
-    void mouseDrag (const juce::MouseEvent& e) override
-    {
-		h = juce::jlimit (0.0f, 1.0f, (e.y - edge) / (float) (getHeight() - edge * 2));
-		updateIfNeeded();
-    }
-	
-    void resized() override
-    {
-        updateIfNeeded();
-    }
-    float getHue()
-    {
-        return h;
-    }
-
-private:
-    float h;
-    HueSelectorMarker marker;
-    const int edge;
-
-    JUCE_DECLARE_NON_COPYABLE (HueSelectorComp)
-};
 void VideoComponent::onSelectColorTheme(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 	
-	HueSelectorComp colourSelector(m_iconMenu.getColorThemeHueAsFloat(), 3);
-	//colourSelector.setCurrentColour(juce::Colour::fromHSV(m_iconMenu.getColorThemeHueAsFloat(), 1., 1., 1.));
-	colourSelector.setSize(getWidth() / 2, getHeight() /2);
+	HueSelectorComp colourSelector(m_iconMenu.getColorThemeHueAsFloat(), 4, 0.2f);
+	colourSelector.setSize(getWidth() / 2, (int)(menu->getItemHeight() *3.f));
 
     juce::CallOutBox callOut(colourSelector, menu->asComponent()->getBounds(), this);
     callOut.runModalLoop();
