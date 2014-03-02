@@ -23,6 +23,7 @@
 #define SETTINGS_POSTER_BROWSER_ROOT_PATH "SETTINGS_POSTER_BROWSER_ROOT_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
+#define SETTINGS_THEME_HUE "SETTINGS_THEME_HUE"
 #define SHORTCUTS_FILE "shortcuts.list"
 #define MAX_MEDIA_TIME_IN_SETTINGS 30
 
@@ -2318,6 +2319,128 @@ void VideoComponent::onPlayerFonSize(AbstractMenuItem& item)
 	}
 }
 
+void VideoComponent::onSetColorTheme(AbstractMenuItem& item, int hue)
+{
+	setBrowsingFiles(false);
+
+	m_settings.setValue(SETTINGS_THEME_HUE, hue);
+	m_iconMenu.setColorThemeHue(hue);
+}
+
+//==============================================================================
+class HueSelectorMarker  : public juce::Component
+{
+public:
+    HueSelectorMarker()
+    {
+        setInterceptsMouseClicks (false, false);
+    }
+
+    void paint (juce::Graphics& g) override
+    {
+        const float cw = (float) getWidth();
+        const float ch = (float) getHeight();
+
+        juce::Path p;
+        p.addTriangle (1.0f, 1.0f,
+                       cw * 0.3f, ch * 0.5f,
+                       1.0f, ch - 1.0f);
+
+        p.addTriangle (cw - 1.0f, 1.0f,
+                       cw * 0.7f, ch * 0.5f,
+                       cw - 1.0f, ch - 1.0f);
+
+        g.setColour (juce::Colours::white.withAlpha (0.75f));
+        g.fillPath (p);
+
+        g.setColour (juce::Colours::black.withAlpha (0.75f));
+        g.strokePath (p, juce::PathStrokeType (1.2f));
+    }
+
+private:
+    JUCE_DECLARE_NON_COPYABLE (HueSelectorMarker)
+};
+
+class HueSelectorComp  : public juce::Component
+{
+public:
+    HueSelectorComp (float hue, const int edgeSize)
+        : h (hue), edge (edgeSize)
+    {
+        addAndMakeVisible (&marker);
+    }
+
+    void paint (juce::Graphics& g) override
+    {
+        juce::ColourGradient cg;
+        cg.isRadial = false;
+        cg.point1.setXY (0.0f, (float) edge);
+        cg.point2.setXY (0.0f, (float) (getHeight() - edge));
+
+        for (float i = 0.0f; i <= 1.0f; i += 0.02f)
+            cg.addColour (i, juce::Colour (i, 1.0f, 1.0f, 1.0f));
+
+        g.setGradientFill (cg);
+        g.fillRect (getLocalBounds().reduced (edge));
+    }
+
+    void updateIfNeeded() 
+    {
+        marker.setBounds (0, juce::roundToInt ((getHeight() - edge * 2) * h), getWidth(), edge * 2);
+    }
+
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        mouseDrag (e);
+    }
+
+    void mouseDrag (const juce::MouseEvent& e) override
+    {
+		h = juce::jlimit (0.0f, 1.0f, (e.y - edge) / (float) (getHeight() - edge * 2));
+		updateIfNeeded();
+    }
+	
+    void resized() override
+    {
+        updateIfNeeded();
+    }
+    float getHue()
+    {
+        return h;
+    }
+
+private:
+    float h;
+    HueSelectorMarker marker;
+    const int edge;
+
+    JUCE_DECLARE_NON_COPYABLE (HueSelectorComp)
+};
+void VideoComponent::onSelectColorTheme(AbstractMenuItem& item)
+{
+	setBrowsingFiles(false);
+	
+	HueSelectorComp colourSelector(m_iconMenu.getColorThemeHueAsFloat(), 3);
+	//colourSelector.setCurrentColour(juce::Colour::fromHSV(m_iconMenu.getColorThemeHueAsFloat(), 1., 1., 1.));
+	colourSelector.setSize(getWidth() / 2, getHeight() /2);
+
+    juce::CallOutBox callOut(colourSelector, menu->asComponent()->getBounds(), this);
+    callOut.runModalLoop();
+
+	onSetColorTheme(item, (int)(colourSelector.getHue()*255.f));
+
+}
+
+void VideoComponent::onColorTheme(AbstractMenuItem& item)
+{
+	setBrowsingFiles(false);
+
+	menu->addMenuItem( juce::String::formatted("Original"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, -1), 0>m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( juce::String::formatted("Red"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 255), 255==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( juce::String::formatted("Green"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 90), 90==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( juce::String::formatted("Blue"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 170), 170==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
+	menu->addMenuItem( juce::String::formatted("Custom"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSelectColorTheme, this, _1), nullptr);
+}
 void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable)
 {
 	setBrowsingFiles(false);
@@ -2343,6 +2466,7 @@ void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
 
 	menu->addMenuItem( TRANS("Language"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onLanguageOptions, this, _1));
 	menu->addMenuItem( TRANS("Menu font size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onPlayerFonSize, this, _1));
+	menu->addMenuItem( TRANS("Color Theme"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onColorTheme, this, _1));
 
 	menu->addMenuItem( TRANS("Hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
 	menu->addMenuItem( TRANS("No hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
@@ -2539,6 +2663,7 @@ void VideoComponent::initFromSettings()
 		shortcuts.readLines(m_shortcuts);
 	}
 	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
+	m_iconMenu.setColorThemeHue(m_settings.getIntValue(SETTINGS_THEME_HUE, -1));
 	
 	initBoolSetting(CONFIG_BOOL_OPTION_HARDWARE);
 	

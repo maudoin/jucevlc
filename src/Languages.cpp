@@ -100,6 +100,11 @@ countries: fr be mc ch lu\n\
 \"Left\" = \"Gauche\"\n\
 \"Right\" = \"Droite\"\n\
 \"Dolby\" = \"Dolby\"\n\
+\"Color Theme\" = \"Thème de couleur\"\n\
+\"Original\" = \"Original\"\n\
+\"Red\" = \"Rouge\"\n\
+\"Green\" = \"Vert\"\n\
+\"Blue\" = \"Bleu\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

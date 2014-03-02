@@ -4,6 +4,7 @@
 #include "FileSorter.h"
 #include "Icons.h"
 #include "PosterFinder.h"
+#include "ImagesTheme.h"
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
 
@@ -20,14 +21,11 @@ IconMenu::IconMenu()
 	,m_thumbnailer(m_imageCatalog)
 {
     appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
-    folderBackImage = juce::Drawable::createFromImageData (verticalFolderback_svg, verticalFolderback_svgSize);
-    folderFrontImage = juce::Drawable::createFromImageData (verticalFolderfront_svg, verticalFolderfront_svgSize);
     driveImage = juce::Drawable::createFromImageData (harddisk_svg, harddisk_svgSize);
     diskImage = juce::Drawable::createFromImageData (disk_svg, disk_svgSize);
     usbImage = juce::Drawable::createFromImageData (usb_svg, usb_svgSize);
-    upImage = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 
-	
+    setColorThemeHue(-1);
 
 }
 
@@ -35,6 +33,24 @@ IconMenu::~IconMenu()
 {
 }
 	
+juce::Colour IconMenu::getThemeBaseColor()const
+{
+	if(m_colorThemeHue<0)
+	{
+		return juce::Colours::purple;
+	}
+	else
+	{
+		return juce::Colours::purple.withHue(getColorThemeHueAsFloat());
+	}
+}
+void IconMenu::setColorThemeHue(int hue)
+{
+    m_colorThemeHue = hue;
+    folderBackImage = buildFolderBackImage(getColorThemeHueAsFloat());
+    folderFrontImage = buildFolderFrontImage(getColorThemeHueAsFloat());
+    upImage = buildBackImage(getColorThemeHueAsFloat());
+}
 juce::Rectangle<float> IconMenu::getButtonAt(int index, float w, float h)const
 {	
 	//non spaced size
@@ -329,9 +345,9 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 		float sliderSize = sliderEnd-sliderStart;
 
 	
-		juce::ColourGradient gradient(juce::Colours::purple.brighter(),
+		juce::ColourGradient gradient(getThemeBaseColor().brighter(),
 											w/2.f, sliderRect.getHeight(),
-											juce::Colours::purple.darker(),
+											getThemeBaseColor().darker(),
 											w/2.f, h,
 											false);
 	
@@ -362,7 +378,7 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 		juce::Path arrowRight;
 		arrowRight.addArrow(juce::Line<float>(w-sliderRect.getX(), arrowY, w, arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
 	
-		g.setColour(juce::Colours::purple);
+		g.setColour(getThemeBaseColor());
 		g.fillPath(arrowRight);
 		g.fillPath(arrow);
 
@@ -417,7 +433,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 
 	if(index == m_mediaPostersHightlight)
 	{
-		g.setColour(juce::Colours::purple);
+		g.setColour(getThemeBaseColor());
 		g.fillRect(rectWithBorders);
 	}
 
@@ -466,7 +482,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	
 		if(m_thumbnailer.busyOn(file))
 		{
-			g.setColour(juce::Colours::purple.brighter());
+			g.setColour(getThemeBaseColor().brighter());
 			g.fillRect(imageTargetRect);
 		}
 
@@ -530,13 +546,13 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 				g.drawImageTransformed(image, t, false);
 
 				//reflection floor
-				juce::ColourGradient grad (juce::Colours::purple.withAlpha(0.33f),
+				juce::ColourGradient grad (getThemeBaseColor().withAlpha(0.33f),
 													imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, imageTargetRect.getBottom(),
 													juce::Colours::black.withAlpha(1.0f),
 													imageTargetRect.getX()+imageTargetRect.getWidth()/2.f, rectWithBorders.getBottom(),
 													false);
 		
-				grad.addColour(0.66, juce::Colours::purple.withAlpha(.66f));
+				grad.addColour(0.66, getThemeBaseColor().withAlpha(.66f));
 				g.setGradientFill (grad);	
 				g.fillRect(imageTargetRect.getX(), imageTargetRect.getBottom(), imageTargetRect.getWidth(), reflectionH);
 	

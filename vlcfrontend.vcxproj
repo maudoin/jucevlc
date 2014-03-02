@@ -159,6 +159,7 @@
     <ClCompile Include="src\Icons.cpp" />
     <ClCompile Include="src\ImageCatalog.cpp" />
     <ClCompile Include="src\ImageCatalogCache.cpp" />
+    <ClCompile Include="src\ImagesTheme.cpp" />
     <ClCompile Include="src\InvokeLater.cpp" />
     <ClCompile Include="src\Languages.cpp" />
     <ClCompile Include="src\MenuBase.cpp" />
@@ -388,6 +389,7 @@
     <ClInclude Include="src\Icons.h" />
     <ClInclude Include="src\ImageCatalog.h" />
     <ClInclude Include="src\ImageCatalogCache.h" />
+    <ClInclude Include="src\ImagesTheme.h" />
     <ClInclude Include="src\InvokeLater.h" />
     <ClInclude Include="src\Languages.h" />
     <ClInclude Include="src\MenuBase.h" />

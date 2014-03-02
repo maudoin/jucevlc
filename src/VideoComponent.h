@@ -208,6 +208,9 @@ public:
 	void onLanguageSelect(AbstractMenuItem& item, std::string lang);
 	void onSetPlayerFonSize(AbstractMenuItem& item, int size);
 	void onPlayerFonSize(AbstractMenuItem& item);
+	void onSetColorTheme(AbstractMenuItem& item, int hue);
+	void onSelectColorTheme(AbstractMenuItem& item);
+	void onColorTheme(AbstractMenuItem& item);
 	void onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable);
 	void onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable);
 	void onPlayerOptions(AbstractMenuItem& item);

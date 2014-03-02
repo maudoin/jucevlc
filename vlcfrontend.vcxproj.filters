@@ -108,6 +108,9 @@
     <ClCompile Include="src\InvokeLater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ImagesTheme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
@@ -792,6 +795,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\InvokeLater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ImagesTheme.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
