@@ -7,7 +7,7 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION  0,8,5,0
+FILEVERSION  0,8,7,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -16,7 +16,7 @@ BEGIN
       VALUE "LegalCopyright",  "Matthieu A. pour Victor et Louis (ben si...)\0"
       VALUE "FileDescription",  "JucyVLC\0"
       VALUE "ProductName",  "JucyVLC\0"
-      VALUE "ProductVersion",  "0.8.5\0"
+      VALUE "ProductVersion",  "0.8.7\0"
     END
   END
 

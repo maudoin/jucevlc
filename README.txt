@@ -43,6 +43,10 @@ It controls:
 
 **Changelog**
 ==================
+0.87 (2014/03/02):
+- Customizable frontpage menu color theme(Menu -> Player -> Color theme)
+- Title bar is now grey and wider
+
 0.86 (2014/02/14):
 - libVLC 2.1.3
 
