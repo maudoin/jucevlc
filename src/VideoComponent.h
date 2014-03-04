@@ -152,6 +152,9 @@ public:
 	void onVLCOptionStringSelect(AbstractMenuItem& item, std::string, std::string i);
     void onVLCOptionStringMenu (AbstractMenuItem& item, std::string);
 	void onVLCAudioChannelSelect(AbstractMenuItem& item);
+	void onVLCAudioOutputDeviceSelect(AbstractMenuItem& item, std::string output, std::string device);
+    void onVLCAudioOutputSelect(AbstractMenuItem& item, std::string, std::vector< std::pair<std::string, std::string> >);
+    void onVLCAudioOutputList(AbstractMenuItem& item);
 	void onMenuSearchOpenSubtitles(AbstractMenuItem& item);
 	void onMenuSearchSubtitleSeeker(AbstractMenuItem& item);
 	void onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang);

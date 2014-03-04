@@ -25,6 +25,8 @@
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
 #define SETTINGS_THEME_HUE "SETTINGS_THEME_HUE"
+#define SETTINGS_AUDIO_DEVICE "SETTINGS_AUDIO_DEVICE"
+#define SETTINGS_AUDIO_OUTPUT "SETTINGS_AUDIO_OUTPUT"
 #define SHORTCUTS_FILE "shortcuts.list"
 #define MAX_MEDIA_TIME_IN_SETTINGS 30
 
@@ -2189,6 +2191,43 @@ void VideoComponent::onVLCAudioChannelSelect(AbstractMenuItem& item)
 	menu->addMenuItem(TRANS("Right"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Right), c==VLCWrapper::VLCWrapperAudioChannel_Right?getItemImage():nullptr);
 	menu->addMenuItem(TRANS("Dolby"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setAudioChannel, vlc.get(), VLCWrapper::VLCWrapperAudioChannel_Dolbys), c==VLCWrapper::VLCWrapperAudioChannel_Dolbys?getItemImage():nullptr);
 }
+
+void VideoComponent::onVLCAudioOutputDeviceSelect(AbstractMenuItem& item, std::string output, std::string device)
+{	
+	setBrowsingFiles(false);
+	vlc->setAudioOutputDevice(output, device);
+	m_settings.setValue(SETTINGS_AUDIO_OUTPUT, juce::String(output.c_str()));
+	m_settings.setValue(SETTINGS_AUDIO_DEVICE, juce::String(device.c_str()));
+}
+void VideoComponent::onVLCAudioOutputSelect(AbstractMenuItem& item, std::string output, std::vector< std::pair<std::string, std::string> > list)
+{	
+	setBrowsingFiles(false);
+
+	for(std::vector< std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
+	{	
+		bool selected = m_settings.getValue(SETTINGS_AUDIO_DEVICE)==juce::String(it->second.c_str());
+		menu->addMenuItem(it->first, AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onVLCAudioOutputDeviceSelect, this, _1, output, it->second), selected?getItemImage():nullptr);
+	}
+}
+void VideoComponent::onVLCAudioOutputList(AbstractMenuItem& item)
+{
+	setBrowsingFiles(false);
+
+	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > list = vlc->getAudioOutputList();
+
+	if(list.size() == 1)
+	{
+		onVLCAudioOutputSelect(item, list.front().first.second, list.front().second);
+	}
+	else
+	{
+		for(std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > >::const_iterator it = list.begin();it != list.end();++it)
+		{	
+			bool selected = m_settings.getValue(SETTINGS_AUDIO_OUTPUT)==juce::String(it->first.second.c_str());
+			menu->addMenuItem(it->first.first, AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCAudioOutputSelect, this, _1, it->first.second, it->second), selected?getItemImage():nullptr);
+		}
+	}
+}
 void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
@@ -2200,6 +2239,7 @@ void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 	bool currentStatus=vlc->getConfigOptionBool(CONFIG_STRING_OPTION_AUDIO_OUT);
 	menu->addMenuItem( currentStatus?TRANS("Disable"):TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VLCWrapper::setConfigOptionBool, vlc.get(), CONFIG_STRING_OPTION_AUDIO_OUT, !currentStatus));
 	menu->addMenuItem( TRANS("Channel"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCAudioChannelSelect, this, _1));
+	menu->addMenuItem( TRANS("Output"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCAudioOutputList, this, _1));
 //	menu->addMenuItem( TRANS("Audio visu."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_AUDIO_VISUAL)));
 }
 
@@ -2555,6 +2595,8 @@ void VideoComponent::initFromMediaDependantSettings()
 	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 	
 	vlc->setCrop(m_settings.getValue(SETTINGS_CROP, "").toUTF8().getAddress());	
+	
+	vlc->setAudioOutputDevice(m_settings.getValue(SETTINGS_AUDIO_OUTPUT).toUTF8().getAddress(), m_settings.getValue(SETTINGS_AUDIO_DEVICE).toUTF8().getAddress());
 }
 void VideoComponent::initBoolSetting(const char* name)
 {
@@ -2585,7 +2627,7 @@ void VideoComponent::initFromSettings()
 	}
 	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
 	m_iconMenu.setColorThemeHue(m_settings.getIntValue(SETTINGS_THEME_HUE, -1));
-	
+
 	initBoolSetting(CONFIG_BOOL_OPTION_HARDWARE);
 	
 	initIntSetting(CONFIG_INT_OPTION_SUBTITLE_SIZE);

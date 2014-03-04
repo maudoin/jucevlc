@@ -106,6 +106,7 @@ countries: fr be mc ch lu\n\
 \"Green\" = \"Vert\"\n\
 \"Blue\" = \"Bleu\"\n\
 \"Grey\" = \"Gris\"\n\
+\"Output\" = \"Sortie\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

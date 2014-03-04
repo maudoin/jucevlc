@@ -268,6 +268,9 @@ public:
 	void setConfigOptionString(const char* name, std::string const& value);
 	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > getConfigOptionInfoString(const char* name)const;
 
+	
+	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > getAudioOutputList() const;
+	void setAudioOutputDevice(std::string const& output, std::string const& device);
 };
 
 #endif // __VLCWRAPPER_H__

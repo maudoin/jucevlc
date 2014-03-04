@@ -901,6 +901,53 @@ std::vector< std::pair<int, std::string> > VLCWrapper::getAudioTrackList()
 	libvlc_free(desc);
 	return list;
 }
+std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > VLCWrapper::getAudioOutputList() const
+{
+	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > result;
+
+	libvlc_audio_output_t* outputs;
+	outputs = libvlc_audio_output_list_get(pVLCInstance_.get());
+   
+	result.reserve(10);
+    while (outputs)
+    {
+
+
+		libvlc_audio_output_device_t* devices = libvlc_audio_output_device_list_get(pVLCInstance_.get(), outputs->psz_name);
+		
+		if(devices)
+		{
+			result.resize(result.size()+1);
+			result.back().first.first = outputs->psz_description;
+			result.back().first.second = outputs->psz_name;
+
+			while (devices)
+			{
+				std::string devDesc(devices->psz_description);
+				if(devDesc.length()>32)
+				{
+					devDesc = devDesc.substr(0, 32) + "...";
+				}
+
+				result.back().second.push_back(std::pair<std::string, std::string>(devDesc, devices->psz_device));
+				devices = devices->p_next;
+			}
+		}
+		
+	    libvlc_audio_output_device_list_release(devices);
+
+        outputs = outputs->p_next;
+
+    }
+    libvlc_audio_output_list_release(outputs);
+
+	return result;
+}
+void VLCWrapper::setAudioOutputDevice(std::string const& output, std::string const& device)
+{
+	libvlc_audio_output_set(pMediaPlayer_,output.c_str());
+	libvlc_audio_output_device_set(pMediaPlayer_,output.c_str(), device.c_str());
+}
 
 void VLCWrapper::setAudioTrack(int n)
 {
