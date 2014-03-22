@@ -40,7 +40,7 @@ void MenuBase::paintMenuBackGround(juce::Graphics& g)
 void paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelected, juce::String const& name, const juce::Drawable* d, bool isShortcut)
 {
 		
-	float fontSize =  0.9f*height;
+	float fontSize =  1.1f*height;
 	
 	float hborder = height/8.f;	
 	
@@ -74,10 +74,10 @@ void paintMenuItem (juce::Graphics& g, int width, int height, bool isItemSelecte
 	if(!isShortcut)
 	{
 		g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
-											borderBounds.getX(), 0.f,
-											juce::Colours::black,
+											borderBounds.getCentreX(), 0.f,
+											juce::Colours::black.withAlpha(0.f),
 											borderBounds.getRight(), 0.f,
-											false));
+											true));
 
 		g.drawLine(0, 0, (float)width, 0, 2.f);
 	}

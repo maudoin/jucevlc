@@ -5,7 +5,7 @@
 #include "juce.h"
 #include "FontSerialization.h"
 #include "AppProportionnalComponent.h"
-#include "FontResource.h"
+#include "WeblySleekFont.h"
 
 
 class LnF : public juce::OldSchoolLookAndFeel
@@ -18,10 +18,11 @@ public:
 		setColour(juce::DirectoryContentsDisplayComponent::textColourId, juce::Colours::white);
 #ifdef _DEBUG
 		//serializeFont("Forgotten Futurist Shadow", "ForgottenFuturistShadow.bin.new");
-		serializeFont("Teen", "FontResource.cpp", "FontResource.h");
+		//serializeFont("Teen", "FontResource.cpp", "FontResource.h");
+		serializeFont("WeblySleek UI Semilight", "src/WeblySleekFont.cpp", "src/WeblySleekFont.h");
 #endif
 		//cFont = loadFont( "font.bin");
-		cFont = loadFont( TeenData, TeenSize);
+		cFont = loadFont( WeblySleek_UI_SemilightData, WeblySleek_UI_SemilightSize);
 	}
 	juce::Typeface::Ptr getTypefaceForFont (const juce::Font &font)
 	{

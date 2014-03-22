@@ -153,7 +153,6 @@
     <ClCompile Include="src\AppProportionnalComponent.cpp" />
     <ClCompile Include="src\ControlComponent.cpp" />
     <ClCompile Include="src\FileSorter.cpp" />
-    <ClCompile Include="src\FontResource.cpp" />
     <ClCompile Include="src\FontSerialization.cpp" />
     <ClCompile Include="src\IconMenu.cpp" />
     <ClCompile Include="src\Icons.cpp" />
@@ -171,6 +170,7 @@
     <ClCompile Include="src\Thumbnailer.cpp" />
     <ClCompile Include="src\VideoComponent.cpp" />
     <ClCompile Include="src\VLCWrapper.cpp" />
+    <ClCompile Include="src\WeblySleekFont.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="boost\include\boost\aligned_storage.hpp" />
@@ -384,7 +384,6 @@
     <ClInclude Include="src\AppProportionnalComponent.h" />
     <ClInclude Include="src\ControlComponent.h" />
     <ClInclude Include="src\FileSorter.h" />
-    <ClInclude Include="src\FontResource.h" />
     <ClInclude Include="src\HueSelector.h" />
     <ClInclude Include="src\IconMenu.h" />
     <ClInclude Include="src\Icons.h" />
@@ -403,6 +402,7 @@
     <ClInclude Include="src\Thumbnailer.h" />
     <ClInclude Include="src\VideoComponent.h" />
     <ClInclude Include="src\VLCWrapper.h" />
+    <ClInclude Include="src\WeblySleekFont.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\vlc.ico" />

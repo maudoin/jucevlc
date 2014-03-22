@@ -63,9 +63,6 @@
     <ClCompile Include="src\Icons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FontResource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\MenuTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -111,12 +108,12 @@
     <ClCompile Include="src\ImagesTheme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\WeblySleekFont.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Execute.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VLCWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libvlc\include\vlc\deprecated.h">
@@ -746,9 +743,6 @@
     <ClInclude Include="boost\include\boost\weak_ptr.hpp">
       <Filter>Header Files\boost</Filter>
     </ClInclude>
-    <ClInclude Include="src\FontResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\MenuTree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -801,6 +795,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\HueSelector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WeblySleekFont.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VLCWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

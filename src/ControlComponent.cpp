@@ -322,9 +322,8 @@ void ControlComponent::paint(juce::Graphics& g)
 
 	
 	float buttonSize = 0.5f*h;
-	float hMargin =buttonSize/22.f;
+ 	float hMargin = buttonSize/22.f;
 	float sliderHeight = 0.3f*h;
-	float roundness = buttonSize/4;
 	
 	///////////////// CONTROL ZONE:	
 	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
@@ -332,15 +331,9 @@ void ControlComponent::paint(juce::Graphics& g)
 										juce::Colours::black,
 										w/2.f, h,
 										false));
-	g.fillRoundedRectangle(hMargin/2.f,  h-sliderHeight-buttonSize-hMargin/2.f, w-hMargin, sliderHeight+buttonSize+hMargin/2.f, roundness);
-
-	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
-										w/2, h-sliderHeight-buttonSize-hMargin/2,
-										juce::Colours::black,
-										w/2, h-hMargin/2,
-										false));
-	g.drawRoundedRectangle(hMargin/2,  h-sliderHeight-buttonSize-hMargin/2, w-hMargin, sliderHeight+buttonSize+hMargin/2, roundness,2.f);
+	g.fillRect(hMargin/2.f,  h-sliderHeight-buttonSize-hMargin/2.f, w-hMargin, sliderHeight+buttonSize+hMargin/2.f);
 	
+
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
 	f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");

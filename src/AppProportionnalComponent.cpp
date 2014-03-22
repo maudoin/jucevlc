@@ -36,7 +36,7 @@ void AppProportionnalComponent::setScaleComponent(juce::Component* scaleComponen
 }
 float AppProportionnalComponent::getFontHeight()
 {
-	return 0.9f*getItemHeight();
+	return 1.f*getItemHeight();
 }
 float AppProportionnalComponent::getItemHeight()
 {

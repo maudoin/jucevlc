@@ -777,7 +777,7 @@ void VideoComponent::updateSubComponentsBounds()
 	int controlHeight = 3*(int)menu->getItemHeight();
 	
     menu->asComponent()->setBounds (w-treeWidth,(int) menu->getItemHeight()+hMargin/2,treeWidth, h-controlHeight-hMargin-hMargin/2-(int)menu->getItemHeight());
-	controlComponent->setBounds (hMargin, h-controlHeight, w-2*hMargin, controlHeight);
+	controlComponent->setBounds (0, h-controlHeight, w, controlHeight);
 }
 	
 void VideoComponent::resized()
@@ -2436,7 +2436,7 @@ void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 
-	menu->addMenuItem( TRANS("Open"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenFolder), getFolderShortcutImage());
+	menu->addMenuItem( TRANS("Open"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenFolder), getFolderImage());
 	menu->addMenuItem( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onShowPlaylist, this, _1), getPlaylistImage());
 	menu->addMenuItem( TRANS("Subtitles"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitleMenu, this, _1), getSubtitlesImage());
 	menu->addMenuItem( TRANS("Video"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoOptions, this, _1), getDisplayImage());
