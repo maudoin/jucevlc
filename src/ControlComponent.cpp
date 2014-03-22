@@ -326,7 +326,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	float sliderHeight = 0.3f*h;
 	
 	///////////////// CONTROL ZONE:	
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.75f),
 										w/2.f, h-sliderHeight-buttonSize-hMargin/2.f,
 										juce::Colours::black,
 										w/2.f, h,

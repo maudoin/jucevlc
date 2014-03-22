@@ -123,14 +123,14 @@ public:
 		path.lineTo(0.f, getHeight()-2.f);
 		path.lineTo(0.f, 0.f);
 		
-		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.75f),
 											getWidth()/2.f, (float)getHeight(),
 											juce::Colours::black,
 											getWidth()/2.f, 0.f,
 											false));
 		g.fillPath(path);
 		
-		g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+		g.setGradientFill (juce::ColourGradient (juce::Colours::grey.withAlpha(0.75f),
 											getWidth()/2.f, (float)getHeight(),
 											juce::Colours::black,
 											getWidth()/2.f, 0.f,

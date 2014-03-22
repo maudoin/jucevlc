@@ -18,14 +18,14 @@ void MenuBase::paintMenuBackGround(juce::Graphics& g)
 	float roundness = hMargin/4.f;
 	
 	///////////////// TREE ZONE:	
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.5f),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.darker().withAlpha(0.75f),
 										0, h/2.f,
 										juce::Colours::black,
 										w, h/2.f,
 										false));
 	g.fillRoundedRectangle(0, 0, w, h, roundness);
 
-	g.setGradientFill (juce::ColourGradient (juce::Colours::lightgrey.withAlpha(0.5f),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::grey.withAlpha(0.75f),
 										0, h/2.f,
 										juce::Colours::black,
 										w, h/2.f,
