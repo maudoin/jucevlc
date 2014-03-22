@@ -56,6 +56,11 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::Drawable> speedImage;
     juce::ScopedPointer<juce::Drawable> audioShiftImage;
     juce::ScopedPointer<juce::Drawable> clockImage;
+    juce::ScopedPointer<juce::Drawable> asFrontpageImage;
+    juce::ScopedPointer<juce::Drawable> likeAddImage;
+    juce::ScopedPointer<juce::Drawable> likeRemoveImage;
+    juce::ScopedPointer<juce::Drawable> playAllImage;
+    juce::ScopedPointer<juce::Drawable> addAllImage;
     juce::Image appImage;
 	LnF lnf;
     juce::ScopedPointer<TitleComponent> titleBar;

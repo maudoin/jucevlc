@@ -234,7 +234,11 @@ VideoComponent::VideoComponent()
     speedImage = juce::Drawable::createFromImageData (speed_svg, speed_svgSize);
     audioShiftImage = juce::Drawable::createFromImageData (audioShift_svg, audioShift_svgSize);
     clockImage = juce::Drawable::createFromImageData (clock_svg, clock_svgSize);
-
+    asFrontpageImage = juce::Drawable::createFromImageData (frontpage_svg, frontpage_svgSize);
+    likeAddImage = juce::Drawable::createFromImageData (likeadd_svg, likeadd_svgSize);
+	likeRemoveImage = juce::Drawable::createFromImageData (likeremove_svg, likeremove_svgSize);
+    addAllImage = juce::Drawable::createFromImageData (addall_svg, addall_svgSize);
+	playAllImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
 	
 	EXTENSIONS_VIDEO(m_videoExtensions.insert)
 	EXTENSIONS_PLAYLIST(m_playlistExtensions.insert)
@@ -1225,9 +1229,9 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 				
 		menu->addMenuItem(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1, 
-				file.getFullPathName()), getItemImage());
+				file.getFullPathName()), playAllImage.get());
 		menu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuQueue, this, _1, 
-				file.getFullPathName()), getItemImage());
+				file.getFullPathName()), addAllImage.get());
 
 		
 		juce::Array<juce::File> destArray;
@@ -1253,17 +1257,17 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
 			menu->addMenuItem(TRANS("Add to favorites"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuAddFavorite, this, _1, 
-				file.getFullPathName()), getItemImage());
+				file.getFullPathName()), likeAddImage.get());
 		}
 		else
 		{
 			menu->addMenuItem(TRANS("Remove from favorites"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuRemoveFavorite, this, _1, 
-				file.getFullPathName()), getItemImage());
+				file.getFullPathName()), likeRemoveImage.get());
 		}
 
 
 		menu->addMenuItem(TRANS("Set as frontpage"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSetFrontPage, this, _1, 
-				file.getFullPathName()), getItemImage());
+				file.getFullPathName()), asFrontpageImage.get());
 		
 	}
 }

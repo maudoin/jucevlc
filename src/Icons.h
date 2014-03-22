@@ -90,6 +90,14 @@
 	extern const int exit_svgSize;
 	extern const char* back_svg;
     extern const int back_svgSize;
-
+	
+	extern const char* frontpage_svg;
+	extern const int frontpage_svgSize;
+	extern const char* likeadd_svg;
+	extern const int likeadd_svgSize;
+	extern const char* likeremove_svg;
+	extern const int likeremove_svgSize;
+	extern const char* addall_svg;
+	extern const int addall_svgSize;
 
 #endif   // __ICONS__
