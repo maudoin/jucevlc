@@ -519,7 +519,7 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 			{
 				bool repaint = m_iconMenu.clickOrDrag((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
 
-				std::string media = m_iconMenu.getMediaAt((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
+				std::string media = m_iconMenu.getMediaAtIndexOnScreen((float)e.x, (float)e.y, (float)getWidth(), (float)getHeight());
 				if(!media.empty())
 				{
 					juce::File m(juce::String::fromUTF8(media.c_str()));

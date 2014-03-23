@@ -50,8 +50,9 @@ protected:
 	
 	juce::Rectangle<float> getButtonAt(int index, float w, float h)const;
 	int getButtonIndexAt(float xPos, float yPos, float w, float h)const;
-	std::string getMediaAt(int index)const;
-	juce::File getMediaFileAt(int index)const;
+	std::string getMediaAtIndexOnScreen(int index)const;
+	juce::File getMediaFileAtIndexOnScreen(int index)const;
+	juce::File getMediaFileAtIndexInfolder(int indexInfolder)const;
 	int getFileIndexAtScreenIndex(int indexOnScreen)const;
 
 	void paintItem(juce::Graphics& g,  int index, float w, float h)const;
@@ -79,7 +80,7 @@ public:
 	void setCurrentMediaRootPath(std::string const& path);
 	void setMediaStartIndex(int index);
 	bool clickOrDrag(float xPos, float yPos, float w, float h);
-	std::string getMediaAt(float xPos, float yPos, float w, float h)const;
+	std::string getMediaAtIndexOnScreen(float xPos, float yPos, float w, float h)const;
 
 	
 	bool highlight(float xPos, float yPos, float w, float h);

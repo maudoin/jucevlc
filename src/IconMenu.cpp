@@ -115,9 +115,9 @@ void IconMenu::scrollUp()
 	const juce::ScopedLock myScopedLock (m_mutex);
 	setMediaStartIndex(m_mediaPostersStartIndex + m_mediaPostersYCount*m_mediaPostersXCount);
 }
-std::string IconMenu::getMediaAt(float xPos, float yPos, float w, float h)const
+std::string IconMenu::getMediaAtIndexOnScreen(float xPos, float yPos, float w, float h)const
 {
-	return getMediaAt(getButtonIndexAt(xPos, yPos, w, h));
+	return getMediaAtIndexOnScreen(getButtonIndexAt(xPos, yPos, w, h));
 }
 void IconMenu::setMediaRootPath(std::string const& path)
 {
@@ -225,14 +225,17 @@ void IconMenu::setMediaStartIndex(int index)
 	m_mediaPostersStartIndex = index<0?0:(index>max?max:index);
 	
 }
-std::string IconMenu::getMediaAt(int index)const
+std::string IconMenu::getMediaAtIndexOnScreen(int index)const
 {
-	juce::File f=getMediaFileAt(index);
+	juce::File f=getMediaFileAtIndexOnScreen(index);
 	return f.exists()?f.getFullPathName().toUTF8().getAddress():std::string();
 }
-juce::File IconMenu::getMediaFileAt(int indexOnScreen)const
+juce::File IconMenu::getMediaFileAtIndexOnScreen(int indexOnScreen)const
 {
-	int indexInfolder = getFileIndexAtScreenIndex(indexOnScreen);
+	return getMediaFileAtIndexInfolder(getFileIndexAtScreenIndex(indexOnScreen));
+}
+juce::File IconMenu::getMediaFileAtIndexInfolder(int indexInfolder)const
+{
 	if(indexInfolder >= 0)
 	{
 		const juce::ScopedLock currentFilesMutexScopedLock (m_currentFilesMutex);
@@ -293,7 +296,7 @@ bool IconMenu::highlight(float xPos, float yPos, float w, float h)
 
 juce::Rectangle<float> IconMenu::computeSliderRect(float w, float h) const
 {
-	const float sliderRelativePos = 0.96f;
+	const float sliderRelativePos = 0.97f;
 	float sliderTop = sliderRelativePos*h;
 	float arrowW = h-sliderTop;
 	return juce::Rectangle<float>(arrowW, sliderTop, w-2.f*arrowW, arrowW);
@@ -332,54 +335,50 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 
 	if(count > countPerPage)
 	{
+		//draw slider
+
 		int firstMediaIndex=(m_mediaPostersStartIndex + countPerPage) > count ? count - countPerPage: m_mediaPostersStartIndex;
 		float sliderStart = firstMediaIndex/(float)count;
 		float sliderEnd = (firstMediaIndex+countPerPage)/(float)count;
 		float sliderSize = sliderEnd-sliderStart;
 
-	
-		juce::ColourGradient gradient(getThemeBaseColor().brighter(),
-											w/2.f, sliderRect.getHeight(),
-											getThemeBaseColor().darker(),
-											w/2.f, h,
-											false);
-	
 		const float thick = 2.f;
 		const float thin = 1.f;
-		float thickness = m_sliderHighlighted?thick:thin;
 
-		juce::Rectangle<float> total(sliderRect.getX(), sliderRect.getY()+sliderRect.getHeight()/4.f, sliderRect.getWidth(), sliderRect.getHeight()/2.f);
-		g.setGradientFill(gradient);
-		g.fillRect(total);
-		g.setColour(juce::Colours::white);
-		g.drawRect(total, thickness);
+		g.setColour(juce::Colours::darkgrey);
+		
+		float sliderBaseThickness = sliderRect.getHeight()/8.f;
+		float sliderBaseMargin = (sliderRect.getHeight()-sliderBaseThickness)/2.f;
+		//base
+		g.fillRect(sliderRect.getX(), sliderRect.getY()+sliderBaseMargin, sliderRect.getWidth(), sliderBaseThickness);
 	
-		float roundness = sliderRect.getHeight()/6.f;
+		g.setColour(juce::Colours::grey);
+
+		//position
+		juce::Path rect;
+		rect.addRectangle(sliderRect.getX()+sliderRect.getWidth()*sliderStart, sliderRect.getY(), sliderRect.getWidth()*sliderSize, sliderRect.getHeight());
 	
-		juce::Rectangle<float> current(sliderRect.getX()+sliderRect.getWidth()*sliderStart, sliderRect.getY(), sliderRect.getWidth()*sliderSize, sliderRect.getHeight());
-		g.setGradientFill(gradient);
-		g.fillRoundedRectangle(current, roundness);
-		g.setColour(juce::Colours::white);
-		g.drawRoundedRectangle(current, roundness, thickness);
-	
-		float arrowW = sliderRect.getX();
+		g.fillPath(rect);
+
+		float arrowW = sliderRect.getX()*0.8f;
 		float arrowY = sliderRect.getY()+sliderRect.getHeight()/2.f;
-		juce::Path arrow;
-		arrow.addArrow(juce::Line<float>(sliderRect.getX(), arrowY, 0 , arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
-		g.fillPath(arrow);
+		
+		juce::Path leftArrow;
+		leftArrow.addTriangle(0, arrowY, arrowW, sliderRect.getY(), arrowW, sliderRect.getBottom() );
 
-		juce::Path arrowRight;
-		arrowRight.addArrow(juce::Line<float>(w-sliderRect.getX(), arrowY, w, arrowY),sliderRect.getHeight(), sliderRect.getHeight(), arrowW);
+		g.fillPath(leftArrow);
+		
+		juce::Path rightArrow;
+		float rightArrowStart = w - arrowW;
+		rightArrow.addTriangle(w, arrowY, rightArrowStart, sliderRect.getY(), rightArrowStart, sliderRect.getBottom());
 	
-		g.setColour(getThemeBaseColor());
-		g.fillPath(arrowRight);
-		g.fillPath(arrow);
+		g.fillPath(rightArrow);
 
-		g.setColour(juce::Colours::white);
-		thickness = m_rightArrowHighlighted?thick:thin;
-		g.strokePath(arrowRight, juce::PathStrokeType(thickness));
-		thickness = m_leftArrowHighlighted?thick:thin;
-		g.strokePath(arrow, juce::PathStrokeType(thickness));
+		g.setColour(juce::Colours::lightgrey);
+		g.strokePath(rect, 1.f);
+		g.strokePath(leftArrow, 1.f);
+		g.strokePath(rightArrow, 1.f);
+
 	}
 
 	if(m_mediaPostersRoot.empty())
@@ -398,15 +397,61 @@ void IconMenu::paintMenu(juce::Graphics& g, float w, float h) const
 	}
 }
 
-void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
+void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h) const
 {
-	juce::File file=getMediaFileAt(index);
+
+	
+	const juce::Colour PURPLE(162,0,255);
+	const juce::Colour MAGENTA(255, 0, 151);
+	const juce::Colour TEAL(0, 171, 169);
+	const juce::Colour LIME(140, 191, 38);
+	const juce::Colour BROWN(160, 80, 0);
+	const juce::Colour PINK(230, 113, 184);
+	const juce::Colour ORANGE(240, 150, 9);
+	const juce::Colour BLUE(27, 161, 226);
+	const juce::Colour RED(229, 20, 0);
+	const juce::Colour GREEN(51, 153, 51);
+
+	const juce::Colour colorTable[] = {PURPLE, MAGENTA, TEAL, LIME, BROWN, PINK, ORANGE, BLUE, RED, GREEN};
+#define colorTableLen  10
+				
+	int indexInfolder = getFileIndexAtScreenIndex(indexOnScreen);
+	juce::Colour itemColor = colorTable[indexInfolder%colorTableLen];
+
+	juce::File file=getMediaFileAtIndexInfolder(indexInfolder);
 	if(!file.exists())
 	{
 		return;
 	}
 
-	juce::Rectangle<float> rect = getButtonAt(index, w, h);
+	juce::Rectangle<float> rect = getButtonAt(indexOnScreen, w, h);
+
+	if(file.isDirectory())
+	{
+		float offsetW = rect.getWidth()*0.2f;
+		float offsetH = rect.getHeight()*0.2f;
+		float offset = (offsetW>offsetH)?offsetH:offsetW;
+
+		float newW = rect.getWidth() - offset;
+		float newH = rect.getHeight() - offset;
+
+		g.setColour(itemColor);
+
+		const int nbStack = 5;
+		float offsetPart = offset / (float)nbStack;
+		for(int i=0;i<nbStack;++i)
+		{
+			float currentThickness = 3.f*offsetPart/4.f;
+			g.fillRect(rect.getX() + offset -  offset*i/(float)nbStack, rect.getY() + i*offsetPart, newW+currentThickness, currentThickness);
+			g.fillRect(rect.getRight() - i*offsetPart, rect.getY()+currentThickness + i*offsetPart,currentThickness, newH+currentThickness);
+		}
+		
+		rect.translate(0, offset);
+		rect.setWidth(newW);
+		rect.setHeight(newH);
+
+
+	}
 	
 	juce::Rectangle<float> firstRect = getButtonAt(0, w, h);
 	float spaceX = firstRect.getX();
@@ -420,20 +465,23 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	float holeW = 2.f*sideStripWidth/3.f;
 	float holeH = holeW;	
 	juce::Rectangle<float> rectWithBorders(rect.getX()-sideStripWidth, rect.getY()-holeH, rect.getWidth()+2.f*sideStripWidth, rect.getHeight()+spaceY+2.f*holeH);
+
+	
 	
 	float titleHeight = rectWithBorders.getBottom()-rect.getBottom();
 	const int maxTitleLineCount = 3;
 
-	if(index == m_mediaPostersHightlight)
+	if(indexOnScreen == m_mediaPostersHightlight)
 	{
-		g.setColour(getThemeBaseColor());
-		g.fillRect(rectWithBorders);
+		itemColor =juce::Colours::white;
 	}
+	g.setColour(itemColor);
+	g.fillRect(rectWithBorders);
 
 	g.setOpacity (1.f);
 
 	
-	bool isUpIcon = index == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
+	bool isUpIcon = indexOnScreen == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
 	if(isUpIcon)
 	{
 		upImage.get()->drawWithin (g, rect,
@@ -462,8 +510,10 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 		juce::Rectangle<float> imageTargetRect(rect);
 		if(file.isDirectory())
 		{
+			/*
 			folderBackImage.get()->drawWithin (g, rectWithBorders,
 								juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
+								
 		
 			//scales are specific to folderImage layout
 			float xMarginRelative = 0.02f;
@@ -471,6 +521,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 			float yBottomMarginAbsolute = titleHeight;
 			imageTargetRect=rectWithBorders.translated(rectWithBorders.getWidth()*xMarginRelative, rectWithBorders.getHeight()*yTopMarginRelative);
 			imageTargetRect.setSize(rectWithBorders.getWidth()*(1.f-2.f*xMarginRelative), rectWithBorders.getHeight()*(1.f-yTopMarginRelative)-yBottomMarginAbsolute);
+			*/
 		}
 	
 		if(m_thumbnailer.busyOn(file))
@@ -478,7 +529,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 			g.setColour(getThemeBaseColor().brighter());
 			g.fillRect(imageTargetRect);
 		}
-
+		/*
 		if(!file.isDirectory())
 		{
 
@@ -499,7 +550,7 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 			g.drawLine(rectWithBorders.getX(), rectWithBorders.getY(), rectWithBorders.getX(), rectWithBorders.getBottom(), lineThickness);
 			g.drawLine(rectWithBorders.getRight(), rectWithBorders.getY(), rectWithBorders.getRight(), rectWithBorders.getBottom(), lineThickness);
 			
-		}
+		}*/
 
 		if(!image.isNull())
 		{
@@ -529,10 +580,14 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 		
 			juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
 			g.drawImageTransformed(image, tr, false);
-
+			
 			if(!file.isDirectory())
 			{
 
+				//float labelH = titleHeight*(float)maxTitleLineCount/(maxTitleLineCount+1.f);
+				//g.setColour(itemColor);
+				//g.fillRect((rectWithBorders.getX()),  rect.getBottom(), (rectWithBorders.getWidth()), (titleHeight));
+				/*
 				//reflect
 				float reflectionH = titleHeight;
 				juce::AffineTransform t = juce::AffineTransform::identity.scaled(scale, -titleHeight/image.getHeight()).translated(imageX, rectWithBorders.getBottom());
@@ -548,18 +603,22 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 				grad.addColour(0.66, getThemeBaseColor().withAlpha(.66f));
 				g.setGradientFill (grad);	
 				g.fillRect(imageTargetRect.getX(), imageTargetRect.getBottom(), imageTargetRect.getWidth(), reflectionH);
-	
+
 				//border
 				g.setColour(juce::Colour(255, 255, 255));
 				g.drawRect(imageTargetRect, lineThickness);
+
+				*/
 			}
 		}
 
+		/*
 		if(file.isDirectory())
 		{
 			folderFrontImage.get()->drawWithin (g, rectWithBorders,
 								juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
 		}
+		*/
 
 	}
 
@@ -567,12 +626,12 @@ void IconMenu::paintItem(juce::Graphics& g, int index, float w, float h) const
 	juce::Font f = g.getCurrentFont().withHeight(titleHeight/maxTitleLineCount);
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
-	g.setColour (file.isDirectory()?juce::Colours::black:juce::Colours::white);
+	g.setColour (file.isDirectory()?juce::Colours::black:juce::Colours::black);
 	g.drawFittedText(file.exists()?isUpIcon?file.getParentDirectory().getFullPathName():
 		(isRoot?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileNameWithoutExtension()):juce::String::empty,
 		(int)(rect.getX()),  (int)rect.getBottom(), 
 		(int)(rect.getWidth()), (int)(titleHeight), 
-		juce::Justification::centredBottom, maxTitleLineCount, 1.f);
+		juce::Justification::centred, maxTitleLineCount, 1.f);
 
 }
 bool IconMenu::updateFilePreview(PathAndImage & pathAndImageLoadedFlag)
