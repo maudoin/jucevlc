@@ -293,11 +293,11 @@ void ControlComponent::resized()
 {
 	int w =  getWidth();
 	int h =  getHeight();
-
+	 
 	
 	int buttonSize = h/2;
 	int hMargin =buttonSize/2;
-	int sliderHeight = (int)(0.3*h);
+	int sliderHeight = (int)(0.25*h);
 	int playPauseButtonSize = buttonSize+sliderHeight;
 	int sliderLeftMargin = hMargin + playPauseButtonSize;
 	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
@@ -326,12 +326,12 @@ void ControlComponent::paint(juce::Graphics& g)
 	float sliderHeight = 0.3f*h;
 	
 	///////////////// CONTROL ZONE:	
-	g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.75f),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.5f),
 										w/2.f, h-sliderHeight-buttonSize-hMargin/2.f,
 										juce::Colours::black,
 										w/2.f, h,
 										false));
-	g.fillRect(hMargin/2.f,  h-sliderHeight-buttonSize-hMargin/2.f, w-hMargin, sliderHeight+buttonSize+hMargin/2.f);
+	g.fillRect(0.f,  h-sliderHeight-buttonSize-hMargin/2.f, w, h);
 	
 
 	///////////////// TIME:
