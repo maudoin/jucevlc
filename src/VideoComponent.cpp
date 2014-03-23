@@ -24,7 +24,6 @@
 #define SETTINGS_POSTER_BROWSER_ROOT_PATH "SETTINGS_POSTER_BROWSER_ROOT_PATH"
 #define SETTINGS_LANG "SETTINGS_LANG"
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
-#define SETTINGS_THEME_HUE "SETTINGS_THEME_HUE"
 #define SETTINGS_AUDIO_DEVICE "SETTINGS_AUDIO_DEVICE"
 #define SETTINGS_AUDIO_OUTPUT "SETTINGS_AUDIO_OUTPUT"
 #define SHORTCUTS_FILE "shortcuts.list"
@@ -2372,40 +2371,6 @@ void VideoComponent::onPlayerFonSize(AbstractMenuItem& item)
 	}
 }
 
-void VideoComponent::onSetColorTheme(AbstractMenuItem& item, int hue)
-{
-	setBrowsingFiles(false);
-
-	m_settings.setValue(SETTINGS_THEME_HUE, hue);
-	m_iconMenu.setColorThemeHue(hue);
-}
-
-//==============================================================================
-void VideoComponent::onSelectColorTheme(AbstractMenuItem& item)
-{
-	setBrowsingFiles(false);
-	
-	HueSelectorComp colourSelector(m_iconMenu.getColorThemeHueAsFloat(), 4, 0.2f);
-	colourSelector.setSize(getWidth() / 2, (int)(menu->getItemHeight() *3.f));
-
-    juce::CallOutBox callOut(colourSelector, menu->asComponent()->getBounds(), this);
-    callOut.runModalLoop();
-
-	onSetColorTheme(item, (int)(colourSelector.getHue()*255.f));
-
-}
-
-void VideoComponent::onColorTheme(AbstractMenuItem& item)
-{
-	setBrowsingFiles(false);
-
-	menu->addMenuItem( TRANS("Original"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, -1), 0>m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( TRANS("Grey"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 666), 666==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( TRANS("Red"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 255), 255==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( TRANS("Green"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 90), 90==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( TRANS("Blue"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetColorTheme, this, _1, 170), 170==m_iconMenu.getColorThemeHue()?getItemImage():nullptr);
-	menu->addMenuItem( TRANS("Custom"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSelectColorTheme, this, _1), nullptr);
-}
 void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable)
 {
 	setBrowsingFiles(false);
@@ -2431,7 +2396,6 @@ void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
 
 	menu->addMenuItem( TRANS("Language"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onLanguageOptions, this, _1));
 	menu->addMenuItem( TRANS("Menu font size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onPlayerFonSize, this, _1));
-	menu->addMenuItem( TRANS("Color Theme"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onColorTheme, this, _1));
 
 	menu->addMenuItem( TRANS("Hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
 	menu->addMenuItem( TRANS("No hardware"), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
@@ -2630,7 +2594,6 @@ void VideoComponent::initFromSettings()
 		shortcuts.readLines(m_shortcuts);
 	}
 	m_autoSubtitlesHeight=m_settings.getBoolValue(SETTINGS_AUTO_SUBTITLES_HEIGHT, m_autoSubtitlesHeight);
-	m_iconMenu.setColorThemeHue(m_settings.getIntValue(SETTINGS_THEME_HUE, -1));
 
 	initBoolSetting(CONFIG_BOOL_OPTION_HARDWARE);
 	

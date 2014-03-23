@@ -67,11 +67,6 @@ public:
 	IconMenu();
 	virtual ~IconMenu();
 	
-	juce::Colour getThemeBaseColor()const;
-	void setColorThemeHue(int hue = -1);
-	int getColorThemeHue()const{return m_colorThemeHue;}
-	float getColorThemeHueAsFloat()const{return ((float)m_colorThemeHue)/255.f;}
-
 	void setFilter(std::set<juce::String> const & s){m_videoExtensions = s;};
 
 	void setMediaRootPath(std::string const& path);

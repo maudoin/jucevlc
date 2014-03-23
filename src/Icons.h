@@ -40,10 +40,6 @@
 	extern const int blue_svgSize;
 	extern const char* folder_svg;
 	extern const int folder_svgSize;
-	extern const char* verticalFolderfront_svg;
-	extern const int verticalFolderfront_svgSize;
-	extern const char* verticalFolderback_svg;
-	extern const int verticalFolderback_svgSize;
 	extern const char* harddisk_svg;
 	extern const int harddisk_svgSize;
 	extern const char* disk_svg;
