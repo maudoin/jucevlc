@@ -43,6 +43,9 @@ It controls:
 
 **Changelog**
 ==================
+0.88 (2014/03/14):
+- General redesign (Metrize Icons by AlessioAtzeni) 
+
 0.87 (2014/03/02):
 - Customizable frontpage menu color theme(Menu -> Player -> Color theme)
 - Title bar is now grey and wider

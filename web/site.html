@@ -30,7 +30,7 @@
 	<div id="page">
 		<div id="content">
 			<a href="#" class="image-style"></a>
-			<img src="images/banner.jpg" width="600" height="256" alt="" />
+			<img src="images/banner.jpg" alt="" />
 			<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 				<input type="hidden" name="cmd" value="_s-xclick">
 				<input type="hidden" name="hosted_button_id" value="YKQ3Z84EVTNV4">
@@ -45,7 +45,7 @@
 					This is not mean to be a XBMC killer! It gives a Media Center feel to VLC while keeping the player as lightweight as possible.</p>
 				<h3>Features</h3>
 					<p><ul>
-						<li>Browse local or remote (via UPNP) files and adjust settings using <strong>On Screen Display</strong> (O.S.D.)</li>
+						<li>Browse local or remote (<s>via UPNP</s> UPNP broken in VLC since 2.08) files and adjust settings using <strong>On Screen Display</strong> (O.S.D.)</li>
 						<li>Frontpage movies menu with automatically downloaded posters (from <a href="http://www.omdbapi.com/">omdbapi.com</a>) or generated thumbnails (no setup required)</li>
 						<li><strong>Big, customizable fonts size</strong> and no tiny popup dialogs</li>
 						<li><strong>Subtitles</strong> selection and synchronization using slider via O.S.D.</li>
@@ -64,6 +64,13 @@
 		
 			<a id="news"></a><a href="#news" class="link-style1">News</a><br>
 			<ul class="list-style1">
+				<li class="first">
+					<h3>0.88 (2014/03/14):</h3>
+					<ul>
+						<li class="first">General redesign (Metrize Icons by AlessioAtzeni)</li>
+						<li class="first">Exe release only, full install pending</li>
+					</ul>
+				</li>
 				<li class="first">
 					<h3>0.87 (2014/03/02):</h3>
 					<ul>
@@ -231,7 +238,7 @@
 				</li>
 			</ul>
 			<a id="screenshots"></a><a href="#screenshots" class="link-style1">Screenshots</a>
-				<h4 align="left">Frontpage movies posters/thumbnails</h4>
+				<h4 align="left">Frontpage movies posters/thumbnails (version 0.87) </h4>
 				<img src="screenshots/frontpage.jpg">
 				<h4 align="left">Filesystem browser</h4>
 				<img src="screenshots/open.jpg">
@@ -266,6 +273,7 @@
 					<ul class="list-style2">
 						<li class="first">Powered by <a href="http://wiki.videolan.org/LibVLC" target="_blank">LibVLC</a></li>
 						<li>User Interface based on <a href="http://rawmaterialsoftware.com/juce.php" target="_blank">Juce</a></li>
+						<li>Icons by Alessio Atzeni (<a href="http://www.alessioatzeni.com/metrize-icons">Metrize icons set</a>)</li>
 						<li>Logo/Icon by <a href="http://mustafahaydar.deviantart.com/art/colorful-vlc-icons-for-dock-210183020" target="_blank">mustafahaydar</a></li>
 						<li>Using <a href="http://www.boost.org/" target="_blank">Boost</a></li>
 						<li>Source code managed with <a href="http://mercurial.selenic.com" target="_blank">Mercurial</a></li>
