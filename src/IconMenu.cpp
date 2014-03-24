@@ -436,6 +436,14 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 	
 	g.setOpacity (1.f);
 	
+	bool isUpIcon = indexOnScreen == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;	
+	if(isUpIcon && upImage)
+	{
+		upImage.get()->drawWithin (g, rect,
+							juce::RectanglePlacement::centred, 1.0f);
+		return;
+	}
+
 	if(file.isDirectory())
 	{
 		float topOffset = titleHeight/8.f;
@@ -464,13 +472,6 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 
 	}
 	
-	bool isUpIcon = indexOnScreen == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;	
-	if(isUpIcon && upImage)
-	{
-		upImage.get()->drawWithin (g, rect,
-							juce::RectanglePlacement::centred, 1.0f);
-		return;
-	}
 
 	bool isRoot = file.getParentDirectory().getFullPathName() == file.getFullPathName();
 	if(isRoot)
