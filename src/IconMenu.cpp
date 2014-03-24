@@ -23,6 +23,7 @@ IconMenu::IconMenu()
     driveImage = juce::Drawable::createFromImageData (harddisk_svg, harddisk_svgSize);
     diskImage = juce::Drawable::createFromImageData (disk_svg, disk_svgSize);
     usbImage = juce::Drawable::createFromImageData (usb_svg, usb_svgSize);
+	upImage  = juce::Drawable::createFromImageData (back_svg, back_svgSize);
 }
 
 IconMenu::~IconMenu()
@@ -413,8 +414,6 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 	}
 
 	juce::Rectangle<float> rect = getButtonAt(indexOnScreen, w, h);
-	
-	juce::Rectangle<float> firstRect = getButtonAt(0, w, h);
 
 	float lineThickness = 1.5f;
         
@@ -465,14 +464,14 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 
 	}
 	
-	bool isUpIcon = indexOnScreen == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;
-	if(isUpIcon)
+	bool isUpIcon = indexOnScreen == 0 && m_mediaPostersAbsoluteRoot != m_mediaPostersRoot;	
+	if(isUpIcon && upImage)
 	{
 		upImage.get()->drawWithin (g, rect,
-							juce::RectanglePlacement::centred | juce::RectanglePlacement::stretchToFit, 1.0f);
+							juce::RectanglePlacement::centred, 1.0f);
 		return;
 	}
-	
+
 	bool isRoot = file.getParentDirectory().getFullPathName() == file.getFullPathName();
 	if(isRoot)
 	{
