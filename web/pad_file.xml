@@ -101,7 +101,7 @@
     </Application_URLs>
     <Download_URLs>
       <Primary_Download_URL>http://sourceforge.net/projects/jucevlc/files/latest/download</Primary_Download_URL>
-      <Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.88.exe</Secondary_Download_URL>
+      <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
     </Download_URLs>
