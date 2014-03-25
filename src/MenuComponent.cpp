@@ -29,7 +29,7 @@ public:
 
 	virtual const juce::Drawable* getIcon(){ return icon;}
 	virtual juce::String const& getName(){ return name;}
-	virtual void execute(AbstractMenuItem & m){ return action(m);}
+	virtual void execute(AbstractMenuItem & m){ action(m);}
 	virtual AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
 	virtual AbstractAction const& getAction()const{ return action; }
 	virtual bool isMenuShortcut(){ return isShortcut ;}
@@ -181,12 +181,13 @@ void MenuComponent::forceRecentItem(int row)
 	MenuItem* item = recentList->getItem(row);
     if (item != nullptr)
 	{
+		MenuItem selected(*item);
 		recentList->removeItemsAfter(row);
 		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 		
 		menuList->clear();
-		item->execute(*item);
-
+		selected.execute(selected);
+		
 		resized();
 	}
 }
