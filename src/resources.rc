@@ -16,7 +16,7 @@ BEGIN
       VALUE "LegalCopyright",  "Matthieu A. pour Victor et Louis (ben si...)\0"
       VALUE "FileDescription",  "JucyVLC\0"
       VALUE "ProductName",  "JucyVLC\0"
-      VALUE "ProductVersion",  "0.8.7\0"
+      VALUE "ProductVersion",  "0.8.8\0"
     END
   END
 

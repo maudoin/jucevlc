@@ -50,7 +50,7 @@
   </Company_Info>
   <Program_Info>
     <Program_Name>JuceVLC</Program_Name>
-    <Program_Version>0.87</Program_Version>
+    <Program_Version>0.88</Program_Version>
     <Program_Release_Month>03</Program_Release_Month>
     <Program_Release_Day>02</Program_Release_Day>
     <Program_Release_Year>2014</Program_Release_Year>
@@ -60,7 +60,7 @@
     <Program_Install_Support>Windows Installer</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64</Program_OS_Support>
     <Program_Language>English,French</Program_Language>
-    <Program_Change_Info>Startup crash fix / libVLC 2.1.2</Program_Change_Info>
+    <Program_Change_Info>User Interface Overhaul (Metro-style)</Program_Change_Info>
     <Program_Category_Class>Audio &amp; Multimedia::Video Tools</Program_Category_Class>
     <Program_System_Requirements>None</Program_System_Requirements>
     <File_Info>
@@ -101,7 +101,7 @@
     </Application_URLs>
     <Download_URLs>
       <Primary_Download_URL>http://sourceforge.net/projects/jucevlc/files/latest/download</Primary_Download_URL>
-      <Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.87.exe</Secondary_Download_URL>
+      <Secondary_Download_URL>http://jucevlc.googlecode.com/files/JuceVLCsetup-0.88.exe</Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
     </Download_URLs>
@@ -209,11 +209,11 @@ patents cannot be used to render the program non-free.</EULA>
     <Site_Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Site_Keywords>
   </Site>
   <Press_Release>
-    <Press_Release>JuceVLC 0.87 is out</Press_Release>
-    <Headline>JuceVLC 0.87 is out</Headline>
-    <Summary>JuceVLC 0.87 now has a customizable frontpage menu color theme</Summary>
+    <Press_Release>JuceVLC 0.88 is out</Press_Release>
+    <Headline>JuceVLC 0.88 is out</Headline>
+    <Summary>JuceVLC 0.88 had a User Interface Overhaul (Metro-style)</Summary>
     <Keywords>vlc,video,player,media-center,fullscreen,user interface</Keywords>
-    <Press_Release_Plain>JuceVLC 0.87 now has a customizable frontpage menu color theme. See http://jucevlc.sourceforge.net/</Press_Release_Plain>
+    <Press_Release_Plain>JuceVLC 0.88 had a User Interface Overhaul (Metro-style). See http://jucevlc.sourceforge.net/</Press_Release_Plain>
     <Related_URL>http://jucevlc.sourceforge.net/</Related_URL>
   </Press_Release>
   <Program_Descriptions>
