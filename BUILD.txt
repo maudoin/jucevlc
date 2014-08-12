@@ -1,0 +1,24 @@
+**Developpers / Building tips**
+==================
+
+The project relies on multi-platform libraries / GNU gcc compiler and should also compile on Linux / MacOS environments
+
+Tools / Libraries
+------------------
+* **codeblocks-13.12** (for Windows)
+* **Mingw32 4.8** gcc compiler (for Windows)
+* **Juce 2.0.0** (**included in repository**) 
+<http://rawmaterialsoftware.com/downloads.php>
+* **LibVLC 2.1.5** (**included in repository**, taken from VLC distributions sdk folder) <http://www.videolan.org/vlc/index.html>
+* **Boost 1.56** includes (to be extracted in **/boost** folder) <https://sourceforge.net/projects/boost/files/boost/1.56.0/>
+* **NSIS 2.46** for the windows installer
+* **UPX 3.08**
+
+Boost 1.56 regtest lib build batch file for mingw: (if mingw is installed in e:\dev\mingw)
+
+set MINGW=e:\dev\mingw\bin
+set PATH=%PATH%;%MINGW%
+%~d0
+cd %~dp0
+bootstrap.bat mingw --toolset-root=%MINGW%
+b2  --toolset=gcc regex release link=static threading=multi runtime-link=static
