@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="vlcfrontend" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="vlcfrontend" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="E:/dev/vlcfrontend/vf" />
+				</Compiler>
+				<Linker>
+					<Add option="-static-libgcc -static -libstdc++" />
+					<Add library="libvlccore" />
+					<Add library="libvlc" />
+					<Add library="ws2_32" />
+					<Add library="version" />
+					<Add library="winmm" />
+					<Add library="wininet" />
+					<Add library="shlwapi" />
+					<Add library="ole32" />
+					<Add library="imm32" />
+					<Add library="uuid" />
+					<Add library="oleaut32" />
+					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add directory="boost/lib" />
+					<Add directory="libvlc/lib" />
+				</Linker>
+			</Target>
+			<Target title="FastDebug Win32">
+				<Option output="vlcfrontend" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="E:/dev/vlcfrontend/vf" />
+				</Compiler>
+				<Linker>
+					<Add library="libvlccore.lib" />
+					<Add library="libvlc.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="user32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="winspool.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="shell32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="odbc32.lib" />
+					<Add library="odbccp32.lib" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/lib" />
+					<Add directory="E:/dev/vlcfrontend/boost/lib" />
+					<Add directory="boost/lib" />
+					<Add directory="libvlc/lib" />
+				</Linker>
+			</Target>
+			<Target title="OptimizedDebug Win32">
+				<Option output="vlcfrontend" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="E:/dev/vlcfrontend/vf" />
+				</Compiler>
+				<Linker>
+					<Add library="libvlccore.lib" />
+					<Add library="libvlc.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="user32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="winspool.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="shell32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="odbc32.lib" />
+					<Add library="odbccp32.lib" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/lib" />
+					<Add directory="boost/lib" />
+					<Add directory="libvlc/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="vlcfrontend" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="E:/dev/vlcfrontend/vf" />
+				</Compiler>
+				<Linker>
+					<Add library="libvlccore.lib" />
+					<Add library="libvlc.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="user32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="winspool.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="shell32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="odbc32.lib" />
+					<Add library="odbccp32.lib" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/lib" />
+					<Add directory="E:/dev/vlcfrontend/boost/lib" />
+					<Add directory="boost/lib" />
+					<Add directory="libvlc/lib" />
+				</Linker>
+			</Target>
+			<Target title="ReleaseWithDebugInfo Win32">
+				<Option output="vlcfrontend" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="E:/dev/vlcfrontend/vf" />
+				</Compiler>
+				<Linker>
+					<Add library="libvlccore.lib" />
+					<Add library="libvlc.lib" />
+					<Add library="kernel32.lib" />
+					<Add library="user32.lib" />
+					<Add library="gdi32.lib" />
+					<Add library="winspool.lib" />
+					<Add library="comdlg32.lib" />
+					<Add library="advapi32.lib" />
+					<Add library="shell32.lib" />
+					<Add library="ole32.lib" />
+					<Add library="oleaut32.lib" />
+					<Add library="uuid.lib" />
+					<Add library="odbc32.lib" />
+					<Add library="odbccp32.lib" />
+					<Add directory="E:/dev/vlcfrontend/libvlc/lib" />
+					<Add directory="E:/dev/vlcfrontend/boost/lib" />
+					<Add directory="boost/lib" />
+					<Add directory="libvlc/lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="boost/include/boost/aligned_storage.hpp" />
+		<Unit filename="boost/include/boost/any.hpp" />
+		<Unit filename="boost/include/boost/array.hpp" />
+		<Unit filename="boost/include/boost/asio.hpp" />
+		<Unit filename="boost/include/boost/assert.hpp" />
+		<Unit filename="boost/include/boost/assign.hpp" />
+		<Unit filename="boost/include/boost/bimap.hpp" />
+		<Unit filename="boost/include/boost/bind.hpp" />
+		<Unit filename="boost/include/boost/blank.hpp" />
+		<Unit filename="boost/include/boost/blank_fwd.hpp" />
+		<Unit filename="boost/include/boost/call_traits.hpp" />
+		<Unit filename="boost/include/boost/cast.hpp" />
+		<Unit filename="boost/include/boost/cerrno.hpp" />
+		<Unit filename="boost/include/boost/checked_delete.hpp" />
+		<Unit filename="boost/include/boost/circular_buffer.hpp" />
+		<Unit filename="boost/include/boost/circular_buffer_fwd.hpp" />
+		<Unit filename="boost/include/boost/compressed_pair.hpp" />
+		<Unit filename="boost/include/boost/concept_archetype.hpp" />
+		<Unit filename="boost/include/boost/concept_check.hpp" />
+		<Unit filename="boost/include/boost/config.hpp" />
+		<Unit filename="boost/include/boost/crc.hpp" />
+		<Unit filename="boost/include/boost/cregex.hpp" />
+		<Unit filename="boost/include/boost/cstdint.hpp" />
+		<Unit filename="boost/include/boost/cstdlib.hpp" />
+		<Unit filename="boost/include/boost/current_function.hpp" />
+		<Unit filename="boost/include/boost/date_time.hpp" />
+		<Unit filename="boost/include/boost/dynamic_bitset.hpp" />
+		<Unit filename="boost/include/boost/dynamic_bitset_fwd.hpp" />
+		<Unit filename="boost/include/boost/enable_shared_from_this.hpp" />
+		<Unit filename="boost/include/boost/exception.hpp" />
+		<Unit filename="boost/include/boost/exception_ptr.hpp" />
+		<Unit filename="boost/include/boost/filesystem.hpp" />
+		<Unit filename="boost/include/boost/flyweight.hpp" />
+		<Unit filename="boost/include/boost/foreach.hpp" />
+		<Unit filename="boost/include/boost/format.hpp" />
+		<Unit filename="boost/include/boost/function.hpp" />
+		<Unit filename="boost/include/boost/function_equal.hpp" />
+		<Unit filename="boost/include/boost/function_output_iterator.hpp" />
+		<Unit filename="boost/include/boost/functional.hpp" />
+		<Unit filename="boost/include/boost/generator_iterator.hpp" />
+		<Unit filename="boost/include/boost/get_pointer.hpp" />
+		<Unit filename="boost/include/boost/implicit_cast.hpp" />
+		<Unit filename="boost/include/boost/indirect_reference.hpp" />
+		<Unit filename="boost/include/boost/integer.hpp" />
+		<Unit filename="boost/include/boost/integer_fwd.hpp" />
+		<Unit filename="boost/include/boost/integer_traits.hpp" />
+		<Unit filename="boost/include/boost/intrusive_ptr.hpp" />
+		<Unit filename="boost/include/boost/io_fwd.hpp" />
+		<Unit filename="boost/include/boost/is_placeholder.hpp" />
+		<Unit filename="boost/include/boost/iterator.hpp" />
+		<Unit filename="boost/include/boost/iterator_adaptors.hpp" />
+		<Unit filename="boost/include/boost/last_value.hpp" />
+		<Unit filename="boost/include/boost/lexical_cast.hpp" />
+		<Unit filename="boost/include/boost/limits.hpp" />
+		<Unit filename="boost/include/boost/make_shared.hpp" />
+		<Unit filename="boost/include/boost/math_fwd.hpp" />
+		<Unit filename="boost/include/boost/mem_fn.hpp" />
+		<Unit filename="boost/include/boost/memory_order.hpp" />
+		<Unit filename="boost/include/boost/mpi.hpp" />
+		<Unit filename="boost/include/boost/multi_array.hpp" />
+		<Unit filename="boost/include/boost/multi_index_container.hpp" />
+		<Unit filename="boost/include/boost/multi_index_container_fwd.hpp" />
+		<Unit filename="boost/include/boost/next_prior.hpp" />
+		<Unit filename="boost/include/boost/non_type.hpp" />
+		<Unit filename="boost/include/boost/noncopyable.hpp" />
+		<Unit filename="boost/include/boost/nondet_random.hpp" />
+		<Unit filename="boost/include/boost/none.hpp" />
+		<Unit filename="boost/include/boost/none_t.hpp" />
+		<Unit filename="boost/include/boost/operators.hpp" />
+		<Unit filename="boost/include/boost/optional.hpp" />
+		<Unit filename="boost/include/boost/parameter.hpp" />
+		<Unit filename="boost/include/boost/pointee.hpp" />
+		<Unit filename="boost/include/boost/pointer_cast.hpp" />
+		<Unit filename="boost/include/boost/pointer_to_other.hpp" />
+		<Unit filename="boost/include/boost/preprocessor.hpp" />
+		<Unit filename="boost/include/boost/program_options.hpp" />
+		<Unit filename="boost/include/boost/progress.hpp" />
+		<Unit filename="boost/include/boost/python.hpp" />
+		<Unit filename="boost/include/boost/random.hpp" />
+		<Unit filename="boost/include/boost/range.hpp" />
+		<Unit filename="boost/include/boost/rational.hpp" />
+		<Unit filename="boost/include/boost/ref.hpp" />
+		<Unit filename="boost/include/boost/regex.h" />
+		<Unit filename="boost/include/boost/regex.hpp" />
+		<Unit filename="boost/include/boost/regex_fwd.hpp" />
+		<Unit filename="boost/include/boost/scope_exit.hpp" />
+		<Unit filename="boost/include/boost/scoped_array.hpp" />
+		<Unit filename="boost/include/boost/scoped_ptr.hpp" />
+		<Unit filename="boost/include/boost/shared_array.hpp" />
+		<Unit filename="boost/include/boost/shared_container_iterator.hpp" />
+		<Unit filename="boost/include/boost/shared_ptr.hpp" />
+		<Unit filename="boost/include/boost/signal.hpp" />
+		<Unit filename="boost/include/boost/signals.hpp" />
+		<Unit filename="boost/include/boost/signals2.hpp" />
+		<Unit filename="boost/include/boost/smart_ptr.hpp" />
+		<Unit filename="boost/include/boost/spirit.hpp" />
+		<Unit filename="boost/include/boost/static_assert.hpp" />
+		<Unit filename="boost/include/boost/strong_typedef.hpp" />
+		<Unit filename="boost/include/boost/swap.hpp" />
+		<Unit filename="boost/include/boost/thread.hpp" />
+		<Unit filename="boost/include/boost/throw_exception.hpp" />
+		<Unit filename="boost/include/boost/timer.hpp" />
+		<Unit filename="boost/include/boost/token_functions.hpp" />
+		<Unit filename="boost/include/boost/token_iterator.hpp" />
+		<Unit filename="boost/include/boost/tokenizer.hpp" />
+		<Unit filename="boost/include/boost/type.hpp" />
+		<Unit filename="boost/include/boost/type_traits.hpp" />
+		<Unit filename="boost/include/boost/unordered_map.hpp" />
+		<Unit filename="boost/include/boost/unordered_set.hpp" />
+		<Unit filename="boost/include/boost/utility.hpp" />
+		<Unit filename="boost/include/boost/variant.hpp" />
+		<Unit filename="boost/include/boost/version.hpp" />
+		<Unit filename="boost/include/boost/visit_each.hpp" />
+		<Unit filename="boost/include/boost/wave.hpp" />
+		<Unit filename="boost/include/boost/weak_ptr.hpp" />
+		<Unit filename="juce/AppConfig.h" />
+		<Unit filename="juce/juce.h" />
+		<Unit filename="juce/modules/juce_core/juce_core.cpp" />
+		<Unit filename="juce/modules/juce_data_structures/juce_data_structures.cpp" />
+		<Unit filename="juce/modules/juce_events/juce_events.cpp" />
+		<Unit filename="juce/modules/juce_graphics/juce_graphics.cpp" />
+		<Unit filename="juce/modules/juce_gui_basics/juce_gui_basics.cpp" />
+		<Unit filename="juce/modules/juce_gui_extra/juce_gui_extra.cpp" />
+		<Unit filename="libvlc/include/vlc/deprecated.h" />
+		<Unit filename="libvlc/include/vlc/libvlc.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_events.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_internal.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media_discoverer.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media_library.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media_list.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media_list_player.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_media_player.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_structures.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_version.h" />
+		<Unit filename="libvlc/include/vlc/libvlc_vlm.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_about.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_access.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_acl.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_aout.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_aout_intf.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_aout_mixer.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_arrays.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_art_finder.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_atomic.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_avcodec.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_bits.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_block.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_block_helper.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_charset.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_codec.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_common.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_config.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_config_cat.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_configuration.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_cpu.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_demux.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_dialog.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_epg.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_es.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_es_out.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_events.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_filter.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_fourcc.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_fs.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_gcrypt.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_http.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_httpd.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_image.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_inhibit.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_input.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_input_item.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_main.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_md5.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_media_library.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_messages.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_meta.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_modules.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_mouse.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_mtime.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_network.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_objects.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_opengl.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_picture.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_picture_fifo.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_picture_pool.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_playlist.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_plugin.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_probe.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_rand.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_services_discovery.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_sout.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_spu.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_sql.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_stream.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_strings.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_subpicture.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_text_style.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_threads.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_tls.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_url.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_variables.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_video_splitter.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_vlm.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_vout.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_vout_display.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_vout_osd.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_vout_window.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_xlib.h" />
+		<Unit filename="libvlc/include/vlc/plugins/vlc_xml.h" />
+		<Unit filename="libvlc/include/vlc/vlc.h" />
+		<Unit filename="src/AbstractMenu.h" />
+		<Unit filename="src/AppProportionnalComponent.cpp" />
+		<Unit filename="src/AppProportionnalComponent.h" />
+		<Unit filename="src/ControlComponent.cpp" />
+		<Unit filename="src/ControlComponent.h" />
+		<Unit filename="src/Execute.cpp" />
+		<Unit filename="src/Execute.h" />
+		<Unit filename="src/FileSorter.cpp" />
+		<Unit filename="src/FileSorter.h" />
+		<Unit filename="src/FontSerialization.cpp" />
+		<Unit filename="src/FontSerialization.h" />
+		<Unit filename="src/HueSelector.h" />
+		<Unit filename="src/IconMenu.cpp" />
+		<Unit filename="src/IconMenu.h" />
+		<Unit filename="src/Icons.cpp" />
+		<Unit filename="src/Icons.h" />
+		<Unit filename="src/ImageCatalog.cpp" />
+		<Unit filename="src/ImageCatalog.h" />
+		<Unit filename="src/ImageCatalogCache.cpp" />
+		<Unit filename="src/ImageCatalogCache.h" />
+		<Unit filename="src/InvokeLater.cpp" />
+		<Unit filename="src/InvokeLater.h" />
+		<Unit filename="src/Languages.cpp" />
+		<Unit filename="src/Languages.h" />
+		<Unit filename="src/LookNFeel.h" />
+		<Unit filename="src/Main.cpp" />
+		<Unit filename="src/MenuBase.cpp" />
+		<Unit filename="src/MenuBase.h" />
+		<Unit filename="src/MenuComponent.cpp" />
+		<Unit filename="src/MenuComponent.h" />
+		<Unit filename="src/MenuTree.cpp" />
+		<Unit filename="src/MenuTree.h" />
+		<Unit filename="src/PosterFinder.cpp" />
+		<Unit filename="src/PosterFinder.h" />
+		<Unit filename="src/Thumbnailer.cpp" />
+		<Unit filename="src/Thumbnailer.h" />
+		<Unit filename="src/VLCWrapper.cpp" />
+		<Unit filename="src/VLCWrapper.h" />
+		<Unit filename="src/VideoComponent.cpp" />
+		<Unit filename="src/VideoComponent.h" />
+		<Unit filename="src/WeblySleekFont.cpp" />
+		<Unit filename="src/WeblySleekFont.h" />
+		<Unit filename="src/resources.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="src/vlc.ico" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -43,6 +43,12 @@ It controls:
 
 **Changelog**
 ==================
+
+0.89 (2014/08/13):
+- libVLC 2.1.5
+- Switched from Microsoft VisualStudio to MinGW32(gnu/gcc) compiler under CodeBlocks IDE
+- Updated to Boost 1.56
+
 0.88 (2014/03/14):
 - General redesign (Metrize Icons by AlessioAtzeni) 
 

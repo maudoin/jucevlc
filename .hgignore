@@ -38,6 +38,20 @@ thumbnails
 plugins208
 vlcfrontendDebug.exp
 vlcfrontendDebug.lib
+.objs
+RelSymbols
+ReleaseWithDebugInfo
+reviews
+icons/Metrize_Icons
+icons/othericons
+icons/Freecns_2.0
+icons/Batch-master
+icons/AlessioAtzeni
+icons/android_ui_design___default_icons_4__grouped_by_hsigmond-d4vcsql.svg
+juceVLC_88_spdif.exe
+vlcfrontend.depend
+vlcfrontend.layout
+vlcfrontendFastDebug.exe
 syntax: regexp
 FontResource.cpp
 FontResource.h
