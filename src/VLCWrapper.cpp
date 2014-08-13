@@ -168,12 +168,12 @@ public:
 
 static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
 {
-    EventCallBack* cb = reinterpret_cast<EventCallBack*>(pUserData); 
+    EventCallBack* cb = reinterpret_cast<EventCallBack*>(pUserData);
 	if(!cb)
 	{
 		return;
 	}
- 
+
     switch(pEvent->type)
     {
 		case libvlc_MediaPlayerTimeChanged:
@@ -189,27 +189,27 @@ static void HandleVLCEvents(const libvlc_event_t* pEvent, void* pUserData)
 	   case libvlc_MediaPlayerEndReached:
 		    cb->vlcStopped();
             break;
-	} 
+	}
 }
 
 //-----------------------------------
 
 static void *vlcLock(void *pUserData, void **p_pixels)
 {
-    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData);
 	return cb?cb->vlcLock( p_pixels):NULL;
 }
 
 static void vlcUnlock(void *pUserData, void *id, void *const *p_pixels)
 {
-    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData);
 	if(cb)
 		cb->vlcUnlock( id, p_pixels);
 }
 
 static void vlcDisplay(void *pUserData, void *id)
 {
-    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData); 
+    DisplayCallback* cb = reinterpret_cast<DisplayCallback*>(pUserData);
 	if(cb)
 		cb->vlcDisplay(id);
 }
@@ -219,7 +219,7 @@ static int popupCallback(vlc_object_t *p_this, const char *psz_variable,
 {
     VLC_UNUSED( p_this ); VLC_UNUSED( psz_variable ); VLC_UNUSED( old_val );
 
-    InputCallBack* cb = reinterpret_cast<InputCallBack*>(param); 
+    InputCallBack* cb = reinterpret_cast<InputCallBack*>(param);
 	if(cb)
 		cb->vlcPopupCallback(new_val.b_bool);
     return VLC_SUCCESS;
@@ -230,7 +230,7 @@ static int fullscreenControlCallback(vlc_object_t *p_this, const char *psz_varia
 {
     VLC_UNUSED( p_this ); VLC_UNUSED( psz_variable ); VLC_UNUSED( old_val );
 
-    InputCallBack* cb = reinterpret_cast<InputCallBack*>(param); 
+    InputCallBack* cb = reinterpret_cast<InputCallBack*>(param);
 	if(cb)
 		cb->vlcFullScreenControlCallback();
     return VLC_SUCCESS;
@@ -240,7 +240,7 @@ static int onMouseMoveCallback(vlc_object_t *p_vout, const char *psz_var, vlc_va
 {
     VLC_UNUSED(old);
 
-    MouseInputCallBack* cb = reinterpret_cast<MouseInputCallBack*>(p_data); 
+    MouseInputCallBack* cb = reinterpret_cast<MouseInputCallBack*>(p_data);
 	if(cb)
 	{
 		cb->vlcMouseMove(val.coords.x, val.coords.y, var_GetInteger( p_vout, "mouse-button-down" ));
@@ -253,7 +253,7 @@ static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_v
     VLC_UNUSED(old);
     VLC_UNUSED(p_vout);
 
-    MouseInputCallBack* cb = reinterpret_cast<MouseInputCallBack*>(p_data); 
+    MouseInputCallBack* cb = reinterpret_cast<MouseInputCallBack*>(p_data);
 	if(cb)
 	{
 		cb->vlcMouseClick(val.coords.x, val.coords.y, var_GetInteger( p_vout, "mouse-button-down" ));
@@ -302,7 +302,7 @@ VLCWrapper::VLCWrapper(void)
 
 	// init vlc modules, should be done only once
 	pVLCInstance_.mayInit();
-     
+
     // Create a media player playing environement
 	pMediaPlayer_ = libvlc_media_player_new(pVLCInstance_.get());
     vout_thread_t *p_vout = GetVout (pMediaPlayer_, 0);
@@ -313,7 +313,7 @@ VLCWrapper::VLCWrapper(void)
 
 	//list player
     mlp = libvlc_media_list_player_new(pVLCInstance_.get());
- 
+
 	//media list
     ml = libvlc_media_list_new(pVLCInstance_.get());
 
@@ -352,31 +352,31 @@ void VLCWrapper::SetDisplayCallback(DisplayCallback* cb)
 	    libvlc_video_set_callbacks(pMediaPlayer_, vlcLock, vlcUnlock, vlcDisplay, cb);
 	}
 }
-	 	
+
 
 static void vlcAudioPlay(void *pUserData, const void *samples, unsigned count, int64_t pts)
 {
-    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData);
 	if(cb)cb->vlcAudioPlay(samples, count, pts);
 }
 static void vlcAudioPause(void *pUserData, int64_t pts)
 {
-    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData);
 	if(cb)cb->vlcAudioPause(pts);
 }
 static void vlcAudioResume(void *pUserData, int64_t pts)
 {
-    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData);
 	if(cb)cb->vlcAudioResume(pts);
 }
 static void vlcAudioFush(void *pUserData, int64_t pts)
 {
-    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData);
 	if(cb)cb->vlcAudioFush(pts);
 }
 static void vlcAudioDrain(void *pUserData)
 {
-    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData); 
+    AudioCallback* cb = reinterpret_cast<AudioCallback*>(pUserData);
 	if(cb)cb->vlcAudioDrain();
 }
 
@@ -387,7 +387,7 @@ void VLCWrapper::SetAudioCallback(AudioCallback* cb)
 		libvlc_audio_set_callbacks (pMediaPlayer_, vlcAudioPlay, vlcAudioPause, vlcAudioResume, vlcAudioFush, vlcAudioDrain, cb);
 	}
 }
-	 	
+
 void VLCWrapper::SetEventCallBack(EventCallBack* cb)
 {
 	if(m_pEventCallBack)
@@ -414,7 +414,7 @@ void VLCWrapper::SetBufferFormat(int imageWidth, int imageHeight, int imageStrid
 }
 void VLCWrapper::SetOutputWindow(void* pHwnd)
 {
-    // Set the output window    
+    // Set the output window
 	libvlc_media_player_set_hwnd(pMediaPlayer_, pHwnd);
 }
 
@@ -474,7 +474,7 @@ int64_t VLCWrapper::GetLength()
 
 int64_t VLCWrapper::GetTime()
 {
-    int64_t time = libvlc_media_player_get_time(pMediaPlayer_);    
+    int64_t time = libvlc_media_player_get_time(pMediaPlayer_);
     return time;
 }
 
@@ -554,7 +554,7 @@ void VLCWrapper::setAudioChannel(VLCWrapper::AudioChannel i)
 void VLCWrapper::loadSubtitle(const char* pSubPathName)
 {
 	// Load a new item
-    libvlc_video_set_subtitle_file (pMediaPlayer_, pSubPathName);    
+    libvlc_video_set_subtitle_file (pMediaPlayer_, pSubPathName);
 }
 
 void VLCWrapper::setScale (double ratio)
@@ -602,6 +602,19 @@ int VLCWrapper::getSubtitlesCount()
 {
 	return libvlc_video_get_spu_count(pMediaPlayer_);
 }
+std::vector<std::pair<int, std::string> > VLCWrapper::getSubtitles()
+{
+    std::vector<std::pair<int, std::string> > res;
+    libvlc_track_description_t *p_info = libvlc_video_get_spu_description(
+        pMediaPlayer_);
+    while(p_info)
+    {
+        res.push_back( std::pair<int, std::string>(p_info->i_id, p_info->psz_name) );
+        p_info = p_info->p_next;
+    }
+    libvlc_track_description_list_release( p_info );
+    return res;
+}
 int VLCWrapper::getCurrentSubtitleIndex()
 {
 	return libvlc_video_get_spu(pMediaPlayer_);
@@ -644,13 +657,13 @@ bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
 			var_DelCallback( p_vout, "mouse-clicked", onMouseClickCallback, m_pMouseInputCallBack );
 		}
 		m_pMouseInputCallBack=cb;
-		
+
 		if(cb != 0)
 		{
 			var_AddCallback( p_vout, "mouse-moved", onMouseMoveCallback, cb );
 			var_AddCallback( p_vout, "mouse-clicked", onMouseClickCallback, cb );
 		}
-	
+
 
 		vlc_object_release (p_vout);
 	}
@@ -658,7 +671,7 @@ bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
 }
 
 
-	
+
 std::vector<std::string> VLCWrapper::getCropList()
 {
 	std::vector<std::string> list;
@@ -839,7 +852,7 @@ int VLCWrapper::getVideoTrack()
 {
 	return libvlc_video_get_track(pMediaPlayer_);
 }
-  
+
 void VLCWrapper::setVideoAdjust(bool n)
 {
 	libvlc_video_set_adjust_int(pMediaPlayer_, libvlc_adjust_Enable, n?1:0);
@@ -907,14 +920,14 @@ std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::p
 
 	libvlc_audio_output_t* outputs;
 	outputs = libvlc_audio_output_list_get(pVLCInstance_.get());
-   
+
 	result.reserve(10);
     while (outputs)
     {
 
 
 		libvlc_audio_output_device_t* devices = libvlc_audio_output_device_list_get(pVLCInstance_.get(), outputs->psz_name);
-		
+
 		if(devices)
 		{
 			result.resize(result.size()+1);
@@ -933,7 +946,7 @@ std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::p
 				devices = devices->p_next;
 			}
 		}
-		
+
 	    libvlc_audio_output_device_list_release(devices);
 
         outputs = outputs->p_next;
@@ -961,7 +974,7 @@ int VLCWrapper::getAudioTrack()
 
 bool addMediaSubItemsToMediaList(libvlc_media_t* media, libvlc_media_list_t* ml, int index)
 {
-	
+
 	libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
 	if(subMediaList)
 	{
@@ -999,7 +1012,7 @@ std::string urlDecode(std::string const &SRC) {
 }
 std::string getMediaName(libvlc_media_t* media)
 {
-	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
 	std::string name = (desc?desc:"???");
 	libvlc_free(desc);
 	return name;
@@ -1017,13 +1030,13 @@ std::string getMediaName(libvlc_media_t* media)
 		}
 
 	}
-		
+
 	std::string::size_type i = url.find_last_of("/\\");
 	return i == std::string::npos ? url : url.substr(i+1);
 	*/
 }
 std::vector<std::string> VLCWrapper::getCurrentPlayList()
-{	
+{
 	std::vector<std::string> out;
 	MediaListScopedLock lock(ml);
 	int max = libvlc_media_list_count(ml);
@@ -1042,7 +1055,7 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 		}
 		libvlc_media_parse(media);
 		out.push_back(getMediaName(media));
-		
+
 		libvlc_media_release(media);
 	}
 	return out;
@@ -1116,7 +1129,7 @@ void VLCWrapper::setConfigOptionBool(const char* name, bool value)
 std::pair<int, std::vector<std::pair<int, std::string> > > VLCWrapper::getConfigOptionInfoInt(const char* name)const
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
-	
+
 	std::pair<int,std::vector<std::pair<int, std::string> > > info;
 
     int64_t *values;
@@ -1128,7 +1141,7 @@ std::pair<int, std::vector<std::pair<int, std::string> > > VLCWrapper::getConfig
 		info.second.push_back(std::pair<int, std::string>(values[i], texts[i]));
         libvlc_free( texts[i] );
 	}
-	
+
     libvlc_free( texts );
     libvlc_free( values );
 	return info;
@@ -1146,7 +1159,7 @@ void VLCWrapper::setConfigOptionString(const char* name, std::string const& valu
 std::pair<std::string, std::vector<std::pair<std::string, std::string> > > VLCWrapper::getConfigOptionInfoString(const char* name)const
 {
     module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
-	
+
 	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > info;
 
     char **values, **texts;
@@ -1190,17 +1203,17 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 		for(int j=0;j<jmax;++j)
 		{
 			libvlc_media_t* media = libvlc_media_list_item_at_index(mediaList, j);
-				
+
 			libvlc_media_parse(media);
-			
-			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+
+			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
 			std::string name = (desc?desc:"???");
 			if(!prefix.empty())
 			{
 				name = prefix + "/" + name;
 			}
 			libvlc_free(desc);
-				
+
 			libvlc_media_list_t* subMediaList = libvlc_media_subitems(media);
 			if(subMediaList)
 			{
@@ -1211,7 +1224,7 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 			}
 			else
 			{
-				char* mrl = libvlc_media_get_mrl 	( media ) ;	
+				char* mrl = libvlc_media_get_mrl 	( media ) ;
 				if(std::string::npos == std::string(mrl).find("vlc://nop"))
 				{
 					//real media, keep it
@@ -1219,7 +1232,7 @@ void readMediaList(libvlc_media_list_t* mediaList, std::vector<std::pair<std::st
 				}
 				libvlc_free(mrl);
 			}
-			
+
 			libvlc_media_release(media);
 		}
 	}
@@ -1256,17 +1269,17 @@ std::vector<std::pair<std::string, std::string> > VLCUPNPMediaList::getUPNPList(
 		for(int j=0;j<jmax;++j)
 		{
 			libvlc_media_t* media = libvlc_media_list_item_at_index(currentMediaList, j);
-				
+
 			libvlc_media_parse(media);
-			
-			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;	
+
+			char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
 			std::string name = (desc?desc:"???");
 			libvlc_free(desc);
 
 			if(nameList.empty())
 			{
 				//list
-				char* mrl = libvlc_media_get_mrl 	( media ) ;	
+				char* mrl = libvlc_media_get_mrl 	( media ) ;
 				list.push_back(std::pair<std::string, std::string>(name+getExtension(mrl), mrl));
 				libvlc_free(mrl);
 			}
@@ -1277,15 +1290,15 @@ std::vector<std::pair<std::string, std::string> > VLCUPNPMediaList::getUPNPList(
 
 				nextMedialist = libvlc_media_subitems(media);
 
-				
+
 				//look no further in the current entry
 				jmax = 0;
 			}
-				
-			
+
+
 			libvlc_media_release(media);
 		}
-		
+
 		libvlc_media_list_release(currentMediaList);
 	}
 	return list;

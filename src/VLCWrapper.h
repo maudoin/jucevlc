@@ -1,6 +1,6 @@
 /************************************************************************
     This file is part of VLCWrapper.
-    
+
     File:    VLCWrapper.h
     Desc.:   An simple C++-interface to libvlc.
 
@@ -21,11 +21,11 @@
 #include <string>
 #include <vector>
 
-#define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw" 
+#define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw"
 #define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" //int list
 #define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" //int list
-#define CONFIG_INT_OPTION_VIDEO_QUALITY "postproc-q" 
-#define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace" 
+#define CONFIG_INT_OPTION_VIDEO_QUALITY "postproc-q"
+#define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace"
 #define CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE "deinterlace-mode"
 #define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color"
 #define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color"
@@ -68,7 +68,7 @@ public:
 	virtual void vlcUnlock(void *id, void *const *p_pixels) = 0;
 
 	virtual void vlcDisplay(void *id) = 0;
-	
+
 };
 class InputCallBack
 {
@@ -104,7 +104,7 @@ public:
 };
 class VLCUPNPMediaList
 {
-	
+
 	libvlc_media_discoverer_t*   pMediaDiscoverer_;        ///< The VLC media Discoverer object.
 	libvlc_media_list_t* pUPNPMediaList_;
 
@@ -118,12 +118,12 @@ public:
 class VLCWrapper
 {
 	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
-    libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.    
+    libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.
     libvlc_media_list_t *ml;
     libvlc_media_list_player_t *mlp;
 	bool m_videoAdjustEnabled;
 
-	
+
     EventCallBack* m_pEventCallBack;
     InputCallBack* m_pInputCallBack;
     MouseInputCallBack* m_pMouseInputCallBack;
@@ -147,7 +147,7 @@ public:
 
     /** Start playback. */
     void play();
-	
+
 	bool isPaused();
 	bool isStopping();
 	bool isPlaying();
@@ -155,7 +155,7 @@ public:
 
     /** Pause playback. */
     void Pause();
-    
+
     /** Stop playback. */
     void Stop();
 
@@ -184,7 +184,7 @@ public:
     bool GetMute();
 
     double getVolume();
-    void setVolume(double volume);    
+    void setVolume(double volume);
 
 	void setScale (double ratio);
 	double getScale () const;
@@ -197,10 +197,11 @@ public:
 	void setSubtitleDelay(int64_t delay);
 	int64_t getSubtitleDelay();
     int getSubtitlesCount();
+    std::vector<std::pair<int, std::string> > getSubtitles();
     int getCurrentSubtitleIndex();
     void setSubtitleIndex(int i);
 
-	
+
 	void setVideoContrast(double n);
 	double getVideoContrast();
 	void setVideoBrightness(double n);
@@ -213,11 +214,11 @@ public:
 	double getVideoGamma();
 	void setVideoAdjust(bool n);
 	bool getVideoAdjust();
-	
+
 	std::vector<std::string> getCropList();
 	void setCrop(std::string const& ratio);
 	std::string getCrop();
-	
+
 	std::vector< std::pair<int, std::string> > getVideoTrackList();
 	void setVideoTrack(int n);
 	int getVideoTrack();
@@ -228,7 +229,7 @@ public:
 
 	void setAutoCrop(bool autoCrop);
 	bool isAutoCrop();
-	
+
 	void setVoutOptionInt(const char* name, int v);
 	int getVoutOptionInt(const char* name);
 
@@ -236,13 +237,13 @@ public:
 	std::string getAoutFilterOptionString(const char* name);
 
 	enum AudioChannel
-	{     
-		 VLCWrapperAudioChannel_Error 	
-		,VLCWrapperAudioChannel_Stereo 	
-		,VLCWrapperAudioChannel_RStereo 	
-		,VLCWrapperAudioChannel_Left 	
-		,VLCWrapperAudioChannel_Right 	
-		,VLCWrapperAudioChannel_Dolbys 	
+	{
+		 VLCWrapperAudioChannel_Error
+		,VLCWrapperAudioChannel_Stereo
+		,VLCWrapperAudioChannel_RStereo
+		,VLCWrapperAudioChannel_Left
+		,VLCWrapperAudioChannel_Right
+		,VLCWrapperAudioChannel_Dolbys
 	};
     AudioChannel getAudioChannel();
     void setAudioChannel(AudioChannel i);
@@ -256,10 +257,10 @@ public:
 	void clearPlayList();
 
 	std::string getInfo() const;
-	
+
 	bool getConfigOptionBool(const char* name) const;
 	void setConfigOptionBool(const char* name, bool value);
-	
+
 	int getConfigOptionInt(const char* name) const;
 	void setConfigOptionInt(const char* name, int value);
 	std::pair<int,std::vector<std::pair<int, std::string> > > getConfigOptionInfoInt(const char* name)const;
@@ -268,7 +269,7 @@ public:
 	void setConfigOptionString(const char* name, std::string const& value);
 	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > getConfigOptionInfoString(const char* name)const;
 
-	
+
 	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > getAudioOutputList() const;
 	void setAudioOutputDevice(std::string const& output, std::string const& device);
 };
