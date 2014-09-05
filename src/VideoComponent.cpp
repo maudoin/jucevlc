@@ -1770,64 +1770,102 @@ struct ZipEntrySorter
 
 #include <boost/regex.hpp>
 
+bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
+                                                     juce::MemoryOutputStream const&memStream,
+                                                     juce::String const& siteTarget,
+                                                     std::string const& match,
+                                                     std::string const& downloadURLPattern )
+{
+    if(resultSite==siteTarget)
+    {
+        boost::regex expressionSubscene(match, boost::regex::icase);
+        boost::cmatch matchesSubscene;
+        if(boost::regex_search((char*)memStream.getData(), matchesSubscene, expressionSubscene))
+        {
+
+            juce::String downloadURL( str( boost::format(downloadURLPattern)% matchesSubscene[1].str()).c_str() );
+            onMenuDowloadOpenSubtitle(item, downloadURL);
+
+            //juce::Process::openDocument(downloadURL,juce::String::empty);
+/*
+            //get html
+            juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+            juce::File out(outPath);
+            out = out.getChildFile(resultSite+".html");
+            juce::FileOutputStream outStream(out);
+            if(outStream.openedOk())
+            {
+                outStream.write(memStream.getData(), memStream.getDataSize());
+            }
+            */
+            return true;
+
+        }
+    }
+    return false;
+}
 void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String downloadUrl, juce::String site)
 {
 	juce::URL url(downloadUrl);
-	juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
-	juce::String fileName = downloadUrl.fromLastOccurrenceOf("/", false, false);
-	if(pIStream.get())
-	{
-		juce::MemoryOutputStream memStream(10000);//10ko at least
-		if(memStream.writeFromInputStream(*pIStream, MAX_SUBTITLE_ARCHIVE_SIZE)>0)
-		{
+    juce::ScopedPointer<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
+    juce::String fileName = downloadUrl.fromLastOccurrenceOf("/", false, false);
+    if(pIStream.get())
+    {
+        juce::MemoryOutputStream memStream(10000);//10ko at least
+        if(memStream.writeFromInputStream(*pIStream, MAX_SUBTITLE_ARCHIVE_SIZE)>0)
+        {
+            memStream.writeByte(0);//simulate end of c string
 
+            //find subseeker link to other subtitle site:
+            std::string ex("href=\"([^\"]*");
+            ex += site.toUTF8().getAddress();
+            ex += "[^\"]*)";
+            boost::regex expression(ex, boost::regex::icase);
 
-			std::string ex("href=\"([^\"]*");
-			ex += site.toUTF8().getAddress();
-			ex += "[^\"]*)";
-			boost::regex expression(ex, boost::regex::icase);
+           boost::cmatch matches;
+           if(boost::regex_search((char*)memStream.getData(), matches, expression))
+           {
+                juce::String otherStr(matches[1].str().c_str());
+               //download other site page
+                juce::URL other(otherStr);
+                juce::ScopedPointer<juce::InputStream> pIStreamOther(other.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
+                if(pIStreamOther.get())
+                {
+                    memStream.reset();
+                    if(memStream.writeFromInputStream(*pIStreamOther, MAX_SUBTITLE_ARCHIVE_SIZE)>0)
+                    {
+                        memStream.writeByte(0);//simulate end of c string
 
-			memStream.writeByte(0);//simulate end of c string
-		   boost::cmatch matches;
-		   if(boost::regex_search((char*)memStream.getData(), matches, expression))
-		   {
-				juce::Process::openDocument(matches[1].str().c_str(),juce::String::empty);
-/*
-				juce::URL other(matches[1].str().c_str());
-				juce::ScopedPointer<juce::InputStream> pIStreamOther(other.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
-				if(pIStreamOther.get())
-				{
-					memStream.reset();
-					memStream.writeFromInputStream(*pIStreamOther, MAX_SUBTITLE_ARCHIVE_SIZE);
-				}
-				else
-				{
-					menu->addMenuItem(TRANS(">")+matches[1].str().c_str(), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuDowloadSubtitleSeeker, this, _1, downloadUrl, site));
+                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Podnapisi.net",
+                                                            "<a[^>]*class=\"button big download\"[^>]*href=\"([^\"]*)\"[^>]*>",
+                                                            "http://www.podnapisi.net%s"))
+                        {
+                            return;
+                        }
+                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Subscene.com",
+                                                            "<a.*href=\"([^\"]*)\".*id=\"downloadButton\".*>",
+                                                            "http://subscene.com%s"))
+                        {
+                            return;
+                        }
+                        //need to look at iframe target before inspecting some pages:
+                        //	<iframe width="100%" height="9000px" frameborder="0" marginheight="0" marginwidth="0" scrolling="no" src="http://www.engsub.net/NNNNNNNN/">
+                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Undertexter.se",
+                                                            "<a[^>]*title=\"Download subtitle to[^\"][^>]*\".*href=\"([^\"]*)\".*>",
+                                                            "%s"))
+                        {
+                            return;
+                        }
+                    }
+                }
+                //found other site page but could not go further us it at least
+                juce::Process::openDocument(otherStr,juce::String::empty);
+                return;
+           }
 
-					return;
-				}
-			*/
-		   }
-		   else
-		   {
-				juce::Process::openDocument(downloadUrl,juce::String::empty);
-			   /*
-			    //get html
-			    juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
-				juce::File out(outPath);
-				out = out.getChildFile(fileName+".html");
-				juce::FileOutputStream outStream(out);
-				if(outStream.openedOk())
-				{
-					if(outStream.write(memStream.getData(), memStream.getDataSize())>0)
-					{
-						onMenuOpenSubtitleFile(item,out);
-					}
-				}*/
-		   }
-
-		}
-	}
+        }
+    }
+    juce::Process::openDocument(downloadUrl,juce::String::empty);
 }
 void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
 {

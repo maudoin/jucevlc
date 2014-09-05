@@ -20,10 +20,10 @@
 class InvokeLater;
 class TitleComponent;
 class BackgoundUPNP;
-class VideoComponent   : public juce::Component , public juce::KeyListener, 
-	
+class VideoComponent   : public juce::Component , public juce::KeyListener,
+
 #ifdef BUFFER_DISPLAY
-	DisplayCallback, 
+	DisplayCallback,
 #else
 	juce::ComponentListener,
 #endif
@@ -86,8 +86,8 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 public:
     VideoComponent();
     virtual ~VideoComponent();
-	
-	
+
+
     int useTimeSlice();
 
 	void appendAndPlay(std::string const&path);
@@ -105,7 +105,7 @@ public:
 	void showAudioOffsetSlider ();
 	void showSubtitlesOffsetSlider ();
 
-	
+
 	juce::Drawable const* getIcon(juce::String const&);
 	juce::Drawable const* getIcon(juce::File const&);
 	juce::Drawable const* getItemImage() const { return itemImage; };
@@ -117,7 +117,7 @@ public:
 	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
 	juce::Drawable const* getExitImage() const { return exitImage; };
 	juce::Drawable const* getSettingsImage() const { return settingsImage; };
-	
+
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
 	void *vlcLock(void **p_pixels);
@@ -127,15 +127,15 @@ public:
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
 #endif
-	
+
 	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
-	
+
 	/////////////// MenuTree
 	void onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
 	void onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod);
-	
+
 	void onMenuSetFrontPage (AbstractMenuItem& item, juce::String path);
 	void onMenuAddFavorite (AbstractMenuItem& item, juce::String path);
 	void onMenuRemoveFavorite (AbstractMenuItem& item, juce::String path);
@@ -148,7 +148,7 @@ public:
     void onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file);
     void onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file);
     void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
-	
+
 
 	void onMenuVoutIntOption (AbstractMenuItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
 	void onVLCOptionIntSelect(AbstractMenuItem& item, std::string, int i);
@@ -191,7 +191,7 @@ public:
     void onVLCAoutStringSelectListMenu (AbstractMenuItem& item, std::string, std::string);
     void onMenuAudioVolume(AbstractMenuItem& item, double volume);
     void onMenuAudioVolumeListAndSlider (AbstractMenuItem& item);
-	
+
     void onMenuAudioTrack (AbstractMenuItem& item, int id);
     void onMenuAudioTrackList (AbstractMenuItem& item);
     void onMenuVideoTrack (AbstractMenuItem& item, int id);
@@ -204,7 +204,7 @@ public:
 	void onMenuVideoAdjust (AbstractMenuItem& item);
 
     void onMenuFullscreen(AbstractMenuItem& item, bool fs);
-	
+
 	void onMenuExit(AbstractMenuItem& item);
 	void onMenuSoundOptions(AbstractMenuItem& item);
 	void onMenuRatio(AbstractMenuItem& item);
@@ -229,14 +229,14 @@ public:
 	virtual void vlcFullScreenControlCallback();
 	virtual void vlcMouseMove(int x, int y, int button);
 	virtual void vlcMouseClick(int x, int y, int button);
-	
+
 	void startedSynchronous();
 	void stoppedSynchronous();
-	
+
 
 	/////////////// GUI CALLBACKS
     void paint (juce::Graphics& g);
-	
+
     virtual void resized();
 	void updateTimeAndSlider(int64_t newTime);
 
@@ -251,7 +251,7 @@ public:
     void mouseExit (const juce::MouseEvent& e);
     void mouseWheelMove (const juce::MouseEvent& e,
                                  const juce::MouseWheelDetails& wheel);
-	
+
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
     void broughtToFront();
 
@@ -265,7 +265,7 @@ public:
 	};
 	void auxilliarySliderModeButton(int result);
 private:
-	
+
 	void handleIdleTimeAndControlsVisibility();
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void saveCurrentMediaTime();
@@ -280,6 +280,12 @@ private:
 	void forceSetVideoTime(int64_t start);
 	void forceSetVideoTime(std::string const& name);
 	bool isFrontpageVisible();
+	bool downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
+                                                     juce::MemoryOutputStream const&memStream,
+                                                     juce::String const& siteTarget,
+                                                     std::string const& match,
+                                                     std::string const& downloadURLPattern );
+
 };
 
 #endif //VIDEO_COMPONENT
