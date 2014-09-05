@@ -9,7 +9,7 @@
 
 #define LANG_EXTENSION "lang"
 
-char* lang_fr="language: France\n\
+const char* lang_fr="language: France\n\
 countries: fr be mc ch lu\n\
 \n\
 \"Audio Volume: %.f%%\" = \"Volume audio: %.f%%\"\n\
@@ -157,7 +157,7 @@ Languages::Languages()
 	{
 		delete *it;
 	}
-	
+
 
 }
 Languages::~Languages()
@@ -169,16 +169,17 @@ void Languages::clear()
 	juce::LocalisedStrings::setCurrentMappings (nullptr);
 }
 
-void  Languages::dumpDefaultIfMissing(std::string const& name, juce::String const& content, std::vector<juce::LocalisedStrings*> & all)
+void  Languages::dumpDefaultIfMissing(std::string const& name, const char* content, std::vector<juce::LocalisedStrings*> & all)
 {
 	std::map<std::string, std::string>::const_iterator it = m_languages.find(name);
 	if(it == m_languages.end())
 	{
+	    juce::String utf8 = juce::String::fromUTF8 (content);
 		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
 		f.deleteFile();
-		f.appendText(content,true, true);
+		f.appendText(utf8,true, true);
 		add(m_languages, name.c_str(), f.getFullPathName());
-		all.push_back(new juce::LocalisedStrings (content, false));
+		all.push_back(new juce::LocalisedStrings (utf8, false));
 	}
 }
 
@@ -199,13 +200,13 @@ void Languages::setCurrentLanguage(std::string name)
 		juce::LocalisedStrings::setCurrentMappings (nullptr);
 		return;
 	}
-	
+
 	juce::File f(it->second.c_str());
 	if(f.exists())
 	{
 		juce::LocalisedStrings::setCurrentMappings (new juce::LocalisedStrings(f, false));
 	}
-	
+
 }
 std::string Languages::getCurrentLanguage() const
 {

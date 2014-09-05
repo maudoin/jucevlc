@@ -16,10 +16,10 @@ class Languages
 {
 private:
 	std::map<std::string, std::string> m_languages;
-	
+
 	Languages();
 	~Languages();
-	void dumpDefaultIfMissing(std::string const& name, juce::String const& content, std::vector<juce::LocalisedStrings*> & all);
+	void dumpDefaultIfMissing(std::string const& name, const char* content, std::vector<juce::LocalisedStrings*> & all);
 public:
 
 	static Languages& getInstance();
