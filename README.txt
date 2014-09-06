@@ -44,6 +44,11 @@ It controls:
 **Changelog**
 ==================
 
+0.90 (2014/09/06):
+- Fixed French and external (user .lang files) translations text encoding for proper special characters display
+- Loaded subtitles names are now like VLC ones
+- Subscene and Podnapisi subtitles can now be downloaded and used on the fly through subtitleseeker results
+
 0.89 (2014/08/13):
 - libVLC 2.1.5
 - Switched from Microsoft VisualStudio to MinGW32(gnu/gcc) compiler under CodeBlocks IDE
