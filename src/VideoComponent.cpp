@@ -1936,13 +1936,35 @@ void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::Str
 			ZipEntrySorter sorter(priorityExtensions);
 			entries.sort(sorter);
 
-			//output entry
-			juce::File out(outPath);
+
+
+			juce::Array<const juce::ZipFile::ZipEntry*> entriesToExtract;
 
 			const juce::ZipFile::ZipEntry* supposedSubtitle = entries.getFirst();
-			zip.uncompressEntry(zip.getIndexOfFileName(supposedSubtitle->filename), out, false);
+			if(extensionMatch(subExtensions,juce::File(supposedSubtitle->filename)) || extensionMatch(txtExtension,juce::File(supposedSubtitle->filename)) )
+            {
+                entriesToExtract.add(supposedSubtitle);
+            }
+            else
+            {
+                //extract all
+                for(int i=0;i<zip.getNumEntries();++i)
+                {
+                    entriesToExtract.add(zip.getEntry(i));
+                }
+            }
 
-			onMenuOpenSubtitleFile(item,out.getChildFile(supposedSubtitle->filename));
+            juce::File out(outPath);
+            for(int i=0;i<entriesToExtract.size();++i)
+            {
+                zip.uncompressEntry(zip.getIndexOfFileName(entriesToExtract[i]->filename), out, false);
+            }
+
+            if(entriesToExtract.size()==1)
+            {
+                onMenuOpenSubtitleFile(item,out.getChildFile(entriesToExtract.getFirst()->filename));
+
+            }
 		}
 	}
 }
