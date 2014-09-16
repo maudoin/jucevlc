@@ -166,8 +166,8 @@ public:
 	void onMenuSearchOpenSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String name);
 	void onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::String lang, juce::String name);
 	void onMenuSearchSubtitleSeeker(AbstractMenuItem& item, juce::String name);
-	void onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce::String imdb);
-	void onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, juce::String imdb, juce::String lang);
+	void onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce::String imdb, bool tvEpisode, int season, int episode);
+	void onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, juce::String imdb, juce::String lang, bool tvEpisode, int season, int episode);
 	void onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String url);
 	void onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String url, juce::String site);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic);
