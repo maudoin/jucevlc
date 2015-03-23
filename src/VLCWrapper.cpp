@@ -784,33 +784,23 @@ static int FilterOrder( const char *psz_name )
     }
     return INT_MAX;
 }
+
 void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& filter, std::string const& v)
 {
-	audio_output_t *p_aout = GetAOut (pMediaPlayer_);
-	if(p_aout)
-	{
-		playlist_EnableAudioFilter( pl_Get(pMediaPlayer_), filter.c_str(), !v.empty() );
-		var_SetString( p_aout, name,v.c_str());
+    std::string audioFilters = getConfigOptionString("audio-filter");
+    if(std::string::npos == audioFilters.find(AOUT_FILTER_EQUALIZER))
+    {
+        //set if missing
+        if(!audioFilters.empty())
+        {
+            //append if not alone
+            audioFilters += ":";
+        }
+        audioFilters += AOUT_FILTER_EQUALIZER;
+        setConfigOptionString("audio-filter", audioFilters);
+    }
 
-		vlc_object_release (p_aout);
-	}
-	else
-	{
-		std::string audioFilters = getConfigOptionString("audio-filter");
-		if(std::string::npos == audioFilters.find(AOUT_FILTER_EQUALIZER))
-		{
-			//set if missing
-			if(!audioFilters.empty())
-			{
-				//append if not alone
-				audioFilters += ":";
-			}
-			audioFilters += AOUT_FILTER_EQUALIZER;
-			setConfigOptionString("audio-filter", audioFilters);
-		}
-
-		setConfigOptionString(name, v);
-	}
+    setConfigOptionString(name, v);
 }
 
 std::string VLCWrapper::getAoutFilterOptionString(const char* name)

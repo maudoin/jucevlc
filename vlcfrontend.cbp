@@ -24,8 +24,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
-					<Add library="libvlccore" />
-					<Add library="libvlc" />
+					<Add library="vlccore" />
+					<Add library="vlc" />
 					<Add library="ws2_32" />
 					<Add library="version" />
 					<Add library="winmm" />
@@ -57,8 +57,8 @@
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
-					<Add library="libvlccore" />
-					<Add library="libvlc" />
+					<Add library="vlccore" />
+					<Add library="vlc" />
 					<Add library="ws2_32" />
 					<Add library="version" />
 					<Add library="winmm" />
@@ -69,8 +69,6 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
-					<Add directory="E:/dev/vlcfrontend/libvlc/lib" />
-					<Add directory="E:/dev/vlcfrontend/boost/lib" />
 					<Add directory="boost/lib" />
 					<Add directory="libvlc/lib" />
 				</Linker>
