@@ -1442,7 +1442,7 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		menu->addMenuItem( juce::String::formatted(TRANS("No subtitles")), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), 0==current?getItemImage():nullptr);
 	}
 	menu->addMenuItem( TRANS("Add..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenSubtitleFolder));
-	menu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1));
+	//menu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1));
 	menu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitleSeeker, this, _1));
 	menu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
 	menu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
@@ -1809,24 +1809,22 @@ struct ZipEntrySorter
 	}
 };
 
-
 bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
-                                                     juce::MemoryOutputStream const&memStream,
+                                                     char* cstr,
                                                      juce::String const& siteTarget,
                                                      std::string const& match,
                                                      std::string const& downloadURLPattern )
 {
+
     if(resultSite==siteTarget)
     {
         boost::regex expressionSubscene(match, boost::regex::icase);
         boost::cmatch matchesSubscene;
-        if(boost::regex_search((char*)memStream.getData(), matchesSubscene, expressionSubscene))
+        if(boost::regex_search(cstr, matchesSubscene, expressionSubscene))
         {
 
             juce::String downloadURL( str( boost::format(downloadURLPattern)% matchesSubscene[1].str()).c_str() );
             onMenuDowloadOpenSubtitle(item, downloadURL);
-
-            //juce::Process::openDocument(downloadURL,juce::String::empty);
 /*
             //get html
             juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
@@ -1836,6 +1834,8 @@ bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce
             if(outStream.openedOk())
             {
                 outStream.write(memStream.getData(), memStream.getDataSize());
+                outStream.write(resultSite.getCharPointer().getAddress(), resultSite.length());
+                outStream.write(cstr, strlen(cstr));
             }
             */
             return true;
@@ -1866,6 +1866,14 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
            if(boost::regex_search((char*)memStream.getData(), matches, expression))
            {
                 juce::String otherStr(matches[1].str().c_str());
+
+                if(downloadedSubtitleSeekerResult(item, site, otherStr.getCharPointer().getAddress(), "Opensubtitles.org",
+                                                                        "/subtitles/([^/]*)/",
+                                                                        "http://dl.opensubtitles.org/en/download/sub/%s"))
+                {
+                    return;
+                }
+                http://subsmax.com/subtitles-movie/treme-2010-dizicd-23-976fps-en-301kb-english-subtitle-zip/3821804
                //download other site page
                 juce::URL other(otherStr);
                 juce::ScopedPointer<juce::InputStream> pIStreamOther(other.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
@@ -1876,13 +1884,15 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
                     {
                         memStream.writeByte(0);//simulate end of c string
 
-                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Podnapisi.net",
+                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Podnapisi.net",
                                                             "<a[^>]*class=\"button big download\"[^>]*href=\"([^\"]*)\"[^>]*>",
                                                             "http://www.podnapisi.net%s"))
                         {
+
+                            //second level: "<a href='([^'])'>here</a>" --> "http://www.podnapisi.net%s"))
                             return;
                         }
-                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Subscene.com",
+                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Subscene.com",
                                                             "<a.*href=\"([^\"]*)\".*id=\"downloadButton\".*>",
                                                             "http://subscene.com%s"))
                         {
@@ -1890,7 +1900,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
                         }
                         //need to look at iframe target before inspecting some pages:
                         //	<iframe width="100%" height="9000px" frameborder="0" marginheight="0" marginwidth="0" scrolling="no" src="http://www.engsub.net/NNNNNNNN/">
-                        if(downloadedSubtitleSeekerResult(item, site, memStream, "Undertexter.se",
+                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Undertexter.se",
                                                             "<a[^>]*title=\"Download subtitle to[^\"][^>]*\".*href=\"([^\"]*)\".*>",
                                                             "%s"))
                         {

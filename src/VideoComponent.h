@@ -280,8 +280,9 @@ private:
 	void forceSetVideoTime(int64_t start);
 	void forceSetVideoTime(std::string const& name);
 	bool isFrontpageVisible();
-	bool downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
-                                                     juce::MemoryOutputStream const&memStream,
+
+    bool downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
+                                                    char* cstr,
                                                      juce::String const& siteTarget,
                                                      std::string const& match,
                                                      std::string const& downloadURLPattern );
