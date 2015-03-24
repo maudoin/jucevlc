@@ -52,6 +52,8 @@ juceVLC_88_spdif.exe
 vlcfrontend.depend
 vlcfrontend.layout
 vlcfrontendFastDebug.exe
+cscope.out
+vlcfrontend.cscope_file_list
 syntax: regexp
 FontResource.cpp
 FontResource.h

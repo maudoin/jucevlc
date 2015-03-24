@@ -44,6 +44,10 @@ It controls:
 **Changelog**
 ==================
 
+0.91 (2015/03/24):
+- libVLC 2.2.0
+- Opensubtitles subtitles can now be downloaded and used on the fly through subtitleseeker results, like Subscene ones
+
 0.90 (2014/09/06):
 - Fixed French and external (user .lang files) translations text encoding for proper special characters display
 - Loaded subtitles names are now like VLC ones

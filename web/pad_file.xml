@@ -50,17 +50,17 @@
   </Company_Info>
   <Program_Info>
     <Program_Name>JuceVLC</Program_Name>
-    <Program_Version>0.90</Program_Version>
-    <Program_Release_Month>09</Program_Release_Month>
-    <Program_Release_Day>06</Program_Release_Day>
-    <Program_Release_Year>2014</Program_Release_Year>
+    <Program_Version>0.91</Program_Version>
+    <Program_Release_Month>03</Program_Release_Month>
+    <Program_Release_Day>24</Program_Release_Day>
+    <Program_Release_Year>2015</Program_Release_Year>
     <Program_Cost_Dollars>0</Program_Cost_Dollars>
     <Program_Type>Freeware</Program_Type>
     <Program_Release_Status>Major Update</Program_Release_Status>
     <Program_Install_Support>Windows Installer</Program_Install_Support>
     <Program_OS_Support>WinXP,WinVista,WinVista x64,Win7 x32,Win7 x64</Program_OS_Support>
     <Program_Language>English,French</Program_Language>
-    <Program_Change_Info>libVLC 2.1.5</Program_Change_Info>
+    <Program_Change_Info>libVLC 2.2.0</Program_Change_Info>
     <Program_Category_Class>Audio &amp; Multimedia::Video Tools</Program_Category_Class>
     <Program_System_Requirements>None</Program_System_Requirements>
     <File_Info>
@@ -180,7 +180,7 @@ patents cannot be used to render the program non-free.</EULA>
     <NewsFeed_VERSION>1.0</NewsFeed_VERSION>
     <NewsFeed_URL>http://Submit-Everywhere.com/extensions/NewsFeed.htm</NewsFeed_URL>
     <NewsFeed_DESCRIPTION>This PAD extension allows you to add your RSS and Atom news feeds info into your PAD file. This info can be used by RSS feed submission software or by feed directories themselves.</NewsFeed_DESCRIPTION>
-    <NewsFeed_Type>RSS 0.90</NewsFeed_Type>
+    <NewsFeed_Type>RSS 0.91</NewsFeed_Type>
     <NewsFeed_Language>English</NewsFeed_Language>
     <NewsFeed_Purpose>News</NewsFeed_Purpose>
     <NewsFeed_Author_Email>jucevlc@users.sourceforge.net</NewsFeed_Author_Email>
@@ -209,11 +209,11 @@ patents cannot be used to render the program non-free.</EULA>
     <Site_Keywords>video,player,fullscreen,osd,mouse,simple,vlc,media</Site_Keywords>
   </Site>
   <Press_Release>
-    <Press_Release>JuceVLC 0.90 is out</Press_Release>
-    <Headline>JuceVLC 0.90 is out</Headline>
-    <Summary>JuceVLC 0.90 now uses libVLC 2.1.5.</Summary>
+    <Press_Release>JuceVLC 0.91 is out</Press_Release>
+    <Headline>JuceVLC 0.91 is out</Headline>
+    <Summary>JuceVLC 0.91 now uses libVLC 2.2.0.</Summary>
     <Keywords>vlc,video,player,media-center,fullscreen,user interface</Keywords>
-    <Press_Release_Plain>JuceVLC 0.90 provides improved subtitles download and proper translations characters encoding. See http://jucevlc.sourceforge.net/</Press_Release_Plain>
+    <Press_Release_Plain>JuceVLC 0.91 provides improved subtitles download from opensubtitles and proper translations characters encoding. See http://jucevlc.sourceforge.net/</Press_Release_Plain>
     <Related_URL>http://jucevlc.sourceforge.net/</Related_URL>
   </Press_Release>
   <Program_Descriptions>
