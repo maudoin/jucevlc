@@ -68,8 +68,9 @@ public:
 private:
     VideoComponent* window;
 };
-
+#ifdef JUCE_64BIT
 #include <modules\juce_core\native/juce_BasicNativeHeaders.h>
+#endif
 
 //==============================================================================
 // This macro creates the application's main() function..

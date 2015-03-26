@@ -14,7 +14,7 @@ Tools / Libraries
 * **NSIS 2.46** for the windows installer
 * **UPX 3.08**
 
-Boost 1.56 regexp lib build batch file for mingw: (if mingw is installed in e:\dev\mingw)
+**Boost 1.56 regexp lib build batch file for mingw: (if mingw is installed in e:\dev\mingw)**
 
 set MINGW=e:\dev\mingw\bin
 set PATH=%PATH%;%MINGW%
@@ -24,7 +24,7 @@ bootstrap.bat mingw --toolset-root=%MINGW%
 b2  --toolset=gcc regex release link=static threading=multi runtime-link=static
 
 
-Boost 1.56 64bits regexp lib build batch file for mingw: (if mingw is installed in E:\dev\x64-4.8.1-release-win32-seh-rev5\mingw64)
+**Boost 1.56 64bits regexp lib build batch file for mingw: (if mingw is installed in E:\dev\x64-4.8.1-release-win32-seh-rev5\mingw64)**
 
 set MINGW=E:\dev\x64-4.8.1-release-win32-seh-rev5\mingw64\bin
 set PATH=%PATH%;%MINGW%
