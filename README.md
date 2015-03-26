@@ -36,8 +36,7 @@ Browse and watch movies from your couch with a wireless mouse.
 
 ## Changelog ##
 
-README.txt
-http://jucevlc.sourceforge.net/site.html#news
+https://bitbucket.org/jucevlc/jucevlc/raw/tip/README.txt
 
 ## Screenshots ##
 
