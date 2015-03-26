@@ -8,8 +8,8 @@
 	{
 		std::cerr << name << std::endl;
 		std::cerr << dir << std::endl;
-		int err = (int)ShellExecuteA(NULL, "open", name, NULL, NULL, SW_SHOWNORMAL);
-		if(err <= 32)
+		/*HINSTANCE err = */ShellExecuteA(NULL, "open", name, NULL, NULL, SW_SHOWNORMAL);
+		//if(err <= 32)
 		{
 			//SE_ERR_SHARE
 			//err

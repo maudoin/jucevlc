@@ -53,11 +53,7 @@ struct libvlc_media_list_t;
 struct libvlc_media_list_player_t;
 struct libvlc_media_discoverer_t;
 
-#ifdef _MSC_VER
-// Typedefs for old MS compilers
-typedef unsigned __int32	uint32_t;
-typedef __int64             int64_t;
-#endif
+#include <boost/cstdint.hpp>
 
 class DisplayCallback
 {

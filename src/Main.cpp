@@ -69,6 +69,7 @@ private:
     VideoComponent* window;
 };
 
+#include <modules\juce_core\native/juce_BasicNativeHeaders.h>
 
 //==============================================================================
 // This macro creates the application's main() function..
