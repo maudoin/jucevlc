@@ -94,7 +94,7 @@ void SecondaryControlComponent::resized()
 	}
 	m_slider->setBounds(leftButtonSize, 0, getWidth()-leftButtonSize-rightButtonSize, getHeight());
 }
-	
+
 void SecondaryControlComponent::paint(juce::Graphics& g)
 {
 }
@@ -109,7 +109,7 @@ void SecondaryControlComponent::show(juce::String const& label, ActionSliderCall
 	resized();
 	setVisible(true);
 }
-	
+
 void SecondaryControlComponent::reset()
 {
 	double min = m_slider->getMinimum();
@@ -167,7 +167,7 @@ TimeSlider::~TimeSlider()
 {
 }
 
-	
+
 void TimeSlider::setMouseOverTime(int pos, juce::int64 time)
 {
 	mouseOverTimeString = toString(time);
@@ -180,12 +180,12 @@ void TimeSlider::resetMouseOverTime()
 	mouseOverTimeStringPos = -1;
 	repaint();
 }
-	
+
 //juce GUI overrides
 void TimeSlider::paint (juce::Graphics& g)
 {
 	juce::Slider::paint(g);
-	
+
 	if(mouseOverTimeStringPos>0)
 	{
 		juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
@@ -207,7 +207,7 @@ void TimeSlider::paint (juce::Graphics& g)
 		}
 		g.drawFittedText (mouseOverTimeString,
 							xText, 0,widthText,getHeight(),
-							justification, 
+							justification,
 							1, //1 line
 							1.f//no h scale
 							);
@@ -215,7 +215,7 @@ void TimeSlider::paint (juce::Graphics& g)
 		g.drawLine((float)mouseOverTimeStringPos, 0.f, (float)mouseOverTimeStringPos, (float)getHeight(), 2.f);
 	}
 
-	
+
 }
 ////////////////////////////////////////////////////////////
 //
@@ -225,8 +225,8 @@ void TimeSlider::paint (juce::Graphics& g)
 ControlComponent::ControlComponent()
 {
 	m_slider = new TimeSlider();
-	
-	
+
+
     m_playImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
     m_pauseImage = juce::Drawable::createFromImageData (pause_svg, pause_svgSize);
     m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
@@ -242,7 +242,7 @@ ControlComponent::ControlComponent()
 
     m_stopButton = new juce::DrawableButton("stop", juce::DrawableButton::ImageFitted);
 	m_stopButton->setOpaque(false);
-	m_stopButton->setImages(m_stopImage);	
+	m_stopButton->setImages(m_stopImage);
 
     m_fullscreenButton = new juce::DrawableButton("fullscreenButton", juce::DrawableButton::ImageFitted);
 	m_fullscreenButton->setOpaque(false);
@@ -262,10 +262,10 @@ ControlComponent::ControlComponent()
 	m_resetButton->setOpaque(false);
 	m_resetButton->setImages(m_undoImage);
 	m_resetButton->setTooltip(TRANS("Reset"));
-	
+
 
 	m_auxilliaryControlComponent = new SecondaryControlComponent();
-	
+
 	addAndMakeVisible(m_slider);
     addAndMakeVisible(m_playPauseButton);
     addAndMakeVisible(m_stopButton);
@@ -275,7 +275,7 @@ ControlComponent::ControlComponent()
     addAndMakeVisible(m_resetButton);
     addChildComponent(m_auxilliaryControlComponent);
 
-	
+
 	setOpaque(false);
 }
 ControlComponent::~ControlComponent()
@@ -293,8 +293,8 @@ void ControlComponent::resized()
 {
 	int w =  getWidth();
 	int h =  getHeight();
-	 
-	
+
+
 	int buttonSize = h/2;
 	int hMargin =buttonSize/2;
 	int sliderHeight = (int)(0.25*h);
@@ -303,7 +303,7 @@ void ControlComponent::resized()
 	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
 
 	m_playPauseButton->setBounds (hMargin, h-playPauseButtonSize, playPauseButtonSize, playPauseButtonSize);
-	m_stopButton->setBounds (hMargin+playPauseButtonSize, h-buttonSize, buttonSize, buttonSize);	
+	m_stopButton->setBounds (hMargin+playPauseButtonSize, h-buttonSize, buttonSize, buttonSize);
 	m_fullscreenButton->setBounds (hMargin+playPauseButtonSize+buttonSize, h-buttonSize, buttonSize, buttonSize);
 	m_menuButton->setBounds (hMargin+playPauseButtonSize+2*buttonSize, h-buttonSize, buttonSize, buttonSize);
 
@@ -320,19 +320,19 @@ void ControlComponent::paint(juce::Graphics& g)
 	float w = (float)getWidth();
 	float h = (float)getHeight();
 
-	
+
 	float buttonSize = 0.5f*h;
  	float hMargin = buttonSize/22.f;
 	float sliderHeight = 0.3f*h;
-	
-	///////////////// CONTROL ZONE:	
+
+	///////////////// CONTROL ZONE:
 	g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.5f),
 										w/2.f, h-sliderHeight-buttonSize-hMargin/2.f,
 										juce::Colours::black,
 										w/2.f, h,
 										false));
 	g.fillRect(0.f,  h-sliderHeight-buttonSize-hMargin/2.f, w, h);
-	
+
 
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
@@ -342,25 +342,25 @@ void ControlComponent::paint(juce::Graphics& g)
 
 	g.setColour (juce::Colours::white);
 
-	
+
 
 	g.drawFittedText (timeString,
 						(int)(hMargin+2*buttonSize), (int)(h-buttonSize), (int)(w-2*hMargin-2*buttonSize), (int)(buttonSize),
-						juce::Justification::topRight, 
+						juce::Justification::topRight,
 						1, //1 line
 						1.f//no h scale
 						);
 
 	if(! (m_auxilliaryControlComponent && m_auxilliaryControlComponent->isVisible()))
 	{
-		g.drawFittedText (currentTimeString, 
+		g.drawFittedText (currentTimeString,
 			m_auxilliaryControlComponent->getBounds(),
-			juce::Justification::centred, 
+			juce::Justification::centred,
 			1, //1 line
 			1.f//no h scale
 			);
 	}
-	
+
 }
 
 juce::String toString(juce::int64 time)
@@ -368,7 +368,7 @@ juce::String toString(juce::int64 time)
 	int h = (int)(time/(1000*60*60) );
 	int m = (int)(time/(1000*60) - 60*h );
 	int s = (int)(time/(1000) - 60*m - 60*60*h );
-	
+
 	return juce::String::formatted("%02d:%02d:%02d", h, m, s);
 }
 
@@ -391,7 +391,7 @@ void ControlComponent::showPausedControls()
 void ControlComponent::showPlayingControls()
 {
 	m_playPauseButton->setImages(m_pauseImage);
-	
+
 	setVisible(true);
 }
 void ControlComponent::hidePlayingControls()

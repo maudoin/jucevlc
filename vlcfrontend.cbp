@@ -16,10 +16,14 @@
 					<Add option="-DWIN32" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_WINDOWS" />
+					<Add option="-DGLEW_STATIC" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
 					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="src" />
+					<Add directory="ffmpeg/include" />
+					<Add directory="glew/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
@@ -35,8 +39,16 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add library="opengl32" />
+					<Add library="avcodec" />
+					<Add library="avformat" />
+					<Add library="avdevice" />
+					<Add library="avutil" />
+					<Add library="swscale" />
+					<Add library="swresample" />
 					<Add directory="boost/lib" />
 					<Add directory="libvlc/lib" />
+					<Add directory="ffmpeg/lib" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -48,10 +60,14 @@
 					<Add option="-DWIN32" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_WINDOWS" />
+					<Add option="-DGLEW_STATIC" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
 					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="src" />
+					<Add directory="ffmpeg/include" />
+					<Add directory="glew/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
@@ -67,8 +83,16 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add library="opengl32" />
+					<Add library="avcodec" />
+					<Add library="avdevice" />
+					<Add library="avformat" />
+					<Add library="avutil" />
+					<Add library="swresample" />
+					<Add library="swscale" />
 					<Add directory="boost/lib" />
 					<Add directory="libvlc/lib" />
+					<Add directory="ffmpeg/lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="$(PROJECT_DIR)\upx\upx.exe $(TARGET_OUTPUT_FILE)" />
@@ -86,10 +110,14 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DJUCE_USE_INTRINSICS" />
+					<Add option="-DGLEW_STATIC" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
 					<Add directory="E:/dev/vlcfrontend/juce" />
+					<Add directory="src" />
+					<Add directory="ffmpeg/include" />
+					<Add directory="glew/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++ -m64" />
@@ -105,8 +133,10 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add library="opengl32" />
 					<Add directory="boost/lib64" />
 					<Add directory="libvlc/lib64" />
+					<Add directory="ffmpeg/lib" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="$(PROJECT_DIR)\upx\upx.exe $(TARGET_OUTPUT_FILE)" />
@@ -231,6 +261,12 @@
 		<Unit filename="boost/include/boost/visit_each.hpp" />
 		<Unit filename="boost/include/boost/wave.hpp" />
 		<Unit filename="boost/include/boost/weak_ptr.hpp" />
+		<Unit filename="glew/include/GL/glew.h" />
+		<Unit filename="glew/include/GL/glxew.h" />
+		<Unit filename="glew/include/GL/wglew.h" />
+		<Unit filename="glew/src/glew.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="juce/AppConfig.h" />
 		<Unit filename="juce/amalgamation/juce_amalgamated_template.h" />
 		<Unit filename="juce/juce.h" />
@@ -823,6 +859,7 @@
 		<Unit filename="juce/modules/juce_gui_extra/misc/juce_SystemTrayIconComponent.h" />
 		<Unit filename="juce/modules/juce_gui_extra/misc/juce_WebBrowserComponent.h" />
 		<Unit filename="juce/modules/juce_gui_extra/native/juce_mac_CarbonViewWrapperComponent.h" />
+		<Unit filename="juce/modules/juce_opengl/juce_opengl.cpp" />
 		<Unit filename="juce/modules/juce_opengl/juce_opengl.h" />
 		<Unit filename="juce/modules/juce_opengl/native/juce_MissingGLDefinitions.h" />
 		<Unit filename="juce/modules/juce_opengl/native/juce_OpenGLExtensions.h" />
@@ -978,6 +1015,8 @@
 		<Unit filename="src/VideoComponent.h" />
 		<Unit filename="src/WeblySleekFont.cpp" />
 		<Unit filename="src/WeblySleekFont.h" />
+		<Unit filename="src/glffmpeg.cpp" />
+		<Unit filename="src/glffmpeg.h" />
 		<Unit filename="src/resources.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>

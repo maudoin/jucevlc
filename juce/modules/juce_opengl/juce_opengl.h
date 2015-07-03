@@ -44,7 +44,9 @@
   #define WINGDIAPI __declspec(dllimport)
   #define CLEAR_TEMP_WINGDIAPI 1
  #endif
- #include <gl/GL.h>
+ //#include <windows.h>	// Normal Windows stuff
+ #include <GL/glew.h>
+ //#include <gl/GL.h>
  #ifdef CLEAR_TEMP_WINGDIAPI
   #undef WINGDIAPI
   #undef CLEAR_TEMP_WINGDIAPI

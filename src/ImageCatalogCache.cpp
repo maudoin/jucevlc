@@ -91,7 +91,7 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 			imageFormat.writeImageToStream(it->second.first, *out);
 		}
 		//fix index addresses
-	
+
 		AddressAndLastUsePerFileMap newImagesCacheAdresses;
 		for(AddressPerFileMap::const_iterator it = imagesCacheAdressAdress.begin();it != imagesCacheAdressAdress.end();++it)
 		{
@@ -107,7 +107,7 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 }
 //save full cache
 void ImageCatalogCache::loadCacheIndex()
-{	
+{
     const juce::ScopedLock myScopedLock (m_mutex);
 	juce::ScopedPointer<juce::FileInputStream> str(m_cacheFile.createInputStream());
 

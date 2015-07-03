@@ -114,6 +114,7 @@ namespace
         WGL_CONTEXT_CORE_PROFILE_BIT_ARB            = 0x0001,
         WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB   = 0x0002,
 
+#ifndef GL_OPERAND0_RGB
         GL_OPERAND0_RGB                 = 0x8590,
         GL_OPERAND1_RGB                 = 0x8591,
         GL_OPERAND0_ALPHA               = 0x8598,
@@ -139,6 +140,8 @@ namespace
         GL_STATIC_DRAW                  = 0x88E4,
         GL_DYNAMIC_DRAW                 = 0x88E8,
         GL_STREAM_DRAW                  = 0x88E0
+
+#endif
     };
 
     typedef char GLchar;

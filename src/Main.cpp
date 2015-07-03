@@ -2,6 +2,7 @@
 #include "AppConfig.h"
 #include "juce.h"
 #include "VideoComponent.h"
+#include "glffmpeg.h"
 
 //==============================================================================
 /** This is the application object that is started up when Juce starts. It handles
@@ -24,7 +25,12 @@ public:
     {
         // For this demo, we'll just create the main window...
         window = new VideoComponent();
-
+#ifdef FFMPEGTEST
+        OpenGLFFMpegComponent* openGLFFMpegComponent = new OpenGLFFMpegComponent();
+        openGLFFMpegComponent->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
+        openGLFFMpegComponent->setSize(800, 600);
+        openGLFFMpegComponent->setVisible (true);
+#endif //FFMPEGTEST
         /*  ..and now return, which will fall into to the main event
             dispatch loop, and this will run until something calls
             JUCEAppliction::quit().
