@@ -20,11 +20,163 @@ extern "C" {
 #include <fstream>
 #include <string>
 
+class QueuedFrame
+{
+
+    juce::CriticalSection mutex;
+    int currentWidth, currentHeight, currentSize;
+    uint8_t *internal_buffer;
+public:
+
+    friend class FrameRead;
+    friend class FrameWrite;
+
+    QueuedFrame()
+    : currentWidth(1)
+    , currentHeight(1)
+    , currentSize(1)
+    , internal_buffer(NULL)
+    {
+        internal_buffer = new uint8_t[1];
+    }
+    ~QueuedFrame()
+    {
+        juce::CriticalSection::ScopedLockType l(mutex);
+        delete[] internal_buffer;
+    }
+
+};
+#define FRAME_QUEUE_LENGTH 100
+class VideoDataExchange
+{
+
+    juce::CriticalSection mutex;
+    juce::WaitableEvent queueContentEvent;//frame content added/removed
+    QueuedFrame* frameQueue;
+    int queueSize, readIndex, writeIndex, fillCount;
+
+    friend class FrameRead;
+    friend class FrameWrite;
+public:
+    VideoDataExchange(int newQueueSize = FRAME_QUEUE_LENGTH)
+    : queueSize(newQueueSize)
+    , readIndex(0)
+    , writeIndex(0)
+    , fillCount(0)
+    {
+        frameQueue = new QueuedFrame[queueSize];
+    }
+    ~VideoDataExchange()
+    {
+        delete[] frameQueue;
+    }
+private:
+    QueuedFrame& getOrWaitFrameToRead()
+    {
+
+        juce::CriticalSection::ScopedLockType l(mutex);
+        while(fillCount<=0)
+        {
+            queueContentEvent.wait();
+        }
+        return frameQueue[readIndex];
+    }
+
+    QueuedFrame& getOrWaitFrameToWrite()
+    {
+
+        juce::CriticalSection::ScopedLockType l(mutex);
+        while(fillCount>=queueSize)
+        {
+            queueContentEvent.wait();
+        }
+        return frameQueue[writeIndex];
+    }
+
+};
+
+class FrameRead
+{
+    VideoDataExchange& xchange;
+    QueuedFrame& protectedData;
+    juce::CriticalSection::ScopedLockType l;
+public:
+    FrameRead(VideoDataExchange& x)
+    : xchange(x)
+    , protectedData(x.getOrWaitFrameToRead())
+    , l(protectedData.mutex)
+    {
+    }
+    ~FrameRead()
+    {
+        juce::CriticalSection::ScopedLockType l(xchange.mutex);
+        xchange.readIndex++;
+        if(xchange.readIndex>=xchange.queueSize)
+        {
+            xchange.readIndex = 0;
+        }
+        xchange.fillCount--;
+        xchange.queueContentEvent.signal();
+    }
+    int width()
+    {
+        return protectedData.currentWidth;
+    }
+    int height()
+    {
+        return protectedData.currentHeight;
+    }
+    uint8_t * data()
+    {
+        return protectedData.internal_buffer;
+    }
+};
+
+class FrameWrite
+{
+    VideoDataExchange& xchange;
+    QueuedFrame& protectedData;
+    juce::CriticalSection::ScopedLockType l;
+public:
+    FrameWrite(VideoDataExchange& x,
+               int width, int height, int size)
+    : xchange(x)
+    , protectedData(x.getOrWaitFrameToWrite())
+    , l(protectedData.mutex)
+    {
+        //fill protectedData properly
+        if( size != protectedData.currentSize)
+        {
+            delete[] protectedData.internal_buffer;
+            protectedData.internal_buffer = new uint8_t[size];
+        }
+        protectedData.currentWidth = width;
+        protectedData.currentHeight = height;
+
+    }
+    ~FrameWrite()
+    {
+        juce::CriticalSection::ScopedLockType l(xchange.mutex);
+        xchange.writeIndex++;
+        if(xchange.writeIndex>=xchange.queueSize)
+        {
+            xchange.writeIndex = 0;
+        }
+        xchange.fillCount++;
+        xchange.queueContentEvent.signal();
+    }
+    uint8_t * data()
+    {
+        return protectedData.internal_buffer;
+    }
+
+};
+
 std::string const vert_shader_source =
 	"#version 150\n"
 	"in vec3 vertex;\n"
 	"in vec2 texCoord0;\n"
-	"uniform mat4 mvpMatrix;\n"
+	//"uniform mat4 mvpMatrix;\n"
 	"out vec2 texCoord;\n"
 	"void main() {\n"
 	//"	gl_Position = mvpMatrix * vec4(vertex, 1.0);\n"
@@ -42,28 +194,8 @@ std::string const frag_shader_source =
 	"}\n";
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
-class OpenGLFFMpegPrivate
+class OpenGLVideoRenderer
 {
-        AVFormatContext *fmt_ctx;
-        int stream_idx;
-        AVStream *video_stream;
-        AVCodecContext *codec_ctx;
-        AVCodec *decoder;
-        AVPacket *packet;
-        AVFrame *av_frame;
-        AVFrame *gl_frame;
-        double durationMSec, frameRate;
-        struct SwsContext *conv_ctx;
-        GLuint vao;
-        GLuint vert_buf;
-        GLuint elem_buf;
-        GLuint frame_tex;
-        GLuint program;
-        GLuint attribs[2];
-        GLuint uniforms[2];
-
-    public:
     // attribute indices
     enum {
         VERTICES = 0,
@@ -75,41 +207,34 @@ class OpenGLFFMpegPrivate
         MVP_MATRIX = 0,
         FRAME_TEX
     };
-
-    // initialize the app data structure
-    OpenGLFFMpegPrivate() {
-        initializeAppData();
-    }
-    ~OpenGLFFMpegPrivate()
+    VideoDataExchange& xchange;
+    GLuint vao;
+    GLuint vert_buf;
+    GLuint elem_buf;
+    GLuint program;
+    GLuint attribs[2];
+    GLuint uniforms[2];
+    int frameWidth, frameHeight;
+    GLuint frame_tex;
+public:
+    OpenGLVideoRenderer(VideoDataExchange& exchange)
+    :xchange(exchange)
+    ,frameWidth(1)
+    ,frameHeight(1)
     {
 
-        avformat_close_input(&fmt_ctx);
-
-        // clean up
-        clearAppData();
     }
-    void initializeAppData(){
-        this->fmt_ctx = NULL;
-        this->stream_idx = -1;
-        this->video_stream = NULL;
-        this->codec_ctx = NULL;
-        this->decoder = NULL;
-        this->av_frame = NULL;
-        this->gl_frame = NULL;
-        this->conv_ctx = NULL;
+    ~OpenGLVideoRenderer()
+    {
+        //release should be called in the gl context, may not be the case here
     }
-    // clean up the app data structure
-    void clearAppData() {
-        if (this->av_frame) av_free(this->av_frame);
-        if (this->gl_frame) av_free(this->gl_frame);
-        if (this->packet) av_free(this->packet);
-        if (this->codec_ctx) avcodec_close(this->codec_ctx);
-        if (this->fmt_ctx) avformat_free_context(this->fmt_ctx);
+    void release()
+    {
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(1, &this->vert_buf);
         glDeleteBuffers(1, &this->elem_buf);
+
         glDeleteTextures(1, &this->frame_tex);
-        initializeAppData();
     }
 
     template <typename valType>
@@ -141,6 +266,230 @@ class OpenGLFFMpegPrivate
         Result[3*4+2] = - (zFar + zNear) / (zFar - zNear);
         Result[3*4+3] = 0.;
     }
+    bool buildShader(std::string const &shader_source, GLuint &shader, GLenum type) {
+        int size = shader_source.length();
+
+        shader = glCreateShader(type);
+        char const *c_shader_source = shader_source.c_str();
+        glShaderSource(shader, 1, (GLchar const **)&c_shader_source, &size);
+        glCompileShader(shader);
+        GLint status;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+        if (status != GL_TRUE) {
+            std::cout << "failed to compile shader" << std::endl;
+            int length;
+            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+            char *log = new char[length];
+            glGetShaderInfoLog(shader, length, &length, log);
+            std::cout << log << std::endl;
+            delete[] log;
+            return false;
+        }
+
+        return true;
+    }
+
+    // initialize shaders
+    bool buildProgram() {
+        GLuint v_shader, f_shader;
+        if (!buildShader(vert_shader_source, v_shader, GL_VERTEX_SHADER)) {
+            std::cout << "failed to build vertex shader" << std::endl;
+            return false;
+        }
+
+        if (!buildShader(frag_shader_source, f_shader, GL_FRAGMENT_SHADER)) {
+            std::cout << "failed to build fragment shader" << std::endl;
+            return false;
+        }
+
+        this->program = glCreateProgram();
+        glAttachShader(this->program, v_shader);
+        glAttachShader(this->program, f_shader);
+        glLinkProgram(this->program);
+        GLint status;
+        glGetProgramiv(this->program, GL_LINK_STATUS, &status);
+        if (status != GL_TRUE) {
+            std::cout << "failed to link program" << std::endl;
+            int length;
+            glGetProgramiv(this->program, GL_INFO_LOG_LENGTH, &length);
+            char *log = new char[length];
+            glGetShaderInfoLog(this->program, length, &length, log);
+            std::cout << log << std::endl;
+            delete[] log;
+            return false;
+        }
+
+        //this->uniforms[MVP_MATRIX] = glGetUniformLocation(this->program, "mvpMatrix");
+        this->uniforms[FRAME_TEX] = glGetUniformLocation(this->program, "frameTex");
+
+        this->attribs[VERTICES] = glGetAttribLocation(this->program, "vertex");
+        this->attribs[TEX_COORDS] = glGetAttribLocation(this->program, "texCoord0");
+
+        return true;
+    }
+    bool init()
+    {
+
+        GLenum err = glewInit();
+        if (err != GLEW_OK)
+        {
+            fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+            return false;
+        }
+        if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
+        {
+            fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+            return false;
+        }
+        // initialize opengl
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glEnable(GL_TEXTURE_2D);
+
+        // initialize shaders
+        if (!buildProgram()) {
+            std::cout << "failed to initialize shaders" << std::endl;
+            return false;
+        }
+
+        // initialize renderable
+        glGenVertexArrays(1, &this->vao);
+        glBindVertexArray(this->vao);
+
+        glGenBuffers(1, &this->vert_buf);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vert_buf);
+        float quad[20] = {
+            -1.0f,  1.0f, 0.0f, 0.0f, 0.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 0.0f
+        };
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+        glVertexAttribPointer(this->attribs[VERTICES], 3, GL_FLOAT, GL_FALSE, 20,
+            BUFFER_OFFSET(0));
+        glEnableVertexAttribArray(this->attribs[VERTICES]);
+        glVertexAttribPointer(this->attribs[TEX_COORDS], 2, GL_FLOAT, GL_FALSE, 20,
+            BUFFER_OFFSET(12));
+        glEnableVertexAttribArray(this->attribs[TEX_COORDS]);
+        glGenBuffers(1, &this->elem_buf);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->elem_buf);
+        unsigned char elem[6] = {
+            0, 1, 2,
+            0, 2, 3
+        };
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elem), elem, GL_STATIC_DRAW);
+        glBindVertexArray(0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glGenTextures(1, &this->frame_tex);
+        glBindTexture(GL_TEXTURE_2D, this->frame_tex);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameWidth, frameHeight,
+            0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glUniform1i(this->uniforms[FRAME_TEX], 0);
+
+        GLfloat mvp[16];
+        ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f ,mvp);
+        //glUniformMatrix4fv(this->uniforms[MVP_MATRIX], 1, GL_FALSE, mvp);
+
+        return true;
+    }
+
+    void consumeFrame()
+    {
+        glBindTexture(GL_TEXTURE_2D, this->frame_tex);
+        FrameRead f(xchange);
+        if(frameWidth != f.width() || frameHeight != f.height())
+        {
+
+            frameWidth = f.width();
+            frameHeight = f.height();
+            glDeleteTextures(1, &this->frame_tex);
+            glGenTextures(1, &this->frame_tex);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameWidth, frameHeight,
+                0, GL_RGB, GL_UNSIGNED_BYTE, 0);//f.data()
+        }
+        //else
+        {
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frameWidth, frameHeight,
+                GL_RGB, GL_UNSIGNED_BYTE, f.data());
+        }
+    }
+    // draw frame in opengl context
+    void drawFrame() {
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(this->program);
+        glUniform1i(this->uniforms[FRAME_TEX], this->frame_tex);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindVertexArray(this->vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
+        glBindVertexArray(0);
+
+        glUseProgram(0);
+    }
+
+};
+class DecoderPrivate
+{
+    VideoDataExchange& xchange;
+    AVFormatContext *fmt_ctx;
+    int stream_idx;
+    AVStream *video_stream;
+    AVCodecContext *codec_ctx;
+    AVCodec *decoder;
+    AVPacket *packet;
+    AVFrame *av_frame;
+    AVFrame *gl_frame;
+    double durationMSec, frameRate;
+    struct SwsContext *conv_ctx;
+    int  dstStride[3];
+    uint8_t * dst[3];
+
+
+    public:
+
+    // initialize the app data structure
+    DecoderPrivate(VideoDataExchange& exchange)
+    :xchange(exchange)
+    {
+        initializeAppData();
+    }
+    ~DecoderPrivate()
+    {
+
+        avformat_close_input(&fmt_ctx);
+
+        // clean up
+        clearAppData();
+    }
+    void initializeAppData(){
+        this->fmt_ctx = NULL;
+        this->stream_idx = -1;
+        this->video_stream = NULL;
+        this->codec_ctx = NULL;
+        this->decoder = NULL;
+        this->av_frame = NULL;
+        this->conv_ctx = NULL;
+    }
+    // clean up the app data structure
+    void clearAppData() {
+        if (this->av_frame) av_free(this->av_frame);
+        if (this->packet) av_free(this->packet);
+        if (this->codec_ctx) avcodec_close(this->codec_ctx);
+        if (this->fmt_ctx) avformat_free_context(this->fmt_ctx);
+        initializeAppData();
+    }
+
 
     int open(char *filename) {
 
@@ -230,70 +579,9 @@ class OpenGLFFMpegPrivate
 
         // allocate the video frames
         this->av_frame = av_frame_alloc();
-        this->gl_frame = av_frame_alloc();
-        int size = avpicture_get_size(PIX_FMT_RGB24, this->codec_ctx->width,
-            this->codec_ctx->height);
-        uint8_t *internal_buffer = (uint8_t *)av_malloc(size * sizeof(uint8_t));
-        avpicture_fill((AVPicture *)this->gl_frame, internal_buffer, PIX_FMT_RGB24,
-            this->codec_ctx->width, this->codec_ctx->height);
+
         this->packet = (AVPacket *)av_malloc(sizeof(AVPacket));
 
-        // initialize opengl
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glEnable(GL_TEXTURE_2D);
-
-        // initialize shaders
-        if (!buildProgram()) {
-            std::cout << "failed to initialize shaders" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-        // initialize renderable
-        glGenVertexArrays(1, &this->vao);
-        glBindVertexArray(this->vao);
-
-        glGenBuffers(1, &this->vert_buf);
-        glBindBuffer(GL_ARRAY_BUFFER, this->vert_buf);
-        float quad[20] = {
-            -1.0f,  1.0f, 0.0f, 0.0f, 0.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 0.0f
-        };
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
-        glVertexAttribPointer(this->attribs[VERTICES], 3, GL_FLOAT, GL_FALSE, 20,
-            BUFFER_OFFSET(0));
-        glEnableVertexAttribArray(this->attribs[VERTICES]);
-        glVertexAttribPointer(this->attribs[TEX_COORDS], 2, GL_FLOAT, GL_FALSE, 20,
-            BUFFER_OFFSET(12));
-        glEnableVertexAttribArray(this->attribs[TEX_COORDS]);
-        glGenBuffers(1, &this->elem_buf);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->elem_buf);
-        unsigned char elem[6] = {
-            0, 1, 2,
-            0, 2, 3
-        };
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elem), elem, GL_STATIC_DRAW);
-        glBindVertexArray(0);
-
-        glActiveTexture(GL_TEXTURE0);
-        glGenTextures(1, &this->frame_tex);
-        glBindTexture(GL_TEXTURE_2D, this->frame_tex);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->codec_ctx->width, this->codec_ctx->height,
-            0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glUniform1i(this->uniforms[FRAME_TEX], 0);
-
-        GLfloat mvp[16];
-        ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f ,mvp);
-        glUniformMatrix4fv(this->uniforms[MVP_MATRIX], 1, GL_FALSE, mvp);
-
-        bool running = true;
     }
 
     // read a video frame
@@ -334,12 +622,18 @@ class OpenGLFFMpegPrivate
                             SWS_BICUBIC, NULL, NULL, NULL);
                     }
 
-                    sws_scale(this->conv_ctx, this->av_frame->data, this->av_frame->linesize, 0,
-                        this->codec_ctx->height, this->gl_frame->data, this->gl_frame->linesize);
+                    int size = avpicture_get_size(PIX_FMT_RGB24, this->codec_ctx->width, this->codec_ctx->height);
+                    FrameWrite f(xchange, this->codec_ctx->width, this->codec_ctx->height, size);
 
-                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, this->codec_ctx->width,
-                        this->codec_ctx->height, GL_RGB, GL_UNSIGNED_BYTE,
-                        this->gl_frame->data[0]);
+                    dstStride[0]= dstStride[1] = dstStride[2] = 3*this->codec_ctx->width;
+
+                    dst[0]=f.data();
+                    dst[1]=f.data()+1;
+                    dst[2]=f.data()+2;
+
+                    sws_scale(this->conv_ctx, this->av_frame->data, this->av_frame->linesize, 0,
+                        this->codec_ctx->height, dst, dstStride);
+
                 }
             }
 
@@ -347,82 +641,6 @@ class OpenGLFFMpegPrivate
         } while (this->packet->stream_index != this->stream_idx);
 
         return true;
-    }
-
-    bool buildShader(std::string const &shader_source, GLuint &shader, GLenum type) {
-        int size = shader_source.length();
-
-        shader = glCreateShader(type);
-        char const *c_shader_source = shader_source.c_str();
-        glShaderSource(shader, 1, (GLchar const **)&c_shader_source, &size);
-        glCompileShader(shader);
-        GLint status;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-        if (status != GL_TRUE) {
-            std::cout << "failed to compile shader" << std::endl;
-            int length;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-            char *log = new char[length];
-            glGetShaderInfoLog(shader, length, &length, log);
-            std::cout << log << std::endl;
-            delete[] log;
-            return false;
-        }
-
-        return true;
-    }
-
-    // initialize shaders
-    bool buildProgram() {
-        GLuint v_shader, f_shader;
-        if (!buildShader(vert_shader_source, v_shader, GL_VERTEX_SHADER)) {
-            std::cout << "failed to build vertex shader" << std::endl;
-            return false;
-        }
-
-        if (!buildShader(frag_shader_source, f_shader, GL_FRAGMENT_SHADER)) {
-            std::cout << "failed to build fragment shader" << std::endl;
-            return false;
-        }
-
-        this->program = glCreateProgram();
-        glAttachShader(this->program, v_shader);
-        glAttachShader(this->program, f_shader);
-        glLinkProgram(this->program);
-        GLint status;
-        glGetProgramiv(this->program, GL_LINK_STATUS, &status);
-        if (status != GL_TRUE) {
-            std::cout << "failed to link program" << std::endl;
-            int length;
-            glGetProgramiv(this->program, GL_INFO_LOG_LENGTH, &length);
-            char *log = new char[length];
-            glGetShaderInfoLog(this->program, length, &length, log);
-            std::cout << log << std::endl;
-            delete[] log;
-            return false;
-        }
-
-        this->uniforms[MVP_MATRIX] = glGetUniformLocation(this->program, "mvpMatrix");
-        this->uniforms[FRAME_TEX] = glGetUniformLocation(this->program, "frameTex");
-
-        this->attribs[VERTICES] = glGetAttribLocation(this->program, "vertex");
-        this->attribs[TEX_COORDS] = glGetAttribLocation(this->program, "texCoord0");
-
-        return true;
-    }
-
-    // draw frame in opengl context
-    void drawFrame() {
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glUseProgram(this->program);
-
-        glBindTexture(GL_TEXTURE_2D, this->frame_tex);
-        glBindVertexArray(this->vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
-        glBindVertexArray(0);
-
-        glUseProgram(0);
     }
 
 };
@@ -594,71 +812,61 @@ OpenGLFFMpegComponent::OpenGLFFMpegComponent()
     openGLContext.attachTo (*this);
     openGLContext.setContinuousRepainting (true);
 
-    ffmpeg = new OpenGLFFMpegPrivate();
+    xchange = new VideoDataExchange();
+    decoder = new DecoderPrivate(*xchange);
+    renderer = new OpenGLVideoRenderer(*xchange);
+
+    //!
+    play();
 }
 
 OpenGLFFMpegComponent::~OpenGLFFMpegComponent()
 {
     openGLContext.detach();
-    delete ffmpeg;
+    delete decoder;
+    delete renderer;
+    delete xchange;// last
+
 }
 
 bool OpenGLFFMpegComponent::open(char*s)
 {
-    openGLContext.makeActive();
-    GLenum err = glewInit();
-    if (err != GLEW_OK)
-    {
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-        exit(1); // or handle the error in a nicer way
-    }
-    if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
-    {
-        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-        exit(1); // or handle the error in a nicer way
-    }
-    ffmpeg->open(s);
+    decoder->open(s);
 }
 void OpenGLFFMpegComponent::play()
 {
-}
-void OpenGLFFMpegComponent::newOpenGLContextCreated()
-{
 	open("data/test7.mp4");
-	ffmpeg->seek(19.);
+	decoder->seek(19.);
 
     int frame_finished = 0;
     do
     {
-        ffmpeg->readFrame(frame_finished);
+        decoder->readFrame(frame_finished);
     }
     while(!frame_finished);
+}
+void OpenGLFFMpegComponent::newOpenGLContextCreated()
+{
+    jassert (juce::OpenGLHelpers::isContextActive());
+    renderer->init();
+
+    //!
+    renderer->consumeFrame();
 
 }
 
 void OpenGLFFMpegComponent::openGLContextClosing()
 {
-    ffmpeg->clearAppData();
+    renderer->release();
 }
 
 // This is a virtual method in OpenGLRenderer, and is called when it's time
 // to do your GL rendering.
 void OpenGLFFMpegComponent::renderOpenGL()
 {
-    openGLContext.makeActive();
-    //jassert (OpenGLHelpers::isContextActive());
+    jassert (juce::OpenGLHelpers::isContextActive());
 
     glViewport( 0, 0, getWidth(), getHeight() );
 
-    ffmpeg->drawFrame();
-/*
-    glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glViewport( 0, 0, getWidth(), getHeight() );
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f );
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-*/
+    renderer->drawFrame();
 }

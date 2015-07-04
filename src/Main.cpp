@@ -25,6 +25,7 @@ public:
     {
         // For this demo, we'll just create the main window...
         window = new VideoComponent();
+//#define FFMPEGTEST
 #ifdef FFMPEGTEST
         OpenGLFFMpegComponent* openGLFFMpegComponent = new OpenGLFFMpegComponent();
         openGLFFMpegComponent->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
