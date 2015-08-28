@@ -87,6 +87,12 @@
 #ifndef    JUCE_WEB_BROWSER
  //#define JUCE_WEB_BROWSER
 #endif
+//==============================================================================
+// juce_video flags:
+
+#ifndef    JUCE_DIRECTSHOW
+ #define JUCE_DIRECTSHOW 1
+#endif
 
 
 #endif  // __JUCE_APPCONFIG_TTAKTK1S__

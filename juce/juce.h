@@ -20,6 +20,7 @@
 #include "modules/juce_graphics/juce_graphics.h"
 #include "modules/juce_gui_basics/juce_gui_basics.h"
 #include "modules/juce_gui_extra/juce_gui_extra.h"
+#include "modules/juce_video/juce_video.h"
 
 namespace ProjectInfo
 {
