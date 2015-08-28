@@ -75,7 +75,8 @@
 				</ExtraCommands>
 			</Target>
 			<Target title="Release64">
-				<Option output="JuceVLC64" prefix_auto="1" extension_auto="1" />
+				<Option output="64/JuceVLC64" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="64" />
 				<Option object_output=".objs/Release/64/" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_64bits" />

@@ -104,6 +104,7 @@
  #include <ctime>
  #include <wininet.h>
  #include <nb30.h>
+ #include <winsock2.h>
  #include <iphlpapi.h>
  #include <mapi.h>
  #include <float.h>

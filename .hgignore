@@ -57,6 +57,7 @@ vlcfrontend.cscope_file_list
 juceVLC64bits-exeOnly-*.zip
 JuceVLC64.exe
 JuceVLC.exe
+64/*
 syntax: regexp
 FontResource.cpp
 FontResource.h
