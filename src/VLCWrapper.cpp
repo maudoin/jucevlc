@@ -45,8 +45,10 @@ public:
 			,"-I", "dumy"      // No special interface
 			//,"--plugin-path=./plugins"
 			//,"--video-filter=crop"
+			,"--vout=direct3d9"
+			,"--avcodec-hw=dxva2.lo"
 		};
-			ptr = libvlc_new (4, vlc_args);
+			ptr = libvlc_new (6, vlc_args);
 		}
 	}
 	~VLCInstancePtr(){libvlc_release(ptr);}
