@@ -1,6 +1,7 @@
 #include "glffmpeg.h"
 
 
+#include "FFMpegWrapper.h"
 
 #define __STDC_CONSTANT_MACROS
 #include <boost/cstdint.hpp>
@@ -20,157 +21,6 @@ extern "C" {
 #include <fstream>
 #include <string>
 
-class QueuedFrame
-{
-
-    juce::CriticalSection mutex;
-    int currentWidth, currentHeight, currentSize;
-    uint8_t *internal_buffer;
-public:
-
-    friend class FrameRead;
-    friend class FrameWrite;
-
-    QueuedFrame()
-    : currentWidth(1)
-    , currentHeight(1)
-    , currentSize(1)
-    , internal_buffer(NULL)
-    {
-        internal_buffer = new uint8_t[1];
-    }
-    ~QueuedFrame()
-    {
-        juce::CriticalSection::ScopedLockType l(mutex);
-        delete[] internal_buffer;
-    }
-
-};
-#define FRAME_QUEUE_LENGTH 100
-class VideoDataExchange
-{
-
-    juce::CriticalSection mutex;
-    juce::WaitableEvent queueContentEvent;//frame content added/removed
-    QueuedFrame* frameQueue;
-    int queueSize, readIndex, writeIndex, fillCount;
-
-    friend class FrameRead;
-    friend class FrameWrite;
-public:
-    VideoDataExchange(int newQueueSize = FRAME_QUEUE_LENGTH)
-    : queueSize(newQueueSize)
-    , readIndex(0)
-    , writeIndex(0)
-    , fillCount(0)
-    {
-        frameQueue = new QueuedFrame[queueSize];
-    }
-    ~VideoDataExchange()
-    {
-        delete[] frameQueue;
-    }
-private:
-    QueuedFrame& getOrWaitFrameToRead()
-    {
-
-        juce::CriticalSection::ScopedLockType l(mutex);
-        while(fillCount<=0)
-        {
-            queueContentEvent.wait();
-        }
-        return frameQueue[readIndex];
-    }
-
-    QueuedFrame& getOrWaitFrameToWrite()
-    {
-
-        juce::CriticalSection::ScopedLockType l(mutex);
-        while(fillCount>=queueSize)
-        {
-            queueContentEvent.wait();
-        }
-        return frameQueue[writeIndex];
-    }
-
-};
-
-class FrameRead
-{
-    VideoDataExchange& xchange;
-    QueuedFrame& protectedData;
-    juce::CriticalSection::ScopedLockType l;
-public:
-    FrameRead(VideoDataExchange& x)
-    : xchange(x)
-    , protectedData(x.getOrWaitFrameToRead())
-    , l(protectedData.mutex)
-    {
-    }
-    ~FrameRead()
-    {
-        juce::CriticalSection::ScopedLockType l(xchange.mutex);
-        xchange.readIndex++;
-        if(xchange.readIndex>=xchange.queueSize)
-        {
-            xchange.readIndex = 0;
-        }
-        xchange.fillCount--;
-        xchange.queueContentEvent.signal();
-    }
-    int width()
-    {
-        return protectedData.currentWidth;
-    }
-    int height()
-    {
-        return protectedData.currentHeight;
-    }
-    uint8_t * data()
-    {
-        return protectedData.internal_buffer;
-    }
-};
-
-class FrameWrite
-{
-    VideoDataExchange& xchange;
-    QueuedFrame& protectedData;
-    juce::CriticalSection::ScopedLockType l;
-public:
-    FrameWrite(VideoDataExchange& x,
-               int width, int height, int size)
-    : xchange(x)
-    , protectedData(x.getOrWaitFrameToWrite())
-    , l(protectedData.mutex)
-    {
-        //fill protectedData properly
-        if( size != protectedData.currentSize)
-        {
-            delete[] protectedData.internal_buffer;
-            protectedData.internal_buffer = new uint8_t[size];
-        }
-        protectedData.currentWidth = width;
-        protectedData.currentHeight = height;
-
-    }
-    ~FrameWrite()
-    {
-        juce::CriticalSection::ScopedLockType l(xchange.mutex);
-        xchange.writeIndex++;
-        if(xchange.writeIndex>=xchange.queueSize)
-        {
-            xchange.writeIndex = 0;
-        }
-        xchange.fillCount++;
-        xchange.queueContentEvent.signal();
-    }
-    uint8_t * data()
-    {
-        return protectedData.internal_buffer;
-    }
-
-};
 
 std::string const vert_shader_source =
 	"#version 150\n"
@@ -194,7 +44,8 @@ std::string const frag_shader_source =
 	"}\n";
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
-class OpenGLVideoRenderer
+class OpenGLVideoRenderer : public juce::OpenGLRenderer,
+                    public FFMpegHandler
 {
     // attribute indices
     enum {
@@ -207,7 +58,6 @@ class OpenGLVideoRenderer
         MVP_MATRIX = 0,
         FRAME_TEX
     };
-    VideoDataExchange& xchange;
     GLuint vao;
     GLuint vert_buf;
     GLuint elem_buf;
@@ -216,11 +66,13 @@ class OpenGLVideoRenderer
     GLuint uniforms[2];
     int frameWidth, frameHeight;
     GLuint frame_tex;
+
+    VideoDataExchange exchange;
 public:
-    OpenGLVideoRenderer(VideoDataExchange& exchange)
-    :xchange(exchange)
-    ,frameWidth(1)
+    OpenGLVideoRenderer()
+    :frameWidth(1)
     ,frameHeight(1)
+    ,exchange(1)
     {
 
     }
@@ -228,7 +80,7 @@ public:
     {
         //release should be called in the gl context, may not be the case here
     }
-    void release()
+    void openGLContextClosing()override//juce::OpenGLRenderer
     {
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(1, &this->vert_buf);
@@ -327,19 +179,20 @@ public:
 
         return true;
     }
-    bool init()
+    void newOpenGLContextCreated() override//juce::OpenGLRenderer
     {
+        jassert (juce::OpenGLHelpers::isContextActive());
 
         GLenum err = glewInit();
         if (err != GLEW_OK)
         {
             fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-            return false;
+            return;
         }
         if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
         {
             fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-            return false;
+            return;
         }
         // initialize opengl
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -348,7 +201,7 @@ public:
         // initialize shaders
         if (!buildProgram()) {
             std::cout << "failed to initialize shaders" << std::endl;
-            return false;
+            return;
         }
 
         // initialize renderable
@@ -395,36 +248,45 @@ public:
         ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f ,mvp);
         //glUniformMatrix4fv(this->uniforms[MVP_MATRIX], 1, GL_FALSE, mvp);
 
-        return true;
     }
 
-    void consumeFrame()
+    void consumeFrame(FrameRead& f)override//FFMpegHandler
     {
-        glBindTexture(GL_TEXTURE_2D, this->frame_tex);
-        FrameRead f(xchange);
-        if(frameWidth != f.width() || frameHeight != f.height())
-        {
-
-            frameWidth = f.width();
-            frameHeight = f.height();
-            glDeleteTextures(1, &this->frame_tex);
-            glGenTextures(1, &this->frame_tex);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameWidth, frameHeight,
-                0, GL_RGB, GL_UNSIGNED_BYTE, 0);//f.data()
-        }
-        //else
-        {
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frameWidth, frameHeight,
-                GL_RGB, GL_UNSIGNED_BYTE, f.data());
-        }
+        exchange.add(f);
     }
     // draw frame in opengl context
-    void drawFrame() {
+    void renderOpenGL() override//juce::OpenGLRenderer
+    {
+        if(!exchange.isEmpty())
+        {
+            FrameRead f(exchange);
+
+            glBindTexture(GL_TEXTURE_2D, this->frame_tex);
+            if(frameWidth != f.width() || frameHeight != f.height())
+            {
+
+                frameWidth = f.width();
+                frameHeight = f.height();
+                glDeleteTextures(1, &this->frame_tex);
+                glGenTextures(1, &this->frame_tex);
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameWidth, frameHeight,
+                    0, GL_RGB, GL_UNSIGNED_BYTE, 0);//f.data()
+            }
+            //else
+            {
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frameWidth, frameHeight,
+                    GL_RGB, GL_UNSIGNED_BYTE, f.data());
+            }
+            glViewport( 0, 0, f.width(), f.height() );
+        }
+        jassert (juce::OpenGLHelpers::isContextActive());
+
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(this->program);
@@ -436,211 +298,6 @@ public:
         glBindVertexArray(0);
 
         glUseProgram(0);
-    }
-
-};
-class DecoderPrivate
-{
-    VideoDataExchange& xchange;
-    AVFormatContext *fmt_ctx;
-    int stream_idx;
-    AVStream *video_stream;
-    AVCodecContext *codec_ctx;
-    AVCodec *decoder;
-    AVPacket *packet;
-    AVFrame *av_frame;
-    AVFrame *gl_frame;
-    double durationMSec, frameRate;
-    struct SwsContext *conv_ctx;
-    int  dstStride[3];
-    uint8_t * dst[3];
-
-
-    public:
-
-    // initialize the app data structure
-    DecoderPrivate(VideoDataExchange& exchange)
-    :xchange(exchange)
-    {
-        initializeAppData();
-    }
-    ~DecoderPrivate()
-    {
-
-        avformat_close_input(&fmt_ctx);
-
-        // clean up
-        clearAppData();
-    }
-    void initializeAppData(){
-        this->fmt_ctx = NULL;
-        this->stream_idx = -1;
-        this->video_stream = NULL;
-        this->codec_ctx = NULL;
-        this->decoder = NULL;
-        this->av_frame = NULL;
-        this->conv_ctx = NULL;
-    }
-    // clean up the app data structure
-    void clearAppData() {
-        if (this->av_frame) av_free(this->av_frame);
-        if (this->packet) av_free(this->packet);
-        if (this->codec_ctx) avcodec_close(this->codec_ctx);
-        if (this->fmt_ctx) avformat_free_context(this->fmt_ctx);
-        initializeAppData();
-    }
-
-
-    int open(char *filename) {
-
-        // initialize libav
-        av_register_all();
-        avformat_network_init();
-
-        // initialize custom data structure
-        initializeAppData();
-
-        // open video
-        if (avformat_open_input(&this->fmt_ctx, filename, NULL, NULL) < 0) {
-            std::cout << "failed to open input" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-        // find stream info
-        if (avformat_find_stream_info(this->fmt_ctx, NULL) < 0) {
-            std::cout << "failed to get stream info" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-        // dump debug info
-        av_dump_format(this->fmt_ctx, 0, filename, 0);
-
-        // find the video stream
-        for (unsigned int i = 0; i < this->fmt_ctx->nb_streams; ++i)
-        {
-            if (this->fmt_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-            {
-                this->stream_idx = i;
-                break;
-            }
-        }
-
-        if (this->stream_idx == -1)
-        {
-            std::cout << "failed to find video stream" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-        this->video_stream = this->fmt_ctx->streams[this->stream_idx];
-        this->codec_ctx = this->video_stream->codec;
-
-        // find the decoder
-        this->decoder = avcodec_find_decoder(this->codec_ctx->codec_id);
-        if (this->decoder == NULL)
-        {
-            std::cout << "failed to find decoder" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-/////////////////////////
-
-    /**
-      * This is the fundamental unit of time (in seconds) in terms
-      * of which frame timestamps are represented. For fixed-fps content,
-      * timebase should be 1/framerate and timestamp increments should be
-      * identically 1.
-      * - encoding: MUST be set by user.
-      * - decoding: Set by libavcodec.
-      */
-    AVRational avr = this->codec_ctx->time_base;
-    /**
-     * For some codecs, the time base is closer to the field rate than the frame rate.
-     * Most notably, H.264 and MPEG-2 specify time_base as half of frame duration
-     * if no telecine is used ...
-     *
-     * Set to time_base ticks per frame. Default 1, e.g., H.264/MPEG-2 set it to 2.
-     */
-    durationMSec = static_cast<double>(this->video_stream->duration) * static_cast<double>(this->codec_ctx->ticks_per_frame) / static_cast<double>(avr.den);
-    // calculate frame rate based on time_base and ticks_per_frame
-    frameRate = static_cast<double>(avr.den) / static_cast<double>(avr.num * this->codec_ctx->ticks_per_frame);
-
-/////////////////////////
-        // open the decoder
-        if (avcodec_open2(this->codec_ctx, this->decoder, NULL) < 0)
-        {
-            std::cout << "failed to open codec" << std::endl;
-            clearAppData();
-            return -1;
-        }
-
-        // allocate the video frames
-        this->av_frame = av_frame_alloc();
-
-        this->packet = (AVPacket *)av_malloc(sizeof(AVPacket));
-
-    }
-
-    // read a video frame
-    bool seek(double pos) {
-
-        int64_t seek_pos = (int64_t)(pos * AV_TIME_BASE); // Seconds
-        bool backseek = seek_pos <= (int64_t)(this->packet->pts*AV_TIME_BASE);
-        int64_t seek_target = av_rescale_q(seek_pos, AV_TIME_BASE_Q, this->video_stream->time_base);
-        int flags = seek_pos ? AVSEEK_FLAG_BACKWARD : 0;
-        av_seek_frame(this->fmt_ctx,this->stream_idx, seek_target, flags);
-    }
-
-    // read a video frame
-    bool readFrame(int &frame_finished) {
-
-
-        frame_finished = 0;
-        do {
-            if (av_read_frame(this->fmt_ctx, this->packet) < 0) {
-                av_free_packet(this->packet);
-                return false;
-            }
-
-            if (this->packet->stream_index == this->stream_idx) {
-                //int frame_finished = 0;
-
-                if (avcodec_decode_video2(this->codec_ctx, this->av_frame, &frame_finished,
-                    this->packet) < 0) {
-                    av_free_packet(this->packet);
-                    return false;
-                }
-
-                if (frame_finished) {
-                    if (!this->conv_ctx) {
-                        this->conv_ctx = sws_getContext(this->codec_ctx->width,
-                            this->codec_ctx->height, this->codec_ctx->pix_fmt,
-                            this->codec_ctx->width, this->codec_ctx->height, PIX_FMT_RGB24,
-                            SWS_BICUBIC, NULL, NULL, NULL);
-                    }
-
-                    int size = avpicture_get_size(PIX_FMT_RGB24, this->codec_ctx->width, this->codec_ctx->height);
-                    FrameWrite f(xchange, this->codec_ctx->width, this->codec_ctx->height, size);
-
-                    dstStride[0]= dstStride[1] = dstStride[2] = 3*this->codec_ctx->width;
-
-                    dst[0]=f.data();
-                    dst[1]=f.data()+1;
-                    dst[2]=f.data()+2;
-
-                    sws_scale(this->conv_ctx, this->av_frame->data, this->av_frame->linesize, 0,
-                        this->codec_ctx->height, dst, dstStride);
-
-                }
-            }
-
-            av_free_packet(this->packet);
-        } while (this->packet->stream_index != this->stream_idx);
-
-        return true;
     }
 
 };
@@ -808,65 +465,32 @@ OpenGLFFMpegComponent::OpenGLFFMpegComponent()
     //setResizable (true, false);
 
     setOpaque (true);
-    openGLContext.setRenderer (this);
+    renderer = new OpenGLVideoRenderer();
+    openGLContext.setRenderer (renderer);
     openGLContext.attachTo (*this);
     openGLContext.setContinuousRepainting (true);
 
-    xchange = new VideoDataExchange();
-    decoder = new DecoderPrivate(*xchange);
-    renderer = new OpenGLVideoRenderer(*xchange);
-
-    //!
-    play();
+    wrapper = new FFMpegWrapper(*renderer);
 }
 
 OpenGLFFMpegComponent::~OpenGLFFMpegComponent()
 {
     openGLContext.detach();
-    delete decoder;
     delete renderer;
-    delete xchange;// last
+
+    delete wrapper;// last
 
 }
 
 bool OpenGLFFMpegComponent::open(char*s)
 {
-    decoder->open(s);
+    return wrapper->open(s);
+}
+bool OpenGLFFMpegComponent::seek(double time)
+{
+    return wrapper->seek(time);
 }
 void OpenGLFFMpegComponent::play()
 {
-	open("data/test7.mp4");
-	decoder->seek(19.);
-
-    int frame_finished = 0;
-    do
-    {
-        decoder->readFrame(frame_finished);
-    }
-    while(!frame_finished);
-}
-void OpenGLFFMpegComponent::newOpenGLContextCreated()
-{
-    jassert (juce::OpenGLHelpers::isContextActive());
-    renderer->init();
-
-    //!
-    renderer->consumeFrame();
-
-}
-
-void OpenGLFFMpegComponent::openGLContextClosing()
-{
-    renderer->release();
-}
-
-// This is a virtual method in OpenGLRenderer, and is called when it's time
-// to do your GL rendering.
-void OpenGLFFMpegComponent::renderOpenGL()
-{
-    jassert (juce::OpenGLHelpers::isContextActive());
-
-    glViewport( 0, 0, getWidth(), getHeight() );
-
-    renderer->drawFrame();
+    wrapper->play();
 }

@@ -31,6 +31,9 @@ public:
         openGLFFMpegComponent->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
         openGLFFMpegComponent->setSize(800, 600);
         openGLFFMpegComponent->setVisible (true);
+        openGLFFMpegComponent->open("data/test7.mp4");
+        openGLFFMpegComponent->seek(19.);
+        openGLFFMpegComponent->play();
 #endif //FFMPEGTEST
         /*  ..and now return, which will fall into to the main event
             dispatch loop, and this will run until something calls
