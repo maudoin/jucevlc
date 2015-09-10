@@ -589,7 +589,7 @@ bool IconMenu::updateFilePreview(PathAndImage & pathAndImageLoadedFlag)
 }
 bool IconMenu::updatePreviews()
 {
-	if(m_thumbnailer.workStep())
+	if(m_thumbnailer.newImageReady())
 	{
 		//generation updated, refresh now
 		return true;

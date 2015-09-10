@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
@@ -19,14 +19,9 @@
 					<Add option="-D_WINDOWS" />
 					<Add option="-DJUCE_USE_INTRINSICS" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
-					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
-					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
-					<Add directory="E:/dev/vlcfrontend/juce" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
-					<Add library="vlccore" />
-					<Add library="vlc" />
 					<Add library="ws2_32" />
 					<Add library="version" />
 					<Add library="winmm" />
@@ -1017,12 +1012,12 @@
 		<Unit filename="src/MenuComponent.h" />
 		<Unit filename="src/MenuTree.cpp" />
 		<Unit filename="src/MenuTree.h" />
+		<Unit filename="src/Player.cpp" />
+		<Unit filename="src/Player.h" />
 		<Unit filename="src/PosterFinder.cpp" />
 		<Unit filename="src/PosterFinder.h" />
 		<Unit filename="src/Thumbnailer.cpp" />
 		<Unit filename="src/Thumbnailer.h" />
-		<Unit filename="src/VLCWrapper.cpp" />
-		<Unit filename="src/VLCWrapper.h" />
 		<Unit filename="src/VideoComponent.cpp" />
 		<Unit filename="src/VideoComponent.h" />
 		<Unit filename="src/WeblySleekFont.cpp" />
