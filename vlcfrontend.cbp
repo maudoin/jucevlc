@@ -18,17 +18,12 @@
 					<Add option="-D_WINDOWS" />
 					<Add option="-DGLEW_STATIC" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
-					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
-					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
-					<Add directory="E:/dev/vlcfrontend/juce" />
 					<Add directory="src" />
 					<Add directory="ffmpeg/include" />
 					<Add directory="glew/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
-					<Add library="vlccore" />
-					<Add library="vlc" />
 					<Add library="ws2_32" />
 					<Add library="version" />
 					<Add library="winmm" />
@@ -47,7 +42,6 @@
 					<Add library="swscale" />
 					<Add library="swresample" />
 					<Add directory="boost/lib" />
-					<Add directory="libvlc/lib" />
 					<Add directory="ffmpeg/lib" />
 				</Linker>
 			</Target>
@@ -1005,18 +999,25 @@
 		<Unit filename="src/MenuComponent.h" />
 		<Unit filename="src/MenuTree.cpp" />
 		<Unit filename="src/MenuTree.h" />
+		<Unit filename="src/Player.cpp" />
+		<Unit filename="src/Player.h" />
 		<Unit filename="src/PosterFinder.cpp" />
 		<Unit filename="src/PosterFinder.h" />
+		<Unit filename="src/RegularExpression.cpp" />
+		<Unit filename="src/RegularExpression.h" />
 		<Unit filename="src/Thumbnailer.cpp" />
 		<Unit filename="src/Thumbnailer.h" />
-		<Unit filename="src/VLCWrapper.cpp" />
-		<Unit filename="src/VLCWrapper.h" />
 		<Unit filename="src/VideoComponent.cpp" />
 		<Unit filename="src/VideoComponent.h" />
 		<Unit filename="src/WeblySleekFont.cpp" />
 		<Unit filename="src/WeblySleekFont.h" />
+		<Unit filename="src/ffmpegWrapper.cpp" />
 		<Unit filename="src/glffmpeg.cpp" />
 		<Unit filename="src/glffmpeg.h" />
+		<Unit filename="src/libbitap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/libbitap.h" />
 		<Unit filename="src/resources.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>

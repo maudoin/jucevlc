@@ -4,7 +4,7 @@
 
 #include "AppConfig.h"
 #include "juce.h"
-#include "VLCWrapper.h"
+#include "Player.h"
 #include "ControlComponent.h"
 #include "AbstractMenu.h"
 #include "AppProportionnalComponent.h"
@@ -20,6 +20,8 @@
 class InvokeLater;
 class TitleComponent;
 class BackgoundUPNP;
+class VLCNativePopupComponent;
+
 class VideoComponent   : public juce::Component , public juce::KeyListener,
 
 #ifdef BUFFER_DISPLAY
@@ -33,13 +35,13 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
 #else
-    juce::ScopedPointer<juce::Component> vlcNativePopupComponent;
+    juce::ScopedPointer<VLCNativePopupComponent> vlcNativePopupComponent;
 #endif
     juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
-	juce::ScopedPointer<VLCWrapper> vlc;
+	juce::ScopedPointer<Player> m_player;
 	juce::ScopedPointer<BackgoundUPNP> vlcMediaUPNPList;
 	bool sliderUpdating;
 	bool videoUpdating;
@@ -150,12 +152,6 @@ public:
     void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
 
 
-	void onMenuVoutIntOption (AbstractMenuItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
-	void onVLCOptionIntSelect(AbstractMenuItem& item, std::string, int i);
-    void onVLCOptionIntListMenu (AbstractMenuItem& item, std::string);
-    void onVLCOptionIntRangeMenu (AbstractMenuItem& item, std::string, const char* format, int min, int max, int defaultVal);
-	void onVLCOptionStringSelect(AbstractMenuItem& item, std::string, std::string i);
-    void onVLCOptionStringMenu (AbstractMenuItem& item, std::string);
 	void onVLCAudioChannelSelect(AbstractMenuItem& item);
 	void onVLCAudioOutputDeviceSelect(AbstractMenuItem& item, std::string output, std::string device);
     void onVLCAudioOutputSelect(AbstractMenuItem& item, std::string, std::vector< std::pair<std::string, std::string> >);
@@ -173,7 +169,6 @@ public:
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic);
 	void onMenuSubtitlePositionMode(AbstractMenuItem& item);
 	void onMenuSubtitleSelect(AbstractMenuItem& item, int i);
-    void onMenuSubtitlePosition (AbstractMenuItem& item);
 	void onVLCOptionColor(AbstractMenuItem& item, std::string);
     void onMenuSubtitleMenu (AbstractMenuItem& item);
     void onMenuZoom (AbstractMenuItem& item, double ratio);
@@ -187,8 +182,6 @@ public:
     void onMenuShiftAudioSlider(AbstractMenuItem& item);
     void onMenuShiftSubtitles(double s);
     void onMenuShiftSubtitlesSlider(AbstractMenuItem& item);
-	void onVLCAoutStringSelect(AbstractMenuItem& item, std::string, std::string, std::string i);
-    void onVLCAoutStringSelectListMenu (AbstractMenuItem& item, std::string, std::string);
     void onMenuAudioVolume(AbstractMenuItem& item, double volume);
     void onMenuAudioVolumeListAndSlider (AbstractMenuItem& item);
 
@@ -269,10 +262,6 @@ private:
 	void handleIdleTimeAndControlsVisibility();
 	void setBrowsingFiles(bool newBrowsingFiles = true);
 	void saveCurrentMediaTime();
-	void initBoolSetting(const char* name);
-	void initIntSetting(const char* name);
-	void initIntSetting(const char* name, int defaultVal);
-	void initStrSetting(const char* name);
 	void initFromSettings();
 	void initFromMediaDependantSettings();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);

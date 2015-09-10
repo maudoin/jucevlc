@@ -1,59 +1,10 @@
-/************************************************************************
-    This file is part of VLCWrapper.
-
-    File:    VLCWrapper.h
-    Desc.:   An simple C++-interface to libvlc.
-
-	Author:  Alex Skoruppa
-	Date:    08/10/2009
-	Updated: 03/12/2012
-	eM@il:   alex.skoruppa@googlemail.com
-
-	VLCWrapper is distributed under the Code Project Open License (CPOL).
-
-	You should have received a copy of the Code Project Open License
-	along with VLCWrapper.  If not, see <http://www.codeproject.com/info/cpol10.aspx>.
-************************************************************************/
-#ifndef __VLCWRAPPER_H__
-#define __VLCWRAPPER_H__
+#ifndef __PLAYER_H__
+#define __PLAYER_H__
 
 #include <memory>
 #include <string>
 #include <vector>
-
-#define CONFIG_BOOL_OPTION_HARDWARE "ffmpeg-hw"
-#define CONFIG_INT_OPTION_SUBTITLE_SIZE "freetype-rel-fontsize" //int list
-#define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS "freetype-outline-thickness" //int list
-#define CONFIG_INT_OPTION_VIDEO_QUALITY "postproc-q"
-#define CONFIG_INT_OPTION_VIDEO_DEINTERLACE "deinterlace"
-#define CONFIG_STRING_OPTION_VIDEO_DEINTERLACE_MODE "deinterlace-mode"
-#define CONFIG_COLOR_OPTION_SUBTITLE_COLOR "freetype-color"
-#define CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR "freetype-outline-color"
-#define CONFIG_INT_OPTION_SUBTITLE_MARGIN "sub-margin"
-#define CONFIG_INT_OPTION_SUBTITLE_OPACITY "freetype-opacity"
-#define CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY "freetype-outline-opacity"
-#define CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY "freetype-shadow-opacity"
-#define CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR "freetype-shadow-color"
-#define CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY "freetype-background-opacity"
-#define CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR "freetype-background-color"
-#define AOUT_FILTER_EQUALIZER "equalizer"
-#define CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET "equalizer-preset"
-#define CONFIG_BOOL_OPTION_AUDIO_EQUALIZER_2PASS "equalizer-2pass"
-#define CONFIG_STRING_OPTION_AUDIO_DEVICE "audio-device"
-#define CONFIG_INT_OPTION_AUDIO_CHANNELS "audio-channels"
-#define CONFIG_STRING_OPTION_AUDIO_VISUAL "audio-visual"
-#define CONFIG_STRING_OPTION_AUDIO_OUT "audio"
-
-
-struct libvlc_instance_t;
-struct libvlc_media_player_t;
-struct libvlc_media_t;
-struct libvlc_event_manager_t;
-struct libvlc_media_list_t;
-struct libvlc_media_list_player_t;
-struct libvlc_media_discoverer_t;
-
-#include <boost/cstdint.hpp>
+//#include <cstdint>
 
 class DisplayCallback
 {
@@ -98,25 +49,8 @@ public:
 	virtual void vlcAudioFush(int64_t pts)=0;
 	virtual void vlcAudioDrain()=0;
 };
-class VLCUPNPMediaList
+class Player
 {
-
-	libvlc_media_discoverer_t*   pMediaDiscoverer_;        ///< The VLC media Discoverer object.
-	libvlc_media_list_t* pUPNPMediaList_;
-
-	void init();
-public:
-	VLCUPNPMediaList(void);
-	~VLCUPNPMediaList(void);
-
-	std::vector<std::pair<std::string, std::string> > getUPNPList(std::vector<std::string> const& path);
-};
-class VLCWrapper
-{
-	libvlc_media_player_t*   pMediaPlayer_;        ///< The VLC media player object.
-    libvlc_event_manager_t*  pEventManager_;       ///< The event manger for the loaded media file.
-    libvlc_media_list_t *ml;
-    libvlc_media_list_player_t *mlp;
 	bool m_videoAdjustEnabled;
 
 
@@ -125,8 +59,8 @@ class VLCWrapper
     MouseInputCallBack* m_pMouseInputCallBack;
 	AudioCallback* m_pAudioCallback;
 public:
-	VLCWrapper(void);
-	~VLCWrapper(void);
+	Player(void);
+	~Player(void);
 
 
     /** Set window for media output.
@@ -253,18 +187,6 @@ public:
 	void clearPlayList();
 
 	std::string getInfo() const;
-
-	bool getConfigOptionBool(const char* name) const;
-	void setConfigOptionBool(const char* name, bool value);
-
-	int getConfigOptionInt(const char* name) const;
-	void setConfigOptionInt(const char* name, int value);
-	std::pair<int,std::vector<std::pair<int, std::string> > > getConfigOptionInfoInt(const char* name)const;
-
-	std::string getConfigOptionString(const char* name) const;
-	void setConfigOptionString(const char* name, std::string const& value);
-	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > getConfigOptionInfoString(const char* name)const;
-
 
 	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > getAudioOutputList() const;
 	void setAudioOutputDevice(std::string const& output, std::string const& device);

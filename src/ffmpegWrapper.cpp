@@ -187,13 +187,16 @@ class DecoderPrivate
     struct SwsContext *conv_ctx;
     int  dstStride[3];
     uint8_t * dst[3];
+    int  targetW, targetH;
 
 
     public:
 
     // initialize the app data structure
-    DecoderPrivate(VideoDataExchange& exchange)
+    DecoderPrivate(VideoDataExchange& exchange ,int targetW=-1, int targetH=-1)
     :xchange(exchange)
+    ,targetW(targetW)
+    ,targetH(targetH)
     {
         initializeAppData();
     }
@@ -327,6 +330,11 @@ class DecoderPrivate
         av_seek_frame(this->fmt_ctx,this->stream_idx, seek_target, flags);
     }
 
+    double duration () const
+    {
+        return this->fmt_ctx->duration / (double)AV_TIME_BASE;
+    }
+
     // read a video frame
     bool readFrame(int &frame_finished) {
 
@@ -348,17 +356,19 @@ class DecoderPrivate
                 }
 
                 if (frame_finished) {
+                    int outW = targetW>0?targetW:this->codec_ctx->width;
+                    int outH = targetH>0?targetH:this->codec_ctx->height;
                     if (!this->conv_ctx) {
                         this->conv_ctx = sws_getContext(this->codec_ctx->width,
                             this->codec_ctx->height, this->codec_ctx->pix_fmt,
-                            this->codec_ctx->width, this->codec_ctx->height, PIX_FMT_RGB24,
+                            outW,outH,PIX_FMT_RGB24,
                             SWS_BICUBIC, NULL, NULL, NULL);
                     }
 
-                    int size = avpicture_get_size(PIX_FMT_RGB24, this->codec_ctx->width, this->codec_ctx->height);
-                    FrameWrite f(xchange, this->codec_ctx->width, this->codec_ctx->height, size);
+                    int size = avpicture_get_size(PIX_FMT_RGB24, outW,outH);
+                    FrameWrite f(xchange, outW, outH, size);
 
-                    dstStride[0]= dstStride[1] = dstStride[2] = 3*this->codec_ctx->width;
+                    dstStride[0]= dstStride[1] = dstStride[2] = 3*outW;
 
                     dst[0]=f.data();
                     dst[1]=f.data()+1;
@@ -378,11 +388,11 @@ class DecoderPrivate
 
 };
 
-FFMpegWrapper::FFMpegWrapper(FFMpegHandler& handler)
+FFMpegWrapper::FFMpegWrapper(FFMpegHandler& handler,int targetW, int targetH)
 :renderer(handler)
 {
     xchange = new VideoDataExchange(FRAME_QUEUE_LENGTH);
-    decoder = new DecoderPrivate(*xchange);
+    decoder = new DecoderPrivate(*xchange,targetW, targetH);
 }
 
 FFMpegWrapper::~FFMpegWrapper()
@@ -400,6 +410,12 @@ bool FFMpegWrapper::seek(double time)
 {
     return decoder->seek(time);
 }
+
+double FFMpegWrapper::duration () const
+{
+    return decoder->duration();
+}
+
 void FFMpegWrapper::play()
 {
 

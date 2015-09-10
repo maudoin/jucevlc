@@ -73,12 +73,13 @@ class FFMpegWrapper
     DecoderPrivate* decoder;
     FFMpegHandler& renderer;
 public:
-    FFMpegWrapper(FFMpegHandler& );
+    FFMpegWrapper(FFMpegHandler& ,int targetW=-1, int targetH=-1);
 
     ~FFMpegWrapper();
 
     bool open(char*);
     bool seek(double time);
+    double duration () const;
     void play();
 };
 #endif // GLFFMPEG_H
