@@ -195,6 +195,13 @@ class DecoderPrivate
     // initialize the app data structure
     DecoderPrivate(VideoDataExchange& exchange ,int targetW=-1, int targetH=-1)
     :xchange(exchange)
+    ,fmt_ctx(0)
+    ,video_stream(0)
+    ,codec_ctx(0)
+    ,decoder(0)
+    ,packet(0)
+    ,av_frame(0)
+    ,gl_frame(0)
     ,targetW(targetW)
     ,targetH(targetH)
     {

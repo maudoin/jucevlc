@@ -49,6 +49,7 @@ public:
 	virtual void vlcAudioFush(int64_t pts)=0;
 	virtual void vlcAudioDrain()=0;
 };
+struct PlayerImpl;
 class Player
 {
 	bool m_videoAdjustEnabled;
@@ -58,6 +59,11 @@ class Player
     InputCallBack* m_pInputCallBack;
     MouseInputCallBack* m_pMouseInputCallBack;
 	AudioCallback* m_pAudioCallback;
+
+    friend struct PlayerImpl;
+
+	PlayerImpl* m_private;
+
 public:
 	Player(void);
 	~Player(void);

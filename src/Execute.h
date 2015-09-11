@@ -1,3 +1,3 @@
 #pragma once
 
-void execute(char* name, char* dir, char* params=0);
+void execute(const char* name, const char* dir, const char* params=0);

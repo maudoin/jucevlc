@@ -17,10 +17,14 @@
 					<Add option="-D_DEBUG" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DGLEW_STATIC" />
+					<Add option="-DBOOST_BIND_ENABLE_STDCALL" />
+					<Add option="-DBOOST_MEM_FN_ENABLE_STDCALL" />
+					<Add option="-DBOOST_USE_WINDOWS_H" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="src" />
 					<Add directory="ffmpeg/include" />
 					<Add directory="glew/include" />
+					<Add directory="juce" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />
