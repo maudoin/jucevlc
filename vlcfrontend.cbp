@@ -106,6 +106,7 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add library="strmiids" />
 					<Add directory="boost/lib64" />
 					<Add directory="libvlc/lib64" />
 				</Linker>
@@ -846,6 +847,7 @@
 		<Unit filename="juce/modules/juce_opengl/opengl/juce_Quaternion.h" />
 		<Unit filename="juce/modules/juce_opengl/opengl/juce_Vector3D.h" />
 		<Unit filename="juce/modules/juce_video/capture/juce_CameraDevice.h" />
+		<Unit filename="juce/modules/juce_video/juce_video.cpp" />
 		<Unit filename="juce/modules/juce_video/juce_video.h" />
 		<Unit filename="juce/modules/juce_video/playback/juce_DirectShowComponent.h" />
 		<Unit filename="juce/modules/juce_video/playback/juce_QuickTimeMovieComponent.h" />

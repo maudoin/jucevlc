@@ -76,7 +76,7 @@ public:
         @param fileOrURLPath    the file or URL path to open
         @returns true if the video opens successfully
     */
-    bool loadMovie (const String& fileOrURLPath);
+    bool loadMovie (const String& fileOrURLPath, String &err);
 
     /** Tries to load a DirectShow video from a file into the player.
 
@@ -88,7 +88,7 @@ public:
         @param videoFile    the video file to open
         @returns true if the video opens successfully
     */
-    bool loadMovie (const File& videoFile);
+    bool loadMovie (const File& videoFile, String &err);
 
     /** Tries to load a DirectShow video from a URL into the player.
 
@@ -100,7 +100,7 @@ public:
         @param videoURL    the video URL to open
         @returns true if the video opens successfully
     */
-    bool loadMovie (const URL& videoURL);
+    bool loadMovie (const URL& videoURL, String &err);
 
     /** Closes the video, if one is open. */
     void closeMovie();

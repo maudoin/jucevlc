@@ -38,7 +38,7 @@ namespace DirectShowHelpers
         virtual ~VideoRenderer() {}
 
         virtual HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                                ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd) = 0;
+                                ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err) = 0;
 
         virtual void setVideoWindow (HWND hwnd) = 0;
         virtual void setVideoPosition (HWND hwnd, long videoWidth, long videoHeight) = 0;
@@ -54,18 +54,32 @@ namespace DirectShowHelpers
         VMR7() {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd)
+                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err)
         {
             ComSmartPtr <IVMRFilterConfig> filterConfig;
 
+            err = "CLSID_VideoMixingRenderer";
             HRESULT hr = baseFilter.CoCreateInstance (CLSID_VideoMixingRenderer);
 
+
+            err = "AddFilter VMR-7";
             if (SUCCEEDED (hr))   hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+            else{ return hr;}
+            err = "QueryInterface filterConfig";
             if (SUCCEEDED (hr))   hr = baseFilter.QueryInterface (filterConfig);
+            else{ return hr;}
+            err = "SetRenderingMode VMRMode_Windowless";
             if (SUCCEEDED (hr))   hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+            else{ return hr;}
+            err = "QueryInterface windowlessControl";
             if (SUCCEEDED (hr))   hr = baseFilter.QueryInterface (windowlessControl);
+            else{ return hr;}
+            err = "windowlessControl SetVideoClippingWindow";
             if (SUCCEEDED (hr))   hr = windowlessControl->SetVideoClippingWindow (hwnd);
+            else{ return hr;}
+            err = "windowlessControl SetAspectRatioMode";
             if (SUCCEEDED (hr))   hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+            else{ return hr;}
 
             return hr;
         }
@@ -115,7 +129,7 @@ namespace DirectShowHelpers
         EVR() {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd)
+                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err)
         {
             ComSmartPtr <IMFGetService> getService;
 
@@ -289,24 +303,48 @@ public:
     }
 
     //======================================================================
-    bool loadFile (const String& fileOrURLPath)
+    bool loadFile (const String& fileOrURLPath, String& err)
     {
         jassert (state == uninitializedState);
 
+        err="createNativeWindow";
         if (! createNativeWindow())
+        {
             return false;
+        }
 
         HRESULT hr = graphBuilder.CoCreateInstance (CLSID_FilterGraph);
 
         // basic playback interfaces
-        if (SUCCEEDED (hr))   hr = graphBuilder.QueryInterface (mediaControl);
-        if (SUCCEEDED (hr))   hr = graphBuilder.QueryInterface (mediaPosition);
-        if (SUCCEEDED (hr))   hr = graphBuilder.QueryInterface (mediaEvent);
-        if (SUCCEEDED (hr))   hr = graphBuilder.QueryInterface (basicAudio);
+        if (SUCCEEDED (hr))
+        {
+            err="QueryInterface mediaControl";
+            hr = graphBuilder.QueryInterface (mediaControl);
+        }
+        else{ release(); return false;}
+        if (SUCCEEDED (hr))
+        {
+            err="QueryInterface mediaPosition";
+            hr = graphBuilder.QueryInterface (mediaPosition);
+        }
+        else{ release(); return false;}
+        if (SUCCEEDED (hr))
+        {
+            err="QueryInterface mediaEvent";
+            hr = graphBuilder.QueryInterface (mediaEvent);
+        }
+        else{ release(); return false;}
+        if (SUCCEEDED (hr))
+        {
+            err="QueryInterface basicAudio";
+            hr = graphBuilder.QueryInterface (basicAudio);
+        }
+        else{ release(); return false;}
 
         // video renderer interface
         if (SUCCEEDED (hr))
         {
+            err="create";
            #if JUCE_MEDIAFOUNDATION
             if (type == dshowEVR)
                 videoRenderer = new DirectShowHelpers::EVR();
@@ -314,12 +352,15 @@ public:
            #endif
                 videoRenderer = new DirectShowHelpers::VMR7();
 
-            hr = videoRenderer->create (graphBuilder, baseFilter, hwnd);
+            hr = videoRenderer->create (graphBuilder, baseFilter, hwnd, err);
+            if (!SUCCEEDED (hr)){release(); return false;}
         }
+        else{ release(); return false;}
 
         // build filter graph
         if (SUCCEEDED (hr))
         {
+            err="RenderFile";
             hr = graphBuilder->RenderFile (fileOrURLPath.toWideCharPointer(), nullptr);
 
             if (FAILED (hr))
@@ -330,12 +371,14 @@ public:
                 MessageManager::getInstance()->runDispatchLoopUntil (200);
             }
         }
+        else{ release(); return false;}
 
         // remove video renderer if not connected (no video)
         if (SUCCEEDED (hr))
         {
             if (isRendererConnected())
             {
+                err="getVideoSize";
                 hasVideo = true;
                 hr = videoRenderer->getVideoSize (videoWidth, videoHeight);
             }
@@ -347,10 +390,15 @@ public:
                 baseFilter = nullptr;
             }
         }
+        else{ release(); return false;}
 
         // set window to receive events
         if (SUCCEEDED (hr))
+        {
+            err="SetNotifyWindow";
             hr = mediaEvent->SetNotifyWindow ((OAHWND) hwnd, graphEventID, 0);
+        }
+        else{ release(); return false;}
 
         if (SUCCEEDED (hr))
         {
@@ -809,11 +857,11 @@ void DirectShowComponent::paint (Graphics& g)
 }
 
 //======================================================================
-bool DirectShowComponent::loadMovie (const String& fileOrURLPath)
+bool DirectShowComponent::loadMovie (const String& fileOrURLPath, String &err)
 {
     closeMovie();
 
-    videoLoaded = context->loadFile (fileOrURLPath);
+    videoLoaded = context->loadFile (fileOrURLPath, err);
 
     if (videoLoaded)
     {
@@ -824,14 +872,14 @@ bool DirectShowComponent::loadMovie (const String& fileOrURLPath)
     return videoLoaded;
 }
 
-bool DirectShowComponent::loadMovie (const File& videoFile)
+bool DirectShowComponent::loadMovie (const File& videoFile, String &err)
 {
-    return loadMovie (videoFile.getFullPathName());
+    return loadMovie (videoFile.getFullPathName(), err);
 }
 
-bool DirectShowComponent::loadMovie (const URL& videoURL)
+bool DirectShowComponent::loadMovie (const URL& videoURL, String &err)
 {
-    return loadMovie (videoURL.toString (false));
+    return loadMovie (videoURL.toString (false), err);
 }
 
 void DirectShowComponent::closeMovie()
