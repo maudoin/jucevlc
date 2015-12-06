@@ -141,6 +141,10 @@ public:
 #endif
     }
 
+    void paint (juce::Graphics& g) override
+    {
+		g.fillAll (juce::Colours::black);
+    }
     void resized()
     {
 #if JUCE_MEDIAFOUNDATION

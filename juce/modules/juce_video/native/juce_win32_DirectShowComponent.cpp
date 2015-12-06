@@ -259,7 +259,8 @@ public:
         if (videoRenderer != nullptr)
             videoRenderer->setVideoWindow (nullptr);
 
-        createNativeWindow();
+        juce::String err;
+        createNativeWindow(err);
 
         mediaEvent->SetNotifyWindow ((OAHWND) hwnd, graphEventID, 0);
         if (videoRenderer != nullptr)
@@ -301,18 +302,34 @@ public:
         needToUpdateViewport = true;
         triggerAsyncUpdate();
     }
+    juce::String ErrorAsString(DWORD errorMessageID)
+    {
+        if(errorMessageID == 0)
+            return std::string(); //No error message has been recorded
 
+        LPSTR messageBuffer = nullptr;
+        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                     NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+        juce::String message(messageBuffer, size);
+
+        //Free the buffer.
+        LocalFree(messageBuffer);
+
+        return message;
+    }
     //======================================================================
     bool loadFile (const String& fileOrURLPath, String& err)
     {
         jassert (state == uninitializedState);
 
         err="createNativeWindow";
-        if (! createNativeWindow())
+        if (! createNativeWindow(err))
         {
             return false;
         }
 
+        err="CoCreateInstance CLSID_FilterGraph";
         HRESULT hr = graphBuilder.CoCreateInstance (CLSID_FilterGraph);
 
         // basic playback interfaces
@@ -321,7 +338,26 @@ public:
             err="QueryInterface mediaControl";
             hr = graphBuilder.QueryInterface (mediaControl);
         }
-        else{ release(); return false;}
+        else{
+            switch(hr)
+            {
+//            case E_POINTER:
+//                err="E_POINTER";
+//                break;
+            case E_NOINTERFACE:
+                err="E_NOINTERFACE";
+                break;
+            case CLASS_E_NOAGGREGATION:
+                err="CLASS_E_NOAGGREGATION";
+                break;
+            case REGDB_E_CLASSNOTREG:
+                err="REGDB_E_CLASSNOTREG";
+                break;
+            }
+            err=ErrorAsString(hr);
+            release(); return false;
+        }
+
         if (SUCCEEDED (hr))
         {
             err="QueryInterface mediaPosition";
@@ -692,7 +728,7 @@ private:
     ScopedPointer<NativeWindow> nativeWindow;
 
     //======================================================================
-    bool createNativeWindow()
+    bool createNativeWindow(String& err)
     {
         jassert (nativeWindow == nullptr);
 
@@ -711,11 +747,13 @@ private:
             }
             else
             {
+                err = "getHandle == null" ;
                 nativeWindow = nullptr;
             }
         }
         else
         {
+            err = "no toplevel" ;
             jassertfalse;
         }
 

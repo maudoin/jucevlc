@@ -30,12 +30,14 @@
 #define JUCE_WIN32_COMSMARTPTR_H_INCLUDED
 
 #if JUCE_MINGW && defined(__uuidof)
-  #undef __uuidof
-#endif
+//  #undef __uuidof
+#else
 
 #ifndef _MSC_VER
 template<typename Type> struct UUIDGetter { static CLSID get() { jassertfalse; return CLSID(); } };
 #define __uuidof(x)  UUIDGetter<x>::get()
+#endif
+
 #endif
 
 inline GUID uuidFromString (const char* const s) noexcept
@@ -55,7 +57,28 @@ inline GUID uuidFromString (const char* const s) noexcept
                                                (uint8) p7, (uint8) p8, (uint8) p9, (uint8) p10 }};
     return g;
 }
-
+inline bool& initComSmartPtrStatus()
+{
+    static bool init = false;
+    return init;
+}
+inline bool initComSmartPtr()
+{
+    if(initComSmartPtrStatus())
+    {
+        return true;
+    }
+    // Initialize the COM library.
+    HRESULT hr = CoInitialize(NULL);
+    if (FAILED(hr))
+    {
+        printf("ERROR - Could not initialize COM library");
+        return false;
+    }
+    printf("COM library initialized");
+    initComSmartPtrStatus()=true;
+    return true;
+}
 //==============================================================================
 /** A simple COM smart pointer.
 */
@@ -63,9 +86,9 @@ template <class ComClass>
 class ComSmartPtr
 {
 public:
-    ComSmartPtr() throw() : p (0)                                  {}
-    ComSmartPtr (ComClass* const obj) : p (obj)                    { if (p) p->AddRef(); }
-    ComSmartPtr (const ComSmartPtr<ComClass>& other) : p (other.p) { if (p) p->AddRef(); }
+    ComSmartPtr() throw() : p (0)                                  {initComSmartPtr();}
+    ComSmartPtr (ComClass* const obj) : p (obj)                    {initComSmartPtr(); if (p) p->AddRef(); }
+    ComSmartPtr (const ComSmartPtr<ComClass>& other) : p (other.p) {initComSmartPtr(); if (p) p->AddRef(); }
     ~ComSmartPtr()                                                 { release(); }
 
     operator ComClass*() const throw()     { return p; }

@@ -104,7 +104,6 @@
  #include <android/log.h>
 #endif
 
-
 //==============================================================================
 namespace juce
 {
@@ -216,3 +215,32 @@ namespace juce
 #include "threads/juce_HighResolutionTimer.cpp"
 
 }
+
+
+
+#ifdef WIN32
+#include <windows.h>
+#include <shobjidl.h>
+
+#ifndef _MSC_VER
+#define UUID_DECL(type,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8)                 \
+  extern "C++" {                                                        \
+    static const IID uuid_##type = {l,w1,w2, {b1,b2,b3,b4,b5,b6,b7,b8}}; \
+    template<> const GUID &__mingw_uuidof<type>() {                     \
+      return uuid_##type;                                               \
+    }                                                                   \
+    template<> const GUID &__mingw_uuidof<type*>() {                    \
+      return __mingw_uuidof<type>();                                    \
+    }                                                                   \
+  }
+
+#include <dshow.h>
+UUID_DECL(IShellLinkW,           0x000214f9, 0x0000, 0x0000, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46);
+UUID_DECL(IVMRFilterConfig,      0x9e5530c5, 0x7034, 0x48b4, 0xbb, 0x46, 0x0b, 0x8a, 0x6e, 0xfc, 0x8e, 0x36);
+UUID_DECL(IVMRWindowlessControl, 0x8f537d09, 0xf85e, 0x4414, 0xb2, 0x3b, 0x50, 0x2e, 0x54, 0xc7, 0x99, 0x27);
+UUID_DECL(IMediaPosition,        0x56a868b2, 0x0ad4, 0x11ce, 0xb0, 0x3a, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70);
+UUID_DECL(IMediaEventEx,         0x56a868c0, 0x0ad4, 0x11ce, 0xb0, 0x3a, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70);
+UUID_DECL(IBasicAudio,           0x56a868b3, 0x0ad4, 0x11ce, 0xb0, 0x3a, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70);
+#endif
+#endif
+
