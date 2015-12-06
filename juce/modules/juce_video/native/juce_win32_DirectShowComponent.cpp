@@ -62,23 +62,41 @@ namespace DirectShowHelpers
             HRESULT hr = baseFilter.CoCreateInstance (CLSID_VideoMixingRenderer);
 
 
-            err = "AddFilter VMR-7";
-            if (SUCCEEDED (hr))   hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+            if (SUCCEEDED (hr))
+            {
+                err = "AddFilter VMR-7";
+                hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+            }
             else{ return hr;}
-            err = "QueryInterface filterConfig";
-            if (SUCCEEDED (hr))   hr = baseFilter.QueryInterface (filterConfig);
+            if (SUCCEEDED (hr))
+            {
+                err = "QueryInterface filterConfig";
+                hr = baseFilter.QueryInterface (filterConfig);
+            }
             else{ return hr;}
-            err = "SetRenderingMode VMRMode_Windowless";
-            if (SUCCEEDED (hr))   hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+            if (SUCCEEDED (hr))
+            {
+                err = "SetRenderingMode VMRMode_Windowless";
+                hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+            }
             else{ return hr;}
-            err = "QueryInterface windowlessControl";
-            if (SUCCEEDED (hr))   hr = baseFilter.QueryInterface (windowlessControl);
+            if (SUCCEEDED (hr))
+            {
+                err = "QueryInterface windowlessControl";
+                hr = baseFilter.QueryInterface (windowlessControl);
+            }
             else{ return hr;}
-            err = "windowlessControl SetVideoClippingWindow";
-            if (SUCCEEDED (hr))   hr = windowlessControl->SetVideoClippingWindow (hwnd);
+            if (SUCCEEDED (hr))
+            {
+                err = "windowlessControl SetVideoClippingWindow";
+                hr = windowlessControl->SetVideoClippingWindow (hwnd);
+            }
             else{ return hr;}
-            err = "windowlessControl SetAspectRatioMode";
-            if (SUCCEEDED (hr))   hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+            if (SUCCEEDED (hr))
+            {
+                err = "windowlessControl SetAspectRatioMode";
+                hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+            }
             else{ return hr;}
 
             return hr;
@@ -302,8 +320,9 @@ public:
         needToUpdateViewport = true;
         triggerAsyncUpdate();
     }
-    juce::String ErrorAsString(DWORD errorMessageID)
+    juce::String ErrorAsString(DWORD errorMessageID=::GetLastError())
     {
+
         if(errorMessageID == 0)
             return std::string(); //No error message has been recorded
 
@@ -389,7 +408,7 @@ public:
                 videoRenderer = new DirectShowHelpers::VMR7();
 
             hr = videoRenderer->create (graphBuilder, baseFilter, hwnd, err);
-            if (!SUCCEEDED (hr)){release(); return false;}
+            if (!SUCCEEDED (hr)){err=ErrorAsString(hr);delete videoRenderer;videoRenderer=0;release(); return false;}
         }
         else{ release(); return false;}
 
