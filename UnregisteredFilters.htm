@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+		<meta name="description" content="GDCL develops and advises on digital video software for DirectShow and AV Foundation"> 
+        <link href="http://www.gdcl.co.uk/rss.xml" rel="alternate" type="application/rss+xml" title="GDCL News"> 
+		<script type="text/javascript"> 
+        
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-21324716-1']);
+          _gaq.push(['_trackPageview']);
+        
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript';
+        ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+          })();
+        
+        </script>
+		<link href="UnregisteredFilters_files/gdcl-main.css" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="http://www.gdcl.co.uk/favicon.ico" type="image/x-icon">
+</head>
+
+
+<body>
+<div id="header"><a href="http://www.gdcl.co.uk/"><img src="UnregisteredFilters_files/logo.gif" alt="GDCL"></a></div>
+<div id="Content">
+	
+<h1 id="using-filters-without-registration">Using Filters Without Registration</h1>
+
+<p>Sometimes it’s useful to use filters without COM registration. COM 
+registration requires admin rights, and allows other apps to use the 
+filters. You can bypass this and use the filters directly, if you create
+ them yourself and insert them into the graph.</p>
+
+<h2 id="create-using-new">Create using <em>new</em></h2>
+
+<p>There are two ways to create a filter yourself. If you have the 
+source to the filter, or a private API, you can just construct the 
+filter with <em>new</em>. The important thing to remember is that you need to <code>AddRef()</code> the filter immediately, and then treat it like a normal COM object. When you are finished with it, <code>Release()</code> it rather than deleting it. If you use a smart pointer, this will all be taken care of for you.</p>
+
+<pre><code>#include &lt;comdef.h&gt;
+_COM_SMARTPTR_TYPEDEF(IBaseFilter, __uuidof(IBaseFilter));
+
+IBaseFilterPtr pFilter = new CMyFilterClass();
+</code></pre>
+
+<h2 id="create-using-a-private-cocreateinstance">Create using a private <em>CoCreateInstance</em></h2>
+
+<p>Of course, in many cases, you will only have the filter DLL. Since 
+the DLL is not registered, there is no way of mapping the filter’s CLSID
+ to the DLL that contains it, so you can’t call <em>CoCreateInstance</em>. But if you <strong>know</strong> which DLL the filter is in, you can bypass that lookup and simply instantiate the filter exactly as <em>CoCreateInstance</em> does.</p>
+
+<p>This function will create an <em>in-proc</em> server for a COM object, given the filename and the CLSID.</p>
+
+<pre><code>// define the prototype of the class factory entry point in a COM dll
+typedef HRESULT (STDAPICALLTYPE* FN_DLLGETCLASSOBJECT)(REFCLSID clsid, REFIID iid, void** ppv);
+
+HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
+{
+	// load the target DLL directly
+	HMODULE lib = LoadLibrary(pPath);
+	if (!lib)
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	// the entry point is an exported function
+	FN_DLLGETCLASSOBJECT fn = (FN_DLLGETCLASSOBJECT)GetProcAddress(lib, "DllGetClassObject");
+	if (fn == NULL)
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	// create a class factory
+	IUnknownPtr pUnk;
+	HRESULT hr = fn(clsid,  IID_IUnknown,  (void**)(IUnknown**)&amp;pUnk);
+	if (SUCCEEDED(hr))
+	{
+		IClassFactoryPtr pCF = pUnk;
+		if (pCF == NULL)
+		{
+			hr = E_NOINTERFACE;
+		}
+		else
+		{
+			// ask the class factory to create the object
+			hr = pCF-&gt;CreateInstance(NULL, IID_IUnknown, (void**)ppUnk);
+		}
+	}
+
+	return hr;
+}
+</code></pre>
+
+<h2 id="graph-building-with-private-filters">Graph-building with private filters</h2>
+
+<p>In most cases, you can use an unregistered filter simply by adding it
+ to the graph before calling RenderFile (or any other intelligent 
+connect or render operation). The graph manager will try all the filters
+ in the graph before looking through the registry to find new filters. 
+If you have a custom demux, decoder or renderer, you can use it like 
+this:</p>
+
+<pre><code>IUnknownPtr pUnk;
+HRESULT hr = CreateObjectFromPath(TEXT("c:\\path\\to\\myfilter.dll"), IID_MyFilter, &amp;pUnk);
+if (SUCCEEDED(hr))
+{
+	IBaseFilterPtr pFilter = pUnk;
+	pGraph-&gt;AddFilter(pFilter, L"Private Filter");
+	pGraph-&gt;RenderFile(pMediaClip, NULL);
+}
+</code></pre>
+
+
+<div id="footer">
+<hr>
+<p align="center"><a href="http://www.gdcl.co.uk/about.htm">About</a> • <a href="http://www.gdcl.co.uk/contact.htm">Contact</a> • <a href="http://www.gdcl.co.uk/articles/">Articles</a> • <a href="http://www.gdcl.co.uk/downloads.htm">Downloads</a> • <a href="http://www.gdcl.co.uk/search.html">Search</a></p>
+</div>
+
+
+
+<div id="sidebar">
+
+<a href="http://www.gdcl.co.uk//2014/04/22/Frame-Reordering.html">Frame Re-ordering Support in iOS Video Encoding</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2014/01/21/Video-Encoding-iOS7.html">Video Encoding on iOS 7</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/11/12/RTSP-Ports.html">DirectShow RTSP filter and Port Settings</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/09/29/DeclineandCompetition.html">Decline and Competition</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/05/16/RTSP-Jukebox.html">DirectShow RTSP Server filter and RTSP Jukebox</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/05/16/MP4-Update.html">Motion JPEG and CC608 Captions in MP4</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/05/02/Motion-JPEG.html">Adventures with Motion JPEG</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/04/03/MP4-Interleaving.html">Improved Interleaving in MP4 Multiplexor</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/04/03/Fix-CapturePause.html">Fix for repeated pause/resume in CapturePause</a>
+<br>
+
+<a href="http://www.gdcl.co.uk//2013/03/22/iPhone-Resume-Recording.html">iPhone Recording — Resume after Background</a>
+<br>
+
+</div>
+
+
+
+
+</div></body></html>

@@ -10,12 +10,13 @@
 				<Option output="vlcfrontend$(TARGET_NAME)" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs/$(TARGET_NAME)" />
 				<Option type="0" />
-				<Option compiler="mingw_w64_gnu_gcc_compiler" />
+				<Option compiler="gnu_gcc_compiler_64bits" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DWIN32" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_WINDOWS" />
+					<Add option="-DJUCE_USE_INTRINSICS" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />
@@ -35,8 +36,9 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
-					<Add directory="boost/lib" />
-					<Add directory="libvlc/lib" />
+					<Add library="strmiids" />
+					<Add directory="boost/lib64" />
+					<Add directory="libvlc/lib64" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -67,6 +69,7 @@
 					<Add library="uuid" />
 					<Add library="oleaut32" />
 					<Add library="boost_regex-mgw48-mt-s-1_56" />
+					<Add library="strmiids" />
 					<Add directory="boost/lib" />
 					<Add directory="libvlc/lib" />
 				</Linker>
