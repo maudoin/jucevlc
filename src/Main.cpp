@@ -187,6 +187,7 @@ public:
         window = new VideoComponent();
 
         dshow = new DirectShowDemo();
+        dshow->setOpaque (true);
         dshow->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
         dshow->setSize(800, 600);
         dshow->setVisible (true);
