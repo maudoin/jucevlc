@@ -128,8 +128,10 @@
 					<Add option="-DWIN32" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_WINDOWS" />
+					<Add option="-DJUCE_WINDOWS" />
 					<Add option="-DJUCE_USE_INTRINSICS" />
 					<Add option="-DFORCE_32_BITS" />
+					<Add option="-DJUCE_MINGW" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include" />
 					<Add directory="E:/dev/vlcfrontend/libvlc/include/vlc/plugins" />

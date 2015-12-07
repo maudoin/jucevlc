@@ -21,7 +21,70 @@
 
   ==============================================================================
 */
+typedef HRESULT (STDAPICALLTYPE* FN_DLLGETCLASSOBJECT)(REFCLSID clsid, REFIID iid, void** ppv);
 
+HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
+{
+	// load the target DLL directly
+	HMODULE lib = LoadLibrary(pPath);//see https://github.com/fancycode/MemoryModule
+	if (!lib)
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	// the entry point is an exported function
+	FN_DLLGETCLASSOBJECT fn = (FN_DLLGETCLASSOBJECT)GetProcAddress(lib, "DllGetClassObject");
+	if (fn == NULL)
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+
+	// create a class factory
+	IUnknown* pUnk;
+	HRESULT hr = fn(clsid,  IID_IUnknown,  (void**)(IUnknown**)&pUnk);
+	if (SUCCEEDED(hr))
+	{
+		IClassFactory* pCF = (IClassFactory*)pUnk;
+		if (pCF == NULL)
+		{
+			hr = E_NOINTERFACE;
+		}
+		else
+		{
+			// ask the class factory to create the object
+			hr = pCF->CreateInstance(NULL, IID_IUnknown, (void**)ppUnk);
+		}
+	}
+
+	return hr;
+}
+/*
+IUnknownPtr pUnk;
+HRESULT hr = CreateObjectFromPath(TEXT("c:\\path\\to\\myfilter.dll"), IID_MyFilter, &pUnk);
+if (SUCCEEDED(hr))
+{
+	IBaseFilterPtr pFilter = pUnk;
+	pGraph->AddFilter(pFilter, L"Private Filter");
+	pGraph->RenderFile(pMediaClip, NULL);
+}*/
+IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
+{
+    BOOL       bFound = FALSE;
+    IEnumPins  *pEnum;
+    IPin       *pPin;
+
+    pFilter->EnumPins(&pEnum);
+    while(pEnum->Next(1, &pPin, 0) == S_OK)
+    {
+        PIN_DIRECTION PinDirThis;
+        pPin->QueryDirection(&PinDirThis);
+        if (bFound = (PinDir == PinDirThis))
+            break;
+        pPin->Release();
+    }
+    pEnum->Release();
+    return (bFound ? pPin : 0);
+}
 namespace DirectShowHelpers
 {
     bool checkDShowAvailability()
@@ -466,6 +529,107 @@ public:
         return false;
     }
 
+    IGraphBuilder *pGraph;
+    IMediaControl *pMediaControl;
+    IMediaEvent *pEvent;
+	bool createFilterGraph(juce::String const& fileOrURLPath, juce::String & err) {
+
+	  // Create a source filter
+	  IBaseFilter*	pSource= NULL;
+	  if(FAILED(pGraph->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,&pSource)))
+	  {
+        err = "Unable to create source filter";
+        return 0;
+	  }
+
+      IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT);
+      if (!pSourceOut) {
+
+        err = "Unable to obtain source pin";
+        return 0;
+      }
+
+
+      // Create an AVI splitter filter
+      IBaseFilter* pAVISplitter = NULL;
+      if(FAILED(CoCreateInstance(CLSID_AviSplitter, NULL, CLSCTX_INPROC_SERVER,
+                IID_IBaseFilter, (void**)&pAVISplitter)) || !pAVISplitter)
+      {
+        err = "Unable to create AVI splitter";
+        return 0;
+      }
+
+      IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT);
+      if (!pAVIsIn) {
+
+        err = "Unable to obtain input splitter pin";
+        return 0;
+      }
+
+      // Connect the source and the splitter
+      if(FAILED(pGraph->AddFilter( pAVISplitter, L"Splitter")) ||
+         FAILED(pGraph->Connect(pSourceOut, pAVIsIn)) )
+      {
+        err = "Unable to connect AVI splitter filter";
+        return 0;
+      }
+
+      // Create an AVI decoder filter
+      IBaseFilter* pAVIDec = NULL;
+      if(FAILED(CoCreateInstance(CLSID_AVIDec, NULL, CLSCTX_INPROC_SERVER,
+                IID_IBaseFilter, (void**)&pAVIDec)) || !pAVIDec)
+      {
+        err = "Unable to create AVI decoder";
+        return 0;
+      }
+
+      IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT);
+      if (!pAVIsOut) {
+
+        err = "Unable to obtain output splitter pin";
+        return 0;
+      }
+
+      IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT);
+      if (!pAVIDecIn) {
+
+        err = "Unable to obtain decoder input pin";
+        return 0;
+      }
+
+      // Connect the splitter and the decoder
+      if(FAILED(pGraph->AddFilter( pAVIDec, L"Decoder")) ||
+         FAILED(pGraph->Connect(pAVIsOut, pAVIDecIn)) )
+      {
+        err = "Unable to connect AVI decoder filter";
+        return 0;
+      }
+
+      // Render the stream from the decoder
+      IPin* pAVIDecOut= GetPin(pAVIDec, PINDIR_OUTPUT);
+      if (!pAVIDecOut) {
+
+        err = "Unable to obtain decoder output pin";
+        return 0;
+      }
+
+      if(FAILED(pGraph->Render( pAVIDecOut )))
+      {
+        err = "Unable to connect to renderer";
+        return 0;
+      }
+#define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = 0; } }
+      SAFE_RELEASE(pAVIDecIn);
+      SAFE_RELEASE(pAVIDecOut);
+      SAFE_RELEASE(pAVIDec);
+      SAFE_RELEASE(pAVIsOut);
+      SAFE_RELEASE(pAVIsIn);
+      SAFE_RELEASE(pAVISplitter);
+      SAFE_RELEASE(pSourceOut);
+      SAFE_RELEASE(pSource);
+
+      return 1;
+    }
     void release()
     {
         if (mediaControl != nullptr)
