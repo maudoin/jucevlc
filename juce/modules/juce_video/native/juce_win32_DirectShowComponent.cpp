@@ -586,13 +586,22 @@ public:
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
-            err += "Unable create splitter from ";
+            err += "Unable create splitter instance from ";
             err += splitterPath;
             return 0;
         }
-        IBaseFilter* pAVISplitter = dynamic_cast <IBaseFilter*>(pUnk);
+
+
         // Create an AVI splitter filter
-        //IBaseFilter* pAVISplitter = NULL;
+        IBaseFilter* pAVISplitter = NULL;
+        hr = pUnk->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVISplitter)
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create query interface from instance of ";
+            err += splitterPath;
+            return 0;
+        }
         //if(FAILED(CoCreateInstance(CLSID_AviSplitter, NULL, CLSCTX_INPROC_SERVER,
         //                           IID_IBaseFilter, (void**)&pAVISplitter)) || !pAVISplitter)
         //{
@@ -629,8 +638,15 @@ public:
             err += videoDecoderPath;
             return 0;
         }
-        IBaseFilter* pAVIDec = dynamic_cast <IBaseFilter*>(pUnkVideo);
-        //IBaseFilter* pAVIDec = NULL;
+        IBaseFilter* pAVIDec = NULL;
+        hr = pUnkVideo->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVIDec)
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create query interface from instance of ";
+            err += splitterPath;
+            return 0;
+        }
         //if(FAILED(CoCreateInstance(CLSID_AVIDec, NULL, CLSCTX_INPROC_SERVER,
         //                           IID_IBaseFilter, (void**)&pAVIDec)) || !pAVIDec)
         //{
@@ -685,6 +701,8 @@ public:
         SAFE_RELEASE(pAVISplitter);
         SAFE_RELEASE(pSourceOut);
         SAFE_RELEASE(pSource);
+        SAFE_RELEASE(pUnk);
+        SAFE_RELEASE(pUnkVideo);
 
         return 1;
     }

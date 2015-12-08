@@ -191,7 +191,7 @@ public:
 
         dshow = new DirectShowDemo();
         dshow->setOpaque (true);
-        dshow->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
+        //dshow->addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
         dshow->setSize(800, 600);
         dshow->setVisible (true);
         /*  ..and now return, which will fall into to the main event
