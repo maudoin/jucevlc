@@ -6,8 +6,9 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="vlcfrontend$(TARGET_NAME)" prefix_auto="1" extension_auto="1" />
+			<Target title="Debug64">
+				<Option output="64/JuceVLC64$(TARGET_NAME)" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="64" />
 				<Option object_output=".objs/$(TARGET_NAME)" />
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_64bits" />
@@ -161,7 +162,7 @@
 			</Target>
 		</Build>
 		<VirtualTargets>
-			<Add alias="all" targets="Debug;Release;" />
+			<Add alias="all" targets="Debug64;Release;" />
 		</VirtualTargets>
 		<Unit filename="boost/include/boost/aligned_storage.hpp" />
 		<Unit filename="boost/include/boost/any.hpp" />

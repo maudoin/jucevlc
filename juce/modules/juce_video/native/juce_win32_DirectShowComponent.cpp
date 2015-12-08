@@ -78,6 +78,25 @@ IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
     {
         PIN_DIRECTION PinDirThis;
         pPin->QueryDirection(&PinDirThis);
+
+        LPWSTR id;
+        pPin->QueryId(&id);
+        CoTaskMemFree(id);
+
+        AM_MEDIA_TYPE mediaType;
+        HRESULT hr = pPin->ConnectionMediaType(&mediaType);
+        if(SUCCEEDED(hr))
+        {
+            const GUID MEDIATYPE_Stream = {0xE436EB83, 0x524F, 0x11CE, {0x9F, 0x53, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+            const GUID MEDIATYPE_Audio  = {0x73647561, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
+            const GUID MEDIATYPE_Video  = {0x73646976, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
+
+            bool isStream = IsEqualGUID(mediaType.majortype, MEDIATYPE_Stream);
+            bool isAudio =  IsEqualGUID(mediaType.majortype, MEDIATYPE_Audio);
+            bool isVideo =  IsEqualGUID(mediaType.majortype, MEDIATYPE_Video);
+        }
+
+
         if (bFound = (PinDir == PinDirThis))
             break;
         pPin->Release();
@@ -478,15 +497,26 @@ public:
         // build filter graph
         if (SUCCEEDED (hr))
         {
-            err="RenderFile";
-            hr = graphBuilder->RenderFile (fileOrURLPath.toWideCharPointer(), nullptr);
-
-            if (FAILED (hr))
+            if(true)
             {
-                // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
-                // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
-                // more messages for the whole app. (That's what happens in Win7, anyway)
-                MessageManager::getInstance()->runDispatchLoopUntil (200);
+                if(!createFilterGraph(fileOrURLPath.toWideCharPointer(), err))
+                {
+                    release();
+                    return false;
+                }
+            }
+            else
+            {
+                err="RenderFile";
+                hr = graphBuilder->RenderFile (fileOrURLPath.toWideCharPointer(), nullptr);
+
+                if (FAILED (hr))
+                {
+                    // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
+                    // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
+                    // more messages for the whole app. (That's what happens in Win7, anyway)
+                    MessageManager::getInstance()->runDispatchLoopUntil (200);
+                }
             }
         }
         else{ release(); return false;}
@@ -528,107 +558,135 @@ public:
         release();
         return false;
     }
+    bool createFilterGraph(juce::String const& fileOrURLPath, juce::String & err)
+    {
 
-    IGraphBuilder *pGraph;
-    IMediaControl *pMediaControl;
-    IMediaEvent *pEvent;
-	bool createFilterGraph(juce::String const& fileOrURLPath, juce::String & err) {
+        // Create a source filter
+        IBaseFilter*	pSource= NULL;
+        if(FAILED(graphBuilder->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,&pSource)))
+        {
+            err = "Unable to create source filter";
+            return 0;
+        }
 
-	  // Create a source filter
-	  IBaseFilter*	pSource= NULL;
-	  if(FAILED(pGraph->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,&pSource)))
-	  {
-        err = "Unable to create source filter";
-        return 0;
-	  }
+        IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT);
+        if (!pSourceOut)
+        {
 
-      IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT);
-      if (!pSourceOut) {
-
-        err = "Unable to obtain source pin";
-        return 0;
-      }
+            err = "Unable to obtain source pin";
+            return 0;
+        }
 
 
-      // Create an AVI splitter filter
-      IBaseFilter* pAVISplitter = NULL;
-      if(FAILED(CoCreateInstance(CLSID_AviSplitter, NULL, CLSCTX_INPROC_SERVER,
-                IID_IBaseFilter, (void**)&pAVISplitter)) || !pAVISplitter)
-      {
-        err = "Unable to create AVI splitter";
-        return 0;
-      }
+        const IID LAVSplitterIID = {0x171252A0,0x8820,0x4AFE, {0x9D,0xF8,0x5C,0x92,0xB2,0xD6,0x6B,0x04}};
 
-      IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT);
-      if (!pAVIsIn) {
+        IUnknown* pUnk = NULL;
+        TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
+        HRESULT hr = CreateObjectFromPath(splitterPath, LAVSplitterIID, &pUnk);
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create splitter from ";
+            err += splitterPath;
+            return 0;
+        }
+        IBaseFilter* pAVISplitter = dynamic_cast <IBaseFilter*>(pUnk);
+        // Create an AVI splitter filter
+        //IBaseFilter* pAVISplitter = NULL;
+        //if(FAILED(CoCreateInstance(CLSID_AviSplitter, NULL, CLSCTX_INPROC_SERVER,
+        //                           IID_IBaseFilter, (void**)&pAVISplitter)) || !pAVISplitter)
+        //{
+        //    err = "Unable to create AVI splitter";
+        //    return 0;
+        //}
 
-        err = "Unable to obtain input splitter pin";
-        return 0;
-      }
+        IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT);
+        if (!pAVIsIn)
+        {
 
-      // Connect the source and the splitter
-      if(FAILED(pGraph->AddFilter( pAVISplitter, L"Splitter")) ||
-         FAILED(pGraph->Connect(pSourceOut, pAVIsIn)) )
-      {
-        err = "Unable to connect AVI splitter filter";
-        return 0;
-      }
+            err = "Unable to obtain input splitter pin";
+            return 0;
+        }
 
-      // Create an AVI decoder filter
-      IBaseFilter* pAVIDec = NULL;
-      if(FAILED(CoCreateInstance(CLSID_AVIDec, NULL, CLSCTX_INPROC_SERVER,
-                IID_IBaseFilter, (void**)&pAVIDec)) || !pAVIDec)
-      {
-        err = "Unable to create AVI decoder";
-        return 0;
-      }
+        // Connect the source and the splitter
+        if(FAILED(graphBuilder->AddFilter( pAVISplitter, L"Splitter")) ||
+                FAILED(graphBuilder->Connect(pSourceOut, pAVIsIn)) )
+        {
+            err = "Unable to connect AVI splitter filter";
+            return 0;
+        }
 
-      IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT);
-      if (!pAVIsOut) {
+        // Create an AVI decoder filter
+        const IID LAVVideoDecoderIID = {0xEE30215D,0x164F,0x4A92,{0xA4,0xEB,0x9D,0x4C,0x13,0x39,0x0F,0x9F}};
 
-        err = "Unable to obtain output splitter pin";
-        return 0;
-      }
+        IUnknown* pUnkVideo = NULL;
+        TCHAR* videoDecoderPath=L"lav-filters64\\LAVVideo.ax";
+        hr = CreateObjectFromPath(videoDecoderPath, LAVVideoDecoderIID, &pUnkVideo);
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create video decoder from ";
+            err += videoDecoderPath;
+            return 0;
+        }
+        IBaseFilter* pAVIDec = dynamic_cast <IBaseFilter*>(pUnkVideo);
+        //IBaseFilter* pAVIDec = NULL;
+        //if(FAILED(CoCreateInstance(CLSID_AVIDec, NULL, CLSCTX_INPROC_SERVER,
+        //                           IID_IBaseFilter, (void**)&pAVIDec)) || !pAVIDec)
+        //{
+        //    err = "Unable to create AVI decoder";
+        //    return 0;
+        //}
 
-      IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT);
-      if (!pAVIDecIn) {
+        IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT);
+        if (!pAVIsOut)
+        {
 
-        err = "Unable to obtain decoder input pin";
-        return 0;
-      }
+            err = "Unable to obtain output splitter pin";
+            return 0;
+        }
 
-      // Connect the splitter and the decoder
-      if(FAILED(pGraph->AddFilter( pAVIDec, L"Decoder")) ||
-         FAILED(pGraph->Connect(pAVIsOut, pAVIDecIn)) )
-      {
-        err = "Unable to connect AVI decoder filter";
-        return 0;
-      }
+        IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT);
+        if (!pAVIDecIn)
+        {
 
-      // Render the stream from the decoder
-      IPin* pAVIDecOut= GetPin(pAVIDec, PINDIR_OUTPUT);
-      if (!pAVIDecOut) {
+            err = "Unable to obtain decoder input pin";
+            return 0;
+        }
 
-        err = "Unable to obtain decoder output pin";
-        return 0;
-      }
+        // Connect the splitter and the decoder
+        if(FAILED(graphBuilder->AddFilter( pAVIDec, L"Decoder")) ||
+                FAILED(graphBuilder->Connect(pAVIsOut, pAVIDecIn)) )
+        {
+            err = "Unable to connect AVI decoder filter";
+            return 0;
+        }
 
-      if(FAILED(pGraph->Render( pAVIDecOut )))
-      {
-        err = "Unable to connect to renderer";
-        return 0;
-      }
+        // Render the stream from the decoder
+        IPin* pAVIDecOut= GetPin(pAVIDec, PINDIR_OUTPUT);
+        if (!pAVIDecOut)
+        {
+
+            err = "Unable to obtain decoder output pin";
+            return 0;
+        }
+
+        if(FAILED(graphBuilder->Render( pAVIDecOut )))
+        {
+            err = "Unable to connect to renderer";
+            return 0;
+        }
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = 0; } }
-      SAFE_RELEASE(pAVIDecIn);
-      SAFE_RELEASE(pAVIDecOut);
-      SAFE_RELEASE(pAVIDec);
-      SAFE_RELEASE(pAVIsOut);
-      SAFE_RELEASE(pAVIsIn);
-      SAFE_RELEASE(pAVISplitter);
-      SAFE_RELEASE(pSourceOut);
-      SAFE_RELEASE(pSource);
+        SAFE_RELEASE(pAVIDecIn);
+        SAFE_RELEASE(pAVIDecOut);
+        SAFE_RELEASE(pAVIDec);
+        SAFE_RELEASE(pAVIsOut);
+        SAFE_RELEASE(pAVIsIn);
+        SAFE_RELEASE(pAVISplitter);
+        SAFE_RELEASE(pSourceOut);
+        SAFE_RELEASE(pSource);
 
-      return 1;
+        return 1;
     }
     void release()
     {

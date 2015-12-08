@@ -112,14 +112,17 @@ private:
     juce::ScopedPointer<TransportControl> transportControl;
 };
 
-
 //==============================================================================
-class DirectShowDemo  : public juce::Component
+class DirectShowDemo  : public juce::DocumentWindow
 {
 public:
     //==============================================================================
     DirectShowDemo()
-        : dsComp1 (juce::DirectShowComponent::dshowVMR7)
+        : juce::DocumentWindow ("DSHOW",
+                      juce::Colours::azure,
+                      juce::DocumentWindow::allButtons,
+                      true)
+        , dsComp1 (juce::DirectShowComponent::dshowVMR7)
 #if JUCE_MEDIAFOUNDATION
         , dsComp2 (juce::DirectShowComponent::dshowEVR)
 #endif
@@ -127,7 +130,7 @@ public:
         setName ("DirectShow");
 
         // add a movie component..
-        addAndMakeVisible (&dsComp1);
+        setContentComponent (&dsComp1);
 #if JUCE_MEDIAFOUNDATION
         addAndMakeVisible (&dsComp2);
 #endif
@@ -184,7 +187,7 @@ public:
     void initialise (const juce::String& commandLine)
     {
         // For this demo, we'll just create the main window...
-        window = new VideoComponent();
+        //window = new VideoComponent();
 
         dshow = new DirectShowDemo();
         dshow->setOpaque (true);
