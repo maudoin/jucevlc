@@ -131,7 +131,41 @@ bool Thumbnailer::newImageReady()
 	return( currentThumbnailIndex>=thumbnailCount && currentThumbnail != juce::File::nonexistent);
 }
 /*
-void Thumbnailer::consumeFrame(FrameRead &f)
+interface ISampleGrabberCB  : public IUnknown
+{
+    virtual STDMETHODIMP SampleCB (double, IMediaSample*) = 0;
+    virtual STDMETHODIMP BufferCB (double, BYTE*, long) = 0;
+};
+
+    class GrabberCallback   : public ComBaseClassHelperBase <ISampleGrabberCB>
+    {
+    public:
+        GrabberCallback (DShowCameraDeviceInteral& cam)
+            : ComBaseClassHelperBase <ISampleGrabberCB> (0), owner (cam) {}
+
+        JUCE_COMRESULT QueryInterface (REFIID refId, void** result)
+        {
+            if (refId == IID_ISampleGrabberCB)
+                return castToType <ISampleGrabberCB> (result);
+
+            return ComBaseClassHelperBase<ISampleGrabberCB>::QueryInterface (refId, result);
+        }
+
+        STDMETHODIMP SampleCB (double, IMediaSample*)  { return E_FAIL; }
+
+        STDMETHODIMP BufferCB (double time, BYTE* buffer, long bufferSize)
+        {
+            owner.consumeFrame (buffer);
+            return S_OK;
+        }
+
+    private:
+        DShowCameraDeviceInteral& owner;
+
+        JUCE_DECLARE_NON_COPYABLE (GrabberCallback)
+    };
+/*
+void Thumbnailer::consumeFrame(BYTE* buffer)
 {
     int processedThumbnailIndex;
 	{
@@ -140,6 +174,20 @@ void Thumbnailer::consumeFrame(FrameRead &f)
 	}
 
 	//imgCriticalSection.enter();
+
+        {
+            const int lineStride = width * 3;
+            const ScopedLock sl (imageSwapLock);
+
+            {
+                const Image::BitmapData destData (loadingImage, 0, 0, width, height, Image::BitmapData::writeOnly);
+
+                for (int i = 0; i < height; ++i)
+                    memcpy (destData.getLinePointer ((height - 1) - i),
+                            buffer + lineStride * i,
+                            lineStride);
+            }
+        }
 	//if(ptr)
 	//{
 	//	memcpy(ptr->getLinePointer(std::min(processedThumbnailIndex,thumbnailCount-1)*thunmnailH), f.data(), f.size());
