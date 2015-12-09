@@ -594,7 +594,7 @@ public:
 
         // Create an AVI splitter filter
         IBaseFilter* pAVISplitter = NULL;
-        hr = pUnk->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVISplitter)
+        hr = pUnk->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVISplitter);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
@@ -639,7 +639,7 @@ public:
             return 0;
         }
         IBaseFilter* pAVIDec = NULL;
-        hr = pUnkVideo->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVIDec)
+        hr = pUnkVideo->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVIDec);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
