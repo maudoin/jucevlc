@@ -1,36 +1,13 @@
 #ifndef __PLAYER_H__
 #define __PLAYER_H__
 
+#include "AppConfig.h"
+#include "juce.h"
 #include <memory>
 #include <string>
 #include <vector>
-//#include <cstdint>
+#include <stdint.h>
 
-class DisplayCallback
-{
-public:
-	virtual ~DisplayCallback(){}
-	virtual void *vlcLock(void **p_pixels) = 0;
-
-	virtual void vlcUnlock(void *id, void *const *p_pixels) = 0;
-
-	virtual void vlcDisplay(void *id) = 0;
-
-};
-class InputCallBack
-{
-public:
-	virtual ~InputCallBack(){}
-	virtual void vlcPopupCallback(bool show) = 0;
-	virtual void vlcFullScreenControlCallback() = 0;
-};
-class MouseInputCallBack
-{
-public:
-	virtual ~MouseInputCallBack(){}
-	virtual void vlcMouseMove(int x, int y, int button) = 0;
-	virtual void vlcMouseClick(int x, int y, int button) = 0;
-};
 class EventCallBack
 {
 public:
@@ -40,38 +17,20 @@ public:
 	virtual void vlcStarted() = 0;
 	virtual void vlcStopped() = 0;
 };
-class AudioCallback
-{
-public:
-	virtual void vlcAudioPlay(const void *samples, unsigned count, int64_t pts)=0;
-	virtual void vlcAudioPause(int64_t pts)=0;
-	virtual void vlcAudioResume(int64_t pts)=0;
-	virtual void vlcAudioFush(int64_t pts)=0;
-	virtual void vlcAudioDrain()=0;
-};
 class Player
 {
+    juce::DirectShowComponent& m_dshowComp;
 	bool m_videoAdjustEnabled;
+	std::string m_currentVideoFileName;
 
 
     EventCallBack* m_pEventCallBack;
-    InputCallBack* m_pInputCallBack;
-    MouseInputCallBack* m_pMouseInputCallBack;
-	AudioCallback* m_pAudioCallback;
 public:
-	Player(void);
+	Player(juce::DirectShowComponent& dshowComp);
 	~Player(void);
 
 
-    /** Set window for media output.
-    *   @param [in] pHwnd window, on Windows a HWND handle. */
-    void SetOutputWindow(void* pHwnd);
-    void SetDisplayCallback(DisplayCallback* cb);
     void SetEventCallBack(EventCallBack* cb);
-    void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
-    void SetInputCallBack(InputCallBack* cb);
-    bool setMouseInputCallBack(MouseInputCallBack* cb);
-	void SetAudioCallback(AudioCallback* cb);
 
 	void loadSubtitle(const char* pSubPathName);
 
@@ -178,13 +137,8 @@ public:
     AudioChannel getAudioChannel();
     void setAudioChannel(AudioChannel i);
 
-	std::vector<std::string> getCurrentPlayList();
-	int addPlayListItem(std::string const& path);
-	void playPlayListItem(int index);
-	std::string getCurrentPlayListItem();
-	int getCurrentPlayListItemIndex();
-	void removePlaylistItem(int index);
-	void clearPlayList();
+	bool openAndPlay(std::string const& path);
+	std::string getCurrentVideoFileName()const;
 
 	std::string getInfo() const;
 

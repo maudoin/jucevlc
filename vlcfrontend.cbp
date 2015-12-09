@@ -1,4 +1,4 @@
-<xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug64">
-				<Option output="64/JuceVLC64$(TARGET_NAME)" prefix_auto="1" extension_auto="1" />
+				<Option output="64/JuceVLC$(TARGET_NAME)" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="64" />
 				<Option object_output=".objs/$(TARGET_NAME)" />
 				<Option type="0" />
@@ -19,6 +19,7 @@
 					<Add option="-D_WINDOWS" />
 					<Add option="-DJUCE_USE_INTRINSICS" />
 					<Add directory="E:/dev/vlcfrontend/boost/include" />
+					<Add directory="E:/dev/vlcfrontend/juce" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libgcc -static-libstdc++" />

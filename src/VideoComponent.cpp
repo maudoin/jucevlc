@@ -5,12 +5,12 @@
 #include "MenuComponent.h"
 #include "Languages.h"
 #include "FileSorter.h"
-#include "RegularExpression.h"
 #include <algorithm>
 #include <set>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 #include "InvokeLater.h"
 
 #define DISAPEAR_DELAY_MS 500
@@ -65,36 +65,6 @@ juce::PropertiesFile::Options options()
 	return opts;
 }
 
-////////////////////////////////////////////////////////////
-//
-// NATIVE m_player COMPONENT
-//
-////////////////////////////////////////////////////////////
-/*
-class VLCNativePopupComponent   : public juce::DirectShowComponent
-{
-public:
-	VLCNativePopupComponent()
-	{
-		setMouseClickGrabsKeyboardFocus(false);
-	}
-};
-*/
-class VLCNativePopupComponent   : public juce::Component
-{
-public:
-	VLCNativePopupComponent()
-		:juce::Component("vlcPopupComponent")
-	{
-		setOpaque(true);
-		addToDesktop(juce::ComponentPeer::windowIsTemporary);
-		setMouseClickGrabsKeyboardFocus(false);
-	}
-	virtual ~VLCNativePopupComponent(){}/*
-	void paint (juce::Graphics& g)
-	{
-	}*/
-};
 
 ////////////////////////////////////////////////////////////
 //
@@ -181,12 +151,7 @@ public:
 //
 ////////////////////////////////////////////////////////////
 VideoComponent::VideoComponent()
-#ifdef BUFFER_DISPLAY
-	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
-	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
-#else
 	:juce::Component("JucePlayer")
-#endif
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
@@ -254,15 +219,10 @@ VideoComponent::VideoComponent()
 
 
 	//after set Size
-	m_player = new Player();
+	m_dshowComponent = new juce::DirectShowComponent(juce::DirectShowComponent::dshowVMR7);
+    //m_dshowComponent->setOpaque (true);
 
-#ifdef BUFFER_DISPLAY
-
-	m_player->SetDisplayCallback(this);
-#else
-	vlcNativePopupComponent = new VLCNativePopupComponent();
-	m_player->SetOutputWindow(vlcNativePopupComponent->getWindowHandle());
-#endif
+	m_player = new Player(*m_dshowComponent);
 
     m_player->SetEventCallBack(this);
 
@@ -284,9 +244,6 @@ VideoComponent::VideoComponent()
 
     // And show it!
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
-
-	m_player->SetInputCallBack(this);
-	mousehookset=  false;
 
 	showVolumeSlider(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 
@@ -342,19 +299,9 @@ VideoComponent::~VideoComponent()
 	controlComponent = nullptr;
 	menu = nullptr;
     m_player->SetEventCallBack(NULL);
-#ifdef BUFFER_DISPLAY
-	{
-		m_player->SetTime(m_player->GetLength());
-		m_player->Pause();
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-		m_player = nullptr;
-	}
-	ptr = nullptr;
-	img = nullptr;
-#else
-	getPeer()->getComponent().removeComponentListener(this);
-	vlcNativePopupComponent = nullptr;
-#endif
+/*
+	getPeer()->getComponent().removeComponentListener(this);*/
+	m_dshowComponent = nullptr;
 
 	/////////////////////
 	removeKeyListener(this);
@@ -441,7 +388,7 @@ void VideoComponent::switchFullScreen()
 }
 bool VideoComponent::isFrontpageVisible()
 {
-	return (!vlcNativePopupComponent->isVisible() || m_player->isStopped()) && ! menu->asComponent()->isVisible();
+	return (!m_dshowComponent->isVisible() || m_player->isStopped()) && ! menu->asComponent()->isVisible();
 }
 
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
@@ -696,14 +643,13 @@ void VideoComponent::broughtToFront()
 {
 	juce::Component::broughtToFront();
 
-#ifndef BUFFER_DISPLAY
+/*
 	if(isVisible() && !isFullScreen()
-		&& vlcNativePopupComponent && vlcNativePopupComponent->getPeer() && getPeer())
+		&& m_dshowComponent && m_dshowComponent->getPeer() && getPeer())
 	{
-		vlcNativePopupComponent->getPeer()->toBehind(getPeer());
+		m_dshowComponent->getPeer()->toBehind(getPeer());
 	}
-#endif//BUFFER_DISPLAY
-
+*/
 }
 
 ////////////////////////////////////////////////////////////
@@ -713,13 +659,7 @@ void VideoComponent::broughtToFront()
 ////////////////////////////////////////////////////////////
 void VideoComponent::paint (juce::Graphics& g)
 {
-#ifdef BUFFER_DISPLAY
-	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-	{
-		g.drawImage(*img, 0, 0, getWidth(), getHeight(), 0, 0, img->getWidth(), img->getHeight());
-	}
-#else
-	if(!vlcNativePopupComponent->isVisible() || m_player->isStopped() )
+	if(!m_dshowComponent->isVisible() || m_player->isStopped() )
 	{
 		g.fillAll (juce::Colours::black);
 		if(menu->asComponent()->isVisible())
@@ -745,7 +685,6 @@ void VideoComponent::paint (juce::Graphics& g)
 	{
 		//g.fillAll (juce::Colours::black);
 	}
-#endif
 
 }
 
@@ -766,36 +705,14 @@ void VideoComponent::resized()
 {
 	updateSubComponentsBounds();
 
-#ifdef BUFFER_DISPLAY
-	if(m_player)
+	m_dshowComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+	/*
+	if(m_dshowComponent->getPeer() && getPeer())
 	{
-		//rebuild buffer
-		bool restart(m_player->isPaused());
-		m_player->Pause();
-
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-
-		std::ostringstream oss;
-		oss << "m_player "<< m_player->getInfo()<<"\n";
-		oss << getWidth()<<"x"<< getHeight();
-		juce::Graphics g(*img);
-		g.fillAll(juce::Colour::fromRGB(0, 0, 0));
-		g.setColour(juce::Colour::fromRGB(255, 0, 255));
-		g.drawText(oss.str().c_str(), juce::Rectangle<int>(0, 0, img->getWidth(), img->getHeight()/10), juce::Justification::bottomLeft, true);
-		if(restart)
-		{
-			m_player->Play();
-		}
-	}
-#else
-	vlcNativePopupComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
-	//DBG("resized")
-	if(vlcNativePopupComponent->getPeer() && getPeer())
-	{
-		if(getPeer())getPeer()->toBehind(vlcNativePopupComponent->getPeer());
+		if(getPeer())getPeer()->toBehind(m_dshowComponent->getPeer());
 		toFront(false);
-	}
-#endif//BUFFER_DISPLAY
+	}*/
+
     if (titleBar != nullptr)
     {
         titleBar->setVisible (menu->asComponent()->isVisible() || !isFullScreen());
@@ -851,26 +768,11 @@ void VideoComponent::appendAndPlay(std::string const& path)
 	{
 		return;
 	}
-	std::string::size_type i = path.find_last_of("/\\");
-	std::string name =  i == std::string::npos ? path : path.substr(i+1);
-
-	int index = m_player->addPlayListItem(path);
-
-#ifdef BUFFER_DISPLAY
-	img = new juce::Image(img->rescaled(getWidth(), getHeight()));
-	ptr = new juce::Image::BitmapData (*img, juce::Image::BitmapData::readWrite);
-	m_player->SetBufferFormat(img->getWidth(), img->getHeight(), ptr->lineStride);
-#else
     resized();
-#endif
 
-	//force mouseinput to be set again when the media starts to play
-	m_player->setMouseInputCallBack(NULL);
-    m_player->SetEventCallBack(this);
+	m_player->openAndPlay(path);
 
-	m_player->playPlayListItem(index);
-
-	forceSetVideoTime(name);
+	forceSetVideoTime(m_player->getCurrentVideoFileName());
 
 }
 
@@ -909,33 +811,6 @@ void VideoComponent::stop()
 
 
 
-
-#ifdef BUFFER_DISPLAY
-
-void *VideoComponent::vlcLock(void **p_pixels)
-{
-	imgCriticalSection.enter();
-	if(ptr)
-	{
-		*p_pixels = ptr->getLinePointer(0);
-	}
-	return NULL; /* picture identifier, not needed here */
-}
-
-void VideoComponent::vlcUnlock(void *id, void *const *p_pixels)
-{
-	imgCriticalSection.exit();
-
-	jassert(id == NULL); /* picture identifier, not needed here */
-}
-
-void VideoComponent::vlcDisplay(void *id)
-{
-	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::repaint,this));
-	jassert(id == NULL);
-}
-#else
-
 void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized)
 {
 	if(wasResized)
@@ -944,15 +819,13 @@ void VideoComponent::componentMovedOrResized(Component &  component,bool wasMove
 	}
 	else
 	{
-		vlcNativePopupComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+		m_dshowComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
 	}
 }
 void VideoComponent::componentVisibilityChanged(Component &  component)
 {
     resized();
 }
-
-#endif
 
 void VideoComponent::showVolumeSlider()
 {
@@ -1147,13 +1020,8 @@ void VideoComponent::onMenuOpenUnconditionnal (AbstractMenuItem& item, juce::Str
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	appendAndPlay(path.toUTF8().getAddress());
 /*
-    vlcNativePopupComponent->loadMovie(path);
-    vlcNativePopupComponent->play();*/
-}
-void VideoComponent::onMenuQueue (AbstractMenuItem& item, juce::String path)
-{
-	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
-	m_player->addPlayListItem(path.toUTF8().getAddress());
+    m_dshowComponent->loadMovie(path);
+    m_dshowComponent->play();*/
 }
 juce::Drawable const* VideoComponent::getIcon(juce::String const& e)
 {
@@ -1189,9 +1057,6 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 
 		menu->addMenuItem(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1,
 				file.getFullPathName()), playAllImage.get());
-		menu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, boost::bind(&VideoComponent::onMenuQueue, this, _1,
-				file.getFullPathName()), addAllImage.get());
-
 
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false);
@@ -1279,17 +1144,17 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 }
 void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item)
 {
-	onMenuSearchOpenSubtitlesSelectLanguage(item, m_player->getCurrentPlayListItem().c_str());
+	onMenuSearchOpenSubtitlesSelectLanguage(item, m_player->getCurrentVideoFileName().c_str());
 }
 void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item)
 {
-	onMenuSearchSubtitleSeeker(item, m_player->getCurrentPlayListItem().c_str());
+	onMenuSearchSubtitleSeeker(item, m_player->getCurrentVideoFileName().c_str());
 }
 void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang)
 {
 	juce::TextEditor editor("Subtitle search");
 
-	editor.setText(m_player->getCurrentPlayListItem().c_str());
+	//editor.setText(m_player->getCurrentVideoPath().c_str());
 	editor.setLookAndFeel(&getLookAndFeel());
 	editor.setSize(3*(int)getWidth() / 4, 2*(int)menu->getFontHeight());
 
@@ -1428,14 +1293,15 @@ void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::Str
 	//menu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
 	menu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1 , lang, movieName));
 }
+
 bool isTVEpisode(juce::String str, int &season, int& episode)
 {
 #define EPISODE_NAME_PATTERN "\\+s([0-9]+)e([0-9]+)\\+"
-    RegularExpression::Result matchesSubscene;
-    if( RegularExpression::search(str.toRawUTF8(), matchesSubscene, RegularExpression(EPISODE_NAME_PATTERN, RegularExpression::icase)) )
+    boost::cmatch matchesSubscene;
+    if( boost::regex_search(str.toRawUTF8(), matchesSubscene, boost::regex(EPISODE_NAME_PATTERN, boost::regex::icase)) )
     {
-        season = boost::lexical_cast<int>(matchesSubscene[1].str());
-        episode = boost::lexical_cast<int>(matchesSubscene[2].str());
+        season = boost::lexical_cast<int>(matchesSubscene[1]);
+        episode = boost::lexical_cast<int>(matchesSubscene[2]);
         return true;
     }
     return false;
@@ -1637,12 +1503,12 @@ bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce
 
     if(resultSite==siteTarget)
     {
-        RegularExpression expressionSubscene(match, RegularExpression::icase);
-        RegularExpression::Result matchesSubscene;
-        if(RegularExpression::search(cstr, matchesSubscene, expressionSubscene))
+        boost::regex expressionSubscene(match, boost::regex::icase);
+        boost::cmatch matchesSubscene;
+        if(boost::regex_search(cstr, matchesSubscene, expressionSubscene))
         {
 
-            juce::String downloadURL( str( boost::format(downloadURLPattern)% matchesSubscene[1].str()).c_str() );
+            juce::String downloadURL( str( boost::format(downloadURLPattern)% matchesSubscene[1]).c_str() );
             onMenuDowloadOpenSubtitle(item, downloadURL);
 /*
             //get html
@@ -1679,10 +1545,10 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
             std::string ex("href=\"([^\"]*");
             ex += site.toUTF8().getAddress();
             ex += "[^\"]*)";
-            RegularExpression expression(ex, RegularExpression::icase);
+            boost::regex expression(ex, boost::regex::icase);
 
-           RegularExpression::Result matches;
-           if(RegularExpression::search((char*)memStream.getData(), matches, expression))
+           boost::cmatch matches;
+           if(boost::regex_search((char*)memStream.getData(), matches, expression))
            {
                 juce::String otherStr(matches[1].str().c_str());
 
@@ -2176,41 +2042,6 @@ void VideoComponent::onMenuExit(AbstractMenuItem& item)
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
-void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
-{
-	saveCurrentMediaTime();
-
-	std::string name;
-	try
-	{
-		std::vector<std::string > list = m_player->getCurrentPlayList();
-		name = list.at(index);
-	}
-	catch(std::exception const& )
-	{
-	}
-	//force mouseinput to be set again when the media starts to play
-	m_player->setMouseInputCallBack(NULL);
-    m_player->SetEventCallBack(this);
-
-	m_player->playPlayListItem(index);
-
-	forceSetVideoTime(name);
-}
-void VideoComponent::onShowPlaylist(AbstractMenuItem& item)
-{
-	setBrowsingFiles(true);
-
-	int current = m_player->getCurrentPlayListItemIndex ();
-	std::vector<std::string > list = m_player->getCurrentPlayList();
-	int i=0;
-	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
-	{
-		menu->addMenuItem(juce::CharPointer_UTF8(it->c_str()), AbstractMenuItem::REFRESH_MENU, boost::bind(&VideoComponent::onPlaylistItem, this, _1, i), i==current?getItemImage():nullptr);
-		++i;
-	}
-
-}
 void VideoComponent::onLanguageSelect(AbstractMenuItem& item, std::string lang)
 {
 	setBrowsingFiles(false);
@@ -2263,7 +2094,6 @@ void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 
 	menu->addMenuItem( TRANS("Open"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuListFiles, this, _1, &VideoComponent::onMenuOpenFolder), getFolderImage());
-	menu->addMenuItem( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onShowPlaylist, this, _1), getPlaylistImage());
 	menu->addMenuItem( TRANS("Subtitles"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSubtitleMenu, this, _1), getSubtitlesImage());
 	menu->addMenuItem( TRANS("Video"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuVideoOptions, this, _1), getDisplayImage());
 	menu->addMenuItem( TRANS("Sound"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuSoundOptions, this, _1), getAudioImage());
@@ -2281,10 +2111,6 @@ void VideoComponent::vlcTimeChanged(int64_t newTime)
 	if(!m_player)
 	{
 		return;
-	}
-	if(!mousehookset)
-	{
-		mousehookset = m_player->setMouseInputCallBack(this);
 	}
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::updateTimeAndSlider,this, newTime));
 }
@@ -2336,7 +2162,7 @@ void VideoComponent::vlcPaused()
 }
 void VideoComponent::vlcStarted()
 {
-	titleBar->setTitle(m_player->getCurrentPlayListItem());
+	titleBar->setTitle(m_player->getCurrentVideoFileName());
 	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::startedSynchronous,this));
 }
@@ -2346,7 +2172,7 @@ void VideoComponent::vlcStopped()
 	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::stoppedSynchronous,this));
 }
-
+/*
 void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	//DBG("vlcPopupCallback." << (rightClick?"rightClick":"leftClick") );
@@ -2360,10 +2186,6 @@ void VideoComponent::vlcPopupCallback(bool rightClick)
 	if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 
-}
-void VideoComponent::vlcFullScreenControlCallback()
-{
-	//DBG("vlcFullScreenControlCallback");
 }
 void VideoComponent::vlcMouseMove(int x, int y, int button)
 {
@@ -2382,20 +2204,20 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 }
-
+*/
 void VideoComponent::startedSynchronous()
 {
-	if(!vlcNativePopupComponent->isVisible())
+	if(!m_dshowComponent->isVisible())
 	{
 		setAlpha(1.f);
 		setOpaque(false);
-		vlcNativePopupComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
+		m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
 		controlComponent->setVisible(true);
-		vlcNativePopupComponent->setVisible(true);
-
+		m_dshowComponent->setVisible(true);
+/*
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
-
+*/
 		resized();
 	}
 	initFromMediaDependantSettings();
@@ -2403,12 +2225,14 @@ void VideoComponent::startedSynchronous()
 void VideoComponent::stoppedSynchronous()
 {
 
-	if(vlcNativePopupComponent->isVisible())
+	if(m_dshowComponent->isVisible())
 	{
 		setAlpha(1.f);
-		vlcNativePopupComponent->setVisible(false);
+		m_dshowComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
+		/*
 		getPeer()->getComponent().removeComponentListener(this);
+		*/
 	}
 }
 
@@ -2451,7 +2275,7 @@ void VideoComponent::saveCurrentMediaTime()
 	{
 		return;
 	}
-	std::string media = m_player->getCurrentPlayListItem();
+	std::string media = m_player->getCurrentVideoFileName();
 	if(media.empty())
 	{
 

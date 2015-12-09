@@ -19,30 +19,18 @@
 
 class InvokeLater;
 class TitleComponent;
-class BackgoundUPNP;
 class VLCNativePopupComponent;
 
 class VideoComponent   : public juce::Component , public juce::KeyListener,
-
-#ifdef BUFFER_DISPLAY
-	DisplayCallback,
-#else
 	juce::ComponentListener,
-#endif
-	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack, juce::TimeSliceClient
+	juce::Slider::Listener, juce::Button::Listener, EventCallBack, juce::TimeSliceClient
 {
-#ifdef BUFFER_DISPLAY
-	juce::ScopedPointer<juce::Image> img;
-	juce::ScopedPointer<juce::Image::BitmapData> ptr;
-#else
-    juce::ScopedPointer<VLCNativePopupComponent> vlcNativePopupComponent;
-#endif
     juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
+    juce::ScopedPointer<juce::DirectShowComponent> m_dshowComponent;
 	juce::ScopedPointer<Player> m_player;
-	juce::ScopedPointer<BackgoundUPNP> vlcMediaUPNPList;
 	bool sliderUpdating;
 	bool videoUpdating;
     juce::ScopedPointer<juce::Drawable> itemImage;
@@ -69,7 +57,6 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
-	bool mousehookset;
 	juce::int64 lastMouseMoveMovieTime;
 	juce::PropertiesFile m_settings;
 	juce::PropertiesFile m_mediaTimes;
@@ -120,15 +107,8 @@ public:
 	juce::Drawable const* getExitImage() const { return exitImage; };
 	juce::Drawable const* getSettingsImage() const { return settingsImage; };
 
-#ifdef BUFFER_DISPLAY
-	//VLC DiaplListener
-	void *vlcLock(void **p_pixels);
-	void vlcUnlock(void *id, void *const *p_pixels);
-	void vlcDisplay(void *id);
-#else
     void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
     void componentVisibilityChanged(Component& component);
-#endif
 
 	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
 
@@ -146,7 +126,6 @@ public:
     void onMenuOpenFile (AbstractMenuItem& item, juce::File file);
     void onMenuOpenFolder (AbstractMenuItem& item, juce::File file);
     void onMenuOpenUnconditionnal (AbstractMenuItem& item,  juce::String path);
-    void onMenuQueue (AbstractMenuItem& item,  juce::String path);
     void onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file);
     void onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file);
     void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
@@ -203,8 +182,6 @@ public:
 	void onMenuRatio(AbstractMenuItem& item);
 	void onMenuVideoAdjustOptions(AbstractMenuItem& item);
 	void onMenuVideoOptions(AbstractMenuItem& item);
-	void onPlaylistItem(AbstractMenuItem& item, int index);
-	void onShowPlaylist(AbstractMenuItem& item);
 	void onLanguageOptions(AbstractMenuItem& item);
 	void onLanguageSelect(AbstractMenuItem& item, std::string lang);
 	void onSetPlayerFonSize(AbstractMenuItem& item, int size);
@@ -218,10 +195,6 @@ public:
 	virtual void vlcPaused();
 	virtual void vlcStarted();
 	virtual void vlcStopped();
-	virtual void vlcPopupCallback(bool show);
-	virtual void vlcFullScreenControlCallback();
-	virtual void vlcMouseMove(int x, int y, int button);
-	virtual void vlcMouseClick(int x, int y, int button);
 
 	void startedSynchronous();
 	void stoppedSynchronous();

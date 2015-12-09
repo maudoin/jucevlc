@@ -5,7 +5,8 @@
 #include "execute.h"
 #include <stdio.h>
 
-Player::Player()
+Player::Player(juce::DirectShowComponent& dshowComp)
+:m_dshowComp(dshowComp)
 {
 
 }
@@ -17,31 +18,19 @@ Player::~Player(void)
 {
 }
 
-void Player::SetDisplayCallback(DisplayCallback* cb)
-{
-}
-
-
-void Player::SetAudioCallback(AudioCallback* cb)
-{
-}
-
 void Player::SetEventCallBack(EventCallBack* cb)
 {
-}
-void Player::SetBufferFormat(int imageWidth, int imageHeight, int imageStride)
-{
-}
-void Player::SetOutputWindow(void* pHwnd)
-{
+    m_pEventCallBack = cb;
 }
 
 void Player::play()
 {
+    m_dshowComp.play();
 }
 
 void Player::Pause()
 {
+    m_dshowComp.stop();
 }
 
 bool Player::isPaused()
@@ -64,22 +53,24 @@ bool Player::isStopped()
 
 void Player::Stop()
 {
+    m_dshowComp.stop();
 }
 
 int64_t Player::GetLength()
 {
-    int64_t length = 0;
+    int64_t length = m_dshowComp.getMovieDuration();
     return length;
 }
 
 int64_t Player::GetTime()
 {
-    int64_t time = 0;
+    int64_t time = m_dshowComp.getPosition();
     return time;
 }
 
 void Player::SetTime( int64_t newTime )
 {
+    m_dshowComp.setPosition (newTime);
 }
 
 void Player::Mute( bool mute /*= true*/ )
@@ -164,20 +155,6 @@ int Player::getCurrentSubtitleIndex()
 void Player::setSubtitleIndex(int i)
 {
 }
-
-void Player::SetInputCallBack(InputCallBack* cb)
-{
-}
-
-
-
-
-
-bool Player::setMouseInputCallBack(MouseInputCallBack* cb)
-{
-	return false;
-}
-
 
 
 std::vector<std::string> Player::getCropList()
@@ -317,37 +294,25 @@ std::string urlDecode(std::string const &SRC) {
     }
     return (ret);
 }
-std::vector<std::string> Player::getCurrentPlayList()
+bool Player::openAndPlay(std::string const& path)
 {
-	std::vector<std::string> out;
-	return out;
-}
-void Player::removePlaylistItem(int index)
-{
-}
-void Player::clearPlayList()
-{
-}
-int Player::addPlayListItem(std::string const& path)
-{
-	return 0;
-}
-std::string Player::getCurrentPlayListItem()
-{
-	return "???";
+    juce::String err;
+	bool ok = m_dshowComp.loadMovie (juce::String::fromUTF8(path.c_str()), err);
+	if(ok)
+    {
+        std::string::size_type i = path.find_last_of("/\\");
+        m_currentVideoFileName =  i == std::string::npos ? path : path.substr(i+1);
+    }
+    return ok;
 }
 
+std::string Player::getCurrentVideoFileName()const
+{
+    return m_currentVideoFileName;
+}
 bool Player::isSeekable()
 {
-	return false;
-}
-int Player::getCurrentPlayListItemIndex()
-{
-	return 0;
-}
-
-void Player::playPlayListItem(int index)
-{
+	return true;
 }
 //include the dot
 std::string getExtension(std::string const& path)

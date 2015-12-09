@@ -1,7 +1,6 @@
 
 #include "Thumbnailer.h"
 #include "ImageCatalog.h"
-#include "ffmpegWrapper.h"
 #include <math.h>
 #include "FileSorter.h"
 #include "Icons.h"
@@ -22,7 +21,6 @@ Thumbnailer::Thumbnailer(ImageCatalog& imageCatalogToFeed)
 {
 
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-	ffmpeg = new FFMpegWrapper(*this, thunmnailW, thunmnailH);
 
 }
 
@@ -54,9 +52,10 @@ bool Thumbnailer::startGeneration(juce::File const& entryToCreate, juce::File co
 	}
 	if( f != juce::File::nonexistent)
     {
+        /*
         ffmpeg->open(f.getFullPathName().toUTF8().getAddress());
         ffmpeg->seek(((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*ffmpeg->duration()/100));
-        ffmpeg->play();
+        ffmpeg->play();*/
     }
 }
 
@@ -65,7 +64,7 @@ bool Thumbnailer::newImageReady()
     const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 	return( currentThumbnailIndex>=thumbnailCount && currentThumbnail != juce::File::nonexistent);
 }
-
+/*
 void Thumbnailer::consumeFrame(FrameRead &f)
 {
     int processedThumbnailIndex;
@@ -74,19 +73,17 @@ void Thumbnailer::consumeFrame(FrameRead &f)
 		processedThumbnailIndex = currentThumbnailIndex;
 	}
 
-	imgCriticalSection.enter();
-	if(ptr)
-	{
-		memcpy(ptr->getLinePointer(std::min(processedThumbnailIndex,thumbnailCount-1)*thunmnailH), f.data(), f.size());
-	}
-	{
-		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnailIndex++;//prev image ready
-	}
-
-
-	juce::Image copy = img->createCopy();
-	imgCriticalSection.exit();
+	//imgCriticalSection.enter();
+	//if(ptr)
+	//{
+	//	memcpy(ptr->getLinePointer(std::min(processedThumbnailIndex,thumbnailCount-1)*thunmnailH), f.data(), f.size());
+	//}
+	//{
+	//	const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
+	//	currentThumbnailIndex++;//prev image ready
+	//}
+	//juce::Image copy = img->createCopy();
+	//imgCriticalSection.exit();
 
 
 	juce::File processedThumbnail;
@@ -105,8 +102,9 @@ void Thumbnailer::consumeFrame(FrameRead &f)
 	else
 	{
 	    //next snapshot
-        ffmpeg->seek(((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*ffmpeg->duration()/100));
-        ffmpeg->play();
+        //ffmpeg->seek(((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*ffmpeg->duration()/100));
+        //ffmpeg->play();
 	}
 
 }
+*/

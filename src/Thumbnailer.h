@@ -4,19 +4,17 @@
 
 #include "AppConfig.h"
 #include "juce.h"
-#include "FFMpegWrapper.h"
 #include <string>
 #include <map>
 
 class ImageCatalog;
 //==============================================================================
-class Thumbnailer : public FFMpegHandler
+class Thumbnailer
 {
 protected:
     juce::CriticalSection imgCriticalSection;
 	juce::ScopedPointer<juce::Image> img;
 	juce::ScopedPointer<juce::Image::BitmapData> ptr;
-	juce::ScopedPointer<FFMpegWrapper> ffmpeg;
 
     juce::CriticalSection imgStatusCriticalSection;
 	juce::File currentThumbnail;
@@ -34,10 +32,6 @@ public:
 	bool newImageReady();
 
 	bool busyOn(juce::File const& f)const;
-
-
-    void consumeFrame(FrameRead &f)override;
-
 };
 //==============================================================================
 
