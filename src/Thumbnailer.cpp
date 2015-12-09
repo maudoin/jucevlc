@@ -53,6 +53,72 @@ bool Thumbnailer::startGeneration(juce::File const& entryToCreate, juce::File co
 	if( f != juce::File::nonexistent)
     {
         /*
+      IGraphBuilder graphbuilder = (IGraphBuilder)new FilterGraph();
+      ISampleGrabber samplegrabber = (ISampleGrabber) new SampleGrabber();
+      graphbuilder.AddFilter((IBaseFilter)samplegrabber, "samplegrabber");
+
+      AMMediaType mt = new AMMediaType();
+      mt.majorType = MediaType.Video;
+      mt.subType = MediaSubType.RGB24;
+      mt.formatType = FormatType.VideoInfo;
+      samplegrabber.SetMediaType(mt);
+
+      int hr = graphbuilder.RenderFile("C:\\aaa\\c4.wmv", null);
+
+      IMediaEventEx mediaEvt = (IMediaEventEx)graphbuilder;
+      IMediaSeeking mediaSeek = (IMediaSeeking)graphbuilder;
+      IMediaControl mediaCtrl = (IMediaControl)graphbuilder;
+      IBasicAudio basicAudio = (IBasicAudio)graphbuilder;
+      IVideoWindow videoWin = (IVideoWindow)graphbuilder;
+
+      basicAudio.put_Volume(-10000);
+      videoWin.put_AutoShow(OABool.False);
+
+      samplegrabber.SetOneShot(true);
+      samplegrabber.SetBufferSamples(true);
+
+      long d = 0;
+      mediaSeek.GetDuration(out d);
+      long numSecs = d / 10000000;
+
+      long secondstocapture = (long)(numSecs * 0.10f);
+
+
+      DsLong rtStart, rtStop;
+      rtStart = new DsLong(secondstocapture * 10000000);
+      rtStop = rtStart;
+      mediaSeek.SetPositions(rtStart, AMSeekingSeekingFlags.AbsolutePositioning, rtStop, AMSeekingSeekingFlags.AbsolutePositioning);
+
+      mediaCtrl.Run();
+      EventCode evcode;
+      mediaEvt.WaitForCompletion(-1, out evcode);
+
+      VideoInfoHeader videoheader = new VideoInfoHeader();
+      AMMediaType grab = new AMMediaType();
+      samplegrabber.GetConnectedMediaType(grab);
+      videoheader =
+      (VideoInfoHeader)Marshal.PtrToStructure(grab.formatPtr,
+      typeof(VideoInfoHeader));
+
+
+      int width = videoheader.SrcRect.right;
+      int height = videoheader.SrcRect.bottom;
+      Bitmap b = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+
+      uint bytesPerPixel = (uint)(24 >> 3);
+      uint extraBytes = ((uint)width * bytesPerPixel) % 4;
+      uint adjustedLineSize = bytesPerPixel * ((uint)width + extraBytes);
+      uint sizeOfImageData = (uint)(height) * adjustedLineSize;
+
+
+      BitmapData bd1 = b.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+      int bufsize = (int)sizeOfImageData;
+      int n = samplegrabber.GetCurrentBuffer(ref bufsize, bd1.Scan0);
+      b.UnlockBits(bd1);
+      b.RotateFlip(RotateFlipType.RotateNoneFlipY);
+      b.Save("C:\\aaa\\out.bmp");
+      Marshal.ReleaseComObject(graphbuilder);
+      Marshal.ReleaseComObject(samplegrabber);
         ffmpeg->open(f.getFullPathName().toUTF8().getAddress());
         ffmpeg->seek(((1+currentThumbnailIndex)*(THUMB_TIME_POS_PERCENT-1)*ffmpeg->duration()/100));
         ffmpeg->play();*/

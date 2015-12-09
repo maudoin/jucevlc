@@ -14,16 +14,12 @@
 #include "IconMenu.h"
 
 
-#define BUFFER_DISPLAY
-#undef BUFFER_DISPLAY
-
 class InvokeLater;
 class TitleComponent;
-class VLCNativePopupComponent;
 
 class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::ComponentListener,
-	juce::Slider::Listener, juce::Button::Listener, EventCallBack, juce::TimeSliceClient
+	juce::Slider::Listener, juce::Button::Listener, juce::TimeSliceClient, juce::Timer
 {
     juce::ScopedPointer<juce::Component> m_toolTip;
     juce::ScopedPointer<ControlComponent> controlComponent;
@@ -72,6 +68,8 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 
 	IconMenu m_iconMenu;
 
+    boost::logic::tribool m_wasPlaying;
+    boost::logic::tribool m_wasLoaded;
 public:
     VideoComponent();
     virtual ~VideoComponent();
@@ -190,11 +188,12 @@ public:
 	void onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable);
 	void onPlayerOptions(AbstractMenuItem& item);
 	void onMenuRoot(AbstractMenuItem& item);
-	/////////////// VLC EvtListener
-	virtual void vlcTimeChanged(int64_t newTime);
-	virtual void vlcPaused();
-	virtual void vlcStarted();
-	virtual void vlcStopped();
+
+    virtual void timerCallback() override;
+	void playerTimeChanged(int64_t newTime);
+	void playerPaused();
+	void playerStarted();
+	void playerStopped();
 
 	void startedSynchronous();
 	void stoppedSynchronous();
@@ -203,11 +202,11 @@ public:
 	/////////////// GUI CALLBACKS
     void paint (juce::Graphics& g);
 
-    virtual void resized();
+    virtual void resized() override;
 	void updateTimeAndSlider(int64_t newTime);
 
-    virtual void sliderValueChanged (juce::Slider* slider);
-    virtual void buttonClicked (juce::Button* button);
+    virtual void sliderValueChanged (juce::Slider* slider) override;
+    virtual void buttonClicked (juce::Button* button) override;
 	void userTriedToCloseWindow();
 	bool keyPressed (const juce::KeyPress& key,
 								juce::Component* originatingComponent);

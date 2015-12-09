@@ -224,8 +224,6 @@ VideoComponent::VideoComponent()
 
 	m_player = new Player(*m_dshowComponent);
 
-    m_player->SetEventCallBack(this);
-
 	menu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRoot, this, _1), getItemImage());
 	menu->forceMenuRefresh();
 
@@ -273,6 +271,9 @@ VideoComponent::VideoComponent()
 	m_backgroundTasks.addTimeSliceClient(this);
 	m_backgroundTasks.startThread();
 
+
+    startTimer (1000 / 50);
+
 }
 
 VideoComponent::~VideoComponent()
@@ -298,7 +299,6 @@ VideoComponent::~VideoComponent()
 	controlComponent->stopButton().removeListener(this);
 	controlComponent = nullptr;
 	menu = nullptr;
-    m_player->SetEventCallBack(NULL);
 /*
 	getPeer()->getComponent().removeComponentListener(this);*/
 	m_dshowComponent = nullptr;
@@ -683,7 +683,7 @@ void VideoComponent::paint (juce::Graphics& g)
 	}
 	else
 	{
-		//g.fillAll (juce::Colours::black);
+		g.fillAll (juce::Colours::black);
 	}
 
 }
@@ -768,11 +768,17 @@ void VideoComponent::appendAndPlay(std::string const& path)
 	{
 		return;
 	}
+    addAndMakeVisible (m_dshowComponent.get());
     resized();
+	if(m_player->openAndPlay(path))
+    {
+        forceSetVideoTime(m_player->getCurrentVideoFileName());
+    }
+    else
+    {
+        removeChildComponent(m_dshowComponent.get());
+    }
 
-	m_player->openAndPlay(path);
-
-	forceSetVideoTime(m_player->getCurrentVideoFileName());
 
 }
 
@@ -2106,7 +2112,7 @@ void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 // m_player CALLBACKS
 //
 ////////////////////////////////////////////////////////////
-void VideoComponent::vlcTimeChanged(int64_t newTime)
+void VideoComponent::playerTimeChanged(int64_t newTime)
 {
 	if(!m_player)
 	{
@@ -2156,17 +2162,46 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 	}
 
 }
-void VideoComponent::vlcPaused()
+void VideoComponent::timerCallback()
+{
+    bool loaded= !m_player->isStopped();
+    if(m_wasLoaded != loaded)
+    {
+        if(loaded)
+        {
+            playerStarted();
+        }
+        else
+        {
+            playerStopped();
+        }
+        m_wasLoaded = loaded;
+    }
+    bool playing= m_player->isPlaying();
+    if(m_wasPlaying != playing)
+    {
+        if(!playing)
+        {
+            playerPaused();
+        }
+        m_wasPlaying = playing;
+    }
+    if(playing)
+    {
+        playerTimeChanged(m_player->GetTime());
+    }
+}
+void VideoComponent::playerPaused()
 {
 	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::showPausedControls,controlComponent.get()));
 }
-void VideoComponent::vlcStarted()
+void VideoComponent::playerStarted()
 {
 	titleBar->setTitle(m_player->getCurrentVideoFileName());
 	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::showPlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::startedSynchronous,this));
 }
-void VideoComponent::vlcStopped()
+void VideoComponent::playerStopped()
 {
 	titleBar->setTitle(std::string());
 	if(invokeLater)invokeLater->queuef(boost::bind  (&ControlComponent::hidePlayingControls,controlComponent.get()));
@@ -2211,9 +2246,9 @@ void VideoComponent::startedSynchronous()
 	{
 		setAlpha(1.f);
 		setOpaque(false);
-		m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
+//		m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
 		controlComponent->setVisible(true);
-		m_dshowComponent->setVisible(true);
+//		m_dshowComponent->setVisible(true);
 /*
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
@@ -2228,7 +2263,8 @@ void VideoComponent::stoppedSynchronous()
 	if(m_dshowComponent->isVisible())
 	{
 		setAlpha(1.f);
-		m_dshowComponent->setVisible(false);
+        removeChildComponent(m_dshowComponent.get());
+		controlComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		/*
 		getPeer()->getComponent().removeComponentListener(this);

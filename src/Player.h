@@ -7,16 +7,8 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <boost/logic/tribool.hpp>
 
-class EventCallBack
-{
-public:
-	virtual ~EventCallBack(){}
-	virtual void vlcTimeChanged(int64_t newTime) = 0;
-	virtual void vlcPaused() = 0;
-	virtual void vlcStarted() = 0;
-	virtual void vlcStopped() = 0;
-};
 class Player
 {
     juce::DirectShowComponent& m_dshowComp;
@@ -24,13 +16,9 @@ class Player
 	std::string m_currentVideoFileName;
 
 
-    EventCallBack* m_pEventCallBack;
 public:
 	Player(juce::DirectShowComponent& dshowComp);
 	~Player(void);
-
-
-    void SetEventCallBack(EventCallBack* cb);
 
 	void loadSubtitle(const char* pSubPathName);
 

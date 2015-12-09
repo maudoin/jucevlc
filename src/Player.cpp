@@ -18,11 +18,6 @@ Player::~Player(void)
 {
 }
 
-void Player::SetEventCallBack(EventCallBack* cb)
-{
-    m_pEventCallBack = cb;
-}
-
 void Player::play()
 {
     m_dshowComp.play();
@@ -35,11 +30,11 @@ void Player::Pause()
 
 bool Player::isPaused()
 {
-    return false;
+    return isStopped();
 }
 bool Player::isPlaying()
 {
-    return false;
+    return m_dshowComp.isPlaying();
 }
 
 bool Player::isStopping()
@@ -48,12 +43,12 @@ bool Player::isStopping()
 }
 bool Player::isStopped()
 {
-    return false;
+    return !m_dshowComp.isMovieOpen();
 }
 
 void Player::Stop()
 {
-    m_dshowComp.stop();
+    m_dshowComp.closeMovie();
 }
 
 int64_t Player::GetLength()
@@ -75,20 +70,22 @@ void Player::SetTime( int64_t newTime )
 
 void Player::Mute( bool mute /*= true*/ )
 {
+    setVolume(0.);
 }
 
 bool Player::GetMute()
 {
-    return false;
+    return getVolume()==0.;
 }
 
 double Player::getVolume()
 {
-    return 0.;
+    return m_dshowComp.getMovieVolume ();
 }
 
 void Player::setVolume( double volume )
 {
+    m_dshowComp.setMovieVolume (volume);
 }
 Player::AudioChannel Player::getAudioChannel()
 {
