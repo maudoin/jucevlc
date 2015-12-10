@@ -1,6 +1,3 @@
-// Player/Alex Skoruppa (alex.skoruppa@googlemail.com)
-// http://www.codeproject.com/info/cpol10.aspx
-
 #include "Player.h"
 #include "execute.h"
 #include <stdio.h>
@@ -299,6 +296,14 @@ bool Player::openAndPlay(std::string const& path)
     {
         std::string::size_type i = path.find_last_of("/\\");
         m_currentVideoFileName =  i == std::string::npos ? path : path.substr(i+1);
+
+        m_dshowComp.play();
+    }
+    else
+    {
+            juce::AlertWindow::showMessageBox (juce::AlertWindow::WarningIcon,
+                                         err+" --> Couldn't load the file!",
+                                         "Sorry, DirectShow didn't manage to load that file!");
     }
     return ok;
 }

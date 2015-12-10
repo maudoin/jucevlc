@@ -67,9 +67,9 @@ if (SUCCEEDED(hr))
 	pGraph->AddFilter(pFilter, L"Private Filter");
 	pGraph->RenderFile(pMediaClip, NULL);
 }*/
-IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
+IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, const GUID* guid=NULL)
 {
-    BOOL       bFound = FALSE;
+    bool       bFound = false;
     IEnumPins  *pEnum;
     IPin       *pPin;
 
@@ -79,25 +79,24 @@ IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
         PIN_DIRECTION PinDirThis;
         pPin->QueryDirection(&PinDirThis);
 
-        LPWSTR id;
-        pPin->QueryId(&id);
-        CoTaskMemFree(id);
-
-        AM_MEDIA_TYPE mediaType;
-        HRESULT hr = pPin->ConnectionMediaType(&mediaType);
-        if(SUCCEEDED(hr))
+        if(PinDir == PinDirThis)
         {
-            const GUID MEDIATYPE_Stream = {0xE436EB83, 0x524F, 0x11CE, {0x9F, 0x53, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
-            const GUID MEDIATYPE_Audio  = {0x73647561, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
-            const GUID MEDIATYPE_Video  = {0x73646976, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
-
-            bool isStream = IsEqualGUID(mediaType.majortype, MEDIATYPE_Stream);
-            bool isAudio =  IsEqualGUID(mediaType.majortype, MEDIATYPE_Audio);
-            bool isVideo =  IsEqualGUID(mediaType.majortype, MEDIATYPE_Video);
+            if(guid == NULL)
+            {
+                bFound = true;
+            }
+            else
+            {
+                AM_MEDIA_TYPE mediaType;
+                HRESULT hr = pPin->ConnectionMediaType(&mediaType);
+                bFound = SUCCEEDED(hr) && IsEqualGUID(mediaType.majortype, *guid);
+            }
         }
+        //LPWSTR id;
+        //pPin->QueryId(&id);
+        //CoTaskMemFree(id);
 
-
-        if (bFound = (PinDir == PinDirThis))
+        if (bFound)
             break;
         pPin->Release();
     }
@@ -559,8 +558,35 @@ public:
         return false;
     }
     bool createFilterGraph(juce::String const& fileOrURLPath, juce::String & err)
-    {
+    {/*
+        const IID LAVSplitterSourceIID = uuidFromString("B98D13E7-55DB-4385-A33D-09FD1BA26338");
 
+        IUnknown* pUnkSourceFilter = NULL;
+        TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
+        HRESULT hr = CreateObjectFromPath(splitterPath, LAVSplitterSourceIID, &pUnkSourceFilter);
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create splitter source instance from ";
+            err += splitterPath;
+            return 0;
+        }
+
+        // Create an AVI splitter filter
+        IFileSourceFilter* pLAVSplitterSource = NULL;
+        hr = pUnk->QueryInterface (__uuidof(IFileSourceFilter), (void**)&pLAVSplitterSource);//{56A868A6-0AD4-11CE-B03A-0020AF0BA770}
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create query interface from instance of ";
+            err += splitterPath;
+            return 0;
+        }
+
+
+        SAFE_RELEASE(pLAVSplitterSource);
+        SAFE_RELEASE(pUnkSourceFilter);
+        */
         // Create a source filter
         IBaseFilter*	pSource= NULL;
         if(FAILED(graphBuilder->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,&pSource)))
@@ -569,7 +595,9 @@ public:
             return 0;
         }
 
-        IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT);
+        const GUID MEDIATYPE_Stream = {0xE436EB83, 0x524F, 0x11CE, {0x9F, 0x53, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+
+        IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT, &MEDIATYPE_Stream);
         if (!pSourceOut)
         {
 
@@ -609,7 +637,7 @@ public:
         //    return 0;
         //}
 
-        IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT);
+        IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT, &MEDIATYPE_Stream);
         if (!pAVIsIn)
         {
 
@@ -625,7 +653,10 @@ public:
             return 0;
         }
 
-        // Create an AVI decoder filter
+        ///////////////////////////////////////////////////////////////////////////////
+        // VIDEO decoder filter
+        ///////////////////////////////////////////////////////////////////////////////
+        const GUID MEDIATYPE_Video  = {0x73646976, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
         const IID LAVVideoDecoderIID = {0xEE30215D,0x164F,0x4A92,{0xA4,0xEB,0x9D,0x4C,0x13,0x39,0x0F,0x9F}};
 
         IUnknown* pUnkVideo = NULL;
@@ -647,14 +678,8 @@ public:
             err += splitterPath;
             return 0;
         }
-        //if(FAILED(CoCreateInstance(CLSID_AVIDec, NULL, CLSCTX_INPROC_SERVER,
-        //                           IID_IBaseFilter, (void**)&pAVIDec)) || !pAVIDec)
-        //{
-        //    err = "Unable to create AVI decoder";
-        //    return 0;
-        //}
 
-        IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT);
+        IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT, &MEDIATYPE_Video);
         if (!pAVIsOut)
         {
 
@@ -662,7 +687,7 @@ public:
             return 0;
         }
 
-        IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT);
+        IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT, &MEDIATYPE_Video);
         if (!pAVIDecIn)
         {
 
@@ -671,7 +696,7 @@ public:
         }
 
         // Connect the splitter and the decoder
-        if(FAILED(graphBuilder->AddFilter( pAVIDec, L"Decoder")) ||
+        if(FAILED(graphBuilder->AddFilter( pAVIDec, L"VideoDecoder")) ||
                 FAILED(graphBuilder->Connect(pAVIsOut, pAVIDecIn)) )
         {
             err = "Unable to connect AVI decoder filter";
@@ -692,13 +717,88 @@ public:
             err = "Unable to connect to renderer";
             return 0;
         }
+/*
+        ///////////////////////////////////////////////////////////////////////////////
+        // AUDIO decoder filter
+        ///////////////////////////////////////////////////////////////////////////////
+        const GUID MEDIATYPE_Audio  = {0x73647561, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
+        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
+
+        IUnknown* pUnkAudio = NULL;
+        TCHAR* audioDecoderPath=L"lav-filters64\\LAVAudio.ax";
+        hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, &pUnkVideo);
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create Audio decoder from ";
+            err += audioDecoderPath;
+            return 0;
+        }
+        IBaseFilter* pAudioDec = NULL;
+        hr = pUnkAudio->QueryInterface (__uuidof(IBaseFilter), (void**)&pAudioDec);
+        if (FAILED(hr))
+        {
+            err = ErrorAsString(hr);
+            err += "Unable create query interface from instance of ";
+            err += splitterPath;
+            return 0;
+        }
+
+        IPin* pSplitterAudioOut= GetPin(pAVISplitter, PINDIR_OUTPUT, &MEDIATYPE_Audio);
+        if (!pSplitterAudioOut)
+        {
+
+            err = "Unable to obtain Audio output splitter pin";
+            return 0;
+        }
+
+        IPin* pAudioDecIn= GetPin(pAudioDec, PINDIR_INPUT, &MEDIATYPE_Audio);
+        if (!pAudioDecIn)
+        {
+
+            err = "Unable to obtain Audio decoder input pin";
+            return 0;
+        }
+
+        // Connect the splitter and the decoder
+        if(FAILED(graphBuilder->AddFilter( pAudioDec, L"AudioDecoder")) ||
+                FAILED(graphBuilder->Connect(pSplitterAudioOut, pAVIDecIn)) )
+        {
+            err = "Unable to connect Audio decoder filter";
+            return 0;
+        }
+
+        // Render the stream from the decoder
+        IPin* pAudioDecOut= GetPin(pAudioDec, PINDIR_OUTPUT);
+        if (!pAudioDecOut)
+        {
+
+            err = "Unable to obtain audio decoder output pin";
+            return 0;
+        }
+
+        if(FAILED(graphBuilder->Render( pAudioDecOut )))
+        {
+            err = "Unable to connect to renderer";
+            return 0;
+        }
+*/
 #define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = 0; } }
         SAFE_RELEASE(pAVIDecIn);
         SAFE_RELEASE(pAVIDecOut);
         SAFE_RELEASE(pAVIDec);
         SAFE_RELEASE(pAVIsOut);
+
         SAFE_RELEASE(pAVIsIn);
         SAFE_RELEASE(pAVISplitter);
+/*
+
+        SAFE_RELEASE(pUnkAudio);
+        SAFE_RELEASE(pAudioDec);
+        SAFE_RELEASE(pAudioDecIn);
+        SAFE_RELEASE(pAudioDecOut);
+        SAFE_RELEASE(pSplitterAudioOut);*/
+
         SAFE_RELEASE(pSourceOut);
         SAFE_RELEASE(pSource);
         SAFE_RELEASE(pUnk);

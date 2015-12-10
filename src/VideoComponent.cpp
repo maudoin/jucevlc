@@ -210,7 +210,6 @@ VideoComponent::VideoComponent()
 	menu->setItemImage(getItemImage());
 	menu->asComponent()->addMouseListener(this, true);
 
-    addChildComponent(controlComponent);
     addChildComponent (menu->asComponent());
 	setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 
@@ -220,8 +219,11 @@ VideoComponent::VideoComponent()
 
 	//after set Size
 	m_dshowComponent = new juce::DirectShowComponent(juce::DirectShowComponent::dshowVMR7);
-    m_dshowComponent->setOpaque (true);
+	m_dshowComponent->setOpaque(true);
+    m_dshowComponent->addChildComponent(controlComponent);
+
     addChildComponent(m_dshowComponent);
+    //m_dshowComponent->setVisible(true);
 
 	m_player = new Player(*m_dshowComponent);
 
@@ -346,9 +348,20 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::switchFullScreen,this));
 		return true;
 	}
-	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
+	else if(key.isKeyCurrentlyDown(juce::KeyPress::F12Key))
+	{
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::appendAndPlay,this, "../data/test7.mp4"));
+		return true;
+	}
+	else if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
 	{
 		switchPlayPause();
+		return true;
+	}
+	else if(key.isKeyCurrentlyDown(juce::KeyPress::escapeKey))
+	{
+		stop();
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
 		return true;
 	}
 	return false;
@@ -643,12 +656,13 @@ void VideoComponent::auxilliarySliderModeButton(int result)
 void VideoComponent::broughtToFront()
 {
 	juce::Component::broughtToFront();
-
+/*
 	if(isVisible() && !isFullScreen()
 		&& m_dshowComponent && m_dshowComponent->getPeer() && getPeer())
 	{
 		m_dshowComponent->getPeer()->toBehind(getPeer());
 	}
+	*/
 }
 
 ////////////////////////////////////////////////////////////
@@ -680,11 +694,6 @@ void VideoComponent::paint (juce::Graphics& g)
 			m_iconMenu.paintMenu(g, (float)getWidth(), (float)getHeight());
 		}
 	}
-	else
-	{
-		g.fillAll (juce::Colours::black);
-	}
-
 }
 
 void VideoComponent::updateSubComponentsBounds()
@@ -702,14 +711,16 @@ void VideoComponent::updateSubComponentsBounds()
 
 void VideoComponent::resized()
 {
+    return;
 	updateSubComponentsBounds();
 
-	m_dshowComponent->setBounds(getScreenX(), getScreenY(), getWidth(), getHeight());
+	m_dshowComponent->setBounds(0, 0, /*getScreenX(), getScreenY(), */getWidth(), getHeight());
+	/*
 	if(m_dshowComponent->getPeer() && getPeer())
 	{
 		if(getPeer())getPeer()->toBehind(m_dshowComponent->getPeer());
 		toFront(false);
-	}
+	}*/
 
     if (titleBar != nullptr)
     {
@@ -768,7 +779,9 @@ void VideoComponent::appendAndPlay(std::string const& path)
 	}
     //addAndMakeVisible (m_dshowComponent.get());
     m_dshowComponent->setVisible(true);
+
     resized();
+
 	if(m_player->openAndPlay(path))
     {
         forceSetVideoTime(m_player->getCurrentVideoFileName());
@@ -2243,14 +2256,14 @@ void VideoComponent::startedSynchronous()
 	if(!m_dshowComponent->isVisible())
 	{
 		setAlpha(1.f);
-		setOpaque(false);
-//		m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
+		//setOpaque(false);
+		//m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
 		controlComponent->setVisible(true);
-//		m_dshowComponent->setVisible(true);
-
+		m_dshowComponent->setVisible(true);
+/*
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
-
+*/
 		resized();
 	}
 	initFromMediaDependantSettings();
@@ -2265,9 +2278,9 @@ void VideoComponent::stoppedSynchronous()
         //removeChildComponent(m_dshowComponent.get());
         m_dshowComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
-
+/*
 		getPeer()->getComponent().removeComponentListener(this);
-
+*/
 	}
 }
 
