@@ -17,7 +17,7 @@
 class InvokeLater;
 class TitleComponent;
 
-class VideoComponent   : public juce::Component , public juce::KeyListener,
+class VideoComponent   : public juce::DirectShowComponent , public juce::KeyListener,
 	juce::ComponentListener,
 	juce::Slider::Listener, juce::Button::Listener, juce::TimeSliceClient, juce::Timer
 {
@@ -25,7 +25,6 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     juce::ScopedPointer<ControlComponent> controlComponent;
     juce::ScopedPointer<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
-    juce::ScopedPointer<juce::DirectShowComponent> m_dshowComponent;
 	juce::ScopedPointer<Player> m_player;
 	bool sliderUpdating;
 	bool videoUpdating;

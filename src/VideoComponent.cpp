@@ -151,7 +151,7 @@ public:
 //
 ////////////////////////////////////////////////////////////
 VideoComponent::VideoComponent()
-	:juce::Component("JucePlayer")
+	:juce::DirectShowComponent(juce::DirectShowComponent::dshowVMR7)//Component("JucePlayer")
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
@@ -205,6 +205,7 @@ VideoComponent::VideoComponent()
 	controlComponent->auxilliarySliderModeButton().addListener(this);
 	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
+    addChildComponent(controlComponent);
 
 	menu = new MenuComponent ();
 	menu->setItemImage(getItemImage());
@@ -218,14 +219,13 @@ VideoComponent::VideoComponent()
 
 
 	//after set Size
-	m_dshowComponent = new juce::DirectShowComponent(juce::DirectShowComponent::dshowVMR7);
-	m_dshowComponent->setOpaque(true);
-    m_dshowComponent->addChildComponent(controlComponent);
+	//m_dshowComponent = new juce::DirectShowComponent(juce::DirectShowComponent::dshowVMR7);
+	//m_dshowComponent->setOpaque(true);
 
-    addChildComponent(m_dshowComponent);
+    //addChildComponent(m_dshowComponent);
     //m_dshowComponent->setVisible(true);
 
-	m_player = new Player(*m_dshowComponent);
+	m_player = new Player(*this);
 
 	menu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, boost::bind(&VideoComponent::onMenuRoot, this, _1), getItemImage());
 	menu->forceMenuRefresh();
@@ -304,7 +304,7 @@ VideoComponent::~VideoComponent()
 	menu = nullptr;
 
 	getPeer()->getComponent().removeComponentListener(this);
-	m_dshowComponent = nullptr;
+	//m_dshowComponent = nullptr;
 
 	/////////////////////
 	removeKeyListener(this);
@@ -402,7 +402,7 @@ void VideoComponent::switchFullScreen()
 }
 bool VideoComponent::isFrontpageVisible()
 {
-	return (!m_dshowComponent->isVisible() || m_player->isStopped()) && ! menu->asComponent()->isVisible();
+	return (!DirectShowComponent::isMovieOpen()/*!m_dshowComponent->isVisible()*/ || m_player->isStopped()) && ! menu->asComponent()->isVisible();
 }
 
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
@@ -545,6 +545,10 @@ void VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible)
 {
 	menu->asComponent()->setVisible(visible);
 	controlComponent->menuButton().setImages(menu->asComponent()->isVisible()?hideFolderShortcutImage:folderShortcutImage);
+	if(!m_player || m_player->isStopped())
+    {
+        repaint();
+    }
 }
 
 //==============================================================================
@@ -672,7 +676,11 @@ void VideoComponent::broughtToFront()
 ////////////////////////////////////////////////////////////
 void VideoComponent::paint (juce::Graphics& g)
 {
-	if(!m_dshowComponent->isVisible() || m_player->isStopped() )
+    if(DirectShowComponent::isMovieOpen())
+    {
+        DirectShowComponent::paint(g);
+    }
+	else//if(!m_dshowComponent->isVisible() || m_player->isStopped() )
 	{
 		g.fillAll (juce::Colours::black);
 		if(menu->asComponent()->isVisible())
@@ -711,10 +719,9 @@ void VideoComponent::updateSubComponentsBounds()
 
 void VideoComponent::resized()
 {
-    return;
 	updateSubComponentsBounds();
 
-	m_dshowComponent->setBounds(0, 0, /*getScreenX(), getScreenY(), */getWidth(), getHeight());
+	//m_dshowComponent->setBounds(0, 0, /*getScreenX(), getScreenY(), */getWidth(), getHeight());
 	/*
 	if(m_dshowComponent->getPeer() && getPeer())
 	{
@@ -766,6 +773,10 @@ void VideoComponent::forceSetVideoTime(std::string const& name)
 		forceSetVideoTime(time*1000);
 	}
 }
+void showErr(juce::String s, juce::String title)
+{
+    juce::AlertWindow::showMessageBox (juce::AlertWindow::WarningIcon,s,title);
+}
 //shuffled addition:
 //srand(unsigned(time(NULL)));
 //std::random_shuffle(pathes.begin(), pathes.end());
@@ -778,18 +789,27 @@ void VideoComponent::appendAndPlay(std::string const& path)
 		return;
 	}
     //addAndMakeVisible (m_dshowComponent.get());
-    m_dshowComponent->setVisible(true);
-
+    //m_dshowComponent->setVisible(true);
+    controlComponent->setVisible(true);
     resized();
 
-	if(m_player->openAndPlay(path))
+    juce::String err;
+	if(m_player->openAndPlay(path, err))
     {
         forceSetVideoTime(m_player->getCurrentVideoFileName());
     }
     else
     {
-        m_dshowComponent->setVisible(false);
         resized();
+        controlComponent->setVisible(false);
+
+
+		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
+		/*
+        if(invokeLater)invokeLater->queuef(boost::bind  (&showErr,
+                                         err+" --> Couldn't load the file!",
+                                         "Sorry, DirectShow didn't manage to load that file!"));*/
+        //m_dshowComponent->setVisible(false);
         //removeChildComponent(m_dshowComponent.get());
     }
 
@@ -839,7 +859,7 @@ void VideoComponent::componentMovedOrResized(Component &  component,bool wasMove
 	}
 	else
 	{
-		m_dshowComponent->setBounds(0, 0, /*getScreenX(), getScreenY(), */getWidth(), getHeight());
+		//m_dshowComponent->setBounds(0, 0, /*getScreenX(), getScreenY(), */getWidth(), getHeight());
 	}
 }
 void VideoComponent::componentVisibilityChanged(Component &  component)
@@ -2253,13 +2273,13 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 */
 void VideoComponent::startedSynchronous()
 {
-	if(!m_dshowComponent->isVisible())
+	//if(!m_dshowComponent->isVisible())
 	{
-		setAlpha(1.f);
+		//setAlpha(1.f);
 		//setOpaque(false);
 		//m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
 		controlComponent->setVisible(true);
-		m_dshowComponent->setVisible(true);
+		//m_dshowComponent->setVisible(true);
 /*
 		getPeer()->getComponent().removeComponentListener(this);
 		getPeer()->getComponent().addComponentListener(this);
@@ -2273,10 +2293,10 @@ void VideoComponent::stoppedSynchronous()
 
     controlComponent->setVisible(false);
 	setAlpha(1.f);
-	if(m_dshowComponent->isVisible())
+	//if(m_dshowComponent->isVisible())
 	{
         //removeChildComponent(m_dshowComponent.get());
-        m_dshowComponent->setVisible(false);
+        //m_dshowComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 /*
 		getPeer()->getComponent().removeComponentListener(this);

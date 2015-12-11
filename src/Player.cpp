@@ -7,9 +7,9 @@ Player::Player(juce::DirectShowComponent& dshowComp)
 {
 
 }
-std::string Player::getInfo() const
+std::string const& Player::getInfo() const
 {
-	return "JucePlayer";
+	return m_currentVideoFileName;
 }
 Player::~Player(void)
 {
@@ -288,9 +288,9 @@ std::string urlDecode(std::string const &SRC) {
     }
     return (ret);
 }
-bool Player::openAndPlay(std::string const& path)
+bool Player::openAndPlay(std::string const& path, juce::String &err)
 {
-    juce::String err;
+    err = juce::String::fromUTF8((path+" Nope!!").c_str());
 	bool ok = m_dshowComp.loadMovie (juce::String::fromUTF8(path.c_str()), err);
 	if(ok)
     {
@@ -301,14 +301,13 @@ bool Player::openAndPlay(std::string const& path)
     }
     else
     {
-            juce::AlertWindow::showMessageBox (juce::AlertWindow::WarningIcon,
-                                         err+" --> Couldn't load the file!",
-                                         "Sorry, DirectShow didn't manage to load that file!");
+
+        m_currentVideoFileName = err.toUTF8().getAddress();
     }
     return ok;
 }
 
-std::string Player::getCurrentVideoFileName()const
+std::string const& Player::getCurrentVideoFileName()const
 {
     return m_currentVideoFileName;
 }

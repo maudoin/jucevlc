@@ -125,10 +125,10 @@ public:
     AudioChannel getAudioChannel();
     void setAudioChannel(AudioChannel i);
 
-	bool openAndPlay(std::string const& path);
-	std::string getCurrentVideoFileName()const;
+	bool openAndPlay(std::string const& path, juce::String &err);
+	std::string const& getCurrentVideoFileName()const;
 
-	std::string getInfo() const;
+	std::string const& getInfo() const;
 
 	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > getAudioOutputList() const;
 	void setAudioOutputDevice(std::string const& output, std::string const& device);

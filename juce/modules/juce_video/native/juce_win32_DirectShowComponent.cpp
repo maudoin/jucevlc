@@ -99,6 +99,7 @@ IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, const GUID* guid=NULL)
         if (bFound)
             break;
         pPin->Release();
+        pPin=0;
     }
     pEnum->Release();
     return (bFound ? pPin : 0);
