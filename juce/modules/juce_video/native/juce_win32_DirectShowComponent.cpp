@@ -21,8 +21,24 @@
 
   ==============================================================================
 */
-typedef HRESULT (STDAPICALLTYPE* FN_DLLGETCLASSOBJECT)(REFCLSID clsid, REFIID iid, void** ppv);
 
+    juce::String ErrorAsString(DWORD errorMessageID=::GetLastError())
+    {
+        return juce::String::formatted("0x%8X", errorMessageID);
+        if(errorMessageID == 0)
+            return std::string("No error"); //No error message has been recorded
+
+        LPSTR messageBuffer = nullptr;
+        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                                     NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+        juce::String message(messageBuffer, size);
+
+        //Free the buffer.
+        LocalFree(messageBuffer);
+
+        return message;
+    }
 namespace{
 #include <functional>
 }
@@ -36,6 +52,7 @@ public:
     ~ComPtr()                                                 { release(); }
 
     operator ComClass*() const throw()     { return p; }
+    ComClass* get() const throw()     { return p; }
     operator bool() const throw()     { return p!=0; }
     bool operator !() const throw()     { return p==0; }
     ComClass& operator*() const throw()    { return *p; }
@@ -52,14 +69,47 @@ public:
 
     ComPtr& operator= (const ComPtr<ComClass>& newP)  { return operator= (newP.p); }
 
-    HRESULT wrap(std::function<HRESULT(void**)> f)
+
+    // Releases and nullifies this pointer and returns its address
+    HRESULT maySetAndReturnResult(HRESULT res, ComClass* ptr)
     {
-        ComClass* ptr;
-        HRESULT res=f((void**)(ComClass**)&ptr);
-        operator=(ptr);
+        if(SUCCEEDED(res))
+        {
+            operator=(ptr);
+        }
         return res;
     }
 
+    HRESULT wrap(std::function<HRESULT(void**)> f)
+    {
+        ComClass* ptr = NULL;
+        HRESULT res=f((void**)(ComClass**)&ptr);
+        return maySetAndReturnResult(res, ptr);
+    }
+
+    HRESULT wrap(std::function<HRESULT(ComClass**)> f)
+    {
+        ComClass* ptr = NULL;
+        HRESULT res=f(&ptr);
+        return maySetAndReturnResult(res, ptr);
+    }
+
+    template <class OtherComClass>
+    HRESULT QueryInterface (REFCLSID classUUID, ComPtr<OtherComClass>& destObject)
+    {
+        if (p == 0)
+            return E_POINTER;
+
+        OtherComClass* ptr = NULL;
+        HRESULT res= p->QueryInterface (classUUID, (void**)&ptr);
+        return destObject.maySetAndReturnResult(res, ptr);
+    }
+
+    template <class OtherComClass>
+    HRESULT QueryInterface (ComPtr<OtherComClass>& destObject)
+    {
+        return this->QueryInterface (__uuidof (OtherComClass), destObject);
+    }
 private:
     ComClass* p;
 
@@ -68,15 +118,10 @@ private:
     ComClass** operator&() throw(); // private to avoid it being used accidentally
 };
 
-HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
-{
-	// load the target DLL directly
-	HMODULE lib = LoadLibrary(pPath);//see https://github.com/fancycode/MemoryModule
-	if (!lib)
-	{
-		return HRESULT_FROM_WIN32(GetLastError());
-	}
 
+typedef HRESULT (STDAPICALLTYPE* FN_DLLGETCLASSOBJECT)(REFCLSID clsid, REFIID iid, void** ppv);
+HRESULT CreateObjectFromLib(HMODULE lib, REFCLSID clsid, ComPtr<IUnknown> &ppUnk)
+{
 	// the entry point is an exported function
 	FN_DLLGETCLASSOBJECT fn = (FN_DLLGETCLASSOBJECT)GetProcAddress(lib, "DllGetClassObject");
 	if (fn == NULL)
@@ -97,28 +142,42 @@ HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
 		else
 		{
 			// ask the class factory to create the object
-			hr = pCF->CreateInstance(NULL, IID_IUnknown, (void**)ppUnk);
+			hr = ppUnk.wrap([&](void** ptr){return pCF->CreateInstance(NULL, IID_IUnknown, (void**)ptr);});
 		}
+		pCF->Release();
 	}
 
 	return hr;
 }
-/*
-IUnknownPtr pUnk;
-HRESULT hr = CreateObjectFromPath(TEXT("c:\\path\\to\\myfilter.dll"), IID_MyFilter, &pUnk);
-if (SUCCEEDED(hr))
+
+HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, ComPtr<IUnknown> &ppUnk)
 {
-	IBaseFilterPtr pFilter = pUnk;
-	pGraph->AddFilter(pFilter, L"Private Filter");
-	pGraph->RenderFile(pMediaClip, NULL);
-}*/
-IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, const GUID* guid=NULL)
+	// load the target DLL directly
+	HMODULE lib = LoadLibrary(pPath);//see https://github.com/fancycode/MemoryModule
+	if (!lib)
+	{
+		return HRESULT_FROM_WIN32(GetLastError());
+	}
+    return CreateObjectFromLib(lib, clsid, ppUnk);
+};
+
+	static void deleteMediaType (AM_MEDIA_TYPE* const pmt)
+	{
+		if (pmt->cbFormat != 0)
+			CoTaskMemFree ((PVOID) pmt->pbFormat);
+
+		if (pmt->pUnk != nullptr)
+			pmt->pUnk->Release();
+
+		CoTaskMemFree (pmt);
+	}
+IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, juce::String &err, const GUID* guid=NULL)
 {
     bool       bFound = false;
-    IEnumPins  *pEnum;
     IPin       *pPin;
 
-    pFilter->EnumPins(&pEnum);
+	ComPtr<IEnumPins> pEnum;
+	HRESULT hr = pEnum.wrap([&](IEnumPins** ptr){return pFilter->EnumPins(ptr);});
     while(pEnum->Next(1, &pPin, 0) == S_OK)
     {
         PIN_DIRECTION PinDirThis;
@@ -126,27 +185,44 @@ IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, const GUID* guid=NULL)
 
         if(PinDir == PinDirThis)
         {
-            if(true || guid == NULL)
+            if(guid == NULL)
             {
                 bFound = true;
             }
             else
             {
-                AM_MEDIA_TYPE mediaType;
-                HRESULT hr = pPin->ConnectionMediaType(&mediaType);
-                bFound = SUCCEEDED(hr) && IsEqualGUID(mediaType.majortype, *guid);
+
+                ComPtr<IEnumMediaTypes> pEnumMedia;
+                HRESULT hr = pEnumMedia.wrap([&](IEnumMediaTypes** ptr){return pPin->EnumMediaTypes(ptr);});
+                if(SUCCEEDED(hr))
+                {
+                    AM_MEDIA_TYPE *pmt = NULL;
+                    hr = pEnumMedia->Next(1, &pmt, NULL);
+                    if(S_OK == hr)
+                    {
+                        bFound = IsEqualGUID(pmt->majortype, *guid);
+                        deleteMediaType(pmt);
+                    }
+                    else
+                    {
+                        err = "Next ";
+                        err += ErrorAsString(hr);
+                    }
+
+                }
+                else
+                {
+                    err = "EnumMediaTypes";
+                    err += ErrorAsString(hr);
+                }
             }
         }
-        //LPWSTR id;
-        //pPin->QueryId(&id);
-        //CoTaskMemFree(id);
 
         if (bFound)
             break;
         pPin->Release();
         pPin=0;
     }
-    pEnum->Release();
     return (bFound ? pPin : 0);
 }
 namespace DirectShowHelpers
@@ -447,23 +523,6 @@ public:
         needToUpdateViewport = true;
         triggerAsyncUpdate();
     }
-    juce::String ErrorAsString(DWORD errorMessageID=::GetLastError())
-    {
-
-        if(errorMessageID == 0)
-            return std::string(); //No error message has been recorded
-
-        LPSTR messageBuffer = nullptr;
-        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                     NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-
-        juce::String message(messageBuffer, size);
-
-        //Free the buffer.
-        LocalFree(messageBuffer);
-
-        return message;
-    }
     //======================================================================
     bool loadFile (const String& fileOrURLPath, String& err)
     {
@@ -546,7 +605,10 @@ public:
             {
                 if(!createFilterGraph(fileOrURLPath.toWideCharPointer(), err))
                 {
-                    release();
+                    // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
+                    // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
+                    // more messages for the whole app. (That's what happens in Win7, anyway)
+                    MessageManager::getInstance()->runDispatchLoopUntil (200);
                     return false;
                 }
             }
@@ -604,65 +666,91 @@ public:
         return false;
     }
     bool createFilterGraph(juce::String const& fileOrURLPath, juce::String & err)
-    {/*
-        const IID LAVSplitterSourceIID = uuidFromString("B98D13E7-55DB-4385-A33D-09FD1BA26338");
-
-        IUnknown* pUnkSourceFilter = NULL;
-        TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
-        HRESULT hr = CreateObjectFromPath(splitterPath, LAVSplitterSourceIID, &pUnkSourceFilter);
-        if (FAILED(hr))
-        {
-            err = ErrorAsString(hr);
-            err += "Unable create splitter source instance from ";
-            err += splitterPath;
-            return 0;
-        }
-
-        // Create an AVI splitter filter
-        IFileSourceFilter* pLAVSplitterSource = NULL;
-        hr = pUnk->QueryInterface (__uuidof(IFileSourceFilter), (void**)&pLAVSplitterSource);//{56A868A6-0AD4-11CE-B03A-0020AF0BA770}
-        if (FAILED(hr))
-        {
-            err = ErrorAsString(hr);
-            err += "Unable create query interface from instance of ";
-            err += splitterPath;
-            return 0;
-        }
-
-
-        SAFE_RELEASE(pLAVSplitterSource);
-        SAFE_RELEASE(pUnkSourceFilter);
-        */
-        // Create a source filter
-        IBaseFilter*	pSource= NULL;
-        if(FAILED(graphBuilder->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,&pSource)))
-        {
-            err = "Unable to create source filter";
-            return 0;
-        }
-
+    {
         const GUID MEDIATYPE_Stream = {0xE436EB83, 0x524F, 0x11CE, {0x9F, 0x53, 0x00, 0x20, 0xAF, 0x0B, 0xA7, 0x70}};
+        const GUID MEDIATYPE_Video  = {0x73646976, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
+        const GUID MEDIATYPE_Audio  = {0x73647561, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
 
-        IPin* pSourceOut= GetPin(pSource, PINDIR_OUTPUT, &MEDIATYPE_Stream);
+        TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
+        TCHAR* videoDecoderPath=L"lav-filters64\\LAVVideo.ax";
+        TCHAR* audioDecoderPath=L"lav-filters64\\LAVAudio.ax";
+        //const IID LAVSplitterSourceIID = uuidFromString("B98D13E7, 0x55DB, 0x4385-A33D-09FD1BA26338");
+        const IID LAVSplitterSourceIID = {0xB98D13E7, 0x55DB, 0x4385, {0xA3, 0x3D, 0x09, 0xFD, 0x1B, 0xA2, 0x63, 0x38}};
+        //const IID LAVSplitterIID =       {0x171252A0, 0x8820, 0x4AFE, {0x9D, 0xF8, 0x5C, 0x92, 0xB2, 0xD6, 0x6B, 0x04}};
+        const IID LAVVideoDecoderIID =   {0xEE30215D, 0x164F, 0x4A92, {0xA4, 0xEB, 0x9D, 0x4C, 0x13, 0x39, 0x0F, 0x9F}};
+        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
+
+        HRESULT hr = 0;
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // Source filter
+        ///////////////////////////////////////////////////////////////////////////////
+        //ComPtr<IBaseFilter> pLAVSplitterSource;
+	    //hr = pLAVSplitterSource.wrap([&](IBaseFilter** ptr){return graphBuilder->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,ptr);});
+
+        ComPtr<IUnknown> pUnkSourceFilter;
+        hr = CreateObjectFromPath(splitterPath, LAVSplitterSourceIID, pUnkSourceFilter);
+        if (FAILED(hr))
+        {
+            err = "Unable create splitter source instance from ";
+            err += splitterPath;
+            return false;
+        }
+        ComPtr<IBaseFilter> pLAVSplitterSourceFilter;
+        hr = pUnkSourceFilter.QueryInterface (pLAVSplitterSourceFilter);
+        if (FAILED(hr))
+        {
+            err = "Unable create query interface from instance of ";
+            err += splitterPath;
+            return false;
+        }
+
+        hr = graphBuilder->AddFilter( pLAVSplitterSourceFilter, L"SplitterSource");
+        if(FAILED(hr))
+        {
+            err = "Unable to add source filter";
+            return false;
+        }
+        // Create an AVI splitter filter
+        ComPtr<IFileSourceFilter> pLAVSplitterSource;
+	    hr = pUnkSourceFilter.QueryInterface (pLAVSplitterSource);//{56A868A6-0AD4-11CE-B03A-0020AF0BA770}
+        if (FAILED(hr))
+        {
+            err = "Unable create query interface from instance of ";
+            err += splitterPath;
+            return false;
+        }
+
+        hr = pLAVSplitterSource->Load(fileOrURLPath.toWideCharPointer(), 0);
+        if(FAILED(hr))
+        {
+            err = "Unable to add load ";
+            err += fileOrURLPath;
+            return false;
+        }
+/*
+        ///////////////////////////////////////////////////////////////////////////////
+        // Splitter filter
+        ///////////////////////////////////////////////////////////////////////////////
+
+        IPin* pSourceOut= GetPin(pLAVSplitterSourceFilter.get(), PINDIR_OUTPUT, &MEDIATYPE_Stream);
         if (!pSourceOut)
         {
 
-            err = "Unable to obtain source pin";
-            return 0;
+            err = "Unable to obtain splitter stream source pin";
+            return false;
         }
 
 
-        const IID LAVSplitterIID = {0x171252A0,0x8820,0x4AFE, {0x9D,0xF8,0x5C,0x92,0xB2,0xD6,0x6B,0x04}};
 
-        IUnknown* pUnk = NULL;
-        TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
-        HRESULT hr = CreateObjectFromPath(splitterPath, LAVSplitterIID, &pUnk);
+        ComPtr<IUnknown> pUnk;
+        hr = CreateObjectFromLib(splitterLib, LAVSplitterIID, pUnk);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
             err += "Unable create splitter instance from ";
             err += splitterPath;
-            return 0;
+            return false;
         }
 
 
@@ -674,71 +762,69 @@ public:
             err = ErrorAsString(hr);
             err += "Unable create query interface from instance of ";
             err += splitterPath;
-            return 0;
+            return false;
         }
-        //if(FAILED(CoCreateInstance(CLSID_AviSplitter, NULL, CLSCTX_INPROC_SERVER,
-        //                           IID_IBaseFilter, (void**)&pAVISplitter)) || !pAVISplitter)
-        //{
-        //    err = "Unable to create AVI splitter";
-        //    return 0;
-        //}
 
         IPin* pAVIsIn= GetPin(pAVISplitter, PINDIR_INPUT, &MEDIATYPE_Stream);
         if (!pAVIsIn)
         {
 
             err = "Unable to obtain input splitter pin";
-            return 0;
+            return false;
         }
 
         // Connect the source and the splitter
-        if(FAILED(graphBuilder->AddFilter( pAVISplitter, L"Splitter")) ||
-                FAILED(graphBuilder->Connect(pSourceOut, pAVIsIn)) )
+        hr = graphBuilder->AddFilter( pAVISplitter, L"Splitter");
+        if(FAILED(hr) )
         {
-            err = "Unable to connect AVI splitter filter";
-            return 0;
+            err = "Unable to add video decoder";
+            return false;
         }
-
+        hr = graphBuilder->ConnectDirect(pSourceOut, pAVIsIn, 0);
+        if(FAILED(hr) )
+        {
+            err = "Unable to connect splitter filter to video decoder";
+            err += ErrorAsString(hr);
+            return false;
+        }
+*/
         ///////////////////////////////////////////////////////////////////////////////
         // VIDEO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
-        const GUID MEDIATYPE_Video  = {0x73646976, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
-        const IID LAVVideoDecoderIID = {0xEE30215D,0x164F,0x4A92,{0xA4,0xEB,0x9D,0x4C,0x13,0x39,0x0F,0x9F}};
 
-        IUnknown* pUnkVideo = NULL;
-        TCHAR* videoDecoderPath=L"lav-filters64\\LAVVideo.ax";
-        hr = CreateObjectFromPath(videoDecoderPath, LAVVideoDecoderIID, &pUnkVideo);
+        ComPtr<IUnknown> pUnkVideo;
+        hr = CreateObjectFromPath(videoDecoderPath, LAVVideoDecoderIID, pUnkVideo);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
             err += "Unable create video decoder from ";
             err += videoDecoderPath;
-            return 0;
+            return false;
         }
-        IBaseFilter* pAVIDec = NULL;
-        hr = pUnkVideo->QueryInterface (__uuidof(IBaseFilter), (void**)&pAVIDec);
+        ComPtr<IBaseFilter> pAVIDec = NULL;
+        hr = pUnkVideo.QueryInterface (pAVIDec);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
             err += "Unable create query interface from instance of ";
             err += splitterPath;
-            return 0;
+            return false;
         }
 
-        IPin* pAVIsOut= GetPin(pAVISplitter, PINDIR_OUTPUT, &MEDIATYPE_Video);
+        ComPtr<IPin> pAVIsOut= GetPin(pLAVSplitterSourceFilter, PINDIR_OUTPUT, err, &MEDIATYPE_Video);
         if (!pAVIsOut)
         {
 
-            err = "Unable to obtain output splitter pin";
-            return 0;
+            err += "Unable to obtain output splitter pin";
+            return false;
         }
 
-        IPin* pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT, &MEDIATYPE_Video);
+        ComPtr<IPin> pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT, err);
         if (!pAVIDecIn)
         {
 
             err = "Unable to obtain decoder input pin";
-            return 0;
+            return false;
         }
 
         // Connect the splitter and the decoder
@@ -746,39 +832,36 @@ public:
                 FAILED(graphBuilder->Connect(pAVIsOut, pAVIDecIn)) )
         {
             err = "Unable to connect AVI decoder filter";
-            return 0;
+            return false;
         }
 
         // Render the stream from the decoder
-        IPin* pAVIDecOut= GetPin(pAVIDec, PINDIR_OUTPUT);
+        ComPtr<IPin> pAVIDecOut = GetPin(pAVIDec, PINDIR_OUTPUT, err);
         if (!pAVIDecOut)
         {
 
             err = "Unable to obtain decoder output pin";
-            return 0;
+            return false;
         }
 
         if(FAILED(graphBuilder->Render( pAVIDecOut )))
         {
             err = "Unable to connect to renderer";
-            return 0;
+            return false;
         }
 /*
         ///////////////////////////////////////////////////////////////////////////////
         // AUDIO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
-        const GUID MEDIATYPE_Audio  = {0x73647561, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71}};
-        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
 
-        IUnknown* pUnkAudio = NULL;
-        TCHAR* audioDecoderPath=L"lav-filters64\\LAVAudio.ax";
-        hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, &pUnkVideo);
+        ComPtr<IUnknown> pUnkAudio = NULL;
+        hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, pUnkAudio);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
             err += "Unable create Audio decoder from ";
             err += audioDecoderPath;
-            return 0;
+            return false;
         }
         IBaseFilter* pAudioDec = NULL;
         hr = pUnkAudio->QueryInterface (__uuidof(IBaseFilter), (void**)&pAudioDec);
@@ -787,7 +870,7 @@ public:
             err = ErrorAsString(hr);
             err += "Unable create query interface from instance of ";
             err += splitterPath;
-            return 0;
+            return false;
         }
 
         IPin* pSplitterAudioOut= GetPin(pAVISplitter, PINDIR_OUTPUT, &MEDIATYPE_Audio);
@@ -795,7 +878,7 @@ public:
         {
 
             err = "Unable to obtain Audio output splitter pin";
-            return 0;
+            return false;
         }
 
         IPin* pAudioDecIn= GetPin(pAudioDec, PINDIR_INPUT, &MEDIATYPE_Audio);
@@ -803,7 +886,7 @@ public:
         {
 
             err = "Unable to obtain Audio decoder input pin";
-            return 0;
+            return false;
         }
 
         // Connect the splitter and the decoder
@@ -811,7 +894,7 @@ public:
                 FAILED(graphBuilder->Connect(pSplitterAudioOut, pAVIDecIn)) )
         {
             err = "Unable to connect Audio decoder filter";
-            return 0;
+            return false;
         }
 
         // Render the stream from the decoder
@@ -820,35 +903,15 @@ public:
         {
 
             err = "Unable to obtain audio decoder output pin";
-            return 0;
+            return false;
         }
 
         if(FAILED(graphBuilder->Render( pAudioDecOut )))
         {
             err = "Unable to connect to renderer";
-            return 0;
+            return false;
         }
 */
-#define SAFE_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = 0; } }
-        SAFE_RELEASE(pAVIDecIn);
-        SAFE_RELEASE(pAVIDecOut);
-        SAFE_RELEASE(pAVIDec);
-        SAFE_RELEASE(pAVIsOut);
-
-        SAFE_RELEASE(pAVIsIn);
-        SAFE_RELEASE(pAVISplitter);
-/*
-
-        SAFE_RELEASE(pUnkAudio);
-        SAFE_RELEASE(pAudioDec);
-        SAFE_RELEASE(pAudioDecIn);
-        SAFE_RELEASE(pAudioDecOut);
-        SAFE_RELEASE(pSplitterAudioOut);*/
-
-        SAFE_RELEASE(pSourceOut);
-        SAFE_RELEASE(pSource);
-        SAFE_RELEASE(pUnk);
-        SAFE_RELEASE(pUnkVideo);
 
         return 1;
     }

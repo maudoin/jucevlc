@@ -810,9 +810,6 @@ void VideoComponent::appendAndPlay(std::string const& path)
 	{
 		return;
 	}
-    //addAndMakeVisible (*m_dshowComponent.get);
-    //m_dshowComponent->setVisible(true);
-    m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
     m_dshowComponent->setVisible(true);
     controlComponent->setVisible(true);
     resized();
@@ -824,17 +821,13 @@ void VideoComponent::appendAndPlay(std::string const& path)
     }
     else
     {
-        resized();
-        controlComponent->setVisible(false);
-
-
-		if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
-		/*
-        if(invokeLater)invokeLater->queuef(boost::bind  (&showErr,
-                                         err+" --> Couldn't load the file!",
-                                         "Sorry, DirectShow didn't manage to load that file!"));*/
         m_dshowComponent->setVisible(false);
-        //removeChildComponent(m_dshowComponent.get());
+        controlComponent->setVisible(false);
+		//if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, true));
+
+        //if(invokeLater)invokeLater->queuef(boost::bind  (&showErr,
+        //                                 err+" --> Couldn't load the file!",
+        //                                 "Sorry, DirectShow didn't manage to load that file!"));
     }
 
 
@@ -2176,6 +2169,11 @@ void VideoComponent::playerTimeChanged(int64_t newTime)
 	{
 		return;
 	}
+    if(newTime >= m_player->GetLength())
+    {
+        if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::stop,this));
+        return;
+    }
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::updateTimeAndSlider,this, newTime));
 }
 
