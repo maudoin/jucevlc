@@ -1029,7 +1029,10 @@
 		</Unit>
 		<Unit filename="src/vlc.ico" />
 		<Extensions>
-			<code_completion />
+			<code_completion>
+				<search_path add="juce\modules\juce_video\native" />
+				<search_path add="juce\modules\juce_core\memory" />
+			</code_completion>
 			<envvars />
 			<debugger />
 		</Extensions>

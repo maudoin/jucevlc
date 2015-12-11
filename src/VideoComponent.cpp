@@ -144,46 +144,6 @@ public:
 	}
 };
 
-
-class VideoList : public juce::MouseListener
-{
-public:
-    /** Destructor. */
-    virtual ~VideoList()  {}
-    virtual void mouseMove (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseEnter (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseExit (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseDown (const juce::MouseEvent& event)
-    {
-        exit(0);
-    }
-    virtual void mouseDrag (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseUp (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseDoubleClick (const juce::MouseEvent& event)
-    {
-
-    }
-    virtual void mouseWheelMove (const juce::MouseEvent& event,
-                                 const juce::MouseWheelDetails& wheel)
-    {
-
-    }
-};
 ////////////////////////////////////////////////////////////
 //
 // MAIN COMPONENT
@@ -284,6 +244,7 @@ VideoComponent::VideoComponent()
     addChildComponent (resizableBorder = new juce::ResizableBorderComponent (this, &defaultConstrainer));
 
 	addKeyListener(this);
+	addComponentListener(this);
 
     // And show it!
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
@@ -345,7 +306,7 @@ VideoComponent::~VideoComponent()
 	controlComponent = nullptr;
 	menu = nullptr;
 
-	getPeer()->getComponent().removeComponentListener(this);
+	//getPeer()->getComponent().removeComponentListener(this);
 	m_dshowComponent = nullptr;
 
 	/////////////////////
@@ -780,7 +741,7 @@ void VideoComponent::resized()
 {
 	updateSubComponentsBounds();
 
-	m_dshowComponent->setBounds(//0, 0,
+	m_dshowComponent->setBounds(
                              getScreenX(), getScreenY(),
                              getWidth(), getHeight());
 
@@ -923,7 +884,7 @@ void VideoComponent::componentMovedOrResized(Component &  component,bool wasMove
 	else
 	{
 	    //move free component only
-		m_dshowComponent->setBounds(//0, 0,
+		m_dshowComponent->setBounds(
                               getScreenX(), getScreenY(),
                               getWidth(), getHeight());
 	}
@@ -2339,15 +2300,15 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 */
 void VideoComponent::startedSynchronous()
 {
+    controlComponent->setVisible(true);
+    setAlpha(1.f);
+    setOpaque(false);
 	if(!m_dshowComponent->isVisible())
 	{
-		setAlpha(1.f);
-		setOpaque(false);
 		m_dshowComponent->setVisible(true);
-		controlComponent->setVisible(true);
 
-		getPeer()->getComponent().removeComponentListener(this);
-		getPeer()->getComponent().addComponentListener(this);
+		//getPeer()->getComponent().removeComponentListener(this);
+		//getPeer()->getComponent().addComponentListener(this);
 
 		resized();
 	}
@@ -2364,7 +2325,7 @@ void VideoComponent::stoppedSynchronous()
         m_dshowComponent->setVisible(false);
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 
-		getPeer()->getComponent().removeComponentListener(this);
+		//getPeer()->getComponent().removeComponentListener(this);
 
 	}
 }
