@@ -13,7 +13,7 @@
 #include <boost/regex.hpp>
 #include "InvokeLater.h"
 
-#define DISAPEAR_DELAY_MS 500
+#define DISAPEAR_DELAY_MS 2000
 #define DISAPEAR_SPEED_MS 500
 #define MAX_SUBTITLE_ARCHIVE_SIZE 1024*1024
 #define SUBTITLE_DOWNLOAD_TIMEOUT_MS 30000
@@ -145,6 +145,45 @@ public:
 };
 
 
+class VideoList : public juce::MouseListener
+{
+public:
+    /** Destructor. */
+    virtual ~VideoList()  {}
+    virtual void mouseMove (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseEnter (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseExit (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseDown (const juce::MouseEvent& event)
+    {
+        exit(0);
+    }
+    virtual void mouseDrag (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseUp (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseDoubleClick (const juce::MouseEvent& event)
+    {
+
+    }
+    virtual void mouseWheelMove (const juce::MouseEvent& event,
+                                 const juce::MouseWheelDetails& wheel)
+    {
+
+    }
+};
 ////////////////////////////////////////////////////////////
 //
 // MAIN COMPONENT
@@ -222,6 +261,8 @@ VideoComponent::VideoComponent()
     m_dshowComponent->setVisible(false);
     m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
     m_dshowComponent->setOpaque(true);
+	m_dshowComponent->addMouseListener(/*new VideoList()*/this, true);
+	m_dshowComponent->addKeyListener(this);
 
     //addChildComponent(m_dshowComponent);
     //m_dshowComponent->setVisible(true);
@@ -408,9 +449,18 @@ bool VideoComponent::isFrontpageVisible()
 
 void VideoComponent::mouseMove (const juce::MouseEvent& e)
 {
-	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while moving on sub component
+	m_canHideOSD = e.eventComponent == this || e.eventComponent == m_dshowComponent.get();//cannot hide sub component while moving on sub component
+    bool controlsExpired = (juce::Time::currentTimeMillis () - lastMouseMoveMovieTime) > (DISAPEAR_DELAY_MS + DISAPEAR_SPEED_MS );
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 
+    if(e.eventComponent == m_dshowComponent.get())
+    {
+        if(controlsExpired || m_player->isPaused())
+        {
+            //reactivateControls
+            if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+        }
+    }
 	if(e.eventComponent == &controlComponent->slider())
 	{
 		float min = controlComponent->slider().getPositionOfValue(controlComponent->slider().getMinimum());
@@ -441,8 +491,20 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 {
 	if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setAlpha,this, 1.f));
 
-	//DBG ( "click " << e.eventComponent->getName() );
-	if(e.eventComponent == this)
+    //DBG ( "click " << e.eventComponent->getName() );
+	if(e.eventComponent == m_dshowComponent.get())
+    {
+        lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+        //prevent menu to disappear too quickly
+        m_canHideOSD = !e.mods.isRightButtonDown();
+
+        bool showMenu = e.mods.isRightButtonDown() || m_player->isStopped();
+        if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
+        if(invokeLater)invokeLater->queuef(boost::bind  (&Component::toFront,this, true));
+        if(invokeLater)invokeLater->queuef(boost::bind  (&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+
+    }
+	if(e.eventComponent == this || e.eventComponent == m_dshowComponent.get())
 	{
 		if(e.mods.isRightButtonDown())
 		{
@@ -854,12 +916,13 @@ void VideoComponent::stop()
 
 void VideoComponent::componentMovedOrResized(Component &  component,bool wasMoved, bool wasResized)
 {
-	if(wasResized)
+	if(!wasMoved)
 	{
 		resized();
 	}
 	else
 	{
+	    //move free component only
 		m_dshowComponent->setBounds(//0, 0,
                               getScreenX(), getScreenY(),
                               getWidth(), getHeight());
@@ -2278,7 +2341,7 @@ void VideoComponent::startedSynchronous()
 {
 	if(!m_dshowComponent->isVisible())
 	{
-		//setAlpha(1.f);
+		setAlpha(1.f);
 		setOpaque(false);
 		m_dshowComponent->setVisible(true);
 		controlComponent->setVisible(true);
