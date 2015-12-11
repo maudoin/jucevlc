@@ -82,6 +82,7 @@
 				<Option compiler="gnu_gcc_compiler_64bits" />
 				<Compiler>
 					<Add option="-O3" />
+					<Add option="-std=c++11" />
 					<Add option="-m64" />
 					<Add option="-DWIN32" />
 					<Add option="-DNDEBUG" />

@@ -23,6 +23,51 @@
 */
 typedef HRESULT (STDAPICALLTYPE* FN_DLLGETCLASSOBJECT)(REFCLSID clsid, REFIID iid, void** ppv);
 
+namespace{
+#include <functional>
+}
+template <class ComClass>
+class ComPtr
+{
+public:
+    ComPtr() throw() : p (0)                                       {initComSmartPtr();}
+    ComPtr (ComClass* const obj) : p (obj)                    {initComSmartPtr(); if (p) p->AddRef(); }
+    ComPtr (const ComSmartPtr<ComClass>& other) : p (other.p) {initComSmartPtr(); if (p) p->AddRef(); }
+    ~ComPtr()                                                 { release(); }
+
+    operator ComClass*() const throw()     { return p; }
+    operator bool() const throw()     { return p!=0; }
+    bool operator !() const throw()     { return p==0; }
+    ComClass& operator*() const throw()    { return *p; }
+    ComClass* operator->() const throw()   { return p; }
+    template <class  X> operator X*() const throw()     { return (X*)p; }
+
+    ComPtr& operator= (ComClass* const newP)
+    {
+        if (newP != 0)  newP->AddRef();
+        release();
+        p = newP;
+        return *this;
+    }
+
+    ComPtr& operator= (const ComPtr<ComClass>& newP)  { return operator= (newP.p); }
+
+    HRESULT wrap(std::function<HRESULT(void**)> f)
+    {
+        ComClass* ptr;
+        HRESULT res=f((void**)(ComClass**)&ptr);
+        operator=(ptr);
+        return res;
+    }
+
+private:
+    ComClass* p;
+
+    void release()  { if (p != 0) p->Release(); }
+
+    ComClass** operator&() throw(); // private to avoid it being used accidentally
+};
+
 HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
 {
 	// load the target DLL directly
@@ -40,8 +85,8 @@ HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, IUnknown** ppUnk)
 	}
 
 	// create a class factory
-	IUnknown* pUnk;
-	HRESULT hr = fn(clsid,  IID_IUnknown,  (void**)(IUnknown**)&pUnk);
+	ComPtr<IUnknown> pUnk;
+	HRESULT hr = pUnk.wrap([&](void** ptr){return fn(clsid,  IID_IUnknown,  ptr);});
 	if (SUCCEEDED(hr))
 	{
 		IClassFactory* pCF = (IClassFactory*)pUnk;
