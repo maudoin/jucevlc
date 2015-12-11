@@ -81,7 +81,7 @@ IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, const GUID* guid=NULL)
 
         if(PinDir == PinDirThis)
         {
-            if(guid == NULL)
+            if(true || guid == NULL)
             {
                 bFound = true;
             }
