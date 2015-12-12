@@ -171,67 +171,95 @@ HRESULT CreateObjectFromPath(TCHAR* pPath, REFCLSID clsid, ComPtr<IUnknown> &ppU
 
 		CoTaskMemFree (pmt);
 	}
-IPin *GetPin(IBaseFilter *pFilter, PIN_DIRECTION PinDir, juce::String &err, const GUID* guid=NULL)
+
+std::function<bool(IPin*)> notConnected()
 {
-    bool       bFound = false;
-    IPin       *pPin;
+    return [](IPin* pPin){
+        ComPtr<IPin> pTmp;
+        HRESULT hr = pTmp.wrap([&](IPin** other){return pPin->ConnectedTo(other);});
+        return (hr == VFW_E_NOT_CONNECTED);
+    };
+}
+std::function<bool(IPin*)> withPinDir(PIN_DIRECTION PinDir)
+{
+    return [PinDir](IPin* pPin){
+        if(pPin == 0)
+        {
+            return false;
+        }
+        PIN_DIRECTION PinDirThis;
+        pPin->QueryDirection(&PinDirThis);
+        return(PinDir == PinDirThis);
+    };
+}
+std::function<bool(IPin*)> withPinName(TCHAR* name)
+{
+    return [name](IPin* pPin){
+        if(pPin == 0)
+        {
+            return false;
+        }
+        PIN_INFO info;
+        pPin->QueryPinInfo(&info);
+        return 0==wcscmp(info.achName,name);
+    };
+}
+std::function<bool(IPin*)> withPinDirAndName(PIN_DIRECTION PinDir, TCHAR* name)
+{
+    return [PinDir, name](IPin* pPin){
+        if(pPin == 0)
+        {
+            return false;
+        }
+        PIN_INFO info;
+        pPin->QueryPinInfo(&info);
+        return (PinDir == info.dir) &&  0==wcscmp(info.achName,name);
+    };
+}
+std::function<bool(IPin*)> withMajorType(const GUID& guid)
+{
+    return [&guid](IPin* pPin){
+        bool ok=false;
+        if(pPin == 0)
+        {
+            return false;
+        }
+        ComPtr<IEnumMediaTypes> pEnumMedia;
+        HRESULT hr = pEnumMedia.wrap([&](IEnumMediaTypes** ptr){return pPin->EnumMediaTypes(ptr);});
+        if(SUCCEEDED(hr))
+        {
+            AM_MEDIA_TYPE *pmt = NULL;
+            hr = pEnumMedia->Next(1, &pmt, NULL);
+            if(S_OK == hr)
+            {
+                ok = IsEqualGUID(pmt->majortype, guid);
+                deleteMediaType(pmt);
+            }
+        }
+        return ok;
+    };
+}
+IPin *GetPin(IBaseFilter *pFilter, std::vector<std::function<bool(IPin*)>> const&requirements)
+{
+    IPin       *pPin = nullptr;
 
 	ComPtr<IEnumPins> pEnum;
 	HRESULT hr = pEnum.wrap([&](IEnumPins** ptr){return pFilter->EnumPins(ptr);});
     while(pEnum->Next(1, &pPin, 0) == S_OK)
     {
-        ComPtr<IPin> pTmp;
-        hr = pTmp.wrap([&](IPin** ptr){return pPin->ConnectedTo(ptr);});
-        if (hr == VFW_E_NOT_CONNECTED)
+        bool allPassed = true;
+        for(auto requirementOk=requirements.begin();requirementOk!=requirements.end()&&allPassed;++requirementOk)
         {
-
-
-            PIN_DIRECTION PinDirThis;
-            pPin->QueryDirection(&PinDirThis);
-
-            if(PinDir == PinDirThis)
-            {
-                if(guid == NULL)
-                {
-                    bFound = true;
-                }
-                else
-                {
-
-                    ComPtr<IEnumMediaTypes> pEnumMedia;
-                    hr = pEnumMedia.wrap([&](IEnumMediaTypes** ptr){return pPin->EnumMediaTypes(ptr);});
-                    if(SUCCEEDED(hr))
-                    {
-                        AM_MEDIA_TYPE *pmt = NULL;
-                        hr = pEnumMedia->Next(1, &pmt, NULL);
-                        if(S_OK == hr)
-                        {
-                            bFound = IsEqualGUID(pmt->majortype, *guid);
-                            deleteMediaType(pmt);
-                        }
-                        else
-                        {
-                            err = "Next ";
-                            err += ErrorAsString(hr);
-                        }
-
-                    }
-                    else
-                    {
-                        err = "EnumMediaTypes";
-                        err += ErrorAsString(hr);
-                    }
-                }
-            }
+            allPassed &= (*requirementOk)(pPin);
         }
-
-
-        if (bFound)
-            break;
+        if (allPassed)
+        {
+            return pPin;
+        }
         pPin->Release();
-        pPin=0;
+        pPin=nullptr;
     }
-    return (bFound ? pPin : 0);
+    return pPin;
 }
 namespace DirectShowHelpers
 {
@@ -269,46 +297,54 @@ namespace DirectShowHelpers
         {
             ComSmartPtr <IVMRFilterConfig> filterConfig;
 
-            err = "CLSID_VideoMixingRenderer";
             HRESULT hr = baseFilter.CoCreateInstance (CLSID_VideoMixingRenderer);
+            if (FAILED (hr))
+            {
+                err = "CLSID_VideoMixingRenderer";
+                return hr;
+            }
 
-
-            if (SUCCEEDED (hr))
+            hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+            if (FAILED (hr))
             {
                 err = "AddFilter VMR-7";
-                hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+                return hr;
             }
-            else{ return hr;}
-            if (SUCCEEDED (hr))
+
+            hr = baseFilter.QueryInterface (filterConfig);
+            if (FAILED (hr))
             {
                 err = "QueryInterface filterConfig";
-                hr = baseFilter.QueryInterface (filterConfig);
+                return hr;
             }
-            else{ return hr;}
-            if (SUCCEEDED (hr))
+
+            hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+            if (FAILED (hr))
             {
                 err = "SetRenderingMode VMRMode_Windowless";
-                hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+                return hr;
             }
-            else{ return hr;}
-            if (SUCCEEDED (hr))
+
+            hr = baseFilter.QueryInterface (windowlessControl);
+            if (FAILED (hr))
             {
                 err = "QueryInterface windowlessControl";
-                hr = baseFilter.QueryInterface (windowlessControl);
+                return hr;
             }
-            else{ return hr;}
-            if (SUCCEEDED (hr))
+
+            hr = windowlessControl->SetVideoClippingWindow (hwnd);
+            if (FAILED (hr))
             {
                 err = "windowlessControl SetVideoClippingWindow";
-                hr = windowlessControl->SetVideoClippingWindow (hwnd);
+                return hr;
             }
-            else{ return hr;}
-            if (SUCCEEDED (hr))
+
+            hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+            if (FAILED (hr))
             {
                 err = "windowlessControl SetAspectRatioMode";
-                hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+                return hr;
             }
-            else{ return hr;}
 
             return hr;
         }
@@ -682,20 +718,15 @@ public:
         TCHAR* splitterPath=L"lav-filters64\\LAVSplitter.ax";
         TCHAR* videoDecoderPath=L"lav-filters64\\LAVVideo.ax";
         TCHAR* audioDecoderPath=L"lav-filters64\\LAVAudio.ax";
-        //const IID LAVSplitterSourceIID = uuidFromString("B98D13E7, 0x55DB, 0x4385-A33D-09FD1BA26338");
-        const IID LAVSplitterSourceIID = {0xB98D13E7, 0x55DB, 0x4385, {0xA3, 0x3D, 0x09, 0xFD, 0x1B, 0xA2, 0x63, 0x38}};
-        //const IID LAVSplitterIID =       {0x171252A0, 0x8820, 0x4AFE, {0x9D, 0xF8, 0x5C, 0x92, 0xB2, 0xD6, 0x6B, 0x04}};
-        const IID LAVVideoDecoderIID =   {0xEE30215D, 0x164F, 0x4A92, {0xA4, 0xEB, 0x9D, 0x4C, 0x13, 0x39, 0x0F, 0x9F}};
-        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
+        TCHAR* vobsubPath=L"xy-vsfilter_3.0.0.306_amd64\\VSFilter.dll";
+        TCHAR* SubtitleSourcePath=L"MPC-HC_standalone_filters.1.7.9.x64\\SubtitleSource.ax";
 
         HRESULT hr = 0;
 
         ///////////////////////////////////////////////////////////////////////////////
         // Source filter
         ///////////////////////////////////////////////////////////////////////////////
-        //ComPtr<IBaseFilter> pLAVSplitterSource;
-	    //hr = pLAVSplitterSource.wrap([&](IBaseFilter** ptr){return graphBuilder->AddSourceFilter(fileOrURLPath.toWideCharPointer(),0,ptr);});
-
+        const IID LAVSplitterSourceIID = {0xB98D13E7, 0x55DB, 0x4385, {0xA3, 0x3D, 0x09, 0xFD, 0x1B, 0xA2, 0x63, 0x38}};
         ComPtr<IUnknown> pUnkSourceFilter;
         hr = CreateObjectFromPath(splitterPath, LAVSplitterSourceIID, pUnkSourceFilter);
         if (FAILED(hr))
@@ -721,7 +752,7 @@ public:
         }
         // Create an AVI splitter filter
         ComPtr<IFileSourceFilter> pLAVSplitterSource;
-	    hr = pUnkSourceFilter.QueryInterface (pLAVSplitterSource);//{56A868A6-0AD4-11CE-B03A-0020AF0BA770}
+	    hr = pUnkSourceFilter.QueryInterface (pLAVSplitterSource);
         if (FAILED(hr))
         {
             err = "Unable create query interface from instance of ";
@@ -732,15 +763,31 @@ public:
         hr = pLAVSplitterSource->Load(fileOrURLPath.toWideCharPointer(), 0);
         if(FAILED(hr))
         {
-            err = "Unable to add load ";
+            err = "Unable to load ";
             err += fileOrURLPath;
             return false;
         }
 
+        ComPtr<IPin> pSplitterVideoOut= GetPin(pLAVSplitterSourceFilter, {notConnected(), withPinDir(PINDIR_OUTPUT) , withMajorType(MEDIATYPE_Video)});
+        if (!pSplitterVideoOut)
+        {
+
+            err += "Unable to obtain output splitter pin";
+            return false;
+        }
+
+        ComPtr<IPin> pSplitterAudioOut= GetPin(pLAVSplitterSourceFilter, {notConnected(), withPinDir(PINDIR_OUTPUT) , withMajorType(MEDIATYPE_Audio)});
+        if (!pSplitterAudioOut)
+        {
+
+            err = "Unable to obtain Audio output splitter pin";
+            return false;
+        }
         ///////////////////////////////////////////////////////////////////////////////
         // VIDEO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
 
+        const IID LAVVideoDecoderIID =   {0xEE30215D, 0x164F, 0x4A92, {0xA4, 0xEB, 0x9D, 0x4C, 0x13, 0x39, 0x0F, 0x9F}};
         ComPtr<IUnknown> pUnkVideo;
         hr = CreateObjectFromPath(videoDecoderPath, LAVVideoDecoderIID, pUnkVideo);
         if (FAILED(hr))
@@ -750,8 +797,8 @@ public:
             err += videoDecoderPath;
             return false;
         }
-        ComPtr<IBaseFilter> pAVIDec = NULL;
-        hr = pUnkVideo.QueryInterface (pAVIDec);
+        ComPtr<IBaseFilter> pVideoDecoder = NULL;
+        hr = pUnkVideo.QueryInterface (pVideoDecoder);
         if (FAILED(hr))
         {
             err = ErrorAsString(hr);
@@ -760,42 +807,175 @@ public:
             return false;
         }
 
-        ComPtr<IPin> pAVIsOut= GetPin(pLAVSplitterSourceFilter, PINDIR_OUTPUT, err, &MEDIATYPE_Video);
-        if (!pAVIsOut)
+        // Connect the splitter and the decoder
+        hr = graphBuilder->AddFilter( pVideoDecoder, L"VideoDecoder");
+        if (FAILED(hr))
         {
-
-            err += "Unable to obtain output splitter pin";
+            err = "Unable to add video decoder filter";
             return false;
         }
 
-        ComPtr<IPin> pAVIDecIn= GetPin(pAVIDec, PINDIR_INPUT, err);
-        if (!pAVIDecIn)
+        ComPtr<IPin> pVideoDecoderIn= GetPin(pVideoDecoder, {notConnected(), withPinDir(PINDIR_INPUT)});
+        if (!pVideoDecoderIn)
         {
 
             err = "Unable to obtain decoder input pin";
             return false;
         }
-
-        // Connect the splitter and the decoder
-        if(FAILED(graphBuilder->AddFilter( pAVIDec, L"VideoDecoder")) ||
-                FAILED(graphBuilder->ConnectDirect(pAVIsOut, pAVIDecIn, 0)) )
+        hr = graphBuilder->ConnectDirect(pSplitterVideoOut, pVideoDecoderIn, 0);
+        if (FAILED(hr))
         {
-            err = "Unable to connect AVI decoder filter";
+            err = "Unable to connect splitter out to video decoder filter";
             return false;
         }
 
         // Render the stream from the decoder
-        ComPtr<IPin> pAVIDecOut = GetPin(pAVIDec, PINDIR_OUTPUT, err);
-        if (!pAVIDecOut)
+        ComPtr<IPin> pVideoDecoderOut = GetPin(pVideoDecoder, {notConnected(), withPinDir(PINDIR_OUTPUT)});
+        if (!pVideoDecoderOut)
+        {
+
+            err = "Unable to obtain decoder output pin";
+            return false;
+        }
+/*
+        ///////////////////////////////////////////////////////////////////////////////
+        // Subtitles filter
+        ///////////////////////////////////////////////////////////////////////////////
+
+        const IID DirectVobSubIID = {0x9852A670, 0xF845, 0x491B, {0x9B, 0xE6, 0xEB, 0xD8, 0x41, 0xB8, 0xA6, 0x13}};
+                                    //{0x93A22E7A, 0x5091, 0x45EF, {0xBA, 0x61, 0x6D, 0xA2, 0x61, 0x56, 0xA5, 0xD0}};
+        ComPtr<IUnknown> pUnkVobSub;
+        hr = CreateObjectFromPath(vobsubPath, DirectVobSubIID, pUnkVobSub);
+        if (FAILED(hr))
+        {
+            err = "Unable create com instance from ";
+            err += vobsubPath;
+            err += ErrorAsString(hr);
+            return false;
+        }
+        ComPtr<IBaseFilter> pVobSubBase = NULL;
+        hr = pUnkVobSub.QueryInterface (pVobSubBase);
+        if (FAILED(hr))
+        {
+            err = "Unable create query vobsub interface";
+            err += ErrorAsString(hr);
+            return false;
+        }
+
+
+        hr = graphBuilder->AddFilter( pVobSubBase, L"Subtitles");
+        if (FAILED(hr))
+        {
+            err = "Unable to add vobsub filter";
+            err += ErrorAsString(hr);
+            return false;
+        }
+
+        ComPtr<IPin> pVobSubBaseVideoIn= GetPin(pVobSubBase, {notConnected(), withPinDirAndName(PINDIR_INPUT, L"Video")});
+        if (!pVobSubBaseVideoIn)
+        {
+
+            err = "Unable to obtain vobsub video input pin";
+            return false;
+        }
+
+        // Connect the splitter and the decoder
+        hr = graphBuilder->ConnectDirect(pVideoDecoderOut, pVobSubBaseVideoIn, 0);
+        if (FAILED(hr))
+        {
+            err = "Unable to connect video out to vobsub filter";
+            return false;
+        }
+
+
+        // Render the stream from the decoder
+        ComPtr<IPin> pVobSubBaseOut = GetPin(pVobSubBase, {notConnected(), withPinDir(PINDIR_OUTPUT)});
+        if (!pVobSubBaseOut)
         {
 
             err = "Unable to obtain decoder output pin";
             return false;
         }
 
-        if(FAILED(graphBuilder->Render( pAVIDecOut )))
+/*
+        ///////////////////////////////////////////////////////////////////////////////
+        // Subtitles source filter
+        ///////////////////////////////////////////////////////////////////////////////
+
+        IID SubtitleSourceIID={0xE44CA3B5, 0xA0FF, 0x41A0, {0xAF, 0x16, 0x42, 0x42, 0x9B, 0x10, 0x95, 0xEA}};
+        ComPtr<IUnknown> pUnkSubSource;
+        hr = CreateObjectFromPath(SubtitleSourcePath, SubtitleSourceIID, pUnkSubSource);
+        if (FAILED(hr))
         {
-            err = "Unable to connect to renderer";
+            err = "Unable create com instance from ";
+            err += SubtitleSourcePath;
+            err += ErrorAsString(hr);
+            return false;
+        }
+        ComPtr<IBaseFilter> pSubSourceBase = NULL;
+        hr = pUnkSubSource.QueryInterface (pSubSourceBase);
+        if (FAILED(hr))
+        {
+            err = "Unable create query subSource's base interface";
+            err += ErrorAsString(hr);
+            return false;
+        }
+        hr = graphBuilder->AddFilter( pSubSourceBase, L"SubtitleSource");
+        if(FAILED(hr))
+        {
+            err = "Unable to add sub source filter";
+            return false;
+        }
+
+        ComPtr<IFileSourceFilter> pSubSource;
+	    hr = pSubSourceBase.QueryInterface (pSubSource);
+        if (FAILED(hr))
+        {
+            err = "Unable create query interface from instance of ";
+            err += splitterPath;
+            return false;
+        }
+
+        hr = pSubSource->Load(L"path\\to.srt", 0);
+        if(FAILED(hr))
+        {
+            err = "Unable to load ";
+            err += fileOrURLPath;
+            return false;
+        }
+
+        // Render the stream from the decoder
+        ComPtr<IPin> pSubSourceOut = GetPin(pSubSourceBase, {notConnected(), withPinDir(PINDIR_OUTPUT)});
+        if (!pSubSourceOut)
+        {
+
+            err = "Unable to obtain decoder output pin";
+            return false;
+        }
+
+        ComPtr<IPin> pVobSubBaseInput= GetPin(pVobSubBase, {notConnected(), withPinDirAndName(PINDIR_INPUT, L"Input")});
+        if (!pVobSubBaseInput)
+        {
+
+            err = "Unable to obtain vobsub input pin";
+            return false;
+        }
+        // Connect the splitter and the decoder
+        hr = graphBuilder->ConnectDirect(pSubSourceOut, pVobSubBaseInput, 0);
+        if (FAILED(hr))
+        {
+            err = "Unable to connect sub source out to vobsub filter";
+            return false;
+        }
+        */
+        ///////////////////////////////////////////////////////////////////////////////
+        // Video renderer filter generation
+        ///////////////////////////////////////////////////////////////////////////////
+
+
+        if(FAILED(graphBuilder->Render( pVideoDecoderOut/*pVobSubBaseOut*/ )))
+        {
+            err = "Unable to connect to video renderer";
             return false;
         }
 
@@ -803,6 +983,7 @@ public:
         // AUDIO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
 
+        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
         ComPtr<IUnknown> pUnkAudio = NULL;
         hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, pUnkAudio);
         if (FAILED(hr))
@@ -822,22 +1003,6 @@ public:
             return false;
         }
 
-        ComPtr<IPin> pSplitterAudioOut= GetPin(pLAVSplitterSourceFilter, PINDIR_OUTPUT, err, &MEDIATYPE_Audio);
-        if (!pSplitterAudioOut)
-        {
-
-            err = "Unable to obtain Audio output splitter pin";
-            return false;
-        }
-
-        ComPtr<IPin> pAudioDecIn= GetPin(pAudioDec, PINDIR_INPUT, err);
-        if (!pAudioDecIn)
-        {
-
-            err = "Unable to obtain Audio decoder input pin";
-            return false;
-        }
-
         // Connect the splitter and the decoder
         hr = graphBuilder->AddFilter( pAudioDec, L"AudioDecoder");
         if(FAILED(hr))
@@ -846,6 +1011,15 @@ public:
             err += ErrorAsString(hr);
             return false;
         }
+
+        ComPtr<IPin> pAudioDecIn= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_INPUT)});
+        if (!pAudioDecIn)
+        {
+
+            err = "Unable to obtain Audio decoder input pin";
+            return false;
+        }
+
         hr = graphBuilder->ConnectDirect(pSplitterAudioOut, pAudioDecIn, 0);
         if(FAILED(hr))
         {
@@ -854,8 +1028,12 @@ public:
             return false;
         }
 
+        ///////////////////////////////////////////////////////////////////////////////
+        // Audio renderer filter generation
+        ///////////////////////////////////////////////////////////////////////////////
+
         // Render the stream from the decoder
-        IPin* pAudioDecOut= GetPin(pAudioDec, PINDIR_OUTPUT, err);
+        ComPtr<IPin> pAudioDecOut= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_OUTPUT)});
         if (!pAudioDecOut)
         {
 

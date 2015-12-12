@@ -221,11 +221,8 @@ VideoComponent::VideoComponent()
     m_dshowComponent->setVisible(false);
     m_dshowComponent->addToDesktop(juce::ComponentPeer::windowIsTemporary);
     m_dshowComponent->setOpaque(true);
-	m_dshowComponent->addMouseListener(/*new VideoList()*/this, true);
+	m_dshowComponent->addMouseListener(this, true);
 	m_dshowComponent->addKeyListener(this);
-
-    //addChildComponent(m_dshowComponent);
-    //m_dshowComponent->setVisible(true);
 
 	m_player = new Player(*m_dshowComponent);
 

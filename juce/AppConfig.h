@@ -94,5 +94,4 @@
  #define JUCE_DIRECTSHOW 1
 #endif
 
-
 #endif  // __JUCE_APPCONFIG_TTAKTK1S__
