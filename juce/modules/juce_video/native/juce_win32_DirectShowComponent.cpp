@@ -387,14 +387,38 @@ namespace DirectShowHelpers
     //======================================================================
     class VMR9  : public VideoRenderer
     {
+        DirectShowComponent::VideoRendererType m_type;
     public:
-        VMR9() {}
+        VMR9(DirectShowComponent::VideoRendererType type):m_type(type) {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
                         ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
         {
+            HRESULT hr;
 
-            HRESULT hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer9);
+            if(m_type==DirectShowComponent::VideoRendererType::dshowMadVR)
+            {
+                TCHAR* filterPath=L"madVR\\madVR64.ax";//64
+                const IID MadVRIID = {0xE1A8B82A, 0x32CE, 0x4B0D, {0xBE, 0x0D, 0xAA, 0x68, 0xC7, 0x72, 0xE4, 0x23}};//64
+                ComPtr<IUnknown> pUnk;
+                hr = CreateObjectFromPath(filterPath, MadVRIID, pUnk);
+                if (FAILED(hr))
+                {
+                    err = "Unable create splitter source instance from ";
+                    err += filterPath;
+                    return hr;
+                }
+                else
+                {
+                    ComSmartPtr<IUnknown> pUnk2=pUnk.get();
+                    hr = pUnk2.QueryInterface (rendererFilterBase);
+                }
+            }
+            else
+            {
+                hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer9);
+
+            }
             if (FAILED (hr))
             {
                 err = "CLSID_VideoMixingRenderer9";
@@ -730,12 +754,22 @@ public:
         if (SUCCEEDED (hr))
         {
             err="create";
+            switch(type)
+            {
+                case dshowVMR9:
+                case dshowMadVR:
+                    videoRenderer = new DirectShowHelpers::VMR9(type);
+                    break;
            #if JUCE_MEDIAFOUNDATION
-            if (type == dshowEVR)
-                videoRenderer = new DirectShowHelpers::EVR();
-            else
+                case dshowEVR:
+                    videoRenderer = new DirectShowHelpers::EVR();
+                    break;
            #endif
-                videoRenderer = new DirectShowHelpers::VMR7();
+                default:
+                case dshowVMR7:
+                    videoRenderer = new DirectShowHelpers::VMR7();
+                    break;
+            }
 
             hr = videoRenderer->create (graphBuilder, rendererFilterBase, hwnd, err);
             if (!SUCCEEDED (hr))
@@ -868,12 +902,7 @@ public:
         }
 
         ComPtr<IPin> pSplitterAudioOut= GetPin(pLAVSplitterSourceFilter, {notConnected(), withPinDir(PINDIR_OUTPUT) , withMajorType(MEDIATYPE_Audio)});
-        if (!pSplitterAudioOut)
-        {
 
-            err = "Unable to obtain Audio output splitter pin";
-            return false;
-        }
         ///////////////////////////////////////////////////////////////////////////////
         // VIDEO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
@@ -1084,69 +1113,72 @@ public:
         ///////////////////////////////////////////////////////////////////////////////
         // AUDIO decoder filter
         ///////////////////////////////////////////////////////////////////////////////
-
-        const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
-        ComPtr<IUnknown> pUnkAudio = NULL;
-        hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, pUnkAudio);
-        if (FAILED(hr))
-        {
-            err = ErrorAsString(hr);
-            err += "Unable create Audio decoder from ";
-            err += audioDecoderPath;
-            return false;
-        }
-        ComPtr<IBaseFilter> pAudioDec = NULL;
-        hr = pUnkAudio.QueryInterface (pAudioDec);
-        if (FAILED(hr))
-        {
-            err = ErrorAsString(hr);
-            err += "Unable create query interface from instance of ";
-            err += splitterPath;
-            return false;
-        }
-
-        // Connect the splitter and the decoder
-        hr = graphBuilder->AddFilter( pAudioDec, L"AudioDecoder");
-        if(FAILED(hr))
-        {
-            err = "Unable to add Audio decoder filter";
-            err += ErrorAsString(hr);
-            return false;
-        }
-
-        ComPtr<IPin> pAudioDecIn= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_INPUT)});
-        if (!pAudioDecIn)
+        if (pSplitterAudioOut)
         {
 
-            err = "Unable to obtain Audio decoder input pin";
-            return false;
-        }
+            const IID LAVAudioDecoderIID = uuidFromString("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491");
+            ComPtr<IUnknown> pUnkAudio = NULL;
+            hr = CreateObjectFromPath(audioDecoderPath, LAVAudioDecoderIID, pUnkAudio);
+            if (FAILED(hr))
+            {
+                err = ErrorAsString(hr);
+                err += "Unable create Audio decoder from ";
+                err += audioDecoderPath;
+                return false;
+            }
+            ComPtr<IBaseFilter> pAudioDec = NULL;
+            hr = pUnkAudio.QueryInterface (pAudioDec);
+            if (FAILED(hr))
+            {
+                err = ErrorAsString(hr);
+                err += "Unable create query interface from instance of ";
+                err += splitterPath;
+                return false;
+            }
 
-        hr = graphBuilder->ConnectDirect(pSplitterAudioOut, pAudioDecIn, 0);
-        if(FAILED(hr))
-        {
-            err = "Unable to connect Audio decoder to splitter output";
-            err += ErrorAsString(hr);
-            return false;
-        }
+            // Connect the splitter and the decoder
+            hr = graphBuilder->AddFilter( pAudioDec, L"AudioDecoder");
+            if(FAILED(hr))
+            {
+                err = "Unable to add Audio decoder filter";
+                err += ErrorAsString(hr);
+                return false;
+            }
 
-        ///////////////////////////////////////////////////////////////////////////////
-        // Audio renderer filter generation
-        ///////////////////////////////////////////////////////////////////////////////
+            ComPtr<IPin> pAudioDecIn= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_INPUT)});
+            if (!pAudioDecIn)
+            {
 
-        // Render the stream from the decoder
-        ComPtr<IPin> pAudioDecOut= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_OUTPUT)});
-        if (!pAudioDecOut)
-        {
+                err = "Unable to obtain Audio decoder input pin";
+                return false;
+            }
 
-            err = "Unable to obtain audio decoder output pin";
-            return false;
-        }
+            hr = graphBuilder->ConnectDirect(pSplitterAudioOut, pAudioDecIn, 0);
+            if(FAILED(hr))
+            {
+                err = "Unable to connect Audio decoder to splitter output";
+                err += ErrorAsString(hr);
+                return false;
+            }
 
-        if(FAILED(graphBuilder->Render( pAudioDecOut )))
-        {
-            err = "Unable to connect to renderer";
-            return false;
+            ///////////////////////////////////////////////////////////////////////////////
+            // Audio renderer filter generation
+            ///////////////////////////////////////////////////////////////////////////////
+
+            // Render the stream from the decoder
+            ComPtr<IPin> pAudioDecOut= GetPin(pAudioDec, {notConnected(), withPinDir(PINDIR_OUTPUT)});
+            if (!pAudioDecOut)
+            {
+
+                err = "Unable to obtain audio decoder output pin";
+                return false;
+            }
+
+            if(FAILED(graphBuilder->Render( pAudioDecOut )))
+            {
+                err = "Unable to connect to renderer";
+                return false;
+            }
         }
 
 
