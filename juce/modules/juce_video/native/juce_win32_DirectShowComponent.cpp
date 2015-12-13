@@ -384,6 +384,104 @@ namespace DirectShowHelpers
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VMR7)
     };
+    //======================================================================
+    class VMR9  : public VideoRenderer
+    {
+    public:
+        VMR9() {}
+
+        HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
+                        ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
+        {
+
+            HRESULT hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer9);
+            if (FAILED (hr))
+            {
+                err = "CLSID_VideoMixingRenderer9";
+                return hr;
+            }
+
+            hr = graphBuilder->AddFilter (rendererFilterBase, L"VMR-9");
+            if (FAILED (hr))
+            {
+                err = "AddFilter VMR-9";
+                return hr;
+            }
+
+            ComSmartPtr <IVMRFilterConfig9> filterConfig;
+            hr = rendererFilterBase.QueryInterface (filterConfig);
+            if (FAILED (hr))
+            {
+                err = "QueryInterface filterConfig9";
+                return hr;
+            }
+
+            hr = filterConfig->SetRenderingMode (VMRMode_Windowless);
+            if (FAILED (hr))
+            {
+                err = "SetRenderingMode VMRMode_Windowless";
+                return hr;
+            }
+
+            hr = rendererFilterBase.QueryInterface (windowlessControl);
+            if (FAILED (hr))
+            {
+                err = "QueryInterface windowlessControl";
+                return hr;
+            }
+
+            hr = windowlessControl->SetVideoClippingWindow (hwnd);
+            if (FAILED (hr))
+            {
+                err = "windowlessControl SetVideoClippingWindow";
+                return hr;
+            }
+
+            hr = windowlessControl->SetAspectRatioMode (VMR_ARMODE_LETTER_BOX);
+            if (FAILED (hr))
+            {
+                err = "windowlessControl SetAspectRatioMode";
+                return hr;
+            }
+
+            return hr;
+        }
+
+        void setVideoWindow (HWND hwnd)
+        {
+            windowlessControl->SetVideoClippingWindow (hwnd);
+        }
+
+        void setVideoPosition (HWND hwnd, long videoWidth, long videoHeight)
+        {
+            RECT src, dest;
+
+            SetRect (&src, 0, 0, videoWidth, videoHeight);
+            GetClientRect (hwnd, &dest);
+
+            windowlessControl->SetVideoPosition (&src, &dest);
+        }
+
+        void repaintVideo (HWND hwnd, HDC hdc)
+        {
+            windowlessControl->RepaintVideo (hwnd, hdc);
+        }
+
+        void displayModeChanged()
+        {
+            windowlessControl->DisplayModeChanged();
+        }
+
+        HRESULT getVideoSize (long& videoWidth, long& videoHeight)
+        {
+            return windowlessControl->GetNativeVideoSize (&videoWidth, &videoHeight, nullptr, nullptr);
+        }
+
+    private:
+        ComSmartPtr <IVMRWindowlessControl9> windowlessControl;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VMR9)
+    };
 
 
     //======================================================================
@@ -471,6 +569,8 @@ public:
         if (type == dshowDefault)
         {
             type = dshowVMR7;
+            if (SystemStats::getOperatingSystemType() >= SystemStats::WinVista)
+                type = dshowVMR9;
 
            #if JUCE_MEDIAFOUNDATION
             if (SystemStats::getOperatingSystemType() >= SystemStats::WinVista)

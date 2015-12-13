@@ -45,6 +45,7 @@ public:
     {
         dshowDefault, /**< VMR7 for Windows XP, EVR for Windows Vista and later */
         dshowVMR7,    /**< Video Mixing Renderer 7 */
+        dshowVMR9,    /**< Video Mixing Renderer 9 */
         dshowEVR      /**< Enhanced Video Renderer */
     };
 

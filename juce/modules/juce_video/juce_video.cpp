@@ -78,6 +78,8 @@
   /* If you're using the camera classes, you'll need access to a few DirectShow headers.
      These files are provided in the normal Windows SDK. */
   #include <dshow.h>
+  #include <d3d9.h>
+  #include <vmr9.h>
 //  #include <dshowasf.h>
  #endif
 
