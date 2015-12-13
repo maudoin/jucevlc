@@ -277,7 +277,7 @@ namespace DirectShowHelpers
         virtual ~VideoRenderer() {}
 
         virtual HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                                ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err) = 0;
+                                ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err) = 0;
 
         virtual void setVideoWindow (HWND hwnd) = 0;
         virtual void setVideoPosition (HWND hwnd, long videoWidth, long videoHeight) = 0;
@@ -293,25 +293,25 @@ namespace DirectShowHelpers
         VMR7() {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err)
+                        ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
         {
-            ComSmartPtr <IVMRFilterConfig> filterConfig;
 
-            HRESULT hr = baseFilter.CoCreateInstance (CLSID_VideoMixingRenderer);
+            HRESULT hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer);
             if (FAILED (hr))
             {
                 err = "CLSID_VideoMixingRenderer";
                 return hr;
             }
 
-            hr = graphBuilder->AddFilter (baseFilter, L"VMR-7");
+            hr = graphBuilder->AddFilter (rendererFilterBase, L"VMR-7");
             if (FAILED (hr))
             {
                 err = "AddFilter VMR-7";
                 return hr;
             }
 
-            hr = baseFilter.QueryInterface (filterConfig);
+            ComSmartPtr <IVMRFilterConfig> filterConfig;
+            hr = rendererFilterBase.QueryInterface (filterConfig);
             if (FAILED (hr))
             {
                 err = "QueryInterface filterConfig";
@@ -325,7 +325,7 @@ namespace DirectShowHelpers
                 return hr;
             }
 
-            hr = baseFilter.QueryInterface (windowlessControl);
+            hr = rendererFilterBase.QueryInterface (windowlessControl);
             if (FAILED (hr))
             {
                 err = "QueryInterface windowlessControl";
@@ -394,14 +394,14 @@ namespace DirectShowHelpers
         EVR() {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
-                        ComSmartPtr <IBaseFilter>& baseFilter, HWND hwnd, String& err)
+                        ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
         {
+
+            HRESULT hr = rendererFilterBase.CoCreateInstance (CLSID_EnhancedVideoRenderer);
+
+            if (SUCCEEDED (hr))   hr = graphBuilder->AddFilter (rendererFilterBase, L"EVR");
             ComSmartPtr <IMFGetService> getService;
-
-            HRESULT hr = baseFilter.CoCreateInstance (CLSID_EnhancedVideoRenderer);
-
-            if (SUCCEEDED (hr))   hr = graphBuilder->AddFilter (baseFilter, L"EVR");
-            if (SUCCEEDED (hr))   hr = baseFilter.QueryInterface (getService);
+            if (SUCCEEDED (hr))   hr = rendererFilterBase.QueryInterface (getService);
             if (SUCCEEDED (hr))   hr = getService->GetService (MR_VIDEO_RENDER_SERVICE, IID_IMFVideoDisplayControl,
                                                                (LPVOID*) videoDisplayControl.resetAndGetPointerAddress());
             if (SUCCEEDED (hr))   hr = videoDisplayControl->SetVideoWindow (hwnd);
@@ -637,37 +637,28 @@ public:
            #endif
                 videoRenderer = new DirectShowHelpers::VMR7();
 
-            hr = videoRenderer->create (graphBuilder, baseFilter, hwnd, err);
-            if (!SUCCEEDED (hr)){err=ErrorAsString(hr);delete videoRenderer;videoRenderer=0;release(); return false;}
+            hr = videoRenderer->create (graphBuilder, rendererFilterBase, hwnd, err);
+            if (!SUCCEEDED (hr))
+            {
+                err=ErrorAsString(hr);
+                delete videoRenderer;
+                videoRenderer=0;
+                release();
+                return false;
+            }
         }
         else{ release(); return false;}
 
         // build filter graph
         if (SUCCEEDED (hr))
         {
-            if(true)
+            if(!createFilterGraph(fileOrURLPath.toWideCharPointer(), err))
             {
-                if(!createFilterGraph(fileOrURLPath.toWideCharPointer(), err))
-                {
-                    // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
-                    // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
-                    // more messages for the whole app. (That's what happens in Win7, anyway)
-                    MessageManager::getInstance()->runDispatchLoopUntil (200);
-                    return false;
-                }
-            }
-            else
-            {
-                err="RenderFile";
-                hr = graphBuilder->RenderFile (fileOrURLPath.toWideCharPointer(), nullptr);
-
-                if (FAILED (hr))
-                {
-                    // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
-                    // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
-                    // more messages for the whole app. (That's what happens in Win7, anyway)
-                    MessageManager::getInstance()->runDispatchLoopUntil (200);
-                }
+                // Annoyingly, if we don't run the msg loop between failing and deleting the window, the
+                // whole OS message-dispatch system gets itself into a state, and refuses to deliver any
+                // more messages for the whole app. (That's what happens in Win7, anyway)
+                MessageManager::getInstance()->runDispatchLoopUntil (200);
+                return false;
             }
         }
         else{ release(); return false;}
@@ -684,9 +675,9 @@ public:
             else
             {
                 hasVideo = false;
-                graphBuilder->RemoveFilter (baseFilter);
+                graphBuilder->RemoveFilter (rendererFilterBase);
                 videoRenderer = nullptr;
-                baseFilter = nullptr;
+                rendererFilterBase = nullptr;
             }
         }
         else{ release(); return false;}
@@ -752,7 +743,7 @@ public:
         }
         // Create an AVI splitter filter
         ComPtr<IFileSourceFilter> pLAVSplitterSource;
-	    hr = pUnkSourceFilter.QueryInterface (pLAVSplitterSource);
+	    hr = pLAVSplitterSourceFilter.QueryInterface (pLAVSplitterSource);
         if (FAILED(hr))
         {
             err = "Unable create query interface from instance of ";
@@ -829,8 +820,9 @@ public:
             return false;
         }
 
+
         // Render the stream from the decoder
-        ComPtr<IPin> pVideoDecoderOut = GetPin(pVideoDecoder, {notConnected(), withPinDir(PINDIR_OUTPUT)});
+        ComPtr<IPin> pVideoDecoderOut = GetPin(pVideoDecoder, {notConnected(), withPinDir(PINDIR_OUTPUT), withMajorType(MEDIATYPE_Video)});
         if (!pVideoDecoderOut)
         {
 
@@ -878,12 +870,12 @@ public:
             err = "Unable to obtain vobsub video input pin";
             return false;
         }
-
         // Connect the splitter and the decoder
         hr = graphBuilder->ConnectDirect(pVideoDecoderOut, pVobSubBaseVideoIn, 0);
         if (FAILED(hr))
         {
-            err = "Unable to connect video out to vobsub filter";
+            err = "Unable to connect video out to vobsub input";
+            err += ErrorAsString(hr);
             return false;
         }
 
@@ -893,7 +885,8 @@ public:
         if (!pVobSubBaseOut)
         {
 
-            err = "Unable to obtain decoder output pin";
+            err = "Unable to obtain vobsub output pin";
+            err += ErrorAsString(hr);
             return false;
         }
 
@@ -971,11 +964,20 @@ public:
         ///////////////////////////////////////////////////////////////////////////////
         // Video renderer filter generation
         ///////////////////////////////////////////////////////////////////////////////
-
-
-        if(FAILED(graphBuilder->Render( pVideoDecoderOut/*pVobSubBaseOut*/ )))
+        // Render the stream from the decoder
+        ComPtr<IPin> pRendererIn = GetPin(rendererFilterBase, {notConnected(), withPinDir(PINDIR_INPUT)});
+        if (!pRendererIn)
         {
-            err = "Unable to connect to video renderer";
+
+            err = "Unable to obtain renderer input pin";
+            return false;
+        }
+        // Connect the splitter and the decoder
+        hr = graphBuilder->ConnectDirect(pVideoDecoderOut, pRendererIn, 0);
+        if (FAILED(hr))
+        {
+            err = "Unable to connect output to renderer";
+            err += ErrorAsString(hr);
             return false;
         }
 
@@ -1064,7 +1066,7 @@ public:
         hasVideo = false;
         videoRenderer = nullptr;
 
-        baseFilter = nullptr;
+        rendererFilterBase = nullptr;
         basicAudio = nullptr;
         mediaEvent = nullptr;
         mediaPosition = nullptr;
@@ -1201,7 +1203,7 @@ private:
     ComSmartPtr <IMediaPosition> mediaPosition;
     ComSmartPtr <IMediaEventEx> mediaEvent;
     ComSmartPtr <IBasicAudio> basicAudio;
-    ComSmartPtr <IBaseFilter> baseFilter;
+    ComSmartPtr <IBaseFilter> rendererFilterBase;
 
     ScopedPointer <DirectShowHelpers::VideoRenderer> videoRenderer;
 
@@ -1376,7 +1378,7 @@ private:
     {
         ComSmartPtr <IEnumPins> enumPins;
 
-        HRESULT hr = baseFilter->EnumPins (enumPins.resetAndGetPointerAddress());
+        HRESULT hr = rendererFilterBase->EnumPins (enumPins.resetAndGetPointerAddress());
 
         if (SUCCEEDED (hr))
             hr = enumPins->Reset();
