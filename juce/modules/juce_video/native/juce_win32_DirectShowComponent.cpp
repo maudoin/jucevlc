@@ -387,38 +387,13 @@ namespace DirectShowHelpers
     //======================================================================
     class VMR9  : public VideoRenderer
     {
-        DirectShowComponent::VideoRendererType m_type;
     public:
-        VMR9(DirectShowComponent::VideoRendererType type):m_type(type) {}
+        VMR9() {}
 
         HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
                         ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
         {
-            HRESULT hr;
-
-            if(m_type==DirectShowComponent::VideoRendererType::dshowMadVR)
-            {
-                TCHAR* filterPath=L"madVR\\madVR64.ax";//64
-                const IID MadVRIID = {0xE1A8B82A, 0x32CE, 0x4B0D, {0xBE, 0x0D, 0xAA, 0x68, 0xC7, 0x72, 0xE4, 0x23}};//64
-                ComPtr<IUnknown> pUnk;
-                hr = CreateObjectFromPath(filterPath, MadVRIID, pUnk);
-                if (FAILED(hr))
-                {
-                    err = "Unable create splitter source instance from ";
-                    err += filterPath;
-                    return hr;
-                }
-                else
-                {
-                    ComSmartPtr<IUnknown> pUnk2=pUnk.get();
-                    hr = pUnk2.QueryInterface (rendererFilterBase);
-                }
-            }
-            else
-            {
-                hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer9);
-
-            }
+            HRESULT hr = rendererFilterBase.CoCreateInstance (CLSID_VideoMixingRenderer9);
             if (FAILED (hr))
             {
                 err = "CLSID_VideoMixingRenderer9";
@@ -505,6 +480,111 @@ namespace DirectShowHelpers
         ComSmartPtr <IVMRWindowlessControl9> windowlessControl;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VMR9)
+    };
+
+    //======================================================================
+    class MadVR  : public VideoRenderer
+    {
+    public:
+        MadVR() {}
+
+        HRESULT create (ComSmartPtr <IGraphBuilder>& graphBuilder,
+                        ComSmartPtr <IBaseFilter>& rendererFilterBase, HWND hwnd, String& err)
+        {
+            TCHAR* filterPath=L"madVR\\madVR64.ax";//64
+            const IID MadVRIID = {0xE1A8B82A, 0x32CE, 0x4B0D, {0xBE, 0x0D, 0xAA, 0x68, 0xC7, 0x72, 0xE4, 0x23}};//64
+            ComPtr<IUnknown> pUnk;
+            HRESULT hr = CreateObjectFromPath(filterPath, MadVRIID, pUnk);
+            if (FAILED(hr))
+            {
+                err = "Unable create splitter source instance from ";
+                err += filterPath;
+                return hr;
+            }
+            ComSmartPtr<IUnknown> pUnk2=pUnk.get();
+            hr = pUnk2.QueryInterface (rendererFilterBase);
+
+            if (FAILED (hr))
+            {
+                err = "IBaseFilter";
+                return hr;
+            }
+
+            hr = graphBuilder->AddFilter (rendererFilterBase, L"MadVR");
+            if (FAILED (hr))
+            {
+                err = "AddFilter MadVR";
+                return hr;
+            }
+
+            hr = rendererFilterBase.QueryInterface (windowlessControl);
+            if (FAILED (hr))
+            {
+                err = "QueryInterface IVideoWindow";
+                return hr;
+            }
+            hr = rendererFilterBase.QueryInterface (basicVideo);
+            if (FAILED (hr))
+            {
+                err = "QueryInterface basicVideo";
+                return hr;
+            }
+
+
+            hr = windowlessControl->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS);
+            if (FAILED (hr))
+            {
+                err = "IVideoWindow put_WindowStyle WS_CHILD | WS_CLIPSIBLINGS";
+                return hr;
+            }
+            hr = windowlessControl->put_Owner ((OAHWND)hwnd);
+            if (FAILED (hr))
+            {
+                err = "IVideoWindow put_Owner";
+                return hr;
+            }
+
+            return hr;
+        }
+
+        void setVideoWindow (HWND hwnd)
+        {
+            windowlessControl->put_Owner ((OAHWND)hwnd);
+        }
+
+        void setVideoPosition (HWND hwnd, long videoWidth, long videoHeight)
+        {
+            RECT src, dest;
+
+            SetRect (&src, 0, 0, videoWidth, videoHeight);
+            GetClientRect (hwnd, &dest);
+
+            windowlessControl->SetWindowPosition (dest.left,
+                                           dest.top,
+                                           dest.right,
+                                           dest.bottom);
+        }
+
+        void repaintVideo (HWND hwnd, HDC hdc)
+        {
+            //windowlessControl->RepaintVideo (hwnd, hdc);
+        }
+
+        void displayModeChanged()
+        {
+            //windowlessControl->DisplayModeChanged();
+        }
+
+        HRESULT getVideoSize (long& videoWidth, long& videoHeight)
+        {
+            return basicVideo->GetVideoSize (&videoWidth, &videoHeight);
+        }
+
+    private:
+        ComSmartPtr <IVideoWindow > windowlessControl;
+        ComSmartPtr <IBasicVideo  > basicVideo;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MadVR)
     };
 
 
@@ -757,8 +837,10 @@ public:
             switch(type)
             {
                 case dshowVMR9:
+                    videoRenderer = new DirectShowHelpers::VMR9();
+                    break;
                 case dshowMadVR:
-                    videoRenderer = new DirectShowHelpers::VMR9(type);
+                    videoRenderer = new DirectShowHelpers::MadVR();
                     break;
            #if JUCE_MEDIAFOUNDATION
                 case dshowEVR:

@@ -13,6 +13,7 @@
 				<Option type="0" />
 				<Option compiler="gnu_gcc_compiler_64bits" />
 				<Compiler>
+					<Add option="-std=c++11" />
 					<Add option="-g" />
 					<Add option="-DWIN32" />
 					<Add option="-D_DEBUG" />
