@@ -2,11 +2,11 @@
 #ifndef CONTORL_COMPONENT_H
 #define CONTORL_COMPONENT_H
 
-#include "AppConfig.h"
-#include "juce.h"
+
+#include <JuceHeader.h>
 #include "AppProportionnalComponent.h"
 #include <sstream>
-#include <boost/function.hpp>
+#include <functional>
 
 //==============================================================================
 
@@ -29,16 +29,16 @@ public:
 	virtual ~SliderWithInnerLabel(){}
 	void setLabelFormat(juce::String const& f){m_format = f;}
 	void paint(juce::Graphics& g)
-	{		
+	{
 		juce::Slider::paint(g);
-		
+
 		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		g.setColour (juce::Colours::black);
 		g.drawFittedText (juce::String::formatted(m_format,getValue()),
 							0, 0, getWidth(), getHeight(),
-							juce::Justification::centred, 
+							juce::Justification::centred,
 							1, //1 line
 							1.f//no h scale
 							);
@@ -47,15 +47,15 @@ public:
 
 class ActionSlider;
 
-typedef boost::function<void (double)> ActionSliderCallback;
+typedef std::function<void (double)> ActionSliderCallback;
 
 class SecondaryControlComponent   : public juce::Component, public juce::Button::Listener
 {
-    juce::ScopedPointer<ActionSlider> m_slider;
-    juce::ScopedPointer<juce::DrawableButton> m_leftButton;
-    juce::ScopedPointer<juce::DrawableButton> m_rightButton;
-    juce::ScopedPointer<juce::Drawable> m_leftImage;
-    juce::ScopedPointer<juce::Drawable> m_rightImage;
+    std::unique_ptr<ActionSlider> m_slider;
+    std::unique_ptr<juce::DrawableButton> m_leftButton;
+    std::unique_ptr<juce::DrawableButton> m_rightButton;
+    std::unique_ptr<juce::Drawable> m_leftImage;
+    std::unique_ptr<juce::Drawable> m_rightImage;
 	double m_buttonsStep;
 	double m_resetValue;
 public:
@@ -65,12 +65,12 @@ public:
 	//juce GUI overrides
 	virtual void resized();
 	void buttonClicked (juce::Button* button);
-	
+
 	void paint(juce::Graphics& g);
 	void reset();
 	void disableAndHide();
 	void show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
-	
+
 };
 
 class TimeSlider   : public juce::Slider, public AppProportionnalComponent
@@ -81,32 +81,32 @@ public:
 	TimeSlider();
 	virtual ~TimeSlider();
 
-	
+
     void setMouseOverTime(int pos, juce::int64 time);
 	void resetMouseOverTime();
-	
+
 	//juce GUI overrides
     virtual void paint (juce::Graphics& g);
 };
 
 class ControlComponent   : public juce::Component, public AppProportionnalComponent
 {
-    juce::ScopedPointer<TimeSlider> m_slider;
-    juce::ScopedPointer<juce::DrawableButton> m_playPauseButton;
-    juce::ScopedPointer<juce::DrawableButton> m_stopButton;
-    juce::ScopedPointer<juce::DrawableButton> m_menuButton;
-    juce::ScopedPointer<juce::DrawableButton> m_fullscreenButton;
-    juce::ScopedPointer<juce::DrawableButton> m_auxilliarySliderModeButton;
-    juce::ScopedPointer<juce::DrawableButton> m_resetButton;
-    juce::ScopedPointer<juce::Drawable> m_playImage;
-    juce::ScopedPointer<juce::Drawable> m_pauseImage;
-    juce::ScopedPointer<juce::Drawable> m_stopImage;
-    juce::ScopedPointer<juce::Drawable> m_itemImage;
-    juce::ScopedPointer<juce::Drawable> m_folderImage;
-    juce::ScopedPointer<juce::Drawable> m_starImage;
-    juce::ScopedPointer<juce::Drawable> m_fullscreenImage;
-    juce::ScopedPointer<juce::Drawable> m_undoImage;
-    juce::ScopedPointer<SecondaryControlComponent> m_auxilliaryControlComponent;
+    std::unique_ptr<TimeSlider> m_slider;
+    std::unique_ptr<juce::DrawableButton> m_playPauseButton;
+    std::unique_ptr<juce::DrawableButton> m_stopButton;
+    std::unique_ptr<juce::DrawableButton> m_menuButton;
+    std::unique_ptr<juce::DrawableButton> m_fullscreenButton;
+    std::unique_ptr<juce::DrawableButton> m_auxilliarySliderModeButton;
+    std::unique_ptr<juce::DrawableButton> m_resetButton;
+    std::unique_ptr<juce::Drawable> m_playImage;
+    std::unique_ptr<juce::Drawable> m_pauseImage;
+    std::unique_ptr<juce::Drawable> m_stopImage;
+    std::unique_ptr<juce::Drawable> m_itemImage;
+    std::unique_ptr<juce::Drawable> m_folderImage;
+    std::unique_ptr<juce::Drawable> m_starImage;
+    std::unique_ptr<juce::Drawable> m_fullscreenImage;
+    std::unique_ptr<juce::Drawable> m_undoImage;
+    std::unique_ptr<SecondaryControlComponent> m_auxilliaryControlComponent;
 	juce::String timeString;
 	juce::String currentTimeString;
 public:
@@ -122,7 +122,7 @@ public:
 	void showPlayingControls();
 	void showPausedControls();
 	void hidePlayingControls();
-	
+
 	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}

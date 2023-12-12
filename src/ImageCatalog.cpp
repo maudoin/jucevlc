@@ -28,7 +28,7 @@ void ImageCatalog::storeImageInCache(juce::File const& f, juce::Image const& i)
 void ImageCatalog::preload(juce::Array<std::pair<juce::File, bool> > & files, juce::int64 maxTimeMs)
 {
 	juce::int64 now = juce::Time::currentTimeMillis();
-	
+
 	for(std::pair<juce::File, bool>* it = files.begin();(it != files.end()) && ((juce::Time::currentTimeMillis() - now )<maxTimeMs);++it)
 	{
 		juce::File const& file(it->first);
@@ -56,7 +56,7 @@ juce::Image ImageCatalog::get(juce::File const& file)
 			storeImageInCache(file, cached);
 			return cached;
 		}
-		return juce::Image::null;
+		return {};
 	}
 
 }

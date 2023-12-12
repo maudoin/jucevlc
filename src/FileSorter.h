@@ -2,8 +2,7 @@
 #define FILESORTER_H
 
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include <set>
 
 bool extensionMatch(std::set<juce::String> const& e, juce::String const& ex);

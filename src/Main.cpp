@@ -1,6 +1,5 @@
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include "VideoComponent.h"
 
 //==============================================================================
@@ -69,7 +68,7 @@ private:
     VideoComponent* window;
 };
 #ifdef JUCE_64BIT
-#include <modules\juce_core\native/juce_BasicNativeHeaders.h>
+#include <juce_core/native/juce_BasicNativeHeaders.h>
 #endif
 
 //==============================================================================

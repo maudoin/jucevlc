@@ -2,8 +2,7 @@
 #define IMAGECATALOG_H
 
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include "ImageCatalogCache.h"
 #include <string>
 #include <map>
@@ -16,17 +15,17 @@ protected:
 	std::map<std::string, juce::Image> m_iconPerFile;
 	ImageCatalogCache m_cache;
 	bool m_changedSinceLastSave;
-	
-	
+
+
 public:
 	ImageCatalog();
 	virtual ~ImageCatalog();
-	
-	void storeImageInCacheAndSetChanged(juce::File const& f, juce::Image const& i = juce::Image::null);
-	void storeImageInCache(juce::File const& path, juce::Image const& i = juce::Image::null);
+
+	void storeImageInCacheAndSetChanged(juce::File const& f, juce::Image const& i = juce::Image{});
+	void storeImageInCache(juce::File const& path, juce::Image const& i = juce::Image{});
 	juce::Image get(juce::File const& file);
 	void maySaveCache();
-	
+
 	void preload(juce::Array<std::pair<juce::File, bool> > & files, juce::int64 maxTimeMs);
 
 

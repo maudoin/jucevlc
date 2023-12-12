@@ -1,8 +1,7 @@
 #ifndef HUE_SELECTOR_H
 #define HUE_SELECTOR_H
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 
 class HueSelectorMarker  : public juce::Component
 {

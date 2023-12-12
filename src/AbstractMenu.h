@@ -2,13 +2,13 @@
 #define ABSTRACT_MENU_H
 
 
-#include "AppConfig.h"
-#include "juce.h"
+
+#include <JuceHeader.h>
 #include "AppProportionnalComponent.h"
-#include <boost/function.hpp>
+#include <functional>
 	
 class AbstractMenuItem;
-typedef boost::function<void (AbstractMenuItem&)> AbstractAction;
+typedef std::function<void (AbstractMenuItem&)> AbstractAction;
 
 //==============================================================================
 class AbstractMenuItem

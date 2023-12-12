@@ -1,7 +1,6 @@
 ﻿#include "Languages.h"
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 
 #include <algorithm>
 #include <iterator>

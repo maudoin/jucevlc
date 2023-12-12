@@ -58,14 +58,14 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 	//write!
 	juce::File outFile(m_cacheFile.getFullPathName() + ".new");
 	{
-		juce::ScopedPointer<juce::FileOutputStream> out(outFile.createOutputStream());
+		std::unique_ptr<juce::FileOutputStream> out(outFile.createOutputStream());
 		if( !out.get() )
 		{
 			return;
 		}
 		if( out->failedToOpen() )
 		{
-			delete out;
+			out.reset();
 			return;
 		}
 
@@ -91,7 +91,7 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 			imageFormat.writeImageToStream(it->second.first, *out);
 		}
 		//fix index addresses
-	
+
 		AddressAndLastUsePerFileMap newImagesCacheAdresses;
 		for(AddressPerFileMap::const_iterator it = imagesCacheAdressAdress.begin();it != imagesCacheAdressAdress.end();++it)
 		{
@@ -107,9 +107,9 @@ void ImageCatalogCache::saveCache(std::map<std::string, juce::Image> const& newE
 }
 //save full cache
 void ImageCatalogCache::loadCacheIndex()
-{	
+{
     const juce::ScopedLock myScopedLock (m_mutex);
-	juce::ScopedPointer<juce::FileInputStream> str(m_cacheFile.createInputStream());
+	std::unique_ptr<juce::FileInputStream> str(m_cacheFile.createInputStream());
 
 	if( !str.get() )
 	{
@@ -117,7 +117,7 @@ void ImageCatalogCache::loadCacheIndex()
 	}
 	if( str->failedToOpen() || str->isExhausted() )
 	{
-		delete str;
+		str.reset();
 		return;
 	}
 
@@ -144,17 +144,17 @@ juce::Image ImageCatalogCache::loadCachedFile(std::string const& f)
 	AddressAndLastUsePerFileMap::const_iterator it = m_imagesCacheAdresses.find(f);
 	if(it == m_imagesCacheAdresses.end() || it->second.first==TEMPORARY_ADDRESS)
 	{
-		return juce::Image::null;
+		return {};
 	}
-	juce::ScopedPointer<juce::FileInputStream> str(m_cacheFile.createInputStream());
+	std::unique_ptr<juce::FileInputStream> str(m_cacheFile.createInputStream());
 	if( !str.get() )
 	{
-		return juce::Image::null;
+		return {};
 	}
 	if( str->failedToOpen() || str->isExhausted() )
 	{
-		delete str;
-		return juce::Image::null;
+		str.reset();
+		return {};
 	}
 	str->setPosition(it->second.first);
 	return juce::ImageFileFormat::loadFrom(*str);

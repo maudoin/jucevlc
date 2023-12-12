@@ -4,8 +4,6 @@
 #include <math.h>
 #include "FileSorter.h"
 #include "Icons.h"
-#include <boost/format.hpp>
-#include <boost/regex.hpp>
 
 #define thunmnailW 300
 #define thunmnailH 200
@@ -19,9 +17,9 @@ Thumbnailer::Thumbnailer(ImageCatalog& imageCatalogToFeed)
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
 	,m_imageCatalogToFeed(imageCatalogToFeed)
 {
-	
+
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
-	vlc = new VLCWrapper();
+	vlc = std::make_unique<VLCWrapper>();
 	vlc->SetBufferFormat(thunmnailW, thunmnailH, ptr->lineStride);
 	vlc->SetDisplayCallback(this);
 	vlc->SetAudioCallback(this);
@@ -36,17 +34,17 @@ Thumbnailer::~Thumbnailer()
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
 		thumbTimeOK = true;
 		currentThumbnailIndex=thumbnailCount;
-		currentThumbnail = juce::File::nonexistent;
+		currentThumbnail = juce::File{};
 	}
 
 	vlc->Stop();
 	vlc->clearPlayList();
 	while(vlc->getCurrentPlayList().size()>0 ||vlc->isPlaying() )
 	{
-		//busy 
+		//busy
 	}
 }
-	
+
 
 bool Thumbnailer::busyOn(juce::File const& f)const
 {
@@ -77,8 +75,8 @@ bool Thumbnailer::startGeneration(juce::File const& entryToCreate, juce::File co
 		//cancel thumbnail && store nothing
 		vlc->clearPlayList();
 		vlc->Stop();
-		currentThumbnail == juce::File::nonexistent;
-		m_imageCatalogToFeed.storeImageInCache(f, juce::Image::null);
+		currentThumbnail = juce::File{};
+		m_imageCatalogToFeed.storeImageInCache(f, {});
 		return false;
 	}
 }
@@ -94,7 +92,7 @@ bool Thumbnailer::workStep()
 		bool done;
 		{
 			const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-			done = currentThumbnail == juce::File::nonexistent || ((juce::Time::currentTimeMillis() - startTime)>THUMBNAIL_GENERATION_TIMEOUT);
+			done = (!currentThumbnail.exists()) || ((juce::Time::currentTimeMillis() - startTime)>THUMBNAIL_GENERATION_TIMEOUT);
 		}
 		if(done)
 		{
@@ -114,7 +112,7 @@ bool Thumbnailer::workStep()
 		}
 		return true;//busy but no image done
 	}
-	
+
 	return false;
 }
 
@@ -145,10 +143,10 @@ void *Thumbnailer::vlcLock(void **p_pixels)
 
 void Thumbnailer::vlcUnlock(void *id, void *const *p_pixels)
 {
-	
+
 	juce::Image copy = img->createCopy();
 	imgCriticalSection.exit();
-			
+
 	juce::File processedThumbnail;
 	int processedThumbnailIndex;
 	{
@@ -156,12 +154,12 @@ void Thumbnailer::vlcUnlock(void *id, void *const *p_pixels)
 		processedThumbnail = currentThumbnail;//done writing (and where)
 		processedThumbnailIndex = currentThumbnailIndex;//images ready?
 	}
-	if( processedThumbnailIndex>=thumbnailCount && processedThumbnail != juce::File::nonexistent)
+	if( processedThumbnailIndex>=thumbnailCount && processedThumbnail != juce::File{})
 	{
 		//images ready and not done writing
 		m_imageCatalogToFeed.storeImageInCacheAndSetChanged(processedThumbnail, copy);
 		const juce::GenericScopedLock<juce::CriticalSection> lock (imgStatusCriticalSection);
-		currentThumbnail = juce::File::nonexistent;//done writing
+		currentThumbnail = juce::File{};//done writing
 	}
 	jassert(id == NULL); /* picture identifier, not needed here */
 }

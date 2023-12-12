@@ -4,12 +4,14 @@
 #              by Vlasis K. Barkas aka Red Wine red_wine@freemail.gr Sep 2006
 ############################################################################################
 
+!define RELEASE_FOLDER "build\src\jucevlc_artefacts\Release\"
+
 !define APP_NAME "JuceVLC"
 !define COMP_NAME "Matthieu A."
-!define WEB_SITE "http://jucevlc.sourceforge.net/"
-!define VERSION "00.91.00.00"
-!define V "0.91"
-!define COPYRIGHT "Matthieu A. © 2014"
+!define WEB_SITE "https://github.com/maudoin/jucevlc"
+!define VERSION "00.92.00.00"
+!define V "0.92"
+!define COPYRIGHT "Matthieu A. Â© 2023"
 !define DESCRIPTION "JuceVLC Video Player"
 !define INSTALLER_NAME "${APP_NAME}setup-${V}.exe"
 !define MAIN_APP_EXE "juceVLC.exe"
@@ -94,12 +96,12 @@ Section -MainProgram
 ${INSTALL_TYPE}
 SetOverwrite ifnewer
 SetOutPath "$INSTDIR"
-File /a ${MAIN_APP_EXE}
-File /a "libvlc.dll"
-File /a "libvlccore.dll"
+File /a "${RELEASE_FOLDER}\${MAIN_APP_EXE}"
+File /a "${RELEASE_FOLDER}\libvlc.dll"
+File /a "${RELEASE_FOLDER}\libvlccore.dll"
 File /a "README.txt"
 SetOutPath "$INSTDIR\plugins"
-File /a /r "plugins\*.*"
+File /a /r "${RELEASE_FOLDER}\plugins\*.*"
 SectionEnd
 
 ######################################################################
@@ -146,7 +148,7 @@ Section Uninstall
             MessageBox MB_OK|MB_ICONEXCLAMATION "JuceVLC is running. Please close it first" /SD IDOK
             Abort
         notRunning:
-        
+
 ${INSTALL_TYPE}
 Delete "$INSTDIR\${MAIN_APP_EXE}"
 RmDir /r "$INSTDIR\plugins\*.*"

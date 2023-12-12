@@ -2,8 +2,7 @@
 #define THUMBNAILER_H
 
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include "VLCWrapper.h"
 #include <string>
 #include <map>
@@ -14,9 +13,9 @@ class Thumbnailer : public DisplayCallback, public EventCallBack, public AudioCa
 {
 protected:
     juce::CriticalSection imgCriticalSection;
-	juce::ScopedPointer<juce::Image> img;
-	juce::ScopedPointer<juce::Image::BitmapData> ptr;
-	juce::ScopedPointer<VLCWrapper> vlc;
+	std::unique_ptr<juce::Image> img;
+	std::unique_ptr<juce::Image::BitmapData> ptr;
+	std::unique_ptr<VLCWrapper> vlc;
 	
     juce::CriticalSection imgStatusCriticalSection;
 	juce::File currentThumbnail;

@@ -8,8 +8,8 @@ class MenuItemList;
 //==============================================================================
 class MenuComponent : public virtual juce::Component, public virtual MenuBase
 {
-	juce::ScopedPointer<MenuItemList> menuList;
-	juce::ScopedPointer<MenuItemList> recentList;
+	std::unique_ptr<MenuItemList> menuList;
+	std::unique_ptr<MenuItemList> recentList;
 public:
 	MenuComponent();
 	virtual ~MenuComponent();

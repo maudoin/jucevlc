@@ -2,8 +2,8 @@
 #define ICON_MENU_H
 
 
-#include "AppConfig.h"
-#include "juce.h"
+
+#include <JuceHeader.h>
 #include "ImageCatalog.h"
 #include "Thumbnailer.h"
 #include <string>
@@ -18,12 +18,12 @@ public:
 protected:
 
     juce::Image appImage;
-    juce::ScopedPointer<juce::Drawable> folderBackImage;
-    juce::ScopedPointer<juce::Drawable> folderFrontImage;
-    juce::ScopedPointer<juce::Drawable> driveImage;
-    juce::ScopedPointer<juce::Drawable> diskImage;
-    juce::ScopedPointer<juce::Drawable> usbImage;
-    juce::ScopedPointer<juce::Drawable> upImage;
+    std::unique_ptr<juce::Drawable> folderBackImage;
+    std::unique_ptr<juce::Drawable> folderFrontImage;
+    std::unique_ptr<juce::Drawable> driveImage;
+    std::unique_ptr<juce::Drawable> diskImage;
+    std::unique_ptr<juce::Drawable> usbImage;
+    std::unique_ptr<juce::Drawable> upImage;
 	std::set<juce::String> m_videoExtensions;
 	std::string m_mediaPostersRoot;
 	std::string m_mediaPostersAbsoluteRoot;

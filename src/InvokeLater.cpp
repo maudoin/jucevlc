@@ -1,11 +1,10 @@
 
 #include "InvokeLater.h"
-#include <boost/bind.hpp>
 
 void nopFunction(){}
 InvokeLater::Work noWork()
 {
-	static InvokeLater::Work nop=boost::bind  (&noWork);
+	static InvokeLater::Work nop=nopFunction;
 	return nop;
 }
 

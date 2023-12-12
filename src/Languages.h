@@ -1,8 +1,7 @@
 #ifndef APP_LANGUAGES_H
 #define APP_LANGUAGES_H
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include <string>
 #include <map>
 #include <vector>

@@ -85,35 +85,19 @@ See [README.txt](https://github.com/maudoin/jucevlc/blob/master/README.txt)
 **Developpers / Building tips**
 ==================
 
-The project relies on multi-platform libraries / GNU gcc compiler and should also compile on Linux / MacOS environments
+The project relies on multi-platform libraries **could** also compile on Linux / MacOS environments
 
 Tools / Libraries
 ------------------
-* **codeblocks-13.12** (for Windows)
-* **Mingw32 4.8** gcc compiler (for Windows)
-* **Juce 2.1.3** (**included in repository**) 
-<http://rawmaterialsoftware.com/downloads.php>
-* **LibVLC 2.2.0** (**included in repository**, taken from VLC distributions sdk folder) <http://www.videolan.org/vlc/index.html>
-* **Boost 1.56** includes (to be extracted in **/boost** folder) <https://sourceforge.net/projects/boost/files/boost/1.56.0/>
-* **NSIS 2.46** for the windows installer
-* **UPX 3.08**
+* **Visual code** (facultative)
+* **clang-cli 17.0.6** (for Windows) <https://github.com/llvm/llvm-project/releases/tag/llvmorg-17.0.6>
+* **JUCE 7.0.9** (**repository submodule**) <https://juce.com/>
+* **LibVLC 3.0.8** (**repository submodule**, .lib files extracted from windows 64bits installed  .dll) <http://www.videolan.org/vlc/index.html>
+* **NSIS 3.09** (for Windows) <https://sourceforge.net/projects/nsis/>
+* **NSIS FindProcDLL plugin** <https://nsis.sourceforge.io/FindProcDLL_plug-in>
+* **UPX V4.2.1** (for Windows, copied in contrib) <https://github.com/upx/upx/releases/tag/v4.2.1>
 
-**Boost 1.56 regexp lib build batch file for mingw: (if mingw is installed in e:\dev\mingw)**
+VLC/JUCE Submodules update
+---------------------------
 
-set MINGW=e:\dev\mingw\bin
-set PATH=%PATH%;%MINGW%
-%~d0
-cd %~dp0
-bootstrap.bat mingw --toolset-root=%MINGW%
-b2  --toolset=gcc regex release link=static threading=multi runtime-link=static
-
-
-**Boost 1.56 64bits regexp lib build batch file for mingw: (if mingw is installed in E:\dev\x64-4.8.1-release-win32-seh-rev5\mingw64)**
-
-set MINGW=E:\dev\x64-4.8.1-release-win32-seh-rev5\mingw64\bin
-set PATH=%PATH%;%MINGW%
-%~d0
-cd %~dp0
-bootstrap.bat mingw --toolset-root=%MINGW%
-b2 address-model=64 --toolset=gcc regex release link=static threading=multi runtime-link=static
-pause
+git submodule update --init --recursive

@@ -145,7 +145,7 @@ public:
 	{
 		if(isSelected)
 		{
-			if(!action.empty())
+			if(action)
 			{
 				if(STORE_AND_OPEN_CHILDREN == actionEffect)
 				{

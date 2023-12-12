@@ -8,13 +8,23 @@
 #else
 	#define MODULE_STRING "wrapper"
 #endif
+#define HAVE_LLDIV
+#define HAVE_DIRFD
+#define HAVE_FDOPENDIR
+#define HAVE_GETPID
+#define HAVE_SWAB
+#define HAVE_STRUCT_POLLFD
+#define HAVE_STRUCT_TIMESPEC
+#define HAVE_SEARCH_H
+#define HAVE_REALPATH
+#include "vlc_fixups.h"
 #include "vlc\vlc.h"
 #include "vlc\libvlc_events.h"
-#include <boost/cstdint.hpp>
-#include "vlc\libvlc_internal.h"
-#include "vlc\plugins\vlc_common.h"
-#include "vlc\plugins\vlc_variables.h"
-#include "vlc\plugins\vlc_input.h"
+#include <cstdint>
+#include "libvlc_internal.h"
+#include "vlc_common.h"
+#include "vlc_variables.h"
+#include "vlc_input.h"
 #include <stdio.h>
 #include <sstream>
 #include <deque>
@@ -22,9 +32,10 @@
 #include <iterator>
 
 #include <assert.h>
-#include "vlc/media_player_internal.h"
-#include "vlc/plugins/vlc_threads.h"
-#include "vlc/plugins/vlc_aout.h"
+#include "media_player_internal.h"
+#include "vlc_threads.h"
+#include "vlc_aout.h"
+#include "vlc_configuration.h"
 #ifndef _MSC_VER
 	#include "vlc/plugins/vlc_vout.h"
 #endif
@@ -679,7 +690,7 @@ std::vector<std::string> VLCWrapper::getCropList()
 	if(p_vout)
 	{
         vlc_value_t val_list, text_list;
-		var_Change( p_vout, "crop", VLC_VAR_GETLIST,
+		var_Change( p_vout, "crop", VLC_VAR_GETCHOICES,
 									&val_list, &text_list );
         for( int i = 0; i < val_list.p_list->i_count; i++ )
         {
@@ -1118,7 +1129,7 @@ void VLCWrapper::setConfigOptionBool(const char* name, bool value)
 
 std::pair<int, std::vector<std::pair<int, std::string> > > VLCWrapper::getConfigOptionInfoInt(const char* name)const
 {
-    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
+    module_config_t *p_module_config = config_FindConfig( name );
 
 	std::pair<int,std::vector<std::pair<int, std::string> > > info;
 
@@ -1148,7 +1159,7 @@ void VLCWrapper::setConfigOptionString(const char* name, std::string const& valu
 }
 std::pair<std::string, std::vector<std::pair<std::string, std::string> > > VLCWrapper::getConfigOptionInfoString(const char* name)const
 {
-    module_config_t *p_module_config = config_FindConfig( (vlc_object_t*)pVLCInstance_.get(), name );
+    module_config_t *p_module_config = config_FindConfig( name );
 
 	std::pair<std::string,std::vector<std::pair<std::string, std::string> > > info;
 

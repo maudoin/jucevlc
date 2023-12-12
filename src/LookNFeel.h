@@ -1,14 +1,13 @@
 #ifndef LOOKANDFEEL
 #define LOOKANDFEEL
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include "FontSerialization.h"
 #include "AppProportionnalComponent.h"
 #include "WeblySleekFont.h"
 
 
-class LnF : public juce::OldSchoolLookAndFeel
+class LnF : public juce::LookAndFeel_V1
 {
 	juce::Typeface* cFont;
 
@@ -32,10 +31,10 @@ public:
 		}
 		else
 		{
-			return (font.getTypeface());
+			return (font.getTypefacePtr());
 		}
 	}
-	
+
     virtual void drawLinearSlider (juce::Graphics& g,
                                    int x, int y,
                                    int width, int height,
@@ -47,7 +46,7 @@ public:
 	{
 		g.setColour (juce::Colours::grey);
 		g.fillRect(x, y, width, height);
-		LookAndFeel::drawLinearSlider (g,
+		LookAndFeel_V1::drawLinearSlider (g,
                                    x, y,
                                    width, height,
                                    sliderPos,

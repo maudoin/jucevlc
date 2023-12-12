@@ -53,7 +53,7 @@ struct libvlc_media_list_t;
 struct libvlc_media_list_player_t;
 struct libvlc_media_discoverer_t;
 
-#include <boost/cstdint.hpp>
+#include <cstdint>
 
 class DisplayCallback
 {

@@ -1,15 +1,14 @@
 #ifndef INVOKE_LATER
 #define INVOKE_LATER
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include <list>
-#include <boost/function.hpp>
+#include <functional>
 
 class InvokeLater : private juce::AsyncUpdater
 {
 public:
-	typedef boost::function<void ()> Work;
+	typedef std::function<void ()> Work;
 
 	InvokeLater ();
 	~InvokeLater ();

@@ -9,7 +9,7 @@ juce::Typeface* loadFont( const void* data, size_t size)
 
 	juce::MemoryInputStream ins(data, size, false);
 	return (new juce::CustomTypeface (ins));
-	
+
 }
 juce::Typeface* loadFont( juce::String inPath)
 {
@@ -25,7 +25,7 @@ juce::Typeface* loadFont( juce::String inPath)
 
 	juce::FileInputStream ins(fontFile);
 	return (new juce::CustomTypeface (ins));
-	
+
 }
 juce::File beginWrite(juce::String const& destFilePath)
 {
@@ -43,7 +43,7 @@ juce::File beginWrite(juce::String const& destFilePath)
 	{
 		fontFile.replaceWithData (0,0);
 	}
-	
+
 	return fontFile;
 }
 void outputBufferAsInlcudeFile(const void* data, size_t size, juce::String const& name, juce::String const& destFilePathCC, juce::String const& destFilePathH)
@@ -60,12 +60,12 @@ void outputBufferAsInlcudeFile(const void* data, size_t size, juce::String const
 		printf ("initialise ERROR can't write to destination file: %s\n", hFile.getFullPathName().toUTF8().getAddress());
 		return;
 	}
-	
+
 	juce::FileOutputStream cppStream(fontFile);
 	cppStream << "#include \"" << hFile.getFileName() << "\"\n";
 	juce::String line1;
     line1 << "const unsigned char " << name << "_resource[] = { ";
-			
+
 	cppStream << line1;
 
     juce::MemoryOutputStream out (65536);
@@ -106,8 +106,8 @@ void outputBufferAsInlcudeFile(const void* data, size_t size, juce::String const
 }
 void serializeFont(juce::String const& fontName, juce::String const& outCPP, juce::String const& outH, juce::uint32 glyphCount)
 {
-	
-	if (fontName == juce::String::empty)
+
+	if (fontName.isEmpty())
 	{
 		printf ("initialise ERROR no font name given\n");
 		return;
@@ -115,7 +115,7 @@ void serializeFont(juce::String const& fontName, juce::String const& outCPP, juc
 
 
 	printf ("Fserialize::serializeFont looking for font in system list [%s]\n", fontName.toUTF8().getAddress());
-	
+
 	juce::Array <juce::Font> systemFonts;
 	juce::Font::findFonts (systemFonts);
 	for (int i=0; i<systemFonts.size(); i++)
@@ -127,7 +127,7 @@ void serializeFont(juce::String const& fontName, juce::String const& outCPP, juc
                                       systemFonts[i].isBold(), systemFonts[i].isItalic(), ' ');
 
 			customTypefacePlain.addGlyphsFromOtherTypeface (*(systemFonts[i].getTypeface()), 0, glyphCount);
-			
+
 
 			juce::MemoryOutputStream streamPlain(65536);
 			customTypefacePlain.writeToStream (streamPlain);

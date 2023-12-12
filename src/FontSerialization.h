@@ -2,10 +2,8 @@
 #ifndef FONTSERIALIZATION
 #define FONTSERIALIZATION
 
-#include "AppConfig.h"
-#include "juce.h"
 
-
+#include <JuceHeader.h>
 
 juce::Typeface* loadFont( const void* data, size_t size);
 juce::Typeface* loadFont( juce::String inPath);

@@ -7,7 +7,7 @@ Portable Application installation
 
 Either extract the "exeOnly" archive on your existing VLC or JuceVLC folder and run **JuceVLC.exe** or install using the complete setup.
 You can use the installer multiple times:
-* once for your computer, activating shortcut creation, 
+* once for your computer, activating shortcut creation,
 * and again for your usb key or external hard drive.
 Since it does not store anything in the registry subsequent installs won't affect the previous ones (except for optionnal shortcut creation obviously)
 
@@ -44,6 +44,12 @@ It controls:
 **Changelog**
 ==================
 
+0.92 (2023/12/12):
+- libVLC 3.0.20
+- JUCE 7.0.9
+- 64bits is now default
+- Did not fix any existing bugs yet, online services are broken (subtitles, posters) and other functionnalities like subtitle color also broke in the update...
+
 0.91 (2015/03/24):
 - libVLC 2.2.0
 - Opensubtitles subtitles can now be downloaded and used on the fly through subtitleseeker results, like Subscene ones
@@ -60,7 +66,7 @@ It controls:
 - Updated to Boost 1.56
 
 0.88 (2014/03/14):
-- General redesign (Metrize Icons by AlessioAtzeni) 
+- General redesign (Metrize Icons by AlessioAtzeni)
 
 0.87 (2014/03/02):
 - Customizable frontpage menu color theme(Menu -> Player -> Color theme)
@@ -153,4 +159,4 @@ It controls:
 -Moved windowed/fullscreen options to player sub-menu
 
 0.1 (2013/03/04):
--First release 
+-First release

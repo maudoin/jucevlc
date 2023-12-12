@@ -2,8 +2,7 @@
 #ifndef VIDEO_COMPONENT
 #define VIDEO_COMPONENT
 
-#include "AppConfig.h"
-#include "juce.h"
+#include <JuceHeader.h>
 #include "VLCWrapper.h"
 #include "ControlComponent.h"
 #include "AbstractMenu.h"
@@ -30,41 +29,41 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack, juce::TimeSliceClient
 {
 #ifdef BUFFER_DISPLAY
-	juce::ScopedPointer<juce::Image> img;
-	juce::ScopedPointer<juce::Image::BitmapData> ptr;
+	std::unique_ptr<juce::Image> img;
+	std::unique_ptr<juce::Image::BitmapData> ptr;
 #else
-    juce::ScopedPointer<juce::Component> vlcNativePopupComponent;
+    std::unique_ptr<juce::Component> vlcNativePopupComponent;
 #endif
-    juce::ScopedPointer<juce::Component> m_toolTip;
-    juce::ScopedPointer<ControlComponent> controlComponent;
-    juce::ScopedPointer<AbstractMenu> menu;
+    std::unique_ptr<juce::Component> m_toolTip;
+    std::unique_ptr<ControlComponent> controlComponent;
+    std::unique_ptr<AbstractMenu> menu;
     juce::CriticalSection imgCriticalSection;
-	juce::ScopedPointer<VLCWrapper> vlc;
-	juce::ScopedPointer<BackgoundUPNP> vlcMediaUPNPList;
+	std::unique_ptr<VLCWrapper> vlc;
+	std::unique_ptr<BackgoundUPNP> vlcMediaUPNPList;
 	bool sliderUpdating;
 	bool videoUpdating;
-    juce::ScopedPointer<juce::Drawable> itemImage;
-    juce::ScopedPointer<juce::Drawable> folderImage;
-    juce::ScopedPointer<juce::Drawable> playlistImage;
-    juce::ScopedPointer<juce::Drawable> folderShortcutImage;
-    juce::ScopedPointer<juce::Drawable> hideFolderShortcutImage;
-    juce::ScopedPointer<juce::Drawable> audioImage;
-    juce::ScopedPointer<juce::Drawable> displayImage;
-    juce::ScopedPointer<juce::Drawable> subtitlesImage;
-    juce::ScopedPointer<juce::Drawable> settingsImage;
-    juce::ScopedPointer<juce::Drawable> exitImage;
-    juce::ScopedPointer<juce::Drawable> speedImage;
-    juce::ScopedPointer<juce::Drawable> audioShiftImage;
-    juce::ScopedPointer<juce::Drawable> clockImage;
-    juce::ScopedPointer<juce::Drawable> asFrontpageImage;
-    juce::ScopedPointer<juce::Drawable> likeAddImage;
-    juce::ScopedPointer<juce::Drawable> likeRemoveImage;
-    juce::ScopedPointer<juce::Drawable> playAllImage;
-    juce::ScopedPointer<juce::Drawable> addAllImage;
+    std::unique_ptr<juce::Drawable> itemImage;
+    std::unique_ptr<juce::Drawable> folderImage;
+    std::unique_ptr<juce::Drawable> playlistImage;
+    std::unique_ptr<juce::Drawable> folderShortcutImage;
+    std::unique_ptr<juce::Drawable> hideFolderShortcutImage;
+    std::unique_ptr<juce::Drawable> audioImage;
+    std::unique_ptr<juce::Drawable> displayImage;
+    std::unique_ptr<juce::Drawable> subtitlesImage;
+    std::unique_ptr<juce::Drawable> settingsImage;
+    std::unique_ptr<juce::Drawable> exitImage;
+    std::unique_ptr<juce::Drawable> speedImage;
+    std::unique_ptr<juce::Drawable> audioShiftImage;
+    std::unique_ptr<juce::Drawable> clockImage;
+    std::unique_ptr<juce::Drawable> asFrontpageImage;
+    std::unique_ptr<juce::Drawable> likeAddImage;
+    std::unique_ptr<juce::Drawable> likeRemoveImage;
+    std::unique_ptr<juce::Drawable> playAllImage;
+    std::unique_ptr<juce::Drawable> addAllImage;
     juce::Image appImage;
 	LnF lnf;
-    juce::ScopedPointer<TitleComponent> titleBar;
-    juce::ScopedPointer<juce::ResizableBorderComponent> resizableBorder;
+    std::unique_ptr<TitleComponent> titleBar;
+    std::unique_ptr<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
 	bool mousehookset;
@@ -72,7 +71,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::PropertiesFile m_settings;
 	juce::PropertiesFile m_mediaTimes;
 	juce::StringArray m_shortcuts;
-    juce::ScopedPointer<InvokeLater> invokeLater;
+    std::unique_ptr<InvokeLater> invokeLater;
 	bool m_canHideOSD;
 	bool m_autoSubtitlesHeight;
 	std::set<juce::String> m_videoExtensions;
@@ -88,7 +87,7 @@ public:
     virtual ~VideoComponent();
 
 
-    int useTimeSlice();
+    int useTimeSlice() override;
 
 	void appendAndPlay(std::string const&path);
 	void play();
@@ -108,15 +107,15 @@ public:
 
 	juce::Drawable const* getIcon(juce::String const&);
 	juce::Drawable const* getIcon(juce::File const&);
-	juce::Drawable const* getItemImage() const { return itemImage; };
-	juce::Drawable const* getFolderImage() const { return folderImage; };
-	juce::Drawable const* getPlaylistImage() const { return playlistImage; };
-	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage; };
-	juce::Drawable const* getAudioImage() const { return audioImage; };
-	juce::Drawable const* getDisplayImage() const { return displayImage; };
-	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage; };
-	juce::Drawable const* getExitImage() const { return exitImage; };
-	juce::Drawable const* getSettingsImage() const { return settingsImage; };
+	juce::Drawable const* getItemImage() const { return itemImage.get(); };
+	juce::Drawable const* getFolderImage() const { return folderImage.get(); };
+	juce::Drawable const* getPlaylistImage() const { return playlistImage.get(); };
+	juce::Drawable const* getFolderShortcutImage() const { return folderShortcutImage.get(); };
+	juce::Drawable const* getAudioImage() const { return audioImage.get(); };
+	juce::Drawable const* getDisplayImage() const { return displayImage.get(); };
+	juce::Drawable const* getSubtitlesImage() const { return subtitlesImage.get(); };
+	juce::Drawable const* getExitImage() const { return exitImage.get(); };
+	juce::Drawable const* getSettingsImage() const { return settingsImage.get(); };
 
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
@@ -124,8 +123,8 @@ public:
 	void vlcUnlock(void *id, void *const *p_pixels);
 	void vlcDisplay(void *id);
 #else
-    void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized);
-    void componentVisibilityChanged(Component& component);
+    void componentMovedOrResized(Component& component,bool wasMoved, bool wasResized) override;
+    void componentVisibilityChanged(Component& component) override;
 #endif
 
 	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
@@ -221,39 +220,40 @@ public:
 	void onPlayerOptions(AbstractMenuItem& item);
 	void onMenuRoot(AbstractMenuItem& item);
 	/////////////// VLC EvtListener
-	virtual void vlcTimeChanged(int64_t newTime);
-	virtual void vlcPaused();
-	virtual void vlcStarted();
-	virtual void vlcStopped();
-	virtual void vlcPopupCallback(bool show);
-	virtual void vlcFullScreenControlCallback();
-	virtual void vlcMouseMove(int x, int y, int button);
-	virtual void vlcMouseClick(int x, int y, int button);
+	void vlcTimeChanged(int64_t newTime) override;
+	void vlcPaused() override;
+	void vlcStarted() override;
+	void vlcStopped() override;
+	void vlcPopupCallback(bool show) override;
+	void vlcFullScreenControlCallback() override;
+	void vlcMouseMove(int x, int y, int button) override;
+	void vlcMouseClick(int x, int y, int button) override;
 
 	void startedSynchronous();
 	void stoppedSynchronous();
 
 
 	/////////////// GUI CALLBACKS
-    void paint (juce::Graphics& g);
+    void paint (juce::Graphics& g) override;
 
-    virtual void resized();
+    void resized() override;
 	void updateTimeAndSlider(int64_t newTime);
 
-    virtual void sliderValueChanged (juce::Slider* slider);
-    virtual void buttonClicked (juce::Button* button);
-	void userTriedToCloseWindow();
+    void sliderValueChanged (juce::Slider* slider) override;
+    void buttonClicked (juce::Button* button) override;
+	void userTriedToCloseWindow() override;
+	using juce::Component::keyPressed;
 	bool keyPressed (const juce::KeyPress& key,
-								juce::Component* originatingComponent);
-    void mouseDown (const juce::MouseEvent& e);
-	void mouseDrag (const juce::MouseEvent& e);
-    void mouseMove (const juce::MouseEvent& e);
-    void mouseExit (const juce::MouseEvent& e);
+								juce::Component* originatingComponent) override;
+    void mouseDown (const juce::MouseEvent& e) override;
+	void mouseDrag (const juce::MouseEvent& e) override;
+    void mouseMove (const juce::MouseEvent& e) override;
+    void mouseExit (const juce::MouseEvent& e) override;
     void mouseWheelMove (const juce::MouseEvent& e,
-                                 const juce::MouseWheelDetails& wheel);
+                                 const juce::MouseWheelDetails& wheel) override;
 
 	//void minimisationStateChanged (bool isNowMinimised){if(!isNowMinimised)resized();}
-    void broughtToFront();
+    void broughtToFront() override;
 
 	enum SliderModeButton
 	{
