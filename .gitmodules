@@ -1,0 +1,6 @@
+[submodule "vlc"]
+	path = vlc
+	url = https://code.videolan.org/videolan/vlc.git
+[submodule "JUCE"]
+	path = JUCE
+	url = https://github.com/juce-framework/JUCE.git
