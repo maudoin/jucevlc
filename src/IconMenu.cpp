@@ -3,7 +3,6 @@
 #include <math.h>
 #include "FileSorter.h"
 #include "Icons.h"
-#include "PosterFinder.h"
 
 const int IconMenu::InvalidIndex = -1;
 const int IconMenu::UpFolderIndex = -2;
@@ -15,7 +14,6 @@ IconMenu::IconMenu()
 	,m_leftArrowHighlighted(false)
 	,m_rightArrowHighlighted(false)
 	,m_sliderHighlighted(false)
-	,m_thumbnailer(m_imageCatalog)
 {
     appImage   = juce::ImageFileFormat::loadFrom     (Icons::vlc_png,      Icons::vlc_pngSize);
     driveImage = juce::Drawable::createFromImageData (Icons::harddisk_svg, Icons::harddisk_svgSize);
@@ -487,13 +485,6 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 			image = appImage;
 		}
 
-		if(m_thumbnailer.busyOn(file))
-		{
-			g.setColour(itemColor.brighter());
-			g.fillRect(imageTargetRect);
-		}
-
-
 		if(!image.isNull())
 		{
 			//picture
@@ -517,7 +508,7 @@ void IconMenu::paintItem(juce::Graphics& g, int indexOnScreen, float w, float h)
 				imageY = imageTargetRect.getBottom() - image.getHeight()*scale;
 			}
 
-			juce::AffineTransform tr = juce::AffineTransform::identity.scaled(scale, scale).translated(imageX, imageY);
+			juce::AffineTransform tr = juce::AffineTransform{}.scaled(scale, scale).translated(imageX, imageY);
 			g.drawImageTransformed(image, tr, false);
 
 		}
@@ -564,32 +555,12 @@ bool IconMenu::updateFilePreview(PathAndImage & pathAndImageLoadedFlag)
 	{
 		return false;
 	}
-	if(m_imageCatalog.get(f).isNull())
-	{
-		//process this one
-		juce::Image poster = PosterFinder::findPoster(fileToAnalyse);
-		if(!poster.isNull())
-		{
-			m_imageCatalog.storeImageInCacheAndSetChanged(f, poster);
-			pathAndImageLoadedFlag.second = true;
-			return true;
-		}
-		return m_thumbnailer.startGeneration(f, fileToAnalyse);
-	}
 	//found in cache, update flag
 	pathAndImageLoadedFlag.second = true;
 	return false;
 }
 bool IconMenu::updatePreviews()
 {
-	if(m_thumbnailer.workStep())
-	{
-		//generation updated, refresh now
-		return true;
-	}
-
-
-
 	{
 		const juce::ScopedLock myScopedLock (m_currentFilesMutex);
 		//process visible items first

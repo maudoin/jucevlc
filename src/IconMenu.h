@@ -5,7 +5,6 @@
 
 #include <JuceHeader.h>
 #include "ImageCatalog.h"
-#include "Thumbnailer.h"
 #include <string>
 #include <set>
 
@@ -13,7 +12,7 @@
 class IconMenu
 {
 public:
-	
+
 	typedef std::pair<juce::File, bool> PathAndImage;
 protected:
 
@@ -37,17 +36,16 @@ protected:
 	bool m_leftArrowHighlighted;
 	bool m_rightArrowHighlighted;
 	bool m_sliderHighlighted;
-	
+
 	mutable ImageCatalog m_imageCatalog;//its a cache
-	Thumbnailer m_thumbnailer;
 
 	int m_colorThemeHue;
 
-	
+
 	juce::Rectangle<float> computeSliderRect(float w, float h) const;
 	juce::Rectangle<float> computeLeftArrowRect(juce::Rectangle<float> const& slider) const;
 	juce::Rectangle<float> computeRightArrowRect(juce::Rectangle<float> const& slider) const;
-	
+
 	juce::Rectangle<float> getButtonAt(int index, float w, float h)const;
 	int getButtonIndexAt(float xPos, float yPos, float w, float h)const;
 	std::string getMediaAtIndexOnScreen(int index)const;
@@ -60,13 +58,13 @@ protected:
 	juce::File findFirstMovie(juce::File const& f)const;
 
 	int mediaCount()const;
-	
+
 	static const int InvalidIndex;
 	static const int UpFolderIndex;
 public:
 	IconMenu();
 	virtual ~IconMenu();
-	
+
 	void setFilter(std::set<juce::String> const & s){m_videoExtensions = s;};
 
 	void setMediaRootPath(std::string const& path);
@@ -77,7 +75,7 @@ public:
 	bool clickOrDrag(float xPos, float yPos, float w, float h);
 	std::string getMediaAtIndexOnScreen(float xPos, float yPos, float w, float h)const;
 
-	
+
 	bool highlight(float xPos, float yPos, float w, float h);
 
 	void paintMenu(juce::Graphics& g, float w, float h)const;
