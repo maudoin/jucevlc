@@ -237,26 +237,26 @@ VideoComponent::VideoComponent()
 
 	//m_toolTip = new juce::TooltipWindow( this,50);
 
-    appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
+    appImage = juce::ImageFileFormat::loadFrom(Icons::vlc_png, Icons::vlc_pngSize);
 
-    itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
-    folderImage = juce::Drawable::createFromImageData (folder_svg, folder_svgSize);
-    playlistImage = juce::Drawable::createFromImageData (list_svg, list_svgSize);
-    folderShortcutImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
-    hideFolderShortcutImage = juce::Drawable::createFromImageData (hideFolderShortcut_svg, hideFolderShortcut_svgSize);
-    audioImage = juce::Drawable::createFromImageData (audio_svg, audio_svgSize);
-    displayImage = juce::Drawable::createFromImageData (display_svg, display_svgSize);
-    subtitlesImage = juce::Drawable::createFromImageData (sub_svg, sub_svgSize);
-    exitImage = juce::Drawable::createFromImageData (exit_svg, exit_svgSize);
-    settingsImage = juce::Drawable::createFromImageData (gears_svg, gears_svgSize);
-    speedImage = juce::Drawable::createFromImageData (speed_svg, speed_svgSize);
-    audioShiftImage = juce::Drawable::createFromImageData (audioShift_svg, audioShift_svgSize);
-    clockImage = juce::Drawable::createFromImageData (clock_svg, clock_svgSize);
-    asFrontpageImage = juce::Drawable::createFromImageData (frontpage_svg, frontpage_svgSize);
-    likeAddImage = juce::Drawable::createFromImageData (likeadd_svg, likeadd_svgSize);
-	likeRemoveImage = juce::Drawable::createFromImageData (likeremove_svg, likeremove_svgSize);
-    addAllImage = juce::Drawable::createFromImageData (addall_svg, addall_svgSize);
-	playAllImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
+    itemImage               = juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize);
+    folderImage             = juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize);
+    playlistImage           = juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize);
+    folderShortcutImage     = juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize);
+    hideFolderShortcutImage = juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize);
+    audioImage              = juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize);
+    displayImage            = juce::Drawable::createFromImageData (Icons::image_svg, Icons::image_svgSize);
+    subtitlesImage          = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
+    exitImage               = juce::Drawable::createFromImageData (Icons::off_svg, Icons::off_svgSize);
+    settingsImage           = juce::Drawable::createFromImageData (Icons::optionssettings_svg, Icons::optionssettings_svgSize);
+    speedImage              = juce::Drawable::createFromImageData (Icons::speed_svg, Icons::speed_svgSize);
+    audioShiftImage         = juce::Drawable::createFromImageData (Icons::soundshift_svg, Icons::soundshift_svgSize);
+    clockImage              = juce::Drawable::createFromImageData (Icons::clock_svg, Icons::clock_svgSize);
+    asFrontpageImage        = juce::Drawable::createFromImageData (Icons::frontpage_svg, Icons::frontpage_svgSize);
+    likeAddImage            = juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize);
+	likeRemoveImage         = juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize);
+    addAllImage             = juce::Drawable::createFromImageData (Icons::addall_svg, Icons::addall_svgSize);
+	playAllImage            = juce::Drawable::createFromImageData (Icons::play_svg, Icons::play_svgSize);
 
 	EXTENSIONS_VIDEO([this](const char* item){m_videoExtensions.insert(item);});
 	EXTENSIONS_PLAYLIST([this](const char* item){m_playlistExtensions.insert(item);});

@@ -17,11 +17,11 @@ IconMenu::IconMenu()
 	,m_sliderHighlighted(false)
 	,m_thumbnailer(m_imageCatalog)
 {
-    appImage = juce::ImageFileFormat::loadFrom(vlc_png, vlc_pngSize);
-    driveImage = juce::Drawable::createFromImageData (harddisk_svg, harddisk_svgSize);
-    diskImage = juce::Drawable::createFromImageData (disk_svg, disk_svgSize);
-    usbImage = juce::Drawable::createFromImageData (usb_svg, usb_svgSize);
-	upImage  = juce::Drawable::createFromImageData (back_svg, back_svgSize);
+    appImage   = juce::ImageFileFormat::loadFrom     (Icons::vlc_png,      Icons::vlc_pngSize);
+    driveImage = juce::Drawable::createFromImageData (Icons::harddisk_svg, Icons::harddisk_svgSize);
+    diskImage  = juce::Drawable::createFromImageData (Icons::disk_svg,     Icons::disk_svgSize);
+    usbImage   = juce::Drawable::createFromImageData (Icons::usb_svg,      Icons::usb_svgSize);
+	upImage    = juce::Drawable::createFromImageData (Icons::reset_svg,    Icons::reset_svgSize);
 }
 
 IconMenu::~IconMenu()

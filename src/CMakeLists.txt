@@ -30,19 +30,47 @@ target_sources(jucevlc
         ${CPP_FILES}
     )
 
-# Extra binary assets, you can add them here. The first argument is the name of
-# a new static library target that will include all the binary resources. There is an optional
-# `NAMESPACE` argument that can specify the namespace of the generated binary data class. Finally,
-# the SOURCES argument should be followed by a list of source files that should be built into the
-# static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
-# Conversion to binary-data will happen when your target is built.
-
-# juce_add_binary_data(jucevlc SOURCES ...)
-
+juce_add_binary_data(jucevlcIcons
+    HEADER_NAME Icons.h
+    NAMESPACE Icons
+    SOURCES
+        ../icons/vlc.png
+        ../icons/disk.svg
+        ../icons/harddisk.svg
+        ../icons/left.svg
+        ../icons/right.svg
+        ../icons/usb.svg
+        ../icons/AlessioAtzeni/add-all.svg
+        ../icons/AlessioAtzeni/arrow-reset.svg
+        ../icons/AlessioAtzeni/atom.svg
+        ../icons/AlessioAtzeni/backCircle.svg
+        ../icons/AlessioAtzeni/blank.svg
+        ../icons/AlessioAtzeni/clock.svg
+        ../icons/AlessioAtzeni/frontpage.svg
+        ../icons/AlessioAtzeni/fullscreen.svg
+        ../icons/AlessioAtzeni/hide-open.svg
+        ../icons/AlessioAtzeni/image.svg
+        ../icons/AlessioAtzeni/like-add.svg
+        ../icons/AlessioAtzeni/like-remove.svg
+        ../icons/AlessioAtzeni/off.svg
+        ../icons/AlessioAtzeni/open-menu.svg
+        ../icons/AlessioAtzeni/open-short.svg
+        ../icons/AlessioAtzeni/options-settings.svg
+        ../icons/AlessioAtzeni/pause.svg
+        ../icons/AlessioAtzeni/play.svg
+        ../icons/AlessioAtzeni/playlist.svg
+        ../icons/AlessioAtzeni/reset.svg
+        ../icons/AlessioAtzeni/sliders.svg
+        ../icons/AlessioAtzeni/sound-on.svg
+        ../icons/AlessioAtzeni/sound-shift.svg
+        ../icons/AlessioAtzeni/speed.svg
+        ../icons/AlessioAtzeni/stop.svg
+        ../icons/AlessioAtzeni/subtitles.svg)
 
 target_link_libraries(jucevlc
     PRIVATE
         juce::juce_gui_extra
+        jucevlcIcons
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

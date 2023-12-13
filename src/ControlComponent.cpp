@@ -53,8 +53,8 @@ SecondaryControlComponent::SecondaryControlComponent()
 	:m_buttonsStep(0.)
 {
 	setOpaque(true);
-	m_leftImage = juce::Drawable::createFromImageData (left_svg, left_svgSize);
-	m_rightImage = juce::Drawable::createFromImageData (right_svg, right_svgSize);
+	m_leftImage = juce::Drawable::createFromImageData (Icons::left_svg, Icons::left_svgSize);
+	m_rightImage = juce::Drawable::createFromImageData (Icons::right_svg, Icons::right_svgSize);
 
 	m_leftButton = std::make_unique<juce::DrawableButton>("m_leftButton", juce::DrawableButton::ImageFitted);
 	m_leftButton->setOpaque(false);
@@ -229,14 +229,14 @@ ControlComponent::ControlComponent()
 	m_slider = std::make_unique<TimeSlider>();
 
 
-    m_playImage = juce::Drawable::createFromImageData (play_svg, play_svgSize);
-    m_pauseImage = juce::Drawable::createFromImageData (pause_svg, pause_svgSize);
-    m_stopImage = juce::Drawable::createFromImageData (stop_svg, stop_svgSize);
-    m_itemImage = juce::Drawable::createFromImageData (blue_svg, blue_svgSize);
-    m_folderImage = juce::Drawable::createFromImageData (folderShortcut_svg, folderShortcut_svgSize);
-    m_starImage = juce::Drawable::createFromImageData (star_svg, star_svgSize);
-    m_fullscreenImage = juce::Drawable::createFromImageData (fullscreen_svg, fullscreen_svgSize);
-    m_undoImage = juce::Drawable::createFromImageData (undo_svg, undo_svgSize);
+    m_playImage       = juce::Drawable::createFromImageData (Icons::play_svg,           Icons::play_svgSize);
+    m_pauseImage      = juce::Drawable::createFromImageData (Icons::pause_svg,          Icons::pause_svgSize);
+    m_stopImage       = juce::Drawable::createFromImageData (Icons::stop_svg,           Icons::stop_svgSize);
+    m_itemImage       = juce::Drawable::createFromImageData (Icons::blank_svg,          Icons::blank_svgSize);
+    m_folderImage     = juce::Drawable::createFromImageData (Icons::openshort_svg,      Icons::openshort_svgSize);
+    m_starImage       = juce::Drawable::createFromImageData (Icons::sliders_svg,        Icons::sliders_svgSize);
+    m_fullscreenImage = juce::Drawable::createFromImageData (Icons::fullscreen_svg,     Icons::fullscreen_svgSize);
+    m_undoImage       = juce::Drawable::createFromImageData (Icons::backCircle_svg,     Icons::backCircle_svgSize);
 
     m_playPauseButton = std::make_unique<juce::DrawableButton>("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);
