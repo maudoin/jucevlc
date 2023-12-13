@@ -282,7 +282,6 @@ VideoComponent::VideoComponent()
 	controlComponent->addMouseListener(this, true);
 
 	menu = std::make_unique<MenuComponent>();
-	menu->setItemImage(getItemImage());
 	menu->asComponent()->addMouseListener(this, true);
 
     addChildComponent(*controlComponent);

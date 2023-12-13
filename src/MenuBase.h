@@ -7,17 +7,12 @@
 //==============================================================================
 class MenuBase : public AbstractMenu
 {
-protected:
-    juce::Drawable const* itemImage;
 public:
 	MenuBase();
 	virtual ~MenuBase();
-	
-	void setItemImage(juce::Drawable const* itemImage_){itemImage=itemImage_;}
-	juce::Drawable const* getItemImage() const { return itemImage; };
 
 protected:
-	
+
 	void paintMenuBackGround(juce::Graphics& g);
 
 };

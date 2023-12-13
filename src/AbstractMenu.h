@@ -6,7 +6,7 @@
 #include <JuceHeader.h>
 #include "AppProportionnalComponent.h"
 #include <functional>
-	
+
 class AbstractMenuItem;
 typedef std::function<void (AbstractMenuItem&)> AbstractAction;
 
@@ -31,13 +31,9 @@ public:
 	virtual ~AbstractMenu(){}
 	virtual void forceMenuRefresh() = 0;
 
-	
-	virtual void setItemImage(juce::Drawable const* itemImage_) = 0;
-	virtual juce::Drawable const* getItemImage() const = 0;
-
 	virtual juce::Component* asComponent() = 0;
 	virtual juce::Component const* asComponent() const = 0;
-	
+
 	void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
 	{
 		addMenuItem(name, actionEffect, action, icon, false);
