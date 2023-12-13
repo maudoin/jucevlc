@@ -51,9 +51,6 @@ target_link_libraries(jucevlc
         libvlccore)
 
 
-IF (WIN32)
-    ADD_CUSTOM_COMMAND(
-        TARGET jucevlc POST_BUILD
-        COMMAND "${CMAKE_SOURCE_DIR}/contrib/upx/upx.exe" "$<TARGET_FILE:jucevlc>"
-        VERBATIM)
-ENDIF (WIN32)
+#pack_target(jucevlc)
+
+code_sign_target_files(jucevlc)
