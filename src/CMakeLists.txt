@@ -50,7 +50,4 @@ target_link_libraries(jucevlc
         libvlc
         libvlccore)
 
-
-#pack_target(jucevlc)
-
 code_sign_target_files(jucevlc)

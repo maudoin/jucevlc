@@ -30,28 +30,6 @@ set_target_properties(libvlccore PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/vlc/include;${CMAKE_SOURCE_DIR}/vlc/lib"
 )
 
-######## upx
-
-find_program(UPX_EXECUTABLE
-upx.exe
-PATHS
-${CMAKE_SOURCE_DIR}/contrib/upx
-)
-mark_as_advanced(
-  UPX_EXECUTABLE
-)
-function(pack_target PACK_TGT_NAME)
-    if (${UPX_EXECUTABLE} STREQUAL "UPX_EXECUTABLE-NOTFOUND")
-        message("Missing exe packer ${UPX_EXECUTABLE}")
-    else()
-      ADD_CUSTOM_COMMAND(
-        DEPENDS ${PACK_TGT_NAME}
-        COMMAND $<IF:$<CONFIG:Release>,${UPX_EXECUTABLE},echo>
-        ARGS $<$<CONFIG:Debug>:"Skipping upx"> --force $<TARGET_FILE:${PACK_TGT_NAME}>
-        TARGET ${PACK_TGT_NAME})
-    endif()
-endfunction()
-
 ######## signer
 
 set(SIGN_CERT_FILE "${CMAKE_SOURCE_DIR}/immomedia.pfx")
