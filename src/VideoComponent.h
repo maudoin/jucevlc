@@ -10,7 +10,6 @@
 #include <sstream>
 #include <set>
 #include "LookNFeel.h"
-#include "IconMenu.h"
 
 
 #define BUFFER_DISPLAY
@@ -36,7 +35,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 #endif
     std::unique_ptr<juce::Component> m_toolTip;
     std::unique_ptr<ControlComponent> controlComponent;
-    std::unique_ptr<AbstractMenu> menu;
+    std::unique_ptr<AbstractMenu> m_optionsMenu;
     juce::CriticalSection imgCriticalSection;
 	std::unique_ptr<VLCWrapper> vlc;
 	std::unique_ptr<BackgoundUPNP> vlcMediaUPNPList;
@@ -74,13 +73,9 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<InvokeLater> invokeLater;
 	bool m_canHideOSD;
 	bool m_autoSubtitlesHeight;
-	std::set<juce::String> m_videoExtensions;
-	std::set<juce::String> m_playlistExtensions;
-	std::set<juce::String> m_subtitlesExtensions;
-	std::vector< std::set<juce::String> > m_suportedExtensions;
 	juce::TimeSliceThread m_backgroundTasks;
 
-	IconMenu m_iconMenu;
+	std::unique_ptr<AbstractMenu> m_fileMenu;
 
 public:
     VideoComponent();
@@ -104,9 +99,6 @@ public:
 	void showAudioOffsetSlider ();
 	void showSubtitlesOffsetSlider ();
 
-
-	juce::Drawable const* getIcon(juce::String const&);
-	juce::Drawable const* getIcon(juce::File const&);
 	juce::Drawable const* getItemImage() const { return itemImage.get(); };
 	juce::Drawable const* getFolderImage() const { return folderImage.get(); };
 	juce::Drawable const* getPlaylistImage() const { return playlistImage.get(); };
@@ -127,7 +119,7 @@ public:
     void componentVisibilityChanged(Component& component) override;
 #endif
 
-	typedef void (VideoComponent::*FileMethod)(AbstractMenuItem&, juce::File);
+	using FileMethod = AbstractMenu::FileMethod;
 
 	/////////////// MenuTree
 	void onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod);
@@ -135,7 +127,6 @@ public:
 	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
 	void onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod);
 
-	void onMenuSetFrontPage (AbstractMenuItem& item, juce::String path);
 	void onMenuAddFavorite (AbstractMenuItem& item, juce::String path);
 	void onMenuRemoveFavorite (AbstractMenuItem& item, juce::String path);
 	void mayPurgeFavorites();
@@ -147,7 +138,6 @@ public:
     void onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file);
     void onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file);
     void onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file);
-
 
 	void onMenuVoutIntOption (AbstractMenuItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.);
 	void onVLCOptionIntSelect(AbstractMenuItem& item, std::string, int i);

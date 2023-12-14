@@ -1,8 +1,13 @@
 #include "MenuComponent.h"
+#include "FileSorter.h"
+#include "Icons.h"
+
+#define SHORTCUTS_FILE "shortcuts.list"
 
 using namespace std::placeholders;
 
 void NullAbstractAction(AbstractMenuItem&){};
+
 
 class MenuItem : public virtual AbstractMenuItem
 {
@@ -46,7 +51,7 @@ public:
 	{
 		setColour(backgroundColourId, juce::Colour());
 	}
-	void paint (juce::Graphics& g)
+	void paint (juce::Graphics& /*g*/)
 	{
 	}
 };
@@ -99,6 +104,76 @@ public:
 		paintMenuItem(g, width, height, rowIsSelected, item.getName(), item.getIcon(), isShortcut);
     }
 
+	static void paintMenuItem(juce::Graphics& g, int width, int height,
+		bool isItemSelected, juce::String const& name, const juce::Drawable* d, bool isShortcut)
+	{
+
+		float fontSize =  1.1f*height;
+
+		float hborder = height/8.f;
+
+		float iconhborder = height/4.f;
+		int iconSize = height;
+
+
+		float xBounds = iconSize + iconhborder;
+
+		juce::Rectangle<float> borderBounds(xBounds, hborder, width-xBounds, height-2.f*hborder);
+
+		if(isItemSelected)
+		{
+			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.darker(),
+												borderBounds.getX(), 0.f,
+												juce::Colours::black,
+												borderBounds.getRight(), 0.f,
+												false));
+
+			g.fillRect(borderBounds);
+
+			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.brighter(),
+												borderBounds.getX(), 0.f,
+												juce::Colours::black,
+												borderBounds.getRight(), 0.f,
+												false));
+
+			g.drawRect(borderBounds);
+		}
+
+		if(!isShortcut)
+		{
+			g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
+												borderBounds.getCentreX(), 0.f,
+												juce::Colours::black.withAlpha(0.f),
+												borderBounds.getRight(), 0.f,
+												true));
+
+			g.drawLine(0, 0, (float)width, 0, 2.f);
+		}
+
+		g.setColour (juce::Colours::black);
+
+		if (d != nullptr)
+		{
+				d->drawWithin (g, juce::Rectangle<float> (iconhborder, 0.0f, (float)iconSize, (float)iconSize),
+								juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize, 1.0f);
+		}
+
+		juce::Font f = g.getCurrentFont().withHeight(fontSize);
+		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+		f.setStyleFlags(juce::Font::plain);
+		g.setFont(f);
+
+		g.setColour (juce::Colours::white);
+
+		int xText = iconSize + 2*(int)iconhborder;
+		g.drawFittedText (name,
+							xText, 0, width - xText, height,
+							juce::Justification::centredLeft,
+							1, //1 line
+							1.f//no h scale
+							);
+	}
+
     void selectedRowsChanged (int lastRowselected)
 	{
 		listBoxSelectionCallback(lastRowselected);
@@ -144,13 +219,26 @@ public:
 		getListBox()->setSelectedRows(set, type);
 	}
 };
-MenuComponent::MenuComponent()
+MenuComponent::MenuComponent(bool const gradient)
 	: menuList(new MenuItemList("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1),false))
 	, recentList(new MenuItemList("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1),true))
+    , itemImage               (juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize))
+    , folderImage             (juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize))
+    , playlistImage           (juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize))
+    , folderShortcutImage     (juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize))
+    , hideFolderShortcutImage (juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize))
+    , audioImage              (juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize))
+    , displayImage            (juce::Drawable::createFromImageData (Icons::image_svg, Icons::image_svgSize))
+    , subtitlesImage          (juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize))
+    , likeAddImage            (juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize))
+	, likeRemoveImage         (juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize))
+	, backImage               (juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize))
+	, m_gradient(gradient)
 {
     addAndMakeVisible (recentList->getListBox());
     addAndMakeVisible (menuList->getListBox());
 	setOpaque(false);
+
 }
 MenuComponent::~MenuComponent()
 {
@@ -158,7 +246,18 @@ MenuComponent::~MenuComponent()
 
 void MenuComponent::paint (juce::Graphics& g)
 {
-	MenuBase::paintMenuBackGround(g);
+	float w = (float)asComponent()->getWidth();
+	float h = (float)asComponent()->getHeight();
+	if(m_gradient)
+	{
+		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.darker().withAlpha(0.75f),
+										0, h/2.f,
+										juce::Colours::black,
+										w, h/2.f,
+										false));
+	}
+	g.fillRect(0.f, 0.f, w, h);
+
 }
 void MenuComponent::resized()
 {
@@ -205,7 +304,7 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 		{
 			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
 			{
-				recentList->add(item->getName(), item->getActionEffect(), item->getAction(), item->getIcon());
+				recentList->add(item->getName(), item->getActionEffect(), item->getAction(), getBackImage());
 
 				MenuItem copy = *item;
 				menuList->clear();
@@ -245,3 +344,30 @@ void MenuComponent::addMenuItem(MenuItemList* target, juce::String const& name, 
 {
 	target->add(name, actionEffect, action, icon);
 }
+
+
+juce::Drawable const* MenuComponent::getIcon(juce::String const& e)
+{
+	if(extensionMatch(m_videoExtensions, e))
+	{
+		return displayImage.get();
+	}
+	if(extensionMatch(m_playlistExtensions, e))
+	{
+		return playlistImage.get();
+	}
+	if(extensionMatch(m_subtitlesExtensions, e))
+	{
+		return subtitlesImage.get();
+	}
+	return nullptr;
+}
+juce::Drawable const* MenuComponent::getIcon(juce::File const& f)
+{
+	if(f.isDirectory())
+	{
+		return folderImage.get();
+	}
+	return getIcon(f.getFileExtension());
+}
+
