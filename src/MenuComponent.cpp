@@ -237,7 +237,7 @@ MenuComponent::MenuComponent(bool const gradient)
 {
     addAndMakeVisible (recentList->getListBox());
     addAndMakeVisible (menuList->getListBox());
-	setOpaque(false);
+	setOpaque(true);
 
 }
 MenuComponent::~MenuComponent()
@@ -250,13 +250,24 @@ void MenuComponent::paint (juce::Graphics& g)
 	float h = (float)asComponent()->getHeight();
 	if(m_gradient)
 	{
-		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.darker().withAlpha(0.75f),
+		float mid = w/4.f;
+		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.f),
 										0, h/2.f,
+										juce::Colours::black.withAlpha(0.3f),
+										mid, h/2.f,
+										false));
+		g.fillRect(0.f, 0.f, mid, h);
+		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.3f),
+										mid, h/2.f,
 										juce::Colours::black,
 										w, h/2.f,
 										false));
+		g.fillRect(mid, 0.f, w-mid, h);
 	}
-	g.fillRect(0.f, 0.f, w, h);
+	else
+	{
+		g.fillRect(0.f, 0.f, w, h);
+	}
 
 }
 void MenuComponent::resized()

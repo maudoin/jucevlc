@@ -66,6 +66,8 @@ SecondaryControlComponent::SecondaryControlComponent()
 	m_rightButton->addListener(this);
 
 	m_slider = std::make_unique<ActionSlider>("AlternateControlComponentSlider");
+	m_slider->setColour(Slider::textBoxTextColourId, juce::Colours::white);
+	m_slider->setOpaque(false);
 	addAndMakeVisible(*m_slider);
 
 	addChildComponent(*m_leftButton);
@@ -158,8 +160,10 @@ TimeSlider::TimeSlider()
 	setRange(0, 10000);
 	setSliderStyle (juce::Slider::LinearBar);
 	setAlpha(1.f);
-	setOpaque(true);
+	setOpaque(false);
     setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+	setColour(Slider::trackColourId, juce::Colours::white);
+	setColour(Slider::thumbColourId, juce::Colours::red);
 	//setPopupDisplayEnabled(true, this);//useless as it shows seconds and not on mouse over!
 	//setChangeNotificationOnlyOnRelease(true);//if we use this vlc callback make the slider "forget" the dragged position...
 
@@ -189,12 +193,12 @@ void TimeSlider::paint (juce::Graphics& g)
 
 	if(mouseOverTimeStringPos>0)
 	{
-		juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
+		juce::Font f = g.getCurrentFont().withHeight(getFontHeight()*3.f/4.f);
 		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 
-		g.setColour (juce::Colours::black);
+		g.setColour (juce::Colours::white);
 
 		int xText = mouseOverTimeStringPos + 3;//add some margin from caret
 		int widthText = getWidth()-xText;
@@ -207,7 +211,7 @@ void TimeSlider::paint (juce::Graphics& g)
 			justification = juce::Justification::centredRight;
 		}
 		g.drawFittedText (mouseOverTimeString,
-							xText, 0,widthText,getHeight(),
+							xText, 0,widthText,(getHeight()*3)/4,
 							justification,
 							1, //1 line
 							1.f//no h scale
@@ -327,7 +331,7 @@ void ControlComponent::paint(juce::Graphics& g)
 	float sliderHeight = 0.3f*h;
 
 	///////////////// CONTROL ZONE:
-	g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.5f),
+	g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.f),
 										w/2.f, h-sliderHeight-buttonSize-hMargin/2.f,
 										juce::Colours::black,
 										w/2.f, h,

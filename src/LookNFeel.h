@@ -44,16 +44,31 @@ public:
                                    const juce::Slider::SliderStyle style,
                                    juce::Slider& slider)
 	{
-		g.setColour (juce::Colours::grey);
-		g.fillRect(x, y, width, height);
-		LookAndFeel_V1::drawLinearSlider (g,
-                                   x, y,
-                                   width, height,
-                                   sliderPos,
-                                   minSliderPos,
-                                   maxSliderPos,
-                                   style,
-                                   slider);
+		g.fillAll (slider.findColour (Slider::backgroundColourId));
+
+		if (style == Slider::LinearBar)
+		{
+			int h = height/4;
+			int barY = y+height-h;
+
+			g.setColour (slider.findColour (Slider::trackColourId));
+			g.fillRect(x, barY,
+					   width, h);
+
+			g.setColour (slider.findColour (Slider::thumbColourId));
+			g.fillRect (x, barY, (int) sliderPos - x, h);
+		}
+		else
+		{
+			LookAndFeel_V1::drawLinearSlider (g,
+									x, y,
+									width, height,
+									sliderPos,
+									minSliderPos,
+									maxSliderPos,
+									style,
+									slider);
+		}
 	}
 };
 

@@ -25,6 +25,8 @@ public:
 		setSliderStyle (juce::Slider::LinearBar);
 		setAlpha(1.f);
 		setOpaque(true);
+		setColour(Slider::trackColourId, juce::Colours::darkgrey);
+		setColour(Slider::thumbColourId, juce::Colours::white);
 	}
 	virtual ~SliderWithInnerLabel(){}
 	void setLabelFormat(juce::String const& f){m_format = f;}
@@ -32,12 +34,12 @@ public:
 	{
 		juce::Slider::paint(g);
 
-		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
+		juce::Font f = g.getCurrentFont().withHeight(((float)getHeight())*3.f/4.f);
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
-		g.setColour (juce::Colours::black);
+		g.setColour (findColour(Slider::textBoxTextColourId));
 		g.drawFittedText (juce::String::formatted(m_format,getValue()),
-							0, 0, getWidth(), getHeight(),
+							0, 0, getWidth(), (getHeight()*3)/4,
 							juce::Justification::centred,
 							1, //1 line
 							1.f//no h scale

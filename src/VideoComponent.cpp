@@ -100,25 +100,13 @@ public:
 		float textWidth = f.getStringWidthFloat(title);
 		float rightBorder = 2.f*getHeight();
 		textWidth = getWidth() - rightBorder;
-		juce::Path path;
-		path.lineTo(textWidth+rightBorder-2, 0);
-		path.quadraticTo(textWidth+rightBorder/2.f, getHeight()-2.f, textWidth, getHeight()-2.f);
-		path.lineTo(0.f, getHeight()-2.f);
-		path.lineTo(0.f, 0.f);
 
-		g.setGradientFill (juce::ColourGradient (juce::Colours::darkgrey.withAlpha(0.75f),
+		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.f),
 											getWidth()/2.f, (float)getHeight(),
 											juce::Colours::black,
 											getWidth()/2.f, 0.f,
 											false));
-		g.fillPath(path);
-
-		g.setGradientFill (juce::ColourGradient (juce::Colours::grey.withAlpha(0.75f),
-											getWidth()/2.f, (float)getHeight(),
-											juce::Colours::black,
-											getWidth()/2.f, 0.f,
-											false));
-		g.strokePath(path, juce::PathStrokeType(1.f));
+		g.fillRect(0.f, 0.f, float(getWidth()), float(getHeight()));
 
 
 		g.setColour (juce::Colours::white);
@@ -302,8 +290,6 @@ VideoComponent::VideoComponent()
 		getItemImage());
 	m_fileMenu->forceMenuRefresh();
     addAndMakeVisible (m_fileMenu->asComponent());
-
-
 
 	setVisible (true);
 
