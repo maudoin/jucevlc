@@ -21,9 +21,6 @@ class MenuComponent : public virtual juce::Component, public virtual AbstractMen
     std::unique_ptr<juce::Drawable> likeAddImage;
     std::unique_ptr<juce::Drawable> likeRemoveImage;
     std::unique_ptr<juce::Drawable> backImage;
-	std::set<juce::String> m_videoExtensions;
-	std::set<juce::String> m_playlistExtensions;
-	std::set<juce::String> m_subtitlesExtensions;
 	bool m_gradient;
 public:
 

@@ -1,5 +1,6 @@
 #include "MenuComponent.h"
 #include "FileSorter.h"
+#include "Extensions.h"
 #include "Icons.h"
 
 #define SHORTCUTS_FILE "shortcuts.list"
@@ -359,15 +360,15 @@ void MenuComponent::addMenuItem(MenuItemList* target, juce::String const& name, 
 
 juce::Drawable const* MenuComponent::getIcon(juce::String const& e)
 {
-	if(extensionMatch(m_videoExtensions, e))
+	if(extensionMatch(Extensions::get().videoExtensions(), e))
 	{
 		return displayImage.get();
 	}
-	if(extensionMatch(m_playlistExtensions, e))
+	if(extensionMatch(Extensions::get().playlistExtensions(), e))
 	{
 		return playlistImage.get();
 	}
-	if(extensionMatch(m_subtitlesExtensions, e))
+	if(extensionMatch(Extensions::get().subtitlesExtensions(), e))
 	{
 		return subtitlesImage.get();
 	}

@@ -178,13 +178,13 @@ VideoComponent::VideoComponent()
 #else
 	:juce::Component("JuceVLC")
 #endif
+	, browsingFiles(false)
 	,m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
 	,m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	,m_canHideOSD(true)
 	,m_autoSubtitlesHeight(true)
 	,m_backgroundTasks("BG tasks")
 	, m_fileMenu(std::make_unique<MenuComponent>(false))
-	, browsingFiles(false)
 {
 	Languages::getInstance();
 
