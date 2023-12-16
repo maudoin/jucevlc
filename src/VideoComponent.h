@@ -122,7 +122,8 @@ public:
 	using FileMethod = AbstractMenu::FileMethod;
 
 	/////////////// MenuTree
-	void onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod);
+	void onFileMenuRoot(AbstractMenuItem& item, FileMethod fileMethod);
+	void onMenuLoadSubtitle(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod);
 	void onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path);
 	void onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod);
@@ -195,6 +196,7 @@ public:
     void onMenuFullscreen(AbstractMenuItem& item, bool fs);
 
 	void onMenuExit(AbstractMenuItem& item);
+	void onMenuExitConfirmation(AbstractMenuItem& item);
 	void onMenuSoundOptions(AbstractMenuItem& item);
 	void onMenuRatio(AbstractMenuItem& item);
 	void onMenuVideoAdjustOptions(AbstractMenuItem& item);
@@ -208,7 +210,7 @@ public:
 	void onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable);
 	void onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable);
 	void onPlayerOptions(AbstractMenuItem& item);
-	void onMenuRoot(AbstractMenuItem& item);
+	void onOptionMenuRoot(AbstractMenuItem& item);
 	/////////////// VLC EvtListener
 	void vlcTimeChanged(int64_t newTime) override;
 	void vlcPaused() override;

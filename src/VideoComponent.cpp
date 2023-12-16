@@ -94,7 +94,7 @@ public:
 	{
 		juce::String title = juce::String::fromUTF8(m_title.empty()? "JuceVLC player":m_title.c_str());
 		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
-		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+		//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 		float textWidth = f.getStringWidthFloat(title);
@@ -194,7 +194,7 @@ VideoComponent::VideoComponent()
 
     appImage = juce::ImageFileFormat::loadFrom(Icons::vlc_png, Icons::vlc_pngSize);
 
-    itemImage               = juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize);
+    itemImage               = juce::Drawable::createFromImageData (Icons::blank_svg, Icons::blank_svgSize);
     folderImage             = juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize);
     playlistImage           = juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize);
     folderShortcutImage     = juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize);
@@ -281,12 +281,11 @@ VideoComponent::VideoComponent()
 
 	initFromSettings();
 
-	m_optionsMenu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuRoot, this, _1), getItemImage());
+	m_optionsMenu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onOptionMenuRoot, this, _1), getItemImage());
 	m_optionsMenu->forceMenuRefresh();
 
-	m_fileMenu->addRecentMenuItem( TRANS("Exit"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
-	m_fileMenu->addRecentMenuItem("Root", AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		[this](auto& item){this->onMenuListFiles( item, [this](auto& item, auto const& file){this->onMenuOpenFolder(item, file);});},
+	m_fileMenu->addRecentMenuItem(juce::String("JUCE + VLC ") + vlc->getInfo().c_str(), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+		[this](auto& item){this->onFileMenuRoot( item, [this](auto& item, auto const& file){this->onMenuOpenFolder(item, file);});},
 		getItemImage());
 	m_fileMenu->forceMenuRefresh();
     addAndMakeVisible (m_fileMenu->asComponent());
@@ -944,18 +943,20 @@ juce::String name(juce::File const& file)
 	return p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
 }
 
-void VideoComponent::onMenuListFiles(AbstractMenuItem& item, FileMethod fileMethod)
+void VideoComponent::onFileMenuRoot(AbstractMenuItem& item, FileMethod fileMethod)
 {
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
-	if(item.isMenuShortcut() || path.isEmpty() || !f.exists())
-	{
-		onMenuListFavorites(item, fileMethod);
-	}
-	else
-	{
-		m_fileMenu->listRecentPath(item, fileMethod, f);
-	}
+
+	m_fileMenu->addMenuItem( TRANS("Exit"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
+	onMenuListFavorites(item, fileMethod);
+}
+
+void VideoComponent::onMenuLoadSubtitle(AbstractMenuItem& item, FileMethod fileMethod)
+{
+	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+	juce::File f(path);
+	m_fileMenu->listRecentPath(item, fileMethod, f);
 }
 
 void VideoComponent::onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod)
@@ -1264,7 +1265,7 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		m_optionsMenu->addMenuItem( juce::String::formatted(TRANS("No subtitles")), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, -1), 0==current?getItemImage():nullptr);
 	}
 	m_optionsMenu->addMenuItem( TRANS("Add..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		std::bind(&VideoComponent::onMenuListFiles, this, _1,
+		std::bind(&VideoComponent::onMenuLoadSubtitle, this, _1,
 				  [this](auto& item, auto const& file){this->onMenuOpenSubtitleFolder(item, file);}));
 	//m_optionsMenu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [this](AbstractMenuItem& item){this->onMenuSearchSubtitleSeeker(item);});
@@ -2214,6 +2215,11 @@ void VideoComponent::onMenuVideoOptions(AbstractMenuItem& item)
 }
 void VideoComponent::onMenuExit(AbstractMenuItem& item)
 {
+	m_fileMenu->addMenuItem( TRANS("Confirm Exit"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuExitConfirmation, this, _1), getExitImage());
+}
+
+void VideoComponent::onMenuExitConfirmation(AbstractMenuItem& item)
+{
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
@@ -2318,7 +2324,7 @@ void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
 	m_optionsMenu->addMenuItem( TRANS("Hardware"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), true), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?getItemImage():nullptr);
 	m_optionsMenu->addMenuItem( TRANS("No hardware"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onSetVLCOption, this, _1, std::string(CONFIG_BOOL_OPTION_HARDWARE), false), vlc->getConfigOptionBool(CONFIG_BOOL_OPTION_HARDWARE)?nullptr:getItemImage());
 }
-void VideoComponent::onMenuRoot(AbstractMenuItem& item)
+void VideoComponent::onOptionMenuRoot(AbstractMenuItem& item)
 {
 	setBrowsingFiles(false);
 
@@ -2327,7 +2333,6 @@ void VideoComponent::onMenuRoot(AbstractMenuItem& item)
 	m_optionsMenu->addMenuItem( TRANS("Video"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuVideoOptions, this, _1), getDisplayImage());
 	m_optionsMenu->addMenuItem( TRANS("Sound"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSoundOptions, this, _1), getAudioImage());
 	m_optionsMenu->addMenuItem( TRANS("Player"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onPlayerOptions, this, _1), getSettingsImage());
-	m_optionsMenu->addMenuItem( TRANS("Exit"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
 
 }
 ////////////////////////////////////////////////////////////

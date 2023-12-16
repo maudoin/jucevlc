@@ -43,6 +43,7 @@ countries: fr be mc ch lu\n\
 \"Sound\" = \"Son\"\n\
 \"Player\" = \"Lecteur\"\n\
 \"Exit\" = \"Quitter\"\n\
+\"Confirm Exit\" = \"Confirmation de sortie\"\n\
 \"Apply\" = \"Appliquer\"\n\
 \"Position\" = \"Position\"\n\
 \"Subtitle pos.: %+.f\" = \"Pos. sous-titres: %+.f\"\n\
@@ -176,7 +177,7 @@ void  Languages::dumpDefaultIfMissing(std::string const& name, const char* conte
 	    juce::String utf8 = juce::String::fromUTF8 (content);
 		juce::File f = juce::File::getCurrentWorkingDirectory().getChildFile((name + "."+ LANG_EXTENSION + ".sample").c_str());
 		f.deleteFile();
-		f.appendText(utf8,true, true);
+		f.appendText(utf8,false, true);
 		add(m_languages, name.c_str(), f.getFullPathName());
 		all.push_back(new juce::LocalisedStrings (utf8, false));
 	}

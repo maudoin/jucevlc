@@ -30,7 +30,7 @@ target_sources(jucevlc
         ${CPP_FILES}
     )
 
-juce_add_binary_data(jucevlcIcons
+    juce_add_binary_data(jucevlcIcons
     HEADER_NAME Icons.h
     NAMESPACE Icons
     SOURCES
@@ -67,10 +67,17 @@ juce_add_binary_data(jucevlcIcons
         ../icons/AlessioAtzeni/stop.svg
         ../icons/AlessioAtzeni/subtitles.svg)
 
+        juce_add_binary_data(jucevlcFonts
+            HEADER_NAME Fonts.h
+            NAMESPACE Fonts
+            SOURCES
+                ../fonts/Noto_Sans/NotoSans-Regular.ttf)
+
 target_link_libraries(jucevlc
     PRIVATE
         juce::juce_gui_extra
         jucevlcIcons
+        jucevlcFonts
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

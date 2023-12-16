@@ -160,7 +160,7 @@ public:
 		}
 
 		juce::Font f = g.getCurrentFont().withHeight(fontSize);
-		f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
+		//f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 

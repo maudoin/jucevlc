@@ -194,7 +194,7 @@ void TimeSlider::paint (juce::Graphics& g)
 	if(mouseOverTimeStringPos>0)
 	{
 		juce::Font f = g.getCurrentFont().withHeight(getFontHeight()*3.f/4.f);
-		f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+		//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
 		g.setFont(f);
 
@@ -302,23 +302,24 @@ void ControlComponent::resized()
 
 	int buttonSize = h/2;
 	int hMargin =buttonSize/2;
+ 	int wMargin = buttonSize/2;
 	int sliderHeight = (int)(0.25*h);
-	int playPauseButtonSize = buttonSize+sliderHeight;
-	int sliderLeftMargin = hMargin + playPauseButtonSize;
+	int sliderLeftMargin = wMargin;
 	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
 
-	m_playPauseButton->setBounds (hMargin, h-playPauseButtonSize, playPauseButtonSize, playPauseButtonSize);
-	m_stopButton->setBounds (hMargin+playPauseButtonSize, h-buttonSize, buttonSize, buttonSize);
-	m_fullscreenButton->setBounds (hMargin+playPauseButtonSize+buttonSize, h-buttonSize, buttonSize, buttonSize);
-	m_menuButton->setBounds (hMargin+playPauseButtonSize+2*buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_playPauseButton->setBounds (wMargin, h-buttonSize, buttonSize, buttonSize);
+	m_stopButton->setBounds (wMargin+buttonSize, h-buttonSize, buttonSize, buttonSize);
 
-	int auxilliaryX = playPauseButtonSize+6*buttonSize;
+	int auxilliaryX = wMargin+7*buttonSize;
 	int auxilliaryW = w - 2*auxilliaryX;
 	m_auxilliarySliderModeButton->setBounds (auxilliaryX-buttonSize, h-buttonSize, buttonSize, buttonSize);
 	int auxilliaryH = sliderHeight*4/5;
 	m_auxilliaryControlComponent->setBounds (auxilliaryX, h-buttonSize+(buttonSize-auxilliaryH)/2, auxilliaryW, auxilliaryH);
 
 	m_resetButton->setBounds (auxilliaryX+m_auxilliaryControlComponent->getWidth(), h-buttonSize, buttonSize, buttonSize);
+
+	m_fullscreenButton->setBounds (w-wMargin-2*buttonSize, h-buttonSize, buttonSize, buttonSize);
+	m_menuButton->setBounds (w-wMargin-buttonSize, h-buttonSize, buttonSize, buttonSize);
 }
 void ControlComponent::paint(juce::Graphics& g)
 {
@@ -328,6 +329,7 @@ void ControlComponent::paint(juce::Graphics& g)
 
 	float buttonSize = 0.5f*h;
  	float hMargin = buttonSize/22.f;
+ 	float wMargin = buttonSize/2.f;
 	float sliderHeight = 0.3f*h;
 
 	///////////////// CONTROL ZONE:
@@ -341,7 +343,7 @@ void ControlComponent::paint(juce::Graphics& g)
 
 	///////////////// TIME:
 	juce::Font f = g.getCurrentFont().withHeight(getFontHeight());
-	f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+	//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 	f.setStyleFlags(juce::Font::plain);
 	g.setFont(f);
 
@@ -350,8 +352,8 @@ void ControlComponent::paint(juce::Graphics& g)
 
 
 	g.drawFittedText (timeString,
-						(int)(hMargin+2*buttonSize), (int)(h-buttonSize), (int)(w-2*hMargin-2*buttonSize), (int)(buttonSize),
-						juce::Justification::topRight,
+						(int)(wMargin+2*buttonSize), (int)(h-buttonSize), (int)(w-2*wMargin-2*buttonSize), (int)(buttonSize),
+						juce::Justification::left,
 						1, //1 line
 						1.f//no h scale
 						);
@@ -374,7 +376,7 @@ juce::String toString(juce::int64 time)
 	int m = (int)(time/(1000*60) - 60*h );
 	int s = (int)(time/(1000) - 60*m - 60*60*h );
 
-	return juce::String::formatted("%02d:%02d:%02d", h, m, s);
+	return h == 0 ? juce::String::formatted("%02d:%02d", m, s) : juce::String::formatted("%02d:%02d:%02d", h, m, s);
 }
 
 void ControlComponent::setTime(juce::int64 time, juce::int64 len)
