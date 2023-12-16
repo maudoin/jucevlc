@@ -196,6 +196,7 @@ VideoComponent::VideoComponent()
 	,m_autoSubtitlesHeight(true)
 	,m_backgroundTasks("BG tasks")
 	, m_fileMenu(std::make_unique<MenuComponent>(false))
+	, browsingFiles(false)
 {
 	Languages::getInstance();
 
@@ -1087,7 +1088,6 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 {
 	if(file.isDirectory())
 	{
-		setBrowsingFiles();
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		m_fileMenu->addMenuItem(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuOpenUnconditionnal, this, _1,
@@ -1876,7 +1876,7 @@ void VideoComponent::onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::Fil
 {
 	if(file.isDirectory())
 	{
-		setBrowsingFiles();
+		setBrowsingFiles(true);
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
 		juce::Array<juce::File> destArray;
