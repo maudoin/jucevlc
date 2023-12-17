@@ -2432,7 +2432,7 @@ void VideoComponent::handleIdleTimeAndControlsVisibility()
 		//DBG ( (long)timeFromLastMouseMove  << "->" << (long)timeFromLastMouseMove-DISAPEAR_DELAY_MS << "/" << DISAPEAR_SPEED_MS << "=" << getAlpha() );
 		bool showControls = vlc->isPlaying() || vlc->isPaused();
 		controlComponent->setVisible(showControls);
-		titleBar->setVisible((m_optionsMenu->asComponent()->isVisible() || !isFullScreen()) && showControls);
+		titleBar->setVisible(showControls);
 		titleBar->allowDrag(!isFullScreen());
 	}
 	else
