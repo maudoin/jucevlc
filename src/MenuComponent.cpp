@@ -121,36 +121,6 @@ public:
 
 		juce::Rectangle<float> borderBounds(xBounds, hborder, width-xBounds, height-2.f*hborder);
 
-		if(isItemSelected)
-		{
-			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.darker(),
-												borderBounds.getX(), 0.f,
-												juce::Colours::black,
-												borderBounds.getRight(), 0.f,
-												false));
-
-			g.fillRect(borderBounds);
-
-			g.setGradientFill (juce::ColourGradient(juce::Colours::blue.brighter(),
-												borderBounds.getX(), 0.f,
-												juce::Colours::black,
-												borderBounds.getRight(), 0.f,
-												false));
-
-			g.drawRect(borderBounds);
-		}
-
-		if(!isShortcut)
-		{
-			g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
-												borderBounds.getCentreX(), 0.f,
-												juce::Colours::black.withAlpha(0.f),
-												borderBounds.getRight(), 0.f,
-												true));
-
-			g.drawLine(0, 0, (float)width, 0, 2.f);
-		}
-
 		g.setColour (juce::Colours::black);
 
 		if (d != nullptr)
@@ -251,19 +221,10 @@ void MenuComponent::paint (juce::Graphics& g)
 	float h = (float)asComponent()->getHeight();
 	if(m_gradient)
 	{
-		float mid = w/4.f;
-		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.f),
-										0, h/2.f,
-										juce::Colours::black.withAlpha(0.3f),
-										mid, h/2.f,
-										false));
-		g.fillRect(0.f, 0.f, mid, h);
-		g.setGradientFill (juce::ColourGradient (juce::Colours::black.withAlpha(0.3f),
-										mid, h/2.f,
-										juce::Colours::black,
-										w, h/2.f,
-										false));
-		g.fillRect(mid, 0.f, w-mid, h);
+		float const roundness = 0.01f*asComponent()->getParentWidth();
+		static const juce::Colour color = juce::Colours::darkgrey.darker().darker().withAlpha(0.9f);
+		g.setColour (color);
+		g.fillRoundedRectangle(0, 0, w, h, roundness);
 	}
 	else
 	{
