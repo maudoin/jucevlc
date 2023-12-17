@@ -217,7 +217,20 @@ void TimeSlider::paint (juce::Graphics& g)
 							1.f//no h scale
 							);
 
-		g.drawLine((float)mouseOverTimeStringPos, 0.f, (float)mouseOverTimeStringPos, (float)getHeight(), 2.f);
+
+		int curPos = getPositionOfValue(getValue());
+		if (mouseOverTimeStringPos > curPos)
+		{
+			auto layout = LookAndFeel::getDefaultLookAndFeel().getSliderLayout (*this);
+			auto sliderRect = layout.sliderBounds;
+
+			int h = sliderRect.getHeight()/4;
+			int barY = sliderRect.getY()+sliderRect.getHeight()-h;
+
+			g.setColour (juce::Colours::grey);
+			g.fillRect (curPos, barY, mouseOverTimeStringPos-curPos, h);
+		}
+
 	}
 
 
