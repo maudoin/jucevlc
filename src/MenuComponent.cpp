@@ -340,6 +340,7 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 				break;
 			}
 		}
+		menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 	}
 }
 
