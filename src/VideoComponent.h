@@ -88,6 +88,8 @@ public:
 	void play();
 	void pause();
 	void stop();
+	void rewindTime ();
+	void advanceTime ();
 	bool isFullScreen() const;
 	void setFullScreen(bool fs = true);
 	void switchFullScreen();

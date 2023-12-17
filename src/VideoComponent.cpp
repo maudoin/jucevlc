@@ -17,6 +17,7 @@
 #define DISAPEAR_SPEED_MS 500
 #define MAX_SUBTITLE_ARCHIVE_SIZE 1024*1024
 #define SUBTITLE_DOWNLOAD_TIMEOUT_MS 30000
+#define TIME_JUMP 10000
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
@@ -389,6 +390,16 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
 	{
 		switchPlayPause();
+		return true;
+	}
+	if(key.isKeyCurrentlyDown(juce::KeyPress::leftKey))
+	{
+		rewindTime();
+		return true;
+	}
+	if(key.isKeyCurrentlyDown(juce::KeyPress::rightKey))
+	{
+		advanceTime();
 		return true;
 	}
 	return false;
@@ -835,6 +846,39 @@ void VideoComponent::pause()
 	saveCurrentMediaTime();
 	vlc->Pause();
 }
+
+void VideoComponent::rewindTime ()
+{
+	if(!vlc)
+	{
+		return;
+	}
+	if(!videoUpdating)
+	{
+		sliderUpdating = true;
+		vlc->SetTime(vlc->GetTime()-TIME_JUMP);
+		sliderUpdating =false;
+		lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+		handleIdleTimeAndControlsVisibility();
+	}
+}
+
+void VideoComponent::advanceTime ()
+{
+	if(!vlc)
+	{
+		return;
+	}
+	if(!videoUpdating)
+	{
+		sliderUpdating = true;
+		vlc->SetTime(vlc->GetTime()+TIME_JUMP);
+		sliderUpdating =false;
+		lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+		handleIdleTimeAndControlsVisibility();
+	}
+}
+
 void VideoComponent::stop()
 {
 	if(!vlc)
