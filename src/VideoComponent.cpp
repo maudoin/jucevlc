@@ -1256,26 +1256,61 @@ inline juce::Colour RGB2ARGB(int rgb)
 inline int ARGB2RGB(juce::Colour const& c)
 {
 	juce::PixelARGB argb = c.getPixelARGB();
-	return ((argb.getGreen() << 16) | (argb.getRed() << 8) | argb.getBlue())&0xFFFFFF;
+	return ((argb.getRed() << 16) | (argb.getGreen() << 8) | argb.getBlue())&0xFFFFFF;
 }
+
+struct PopupColourSelector final : public Component,
+									private ChangeListener
+{
+	using Listener = std::function<void(juce::Colour const&)>;
+	PopupColourSelector (const juce::Colour& colour, int width, int height,
+							Listener const& listener)
+		: selector(juce::ColourSelector::showColourspace)
+		, m_listener (listener)
+	{
+		selector.setCurrentColour(colour);
+		addAndMakeVisible (selector);
+		selector.addChangeListener (this);
+		setSize (width, height);
+	}
+
+	void resized() override
+	{
+		selector.setBounds (getLocalBounds());
+	}
+
+private:
+	void changeListenerCallback (ChangeBroadcaster*) override
+	{
+		m_listener (selector.getCurrentColour());
+		if(juce::CallOutBox* parent =dynamic_cast<juce::CallOutBox*>(getParentComponent()))
+		{
+			parent->dismiss();
+		}
+	}
+
+
+	juce::ColourSelector selector;
+	Listener m_listener;
+};
+
 void VideoComponent:: onVLCOptionColor(AbstractMenuItem& item, std::string attr)
 {
 	setBrowsingFiles(false);
 
 	juce::Colour init(RGB2ARGB(vlc->getConfigOptionInt(attr.c_str())));
 
-	juce::ColourSelector colourSelector(juce::ColourSelector::showColourspace);
-	colourSelector.setCurrentColour(init);
-	colourSelector.setSize(getWidth() / 2, getHeight() /2);
 
-    juce::CallOutBox callOut(colourSelector, m_optionsMenu->asComponent()->getBounds(), this);
-    callOut.runModalLoop();
+    juce::CallOutBox& box = juce::CallOutBox::launchAsynchronously(std::make_unique<PopupColourSelector>(init,getWidth() / 2, getHeight() /2,
+	 									[attr, this](juce::Colour const& colour)
+										{
+											int newCol = ARGB2RGB(colour);
+											vlc->setConfigOptionInt(attr.c_str(), newCol);
+											m_settings.setValue(attr.c_str(), newCol);
+										}),
+										m_optionsMenu->asComponent()->getScreenBounds(), nullptr);
+	box.addMouseListener(this, true);
 
-	int newCol = ARGB2RGB(colourSelector.getCurrentColour());
-	vlc->setConfigOptionInt(attr.c_str(), newCol);
-
-
-	m_settings.setValue(attr.c_str(), newCol);
 }
 
 
