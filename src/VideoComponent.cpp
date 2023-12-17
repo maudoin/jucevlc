@@ -1243,14 +1243,18 @@ void VideoComponent::onMenuSubtitlePosition(AbstractMenuItem& item)
 
 
 }
-inline int RGB2ARGB(int rgb)
+inline juce::Colour RGB2ARGB(int rgb)
 {
-	return 0xFF000000 | (rgb&0xFFFFFF);
+    uint8 r = (uint8) (rgb >> 16);
+    uint8 g = (uint8) (rgb >> 8);
+    uint8 b = (uint8) (rgb);
+	return juce::Colour::fromRGB(r, g, b);
 }
 
-inline int ARGB2RGB(int argb)
+inline int ARGB2RGB(juce::Colour const& c)
 {
-	return (argb&0xFFFFFF);
+	juce::PixelARGB argb = c.getPixelARGB();
+	return ((argb.getGreen() << 16) | (argb.getRed() << 8) | argb.getBlue())&0xFFFFFF;
 }
 void VideoComponent:: onVLCOptionColor(AbstractMenuItem& item, std::string attr)
 {
@@ -1265,7 +1269,7 @@ void VideoComponent:: onVLCOptionColor(AbstractMenuItem& item, std::string attr)
     juce::CallOutBox callOut(colourSelector, m_optionsMenu->asComponent()->getBounds(), this);
     callOut.runModalLoop();
 
-	int newCol = ARGB2RGB(colourSelector.getCurrentColour().getPixelARGB().getInARGBMemoryOrder());
+	int newCol = ARGB2RGB(colourSelector.getCurrentColour());
 	vlc->setConfigOptionInt(attr.c_str(), newCol);
 
 
