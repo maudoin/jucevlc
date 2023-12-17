@@ -18,6 +18,7 @@
 #define MAX_SUBTITLE_ARCHIVE_SIZE 1024*1024
 #define SUBTITLE_DOWNLOAD_TIMEOUT_MS 30000
 #define TIME_JUMP 10000
+#define VOLUME_SCROLL_STEP 2.
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
 #define SETTINGS_VOLUME "SETTINGS_VOLUME"
@@ -2467,15 +2468,15 @@ void VideoComponent::vlcStopped()
 void VideoComponent::vlcPopupCallback(bool rightClick)
 {
 	//DBG("vlcPopupCallback." << (rightClick?"rightClick":"leftClick") );
-	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+	//lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 
 	//prevent m_optionsMenu to disappear too quickly
-	m_canHideOSD = !rightClick;
+	//m_canHideOSD = !rightClick;
 
-	bool showMenu = rightClick || vlc->isStopped();
-	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
-	if(invokeLater)invokeLater->queuef(std::bind(&Component::toFront,this, true));
-	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::handleIdleTimeAndControlsVisibility,this));
+	//bool showMenu = rightClick || vlc->isStopped();
+	//if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, showMenu));
+	//if(invokeLater)invokeLater->queuef(std::bind(&Component::toFront,this, true));
+	//if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::handleIdleTimeAndControlsVisibility,this));
 
 }
 void VideoComponent::vlcFullScreenControlCallback()
@@ -2498,6 +2499,19 @@ void VideoComponent::vlcMouseClick(int x, int y, int button)
 	//DBG ( "vlcMouseClick " );
 
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
+
+	switch(button)
+	{
+		case 1:
+			if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::switchPlayPause, this));
+		break;
+		case 4:
+			if(invokeLater)invokeLater->queuef([this]{this->showVolumeSlider(vlc->getVolume()+VOLUME_SCROLL_STEP);});
+		break;
+		case 5:
+			if(invokeLater)invokeLater->queuef([this]{this->showVolumeSlider(vlc->getVolume()-VOLUME_SCROLL_STEP);});
+		break;
+	}
 }
 
 void VideoComponent::startedSynchronous()
