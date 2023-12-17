@@ -345,3 +345,8 @@ juce::Drawable const* MenuComponent::getIcon(juce::File const& f)
 	return getIcon(f.getFileExtension());
 }
 
+
+int MenuComponent::itemCount()const
+{
+	return menuList->getNumRows() + recentList->getNumRows();
+}

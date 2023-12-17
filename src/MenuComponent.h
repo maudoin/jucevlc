@@ -36,6 +36,7 @@ public:
 
 	void menuItemSelected(int /*lastRowselected*/);
 	void recentItemSelected(int /*lastRowselected*/);
+	int itemCount()const final;
 
 protected:
 
