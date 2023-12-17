@@ -65,7 +65,8 @@ target_sources(jucevlc
         ../icons/AlessioAtzeni/sound-shift.svg
         ../icons/AlessioAtzeni/speed.svg
         ../icons/AlessioAtzeni/stop.svg
-        ../icons/AlessioAtzeni/subtitles.svg)
+        ../icons/AlessioAtzeni/subtitles.svg
+        ../icons/AlessioAtzeni/window.svg)
 
         juce_add_binary_data(jucevlcFonts
             HEADER_NAME Fonts.h

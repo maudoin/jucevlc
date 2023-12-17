@@ -107,6 +107,7 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     std::unique_ptr<juce::Drawable> m_folderImage;
     std::unique_ptr<juce::Drawable> m_starImage;
     std::unique_ptr<juce::Drawable> m_fullscreenImage;
+    std::unique_ptr<juce::Drawable> m_windowImage;
     std::unique_ptr<juce::Drawable> m_undoImage;
     std::unique_ptr<SecondaryControlComponent> m_auxilliaryControlComponent;
 	juce::String timeString;
@@ -124,6 +125,8 @@ public:
 	void showPlayingControls();
 	void showPausedControls();
 	void hidePlayingControls();
+	void showFullscreenControls();
+	void showWindowedControls();
 
 	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}

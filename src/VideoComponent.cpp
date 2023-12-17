@@ -416,8 +416,13 @@ void VideoComponent::setFullScreen(bool fs)
 {
 	//juce::Desktop::getInstance().setBailoutKioskOnFocusLost(false);
 	juce::Desktop::getInstance().setKioskModeComponent (fs?getTopLevelComponent():nullptr);
-	if(!fs)
+	if(fs)
 	{
+		controlComponent->showFullscreenControls();
+	}
+	else
+	{
+		controlComponent->showWindowedControls();
 		resized();
 	}
 	m_settings.setValue(SETTINGS_FULLSCREEN, fs);

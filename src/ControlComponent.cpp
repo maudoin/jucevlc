@@ -252,6 +252,7 @@ ControlComponent::ControlComponent()
     m_folderImage     = juce::Drawable::createFromImageData (Icons::openshort_svg,      Icons::openshort_svgSize);
     m_starImage       = juce::Drawable::createFromImageData (Icons::sliders_svg,        Icons::sliders_svgSize);
     m_fullscreenImage = juce::Drawable::createFromImageData (Icons::fullscreen_svg,     Icons::fullscreen_svgSize);
+    m_windowImage     = juce::Drawable::createFromImageData (Icons::window_svg,    		Icons::window_svgSize);
     m_undoImage       = juce::Drawable::createFromImageData (Icons::backCircle_svg,     Icons::backCircle_svgSize);
 
     m_playPauseButton = std::make_unique<juce::DrawableButton>("playPause", juce::DrawableButton::ImageFitted);
@@ -411,6 +412,19 @@ void ControlComponent::showPausedControls()
 void ControlComponent::showPlayingControls()
 {
 	m_playPauseButton->setImages(m_pauseImage.get());
+
+	setVisible(true);
+}
+
+void ControlComponent::showFullscreenControls()
+{
+	m_fullscreenButton->setImages(m_windowImage.get());
+
+	setVisible(true);
+}
+void ControlComponent::showWindowedControls()
+{
+	m_fullscreenButton->setImages(m_fullscreenImage.get());
 
 	setVisible(true);
 }
