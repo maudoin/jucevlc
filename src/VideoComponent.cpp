@@ -403,6 +403,11 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 		advanceTime();
 		return true;
 	}
+	if(key.isKeyCurrentlyDown(juce::KeyPress::escapeKey))
+	{
+		stop();
+		return true;
+	}
 	return false;
 
 }
@@ -887,8 +892,6 @@ void VideoComponent::stop()
 		return;
 	}
 	saveCurrentMediaTime();
-	vlc->Pause();
-	controlComponent->slider().setValue(10000, juce::sendNotificationSync);
 	vlc->Stop();
 }
 
