@@ -654,6 +654,10 @@ void VLCWrapper::SetInputCallBack(InputCallBack* cb)
 
 
 
+bool VLCWrapper::hasMouseInputCallBack() const
+{
+	return m_pMouseInputCallBack != nullptr;
+}
 
 
 bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
@@ -677,6 +681,10 @@ bool VLCWrapper::setMouseInputCallBack(MouseInputCallBack* cb)
 
 
 		vlc_object_release (p_vout);
+	}
+	else if(cb ==nullptr)
+	{
+		m_pMouseInputCallBack=cb;
 	}
 	return p_vout != 0;
 }

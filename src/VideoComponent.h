@@ -65,7 +65,6 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	bool browsingFiles;
-	bool mousehookset;
 	juce::int64 lastMouseMoveMovieTime;
 	juce::PropertiesFile m_settings;
 	juce::PropertiesFile m_mediaTimes;

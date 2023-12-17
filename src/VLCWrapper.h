@@ -137,6 +137,7 @@ public:
     void SetBufferFormat(int imageWidth, int imageHeight, int imageStride);
     void SetInputCallBack(InputCallBack* cb);
     bool setMouseInputCallBack(MouseInputCallBack* cb);
+    bool hasMouseInputCallBack()const;
 	void SetAudioCallback(AudioCallback* cb);
 
 	void loadSubtitle(const char* pSubPathName);

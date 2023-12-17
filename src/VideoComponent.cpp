@@ -273,7 +273,6 @@ VideoComponent::VideoComponent()
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
 
 	vlc->SetInputCallBack(this);
-	mousehookset=  false;
 
 	showVolumeSlider(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
 
@@ -823,7 +822,7 @@ void VideoComponent::appendAndPlay(std::string const& path)
 #endif
 
 	//force mouseinput to be set again when the media starts to play
-	vlc->setMouseInputCallBack(NULL);
+	vlc->setMouseInputCallBack(nullptr);
     vlc->SetEventCallBack(this);
 
 	vlc->playPlayListItem(index);
@@ -2294,7 +2293,7 @@ void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
 	{
 	}
 	//force mouseinput to be set again when the media starts to play
-	vlc->setMouseInputCallBack(NULL);
+	vlc->setMouseInputCallBack(nullptr);
     vlc->SetEventCallBack(this);
 
 	vlc->playPlayListItem(index);
@@ -2403,9 +2402,9 @@ void VideoComponent::vlcTimeChanged(int64_t newTime)
 	{
 		return;
 	}
-	if(!mousehookset)
+	if(!vlc->hasMouseInputCallBack())
 	{
-		mousehookset = vlc->setMouseInputCallBack(this);
+		vlc->setMouseInputCallBack(this);
 	}
 	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::updateTimeAndSlider,this, newTime));
 }
