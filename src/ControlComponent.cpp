@@ -12,44 +12,10 @@ using namespace std::placeholders;
 //
 ////////////////////////////////////////////////////////////
 
-void nop(double)
-{
-}
-class ActionSlider   : public SliderWithInnerLabel, public juce::Slider::Listener
-{
-public:
-    typedef std::function<void (double)> Functor;
-private:
-	Functor m_f;
-public:
-	ActionSlider(juce::String const& name="")
-		:SliderWithInnerLabel(name)
-		,m_f(std::bind(&nop, _1))
-	{
-		addListener(this);
-	}
-	virtual ~ActionSlider(){}
-	void resetCallback(){m_f = std::bind(&nop, _1);}
-	void setCallback(ActionSliderCallback const& f){m_f = f;}
-    virtual void sliderValueChanged (juce::Slider* slider)
-	{
-		m_f(slider->getValue());
-	}
-	void disable()
-	{
-		setCallback(std::bind(&nop, _1));
-	}
-	void setup(juce::String const& label, ActionSliderCallback const& f, double value, double volumeMin, double volumeMax, double step)
-	{
-		setRange(volumeMin, volumeMax, step);
-		setValue(value);
-		setLabelFormat(label);
-		setCallback(f);
-	}
-};
 
 SecondaryControlComponent::SecondaryControlComponent()
 	:m_buttonsStep(0.)
+	,m_sliderAction([](double){})
 {
 	setOpaque(true);
 	m_leftImage = juce::Drawable::createFromImageData (Icons::left_svg, Icons::left_svgSize);
@@ -65,7 +31,10 @@ SecondaryControlComponent::SecondaryControlComponent()
 	m_rightButton->setImages(m_rightImage.get());
 	m_rightButton->addListener(this);
 
-	m_slider = std::make_unique<ActionSlider>("AlternateControlComponentSlider");
+	m_slider = std::make_unique<juce::Slider>("AlternateControlComponentSlider");
+	m_slider->addListener(this);
+    m_slider->setSliderStyle (Slider::LinearHorizontal);
+	m_slider->setTextBoxStyle (Slider::NoTextBox, false, 80, 20);
 	m_slider->setColour(Slider::textBoxTextColourId, juce::Colours::white);
 	m_slider->setOpaque(false);
 	addAndMakeVisible(*m_slider);
@@ -82,33 +51,69 @@ void SecondaryControlComponent::resized()
 {
 	bool showButtons = m_buttonsStep>0.;
 	int buttonSize = showButtons?getHeight():0;
+	int leftButtonSize= m_leftButton->isVisible() ? buttonSize : 0;
+	int rightButtonSize= m_rightButton->isVisible() ? buttonSize : 0;
 
-	int leftButtonSize=0;
+	int w = getWidth()-leftButtonSize-rightButtonSize;
+	int sliderW = (2*w)/3;
+	int labelW = w-sliderW;
+
 	if(m_leftButton->isVisible())
 	{
-		leftButtonSize=buttonSize;
 		m_leftButton->setBounds(0, 0, buttonSize, getHeight());
 	}
-	int rightButtonSize=0;
+	m_slider->setBounds(leftButtonSize, 0, sliderW, getHeight());
 	if(m_rightButton->isVisible())
 	{
-		rightButtonSize=buttonSize;
-		m_rightButton->setBounds(getWidth()-buttonSize, 0, buttonSize, getHeight());
+		m_rightButton->setBounds(leftButtonSize+sliderW, 0, buttonSize, getHeight());
 	}
-	m_slider->setBounds(leftButtonSize, 0, getWidth()-leftButtonSize-rightButtonSize, getHeight());
+	//Rectangle<int> labelBounds(leftButtonSize+sliderW+rightButtonSize, 0, labelW, getHeight());
 }
 
 void SecondaryControlComponent::paint(juce::Graphics& g)
 {
+	//paint label
+	bool showButtons = m_buttonsStep>0.;
+	int buttonSize = showButtons?getHeight():0;
+	int leftButtonSize= m_leftButton->isVisible() ? buttonSize : 0;
+	int rightButtonSize= m_rightButton->isVisible() ? buttonSize : 0;
+
+	int w = getWidth()-leftButtonSize-rightButtonSize;
+	int sliderW = (2*w)/3;
+	int labelW = w-sliderW;
+
+	Rectangle<int> labelBounds(leftButtonSize+sliderW+rightButtonSize, 0, labelW, getHeight());
+
+	juce::Font f = g.getCurrentFont().withHeight(getFontHeight()*3.f/4.f);
+	//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
+	f.setStyleFlags(juce::Font::plain);
+	g.setFont(f);
+
+	g.setColour (juce::Colours::white);
+	g.drawFittedText (juce::String::formatted(m_labelFormat, m_slider->getValue()),
+		labelBounds,
+		juce::Justification::centredLeft,
+		1, //1 line
+		1.f//no h scale
+		);
 }
+
+void SecondaryControlComponent::sliderValueChanged (juce::Slider* slider)
+{
+	m_sliderAction(slider->getValue());
+}
+
 void SecondaryControlComponent::show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
 {
+	m_sliderAction = f;
+	m_labelFormat = label;
 	m_buttonsStep = buttonsStep;
 	m_resetValue = resetValue;
 	bool showButtons = m_buttonsStep>0.;
 	m_leftButton->setVisible(showButtons);
 	m_rightButton->setVisible(showButtons);
-	m_slider->setup(label, f, value, volumeMin, volumeMax, step);
+	m_slider->setRange(volumeMin, volumeMax, step);
+	m_slider->setValue(value);
 	resized();
 	setVisible(true);
 }
@@ -126,7 +131,7 @@ void SecondaryControlComponent::reset()
 }
 void SecondaryControlComponent::disableAndHide()
 {
-	m_slider->disable();
+	m_sliderAction = [](double){};
 	setVisible(false);
 }
 void SecondaryControlComponent::buttonClicked (juce::Button* button)
@@ -189,7 +194,20 @@ void TimeSlider::resetMouseOverTime()
 //juce GUI overrides
 void TimeSlider::paint (juce::Graphics& g)
 {
-	juce::Slider::paint(g);
+	g.fillAll (findColour (Slider::backgroundColourId));
+
+	auto layout = LookAndFeel::getDefaultLookAndFeel().getSliderLayout (*this);
+	auto sliderRect = layout.sliderBounds;
+	int h = sliderRect.getHeight()/4;
+	int barY = sliderRect.getY()+sliderRect.getHeight()-h;
+	int sliderPos = getPositionOfValue(getValue());
+
+	g.setColour (findColour (Slider::trackColourId));
+	g.fillRect(sliderRect.getX(), barY,
+				sliderRect.getWidth(), h);
+
+	g.setColour (findColour (Slider::thumbColourId));
+	g.fillRect (sliderRect.getX(), barY, (int) sliderPos - sliderRect.getX(), h);
 
 	if(mouseOverTimeStringPos>0)
 	{
@@ -218,17 +236,14 @@ void TimeSlider::paint (juce::Graphics& g)
 							);
 
 
-		int curPos = getPositionOfValue(getValue());
-		if (mouseOverTimeStringPos > curPos)
+		if (mouseOverTimeStringPos > sliderPos)
 		{
-			auto layout = LookAndFeel::getDefaultLookAndFeel().getSliderLayout (*this);
-			auto sliderRect = layout.sliderBounds;
 
 			int h = sliderRect.getHeight()/4;
 			int barY = sliderRect.getY()+sliderRect.getHeight()-h;
 
 			g.setColour (juce::Colours::grey);
-			g.fillRect (curPos, barY, mouseOverTimeStringPos-curPos, h);
+			g.fillRect (sliderPos, barY, mouseOverTimeStringPos-sliderPos, h);
 		}
 
 	}
@@ -308,6 +323,11 @@ ControlComponent::~ControlComponent()
 	m_pauseImage = nullptr;
 	m_stopImage = nullptr;
 }
+void ControlComponent::setScaleComponent(juce::Component* scaleComponent)
+{
+	AppProportionnalComponent::setScaleComponent(scaleComponent);
+	m_auxilliaryControlComponent->setScaleComponent(scaleComponent);
+}
 void ControlComponent::resized()
 {
 	int w =  getWidth();
@@ -315,11 +335,10 @@ void ControlComponent::resized()
 
 
 	int buttonSize = h/2;
-	int hMargin =buttonSize/2;
  	int wMargin = buttonSize/2;
 	int sliderHeight = (int)(0.25*h);
 	int sliderLeftMargin = wMargin;
-	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-hMargin, sliderHeight);
+	m_slider->setBounds (sliderLeftMargin, h-sliderHeight-buttonSize, w-sliderLeftMargin-wMargin, sliderHeight);
 
 	m_playPauseButton->setBounds (wMargin, h-buttonSize, buttonSize, buttonSize);
 	m_stopButton->setBounds (wMargin+buttonSize, h-buttonSize, buttonSize, buttonSize);

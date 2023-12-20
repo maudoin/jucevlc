@@ -12,63 +12,29 @@
 
 juce::String toString(juce::int64 time);
 
-
-class SliderWithInnerLabel : public juce::Slider
-{
-private:
-	juce::String m_format;
-public:
-	SliderWithInnerLabel(juce::String const& name="")
-		:juce::Slider(name)
-	{
-		setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
-		setSliderStyle (juce::Slider::LinearBar);
-		setAlpha(1.f);
-		setOpaque(true);
-		setColour(Slider::trackColourId, juce::Colours::darkgrey);
-		setColour(Slider::thumbColourId, juce::Colours::white);
-	}
-	virtual ~SliderWithInnerLabel(){}
-	void setLabelFormat(juce::String const& f){m_format = f;}
-	void paint(juce::Graphics& g)
-	{
-		juce::Slider::paint(g);
-
-		juce::Font f = g.getCurrentFont().withHeight(((float)getHeight())*3.f/4.f);
-		f.setStyleFlags(juce::Font::plain);
-		g.setFont(f);
-		g.setColour (findColour(Slider::textBoxTextColourId));
-		g.drawFittedText (juce::String::formatted(m_format,getValue()),
-							0, 0, getWidth(), (getHeight()*3)/4,
-							juce::Justification::centred,
-							1, //1 line
-							1.f//no h scale
-							);
-	}
-};
-
-class ActionSlider;
-
 typedef std::function<void (double)> ActionSliderCallback;
 
-class SecondaryControlComponent   : public juce::Component, public juce::Button::Listener
+class SecondaryControlComponent   : public juce::Component, public juce::Button::Listener, public juce::Slider::Listener, public AppProportionnalComponent
 {
-    std::unique_ptr<ActionSlider> m_slider;
+    std::unique_ptr<juce::Slider> m_slider;
     std::unique_ptr<juce::DrawableButton> m_leftButton;
     std::unique_ptr<juce::DrawableButton> m_rightButton;
     std::unique_ptr<juce::Drawable> m_leftImage;
     std::unique_ptr<juce::Drawable> m_rightImage;
 	double m_buttonsStep;
 	double m_resetValue;
+	ActionSliderCallback m_sliderAction;
+	juce::String m_labelFormat;
 public:
 	SecondaryControlComponent();
 	virtual ~SecondaryControlComponent();
 
 	//juce GUI overrides
-	virtual void resized();
-	void buttonClicked (juce::Button* button);
+	void resized() override;
+	void buttonClicked (juce::Button* button) override;
+	void sliderValueChanged (juce::Slider* slider) override;
+	void paint(juce::Graphics& g) override;
 
-	void paint(juce::Graphics& g);
 	void reset();
 	void disableAndHide();
 	void show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep = 0.f);
@@ -127,6 +93,7 @@ public:
 	void hidePlayingControls();
 	void showFullscreenControls();
 	void showWindowedControls();
+	void setScaleComponent(juce::Component* scaleComponent) override;
 
 	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}

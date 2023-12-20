@@ -15,13 +15,13 @@ public:
 	static int getItemHeightPercentageRelativeToScreen();
 	static void setItemHeightPercentageRelativeToScreen(int percent, AppProportionnalComponent* = nullptr);
 
-	void setScaleComponent(juce::Component* scaleComponent);
+	virtual void setScaleComponent(juce::Component* scaleComponent);
 	float getFontHeight();
 	float getItemHeight();
     virtual void componentMovedOrResized (juce::Component& component,
                                           bool wasMoved,
                                           bool wasResized);
-	
+
 	virtual void appProportionnalComponentResized() {};
 };
 
