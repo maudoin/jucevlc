@@ -269,7 +269,6 @@ VideoComponent::VideoComponent()
 
 	addKeyListener(this);
 
-    // And show it!
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
 
 	vlc->SetInputCallBack(this);
@@ -1320,23 +1319,61 @@ void VideoComponent::onVLCOptionIntRangeMenu(AbstractMenuItem& item, std::string
 {
 	int init(vlc->getConfigOptionInt(attr.c_str()));
 
-	SliderWithInnerLabel slider(attr.c_str());
-	slider.setRange((double)min, (double)max, 1.);
-	slider.setValue(defaultVal);
-	slider.setLabelFormat(format);
-	slider.setSize(getWidth()/2, (int)m_optionsMenu->getItemHeight());
+
+	auto slider = std::make_unique<juce::Slider>();
+	slider->setRange((double)min, (double)max, 1.);
+	slider->setValue(init);
+	slider->setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+	slider->setSize(getWidth()/2, (int)m_optionsMenu->getItemHeight());
+
 
 	juce::Rectangle<int> componentParentBounds(m_optionsMenu->asComponent()->getBounds());
 	componentParentBounds.setTop(0);
 	componentParentBounds.setHeight(getHeight());
 
-    juce::CallOutBox callOut(slider, componentParentBounds, this);
-    callOut.runModalLoop();
+	auto asyncAlertWindow = std::make_unique<AlertWindow> ( juce::String{}, juce::String::formatted(format,defaultVal),
+														MessageBoxIconType::NoIcon);
 
-	vlc->setConfigOptionInt(attr.c_str(), (int)slider.getValue());
-	m_settings.setValue(attr.c_str(), (int)slider.getValue());
+	asyncAlertWindow->addCustomComponent (slider.get());
+	enum Result{CANCEL = 0, OK = 1};
+	asyncAlertWindow->addButton ("OK",     OK, KeyPress (KeyPress::returnKey, 0, 0));
+	asyncAlertWindow->addButton ("Cancel", CANCEL, KeyPress (KeyPress::escapeKey, 0, 0));
 
-	setBrowsingFiles(false);
+	asyncAlertWindow->setColour(AlertWindow::backgroundColourId, juce::Colours::darkgrey.darker().darker().darker());
+	asyncAlertWindow->setColour(AlertWindow::outlineColourId, juce::Colours::darkgrey.darker().darker().darker());
+	asyncAlertWindow->setColour(AlertWindow::textColourId, juce::Colours::white);
+
+	struct Listener : public juce::Slider::Listener
+	{
+		std::string attr;
+		const char* format;
+		AlertWindow* alert;
+		Listener(std::string const& attr, const char* format, AlertWindow*alert)
+		:attr(attr), format(format), alert(alert) {}
+        void sliderValueChanged (Slider* slider) override
+		{
+			alert->setMessage(juce::String::formatted(format,slider->getValue()));
+		}
+	};
+	auto l = std::make_unique<Listener>(attr, format,asyncAlertWindow.get());
+	slider->addListener(l.get());
+
+	asyncAlertWindow->enterModalState(true,
+									  ModalCallbackFunction::create(
+										  [ l = std::move(l), slider = std::move(slider), asyncAlertWindow = std::move(asyncAlertWindow), this, attr](int result)
+										  {
+											  if (!slider || !l)
+												  return;
+
+											  asyncAlertWindow->exitModalState(result);
+											  asyncAlertWindow->setVisible(false);
+
+											  if (result == OK)
+											  {
+												  this->vlc->setConfigOptionInt(attr.c_str(), (int)slider->getValue());
+												  this->m_settings.setValue(attr.c_str(), (int)slider->getValue());
+											  }
+										  }));
 }
 
 void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
@@ -1366,11 +1403,11 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 	m_optionsMenu->addMenuItem( TRANS("Opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
 	m_optionsMenu->addMenuItem( TRANS("Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
 	m_optionsMenu->addMenuItem( TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	m_optionsMenu->addMenuItem( TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Opacity: %.0f",0, 255, 255));
+	m_optionsMenu->addMenuItem( TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Outline opacity: %.0f",0, 255, 255));
 	m_optionsMenu->addMenuItem( TRANS("Outline Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
-	m_optionsMenu->addMenuItem( TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Opacity: %.0f",0, 255, 0));
+	m_optionsMenu->addMenuItem( TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Background opacity: %.0f",0, 255, 0));
 	m_optionsMenu->addMenuItem( TRANS("Background Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
-	m_optionsMenu->addMenuItem( TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Opacity: %.0f",0, 255, 0));
+	m_optionsMenu->addMenuItem( TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Shadow opacity: %.0f",0, 255, 0));
 	m_optionsMenu->addMenuItem( TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
 
 	setBrowsingFiles(false);
