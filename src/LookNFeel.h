@@ -120,6 +120,10 @@ public:
         }
     }
 
+	int getPopupMenuBorderSizeWithOptions (const PopupMenu::Options&) override
+	{
+		return 0;
+	}
 };
 
 
