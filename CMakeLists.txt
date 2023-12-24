@@ -31,8 +31,10 @@ set_target_properties(libvlccore PROPERTIES
 )
 
 ######## signer
+#MakeCert" -pe -n "CN=MatthieuA" -b 12/12/2023 -e 01/01/2100 -ss my -sr currentuser -a sha256 -sky signature -len 2048 -r "matthieua.cer"
+#MakeCert" -pe -n "CN=MatthieuA" -b 12/12/2023 -e 01/01/2100 -eku  1.3.6.1.5.5.7.3.3 -in "matthieua" -is my -ir currentuser -ss my -a sha256 -sky exchange  -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12 -len 2048 "matthieuasign.cer"
 
-set(SIGN_CERT_FILE "${CMAKE_SOURCE_DIR}/immomedia.pfx")
+set(SIGN_CERT_FILE "${CMAKE_SOURCE_DIR}/MatthieuA.pfx")
 
 find_program(SIGNTOOL
  signtool.exe
@@ -51,7 +53,7 @@ function(code_sign_target_files SIGN_TGT_NAME)
         ADD_CUSTOM_COMMAND(
           DEPENDS ${SIGN_TGT_NAME}
           COMMAND $<IF:$<CONFIG:Release>,${SIGNTOOL},echo>
-          ARGS $<$<CONFIG:Debug>:"Skipping signing"> sign /f ${SIGN_CERT_FILE} /p $ENV{SIGN_PASSWORD} /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v $<TARGET_FILE:${SIGN_TGT_NAME}>
+          ARGS $<$<CONFIG:Debug>:"Skipping signing"> sign /debug /a /f ${SIGN_CERT_FILE} /p $ENV{SIGN_PASSWORD} /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v $<TARGET_FILE:${SIGN_TGT_NAME}>
           TARGET ${SIGN_TGT_NAME})
     else()
         message("define SIGN_PASSWORD env variable to sign the executable")
