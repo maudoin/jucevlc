@@ -25,7 +25,6 @@ public:
 	,icon(icon)
 	,action(action)
 	,actionEffect(actionEffect)
-	,isShortcut(isShortcut)
 	{
 	}
 
@@ -38,7 +37,6 @@ public:
 	virtual void execute(AbstractMenuItem & m){ action(m);}
 	virtual AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
 	virtual AbstractAction const& getAction()const{ return action; }
-	virtual bool isMenuShortcut(){ return isShortcut ;}
 
 };
 
@@ -65,13 +63,11 @@ public:
 private:
 	TransparentListBox box;
 	juce::Array<MenuItem> items;
-	bool isShortcut;
 	SelectionCallback listBoxSelectionCallback;
 public:
 
-	MenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback, bool isShortcut)
+	MenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback)
 		:box(name, this)
-		,isShortcut(isShortcut)
 		,listBoxSelectionCallback(listBoxSelectionCallback)
 	{
 	}
@@ -95,18 +91,17 @@ public:
     void paintListBoxItem (int rowNumber,
                            juce::Graphics& g,
                            int width, int height,
-                           bool rowIsSelected)
+                           bool /*rowIsSelected*/)
     {
-        if (rowNumber < 0 || rowNumber>= items.size())
+        if (rowNumber >= 0 && rowNumber < items.size())
 		{
-			return;
+			MenuItem& item = items.getReference(rowNumber);
+			paintMenuItem(g, width, height, item.getName(), item.getIcon());
 		}
-		MenuItem& item = items.getReference(rowNumber);
-		paintMenuItem(g, width, height, rowIsSelected, item.getName(), item.getIcon(), isShortcut);
     }
 
 	static void paintMenuItem(juce::Graphics& g, int width, int height,
-		bool isItemSelected, juce::String const& name, const juce::Drawable* d, bool isShortcut)
+		juce::String const& name, const juce::Drawable* d)
 	{
 
 		float fontSize =  1.1f*height;
@@ -153,7 +148,7 @@ public:
 
     virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 	{
-		items.add(MenuItem(name, actionEffect, action, icon, isShortcut));
+		items.add(MenuItem(name, actionEffect, action, icon, false));
         box.updateContent();
 	}
 
@@ -170,29 +165,103 @@ public:
 	{
 		return getItem(box.getSelectedRow());
 	}
-	void removeItemsAfter(int rowNumber)
-	{
-		//menu is likely to have changed
-		items.removeRange(rowNumber +1, items.size()-1-rowNumber);
-		box.updateContent();
-	}
 	void clear()
 	{
 		items.clear();
 		box.updateContent();
 	}
 
-	void selectLastItem(juce::NotificationType type)
+};
+
+class RecentMenuItemList : public juce::ListBoxModel
+{
+public:
+	typedef std::function<void (int)> SelectionCallback;
+private:
+	TransparentListBox box;
+	juce::Array<MenuItem> items;
+	SelectionCallback listBoxSelectionCallback;
+public:
+
+	RecentMenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback)
+		:box(name, this)
+		,listBoxSelectionCallback(listBoxSelectionCallback)
 	{
-		int index = getNumRows()-1;
-		juce::SparseSet<int> set;
-		set.addRange (juce::Range<int>(index, index));
-		getListBox()->setSelectedRows(set, type);
+	}
+	virtual ~RecentMenuItemList() = default;
+
+
+	juce::ListBox * getListBox()
+	{
+		return &box;
+	}
+
+    // implements the ListBoxModel method
+    int getNumRows() override
+    {
+        return items.size()<=1?0:1;
+    }
+
+    // implements the ListBoxModel method
+    void paintListBoxItem (int /*rowNumber*/,
+                           juce::Graphics& g,
+                           int width, int height,
+                           bool /*rowIsSelected*/) override
+    {
+        if (MenuItem* item = getLastItem())
+		{
+	 		g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
+	 											0, 0.f,
+	 											juce::Colours::black.withAlpha(0.f),
+	 											width, 0.f,
+	 											true));
+
+	 		g.drawLine(0, height, (float)width, height, 2.f);
+
+			juce::String path;
+			for(int i=1;i<items.size();++i)
+			{
+				if(!path.isEmpty())
+				{
+					path = path+" > "+items[i].getName();
+				}
+				else
+				{
+					path = items[i].getName();
+				}
+			}
+			MenuItemList::paintMenuItem(g, width, height, path, item->getIcon());
+		}
+    }
+
+    void selectedRowsChanged (int lastRowselected) override
+	{
+		listBoxSelectionCallback(lastRowselected);
+	}
+
+    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+	{
+		items.add(MenuItem(name, actionEffect, action, icon, true));
+        box.updateContent();
+	}
+
+	MenuItem* getLastItem()
+	{
+		return (items.isEmpty()) ? nullptr : &(items.getReference(items.size()-1));
+	}
+	void unstack()
+	{
+		if(items.size()>1)
+		{
+			items.removeLast(1);
+		}
+		box.updateContent();
 	}
 };
+
 MenuComponent::MenuComponent(bool const gradient)
-	: menuList(new MenuItemList("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1),false))
-	, recentList(new MenuItemList("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1),true))
+	: menuList(new MenuItemList("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1)))
+	, recentList(new RecentMenuItemList("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1)))
     , itemImage               (juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize))
     , folderImage             (juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize))
     , playlistImage           (juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize))
@@ -248,24 +317,24 @@ void MenuComponent::resized()
 	Component::resized();
 }
 
-void MenuComponent::forceRecentItem(int row)
+void MenuComponent::forceRecentItem(MenuItem& selected)
 {
-	MenuItem* item = recentList->getItem(row);
-    if (item != nullptr)
-	{
-		MenuItem selected(*item);
-		recentList->removeItemsAfter(row);
-		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+	menuList->clear();
+	selected.execute(selected);
 
-		menuList->clear();
-		selected.execute(selected);
-
-		resized();
-	}
+	resized();
 }
-void MenuComponent::recentItemSelected(int /*lastRowselected*/)
+void MenuComponent::recentItemSelected(int lastRowselected)
 {
-	forceRecentItem(recentList->getListBox()->getSelectedRow());
+	if(lastRowselected >= 0)
+	{
+		recentList->unstack();
+		if(auto *item = recentList->getLastItem())
+		{
+			forceRecentItem(*item);
+			recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+		}
+	}
 }
 
 void MenuComponent::menuItemSelected (int /*lastRowselected*/)
@@ -307,16 +376,24 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 
 void MenuComponent::forceMenuRefresh()
 {
-	forceRecentItem(recentList->getNumRows()-1);
+	MenuItem* item = recentList->getLastItem();
+    if (item != nullptr)
+	{
+		MenuItem itemCopy = *item;
+		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+		forceRecentItem(itemCopy);
+	}
 }
 
-void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut)
+void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 {
-	this->addMenuItem(shortcut?recentList.get():menuList.get(), name, actionEffect, action, icon);
+	menuList->add(name, actionEffect, action, icon);
+	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 }
-void MenuComponent::addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
 {
-	target->add(name, actionEffect, action, icon);
+	recentList->add(name, actionEffect, action, icon);
+	recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 }
 
 

@@ -20,8 +20,7 @@ public:
 		REFRESH_MENU,
 		STORE_AND_OPEN_CHILDREN
 	};
-	virtual ~AbstractMenuItem(){}
-	virtual bool isMenuShortcut() = 0;
+	virtual ~AbstractMenuItem() = default;
 };
 //==============================================================================
 class AbstractMenu : public AppProportionnalComponent
@@ -43,14 +42,8 @@ public:
 
 	virtual int itemCount()const = 0;
 
-	void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
-	{
-		addMenuItem(name, actionEffect, action, icon, false);
-	}
-	void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr)
-	{
-		addMenuItem(name, actionEffect, action, icon, true);
-	}
+	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
+	virtual void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
 
 	void listRecentPath(AbstractMenuItem& item, FileMethod const& fileMethod, juce::File const& path);
 	void listFiles(AbstractMenuItem& item, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod);
@@ -68,8 +61,6 @@ public:
 	virtual juce::Drawable const* getSubtitlesImage() const = 0;
 	virtual juce::Drawable const* getBackImage() const = 0;
 
-protected:
-	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut) = 0;
 };
 
 

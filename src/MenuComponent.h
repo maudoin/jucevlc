@@ -4,12 +4,14 @@
 
 #include "AbstractMenu.h"
 
+class MenuItem;
 class MenuItemList;
+class RecentMenuItemList;
 //==============================================================================
 class MenuComponent : public virtual juce::Component, public virtual AbstractMenu
 {
 	std::unique_ptr<MenuItemList> menuList;
-	std::unique_ptr<MenuItemList> recentList;
+	std::unique_ptr<RecentMenuItemList> recentList;
     std::unique_ptr<juce::Drawable> itemImage;
     std::unique_ptr<juce::Drawable> folderImage;
     std::unique_ptr<juce::Drawable> playlistImage;
@@ -28,7 +30,7 @@ public:
 	virtual ~MenuComponent();
 
 	void resized();
-	virtual void forceMenuRefresh();
+	void forceMenuRefresh() override;
 
 	void paint (juce::Graphics& g) final;
 	juce::Component* asComponent() final {return this;}
@@ -37,6 +39,9 @@ public:
 	void menuItemSelected(int /*lastRowselected*/);
 	void recentItemSelected(int /*lastRowselected*/);
 	int itemCount()const final;
+
+	void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon) override;
+	void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon) override;
 
 protected:
 
@@ -51,11 +56,8 @@ protected:
 	juce::Drawable const* getSubtitlesImage() const final { return subtitlesImage.get(); };
 	juce::Drawable const* getBackImage() const final { return backImage.get(); };
 
-	void forceRecentItem(int index);
+	void forceRecentItem(MenuItem& item);
 
-	using AbstractMenu::addMenuItem;
-	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon, bool shortcut);
-	virtual void addMenuItem(MenuItemList* target, juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon);
 };
 
 #endif //MENU_COMPONENT_H

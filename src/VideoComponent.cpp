@@ -709,9 +709,9 @@ void VideoComponent::updateSubComponentsBounds()
 
 	int optionItemHeight = m_optionsMenu->getItemHeight();
 	int hMargin = (int)(optionItemHeight/2.);
-	int optionHeight = m_optionsMenu->itemCount()*optionItemHeight + hMargin;
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 3*(int)optionItemHeight;
+	int optionHeight = std::min(h-controlHeight-hMargin, m_optionsMenu->itemCount()*optionItemHeight + hMargin);
 
 	m_optionsMenu->asComponent()->setBounds (w-treeWidth,h-optionHeight-controlHeight,treeWidth, optionHeight);
 
@@ -1010,7 +1010,7 @@ void VideoComponent::onMenuLoadSubtitle(AbstractMenuItem& item, FileMethod fileM
 {
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
-	m_fileMenu->listRecentPath(item, fileMethod, f);
+	m_optionsMenu->listRecentPath(item, fileMethod, f);
 }
 
 void VideoComponent::onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod)
