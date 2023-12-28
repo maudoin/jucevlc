@@ -45,7 +45,6 @@ target_sources(jucevlc
         ../icons/AlessioAtzeni/atom.svg
         ../icons/AlessioAtzeni/backCircle.svg
         ../icons/AlessioAtzeni/blank.svg
-        ../icons/AlessioAtzeni/clock.svg
         ../icons/AlessioAtzeni/frontpage.svg
         ../icons/AlessioAtzeni/fullscreen.svg
         ../icons/AlessioAtzeni/hide-open.svg

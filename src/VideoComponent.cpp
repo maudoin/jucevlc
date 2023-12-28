@@ -37,6 +37,8 @@
 
 using namespace std::placeholders;
 
+namespace
+{
 juce::PropertiesFile::Options options()
 {
 	juce::PropertiesFile::Options opts;
@@ -82,17 +84,26 @@ class TitleComponent   : public juce::Component
 	juce::ComponentDragger dragger;
 	std::string m_title;
 	bool m_allowDrag;
+	juce::String m_currentTimeString;
 public:
 	TitleComponent(juce::Component* componentToMove)
 		:juce::Component("Title")
 		,m_componentToMove(componentToMove)
 		,m_allowDrag(false)
+		,m_currentTimeString()
 	{
 		setOpaque(false);
 	}
-	virtual ~TitleComponent(){}
+	virtual ~TitleComponent() = default;
 	void setTitle(std::string const& title){m_title=title;}
 	void allowDrag(bool allow){m_allowDrag=allow;}
+    void setTime(juce::int64 time, juce::int64 len)
+	{
+		juce::int64 current = juce::Time::currentTimeMillis();
+		juce::int64 eta = current + len - time;
+
+		m_currentTimeString = juce::Time(current).formatted("%H:%M") + juce::Time(eta).formatted(" -> %H:%M");
+	}
 	void paint (juce::Graphics& g)
 	{
 		juce::String title = juce::String::fromUTF8(m_title.empty()? "JuceVLC player":m_title.c_str());
@@ -119,6 +130,14 @@ public:
 							1, //1 line
 							1.f//no h scale
 							);
+
+		float timeWidth = f.getStringWidthFloat(m_currentTimeString);
+		g.drawFittedText (m_currentTimeString,
+			getWidth()-timeWidth-4, 2, timeWidth+2, getHeight()-4,
+			juce::Justification::centredRight,
+			1, //1 line
+			1.f//no h scale
+			);
 	}
 	void mouseDown (const juce::MouseEvent& e)
 	{
@@ -169,6 +188,8 @@ public:
 		return std::vector<std::pair<std::string, std::string> >();
 	}
 };
+
+}
 ////////////////////////////////////////////////////////////
 //
 // MAIN COMPONENT
@@ -209,7 +230,6 @@ VideoComponent::VideoComponent()
     settingsImage           = juce::Drawable::createFromImageData (Icons::optionssettings_svg, Icons::optionssettings_svgSize);
     speedImage              = juce::Drawable::createFromImageData (Icons::speed_svg, Icons::speed_svgSize);
     audioShiftImage         = juce::Drawable::createFromImageData (Icons::soundshift_svg, Icons::soundshift_svgSize);
-    clockImage              = juce::Drawable::createFromImageData (Icons::clock_svg, Icons::clock_svgSize);
     asFrontpageImage        = juce::Drawable::createFromImageData (Icons::frontpage_svg, Icons::frontpage_svgSize);
     likeAddImage            = juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize);
 	likeRemoveImage         = juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize);
@@ -622,7 +642,6 @@ void VideoComponent::buttonClicked (juce::Button* button)
         m.addCustomItem (E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER, std::make_unique<DrawableMenuComponent>(subtitlesImage.get(), buttonWidth));
         m.addCustomItem (E_POPUP_ITEM_VOLUME_DELAY_SLIDER, std::make_unique<DrawableMenuComponent>(audioShiftImage.get(), buttonWidth));
         m.addCustomItem (E_POPUP_ITEM_PLAY_SPEED_SLIDER, std::make_unique<DrawableMenuComponent>(speedImage.get(), buttonWidth));
-        m.addCustomItem (E_POPUP_ITEM_SHOW_CURRENT_TIME, std::make_unique<DrawableMenuComponent>(clockImage.get(), buttonWidth));
 
         m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (button),
                              juce::ModalCallbackFunction::forComponent (auxilliarySliderModeButtonCallback, this));
@@ -646,9 +665,6 @@ void VideoComponent::auxilliarySliderModeButton(int result)
 		break;
 	case E_POPUP_ITEM_PLAY_SPEED_SLIDER:
 		showPlaybackSpeedSlider();
-		break;
-	case E_POPUP_ITEM_SHOW_CURRENT_TIME:
-		controlComponent->auxilliaryControlComponent().disableAndHide();
 		break;
 	}
 }
@@ -1326,7 +1342,7 @@ void VideoComponent::onMenuSubtitleMenu(MenuComponentValue const&)
 	{
 		for(std::vector<std::pair<int, std::string> >::const_iterator i = subs.begin();i != subs.end();++i)
 		{
-			m_optionsMenu->addMenuItem( juce::String("-> ") + i->second.c_str(),
+			m_optionsMenu->addMenuItem( juce::String("> ") + i->second.c_str(),
                      AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuSubtitleSelect, this, _1, i->first), i->first==current?getItemImage():nullptr);
 		}
 	}
@@ -2460,9 +2476,13 @@ void VideoComponent::updateTimeAndSlider(int64_t newTime)
 {
 	if(!sliderUpdating)
 	{
+		int64_t len = vlc->GetLength();
+
 		videoUpdating = true;
-		controlComponent->slider().setValue(newTime*10000./vlc->GetLength(), juce::sendNotificationSync);
-		controlComponent->setTime(newTime, vlc->GetLength());
+		controlComponent->slider().setValue(newTime*10000./len, juce::sendNotificationSync);
+
+		titleBar->setTime(newTime, len);
+		controlComponent->setTime(::toString(newTime) + "/" + ::toString(len));
 		if(invokeLater)invokeLater->queuef([this]{this->controlComponent->repaint();});
 		videoUpdating =false;
 	}

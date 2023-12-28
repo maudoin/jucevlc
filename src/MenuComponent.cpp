@@ -301,7 +301,7 @@ void MenuComponent::paint (juce::Graphics& g)
 	if(m_gradient)
 	{
 		float const roundness = 0.01f*asComponent()->getParentWidth();
-		static const juce::Colour color = juce::Colours::darkgrey.darker().darker().withAlpha(0.9f);
+		static const juce::Colour color(uint8(20), uint8(20), uint8(20), 0.9f);
 		g.setColour (color);
 		g.fillRoundedRectangle(0, 0, w, h, roundness);
 	}

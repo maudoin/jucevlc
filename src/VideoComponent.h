@@ -16,8 +16,11 @@
 #undef BUFFER_DISPLAY
 
 class InvokeLater;
+namespace
+{
 class TitleComponent;
 class BackgoundUPNP;
+}
 class VideoComponent   : public juce::Component , public juce::KeyListener,
 
 #ifdef BUFFER_DISPLAY
@@ -53,7 +56,6 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<juce::Drawable> exitImage;
     std::unique_ptr<juce::Drawable> speedImage;
     std::unique_ptr<juce::Drawable> audioShiftImage;
-    std::unique_ptr<juce::Drawable> clockImage;
     std::unique_ptr<juce::Drawable> asFrontpageImage;
     std::unique_ptr<juce::Drawable> likeAddImage;
     std::unique_ptr<juce::Drawable> likeRemoveImage;
@@ -254,7 +256,6 @@ public:
 		, E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER
 		, E_POPUP_ITEM_VOLUME_DELAY_SLIDER
 		, E_POPUP_ITEM_PLAY_SPEED_SLIDER
-		, E_POPUP_ITEM_SHOW_CURRENT_TIME
 	};
 	void auxilliarySliderModeButton(int result);
 private:

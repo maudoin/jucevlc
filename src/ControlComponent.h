@@ -77,7 +77,6 @@ class ControlComponent   : public juce::Component, public AppProportionnalCompon
     std::unique_ptr<juce::Drawable> m_undoImage;
     std::unique_ptr<SecondaryControlComponent> m_auxilliaryControlComponent;
 	juce::String timeString;
-	juce::String currentTimeString;
 public:
 	ControlComponent();
 	virtual ~ControlComponent();
@@ -86,7 +85,7 @@ public:
     virtual void paint (juce::Graphics& g);
     virtual void resized();
 
-    void setTime(juce::int64 time, juce::int64 len);
+    void setTime(juce::String const& timeString);
 
 	void showPlayingControls();
 	void showPausedControls();
