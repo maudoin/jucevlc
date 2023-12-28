@@ -9,7 +9,7 @@ AbstractMenu::AbstractMenu()
 {
 }
 
-void AbstractMenu::listShortcuts(AbstractMenuItem&, FileMethod const& fileMethod, juce::StringArray const& shortcuts)
+void AbstractMenu::listShortcuts(MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts)
 {
 	for(int i=0;i<shortcuts.size();++i)
 	{
@@ -17,7 +17,7 @@ void AbstractMenu::listShortcuts(AbstractMenuItem&, FileMethod const& fileMethod
 		juce::String driveRoot = path.getFullPathName().upToFirstOccurrenceOf(juce::File::getSeparatorString(), false, false);
 		juce::String drive = path.getVolumeLabel().isEmpty() ? driveRoot : (path.getVolumeLabel()+"("+driveRoot + ")" );
 		addMenuItem(path.getFileName() + "-" + drive, AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-			[fileMethod, path](AbstractMenuItem& i){return fileMethod(i, path);}, getFolderShortcutImage());
+			[fileMethod, path](MenuComponentValue const& v){return fileMethod(v, path);}, getFolderShortcutImage());
 	}
 }
 
@@ -32,7 +32,7 @@ juce::String name(juce::File const& file)
 
 }
 
-void AbstractMenu::listRootFiles(AbstractMenuItem& item, FileMethod const& fileMethod)
+void AbstractMenu::listRootFiles(MenuComponentValue const&, FileMethod const& fileMethod)
 {
 	juce::Array<juce::File> destArray;
 	juce::File::findFileSystemRoots(destArray);
@@ -41,13 +41,13 @@ void AbstractMenu::listRootFiles(AbstractMenuItem& item, FileMethod const& fileM
 	{
 		juce::File const& file(destArray[i]);
 		addMenuItem( name(file), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-			[file, fileMethod](AbstractMenuItem& i){return fileMethod(i, file);}, getIcon(file));
+			[file, fileMethod](MenuComponentValue const& v){return fileMethod(v, file);}, getIcon(file));
 	}
 
 	//addMenuItem( TRANS("UPNP videos..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, std::vector<std::string>()), getItemImage());
 }
 
-void AbstractMenu::listRecentPath(AbstractMenuItem& item, FileMethod const&  fileMethod, juce::File const& path)
+void AbstractMenu::listRecentPath(MenuComponentValue const&, FileMethod const&  fileMethod, juce::File const& path)
 {
 	if(path.exists())
 	{
@@ -72,7 +72,7 @@ void AbstractMenu::listRecentPath(AbstractMenuItem& item, FileMethod const&  fil
 		{
 			juce::File const& file(parentFolders[i]);
 			addRecentMenuItem( name(file), AbstractMenuItem::EXECUTE_ONLY,
-				[file, fileMethod](AbstractMenuItem& i){return fileMethod(i, file);}, getBackImage());
+				[file, fileMethod](MenuComponentValue const& v){return fileMethod(v, file);}, getBackImage());
 		}
 		//select the last item
 		forceMenuRefresh();
@@ -80,7 +80,7 @@ void AbstractMenu::listRecentPath(AbstractMenuItem& item, FileMethod const&  fil
 }
 
 
-void AbstractMenu::listFiles(AbstractMenuItem& item, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod)
+void AbstractMenu::listFiles(MenuComponentValue const&, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod)
 {
 	if(file.isDirectory())
 	{
@@ -91,7 +91,7 @@ void AbstractMenu::listFiles(AbstractMenuItem& item, juce::File const& file, Fil
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& f(destArray[i]);
-			addMenuItem( name(f), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [=](AbstractMenuItem& i){folderMethod(i, f);}, getFolderImage());
+			addMenuItem( name(f), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [=](MenuComponentValue const& v){folderMethod(v, f);}, getFolderImage());
 
 		}
 		destArray.clear();
@@ -100,7 +100,7 @@ void AbstractMenu::listFiles(AbstractMenuItem& item, juce::File const& file, Fil
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& f(destArray[i]);
-			addMenuItem( name(f), AbstractMenuItem::EXECUTE_ONLY, [=](AbstractMenuItem& i){return fileMethod(i, f);}, getIcon(f));
+			addMenuItem( name(f), AbstractMenuItem::EXECUTE_ONLY, [=](MenuComponentValue const& v){return fileMethod(v, f);}, getIcon(f));
 
 		}
 	}

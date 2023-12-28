@@ -34,11 +34,11 @@ void AppProportionnalComponent::setScaleComponent(juce::Component* scaleComponen
 		scaleComponent->addComponentListener(this);
 	}
 }
-float AppProportionnalComponent::getFontHeight()
+float AppProportionnalComponent::getFontHeight() const
 {
 	return 1.f*getItemHeight();
 }
-float AppProportionnalComponent::getItemHeight()
+float AppProportionnalComponent::getItemHeight() const
 {
 	return  m_scaleComponent == NULL ? 24 : m_itemHeightScalePercent*m_scaleComponent->getHeight() * 3.5f / 10000.f;
 }

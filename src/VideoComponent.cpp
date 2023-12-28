@@ -12,6 +12,7 @@
 #include <format>
 #include <functional>
 #include <regex>
+#include <variant>
 
 #define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
@@ -228,6 +229,7 @@ VideoComponent::VideoComponent()
 	controlComponent->auxilliarySliderModeButton().addListener(this);
 	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
+	controlComponent->setVisible(false);
 
 	m_optionsMenu = std::make_unique<MenuComponent>();
 	m_optionsMenu->asComponent()->addMouseListener(this, true);
@@ -711,7 +713,7 @@ void VideoComponent::updateSubComponentsBounds()
 	int hMargin = (int)(optionItemHeight/2.);
 	int treeWidth = (browsingFiles?3:1)*w/4;
 	int controlHeight = 3*(int)optionItemHeight;
-	int optionHeight = std::min(h-controlHeight-hMargin, m_optionsMenu->itemCount()*optionItemHeight + hMargin);
+	int optionHeight = std::min(h-controlHeight-hMargin, m_optionsMenu->preferredHeight());
 
 	m_optionsMenu->asComponent()->setBounds (w-treeWidth,h-optionHeight-controlHeight,treeWidth, optionHeight);
 
@@ -997,25 +999,25 @@ juce::String name(juce::File const& file)
 	return p.getFullPathName() == file.getFullPathName() ?(file.getFileName()+juce::String(" (")+file.getVolumeLabel()+juce::String(")")):file.getFileName();
 }
 
-void VideoComponent::onFileMenuRoot(AbstractMenuItem& item, FileMethod fileMethod)
+void VideoComponent::onFileMenuRoot(MenuComponentValue const& value, FileMethod fileMethod)
 {
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
 
 	m_fileMenu->addMenuItem( TRANS("Exit"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuExit, this, _1), getExitImage());
-	onMenuListFavorites(item, fileMethod);
+	onMenuListFavorites(value, fileMethod);
 }
 
-void VideoComponent::onMenuLoadSubtitle(AbstractMenuItem& item, FileMethod fileMethod)
+void VideoComponent::onMenuLoadSubtitle(MenuComponentValue const& value, FileMethod fileMethod)
 {
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
-	m_optionsMenu->listRecentPath(item, fileMethod, f);
+	m_optionsMenu->listRecentPath(value, fileMethod, f);
 }
 
-void VideoComponent::onMenuListRootFiles(AbstractMenuItem& item, FileMethod fileMethod)
+void VideoComponent::onMenuListRootFiles(MenuComponentValue const& value, FileMethod fileMethod)
 {
-	m_fileMenu->listRootFiles(item, fileMethod);
+	m_fileMenu->listRootFiles(value, fileMethod);
 	m_fileMenu->addMenuItem( TRANS("UPNP videos..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuListUPNPFiles, this, _1, std::vector<std::string>()), getItemImage());
 }
 
@@ -1041,7 +1043,7 @@ juce::String getPathExtensionWithoutDot(juce::String const& path)
 	return path.substring(p+1);
 }
 
-void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std::string> path)
+void VideoComponent::onMenuListUPNPFiles(MenuComponentValue const&, std::vector<std::string> path)
 {
 	std::vector<std::pair<std::string, std::string> > list = vlcMediaUPNPList->getUPNPList(path);
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
@@ -1060,14 +1062,14 @@ void VideoComponent::onMenuListUPNPFiles(AbstractMenuItem& item, std::vector<std
 
 
 }
-void VideoComponent::onMenuListFavorites(AbstractMenuItem& item, FileMethod fileMethod)
+void VideoComponent::onMenuListFavorites(MenuComponentValue const& value, FileMethod fileMethod)
 {
 
 	mayPurgeFavorites();
 
 	m_fileMenu->addMenuItem( TRANS("All videos..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuListRootFiles, this, _1, fileMethod), getItemImage());
 
-	m_fileMenu->listShortcuts(item, fileMethod, m_shortcuts);
+	m_fileMenu->listShortcuts(value, fileMethod, m_shortcuts);
 }
 
 void VideoComponent::mayPurgeFavorites()
@@ -1103,29 +1105,29 @@ void VideoComponent::writeFavorites()
 	shortcuts.replaceWithText(m_shortcuts.joinIntoString("\n"));
 }
 
-void VideoComponent::onMenuAddFavorite(AbstractMenuItem& item, juce::String path)
+void VideoComponent::onMenuAddFavorite(MenuComponentValue const&, juce::String path)
 {
 	m_shortcuts.add(path);
 	writeFavorites();
 }
-void VideoComponent::onMenuRemoveFavorite(AbstractMenuItem& item, juce::String path)
+void VideoComponent::onMenuRemoveFavorite(MenuComponentValue const&, juce::String path)
 {
 	m_shortcuts.removeString(path);
 	writeFavorites();
 }
 
-void VideoComponent::onMenuOpenUnconditionnal (AbstractMenuItem& item, juce::String path)
+void VideoComponent::onMenuOpenUnconditionnal (MenuComponentValue const&, juce::String path)
 {
 	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	appendAndPlay(path.toUTF8().getAddress());
 }
-void VideoComponent::onMenuQueue (AbstractMenuItem& item, juce::String path)
+void VideoComponent::onMenuQueue (MenuComponentValue const&, juce::String path)
 {
 	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon,this, false));
 	vlc->addPlayListItem(path.toUTF8().getAddress());
 }
 
-void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenFolder (MenuComponentValue const& value, juce::File file)
 {
 	if(file.isDirectory())
 	{
@@ -1136,7 +1138,7 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 		m_fileMenu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuQueue, this, _1,
 				file.getFullPathName()), addAllImage.get());
 
-		m_fileMenu->listFiles(item, file, std::bind(&VideoComponent::onMenuOpenFile, this, _1, _2),
+		m_fileMenu->listFiles(value, file, std::bind(&VideoComponent::onMenuOpenFile, this, _1, _2),
 								std::bind(&VideoComponent::onMenuOpenFolder, this, _1, _2));
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
@@ -1152,7 +1154,7 @@ void VideoComponent::onMenuOpenFolder (AbstractMenuItem& item, juce::File file)
 	}
 }
 
-void VideoComponent::onMenuOpenFile (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenFile (MenuComponentValue const& value, juce::File file)
 {
 	if(!file.isDirectory())
 	{
@@ -1163,41 +1165,41 @@ void VideoComponent::onMenuOpenFile (AbstractMenuItem& item, juce::File file)
 		}
 		else
 		{
-			onMenuOpenUnconditionnal(item, file.getFullPathName());
+			onMenuOpenUnconditionnal(value, file.getFullPathName());
 		}
 	}
 }
-void VideoComponent::onVLCOptionIntSelect(AbstractMenuItem& item, std::string name, int v)
+void VideoComponent::onVLCOptionIntSelect(MenuComponentValue const&, std::string name, int v)
 {
 	vlc->setConfigOptionInt(name.c_str(), v);
 	m_settings.setValue(name.c_str(), (int)v);
 }
-void VideoComponent::onVLCOptionIntListMenu(AbstractMenuItem& item, std::string name)
+void VideoComponent::onVLCOptionIntListMenu(MenuComponentValue const&, std::string name)
 {
-	setBrowsingFiles(false);
 
 	std::pair<int, std::vector<std::pair<int, std::string> > > res = vlc->getConfigOptionInfoInt(name.c_str());
 	for(std::vector<std::pair<int, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
 	{
 		m_optionsMenu->addMenuItem( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onVLCOptionIntSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionInt(name.c_str())?getItemImage():nullptr);
 	}
+	setBrowsingFiles(false);
 
 }
 
-void VideoComponent::onVLCOptionStringSelect(AbstractMenuItem& item, std::string name, std::string v)
+void VideoComponent::onVLCOptionStringSelect(MenuComponentValue const&, std::string name, std::string v)
 {
 	vlc->setConfigOptionString(name.c_str(), v);
 	m_settings.setValue(name.c_str(), juce::String(v.c_str()));
 }
-void VideoComponent::onVLCOptionStringMenu (AbstractMenuItem& item, std::string name)
+void VideoComponent::onVLCOptionStringMenu (MenuComponentValue const&, std::string name)
 {
-	setBrowsingFiles(false);
 
 	std::pair<std::string, std::vector<std::pair<std::string, std::string> > > res = vlc->getConfigOptionInfoString(name.c_str());
 	for(std::vector<std::pair<std::string, std::string> >::const_iterator it = res.second.begin();it != res.second.end();++it)
 	{
 		m_optionsMenu->addMenuItem( TRANS(it->second.c_str()), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onVLCOptionStringSelect, this, _1, name, it->first), it->first==vlc->getConfigOptionString(name.c_str())?getItemImage():nullptr);
 	}
+	setBrowsingFiles(false);
 
 }
 void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
@@ -1205,13 +1207,13 @@ void setVoutOptionInt(VLCWrapper * vlc, std::string option, double value)
 	vlc->setVoutOptionInt(option.c_str(), (int)value);
 
 }
-void VideoComponent::onMenuVoutIntOption (AbstractMenuItem& item, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
+void VideoComponent::onMenuVoutIntOption (MenuComponentValue const&, juce::String label, std::string option, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
 {
 	setBrowsingFiles(false);
 	controlComponent->auxilliaryControlComponent().show(label,
 		std::bind<void>(&::setVoutOptionInt, vlc.get(), option, _1), value, resetValue, volumeMin, volumeMax, step, buttonsStep);
 }
-void VideoComponent::onMenuSubtitlePositionMode(AbstractMenuItem& item, bool automatic)
+void VideoComponent::onMenuSubtitlePositionMode(MenuComponentValue const& value, bool automatic)
 {
 	setBrowsingFiles(false);
 
@@ -1220,7 +1222,7 @@ void VideoComponent::onMenuSubtitlePositionMode(AbstractMenuItem& item, bool aut
 
 	if(!m_autoSubtitlesHeight)
 	{
-		onMenuVoutIntOption(item,TRANS("Subtitle pos.: %+.f"),
+		onMenuVoutIntOption(value,TRANS("Subtitle pos.: %+.f"),
 		std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
 		(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., 0., (double)getHeight(), 1., 0.);
 	}
@@ -1230,15 +1232,15 @@ void VideoComponent::onMenuSubtitlePositionMode(AbstractMenuItem& item, bool aut
 	}
 
 }
-void VideoComponent::onMenuSubtitlePosition(AbstractMenuItem& item)
+void VideoComponent::onMenuSubtitlePosition(MenuComponentValue const&)
 {
 	setBrowsingFiles(false);
 
 	m_optionsMenu->addMenuItem( TRANS("Automatic"), AbstractMenuItem::REFRESH_MENU,
-		[this](AbstractMenuItem& item){this->onMenuSubtitlePositionMode(item, true);},
+		[this](MenuComponentValue const& value){this->onMenuSubtitlePositionMode(value, true);},
 		m_autoSubtitlesHeight?getItemImage():nullptr);
 	m_optionsMenu->addMenuItem( TRANS("Custom"), AbstractMenuItem::REFRESH_MENU,
-		[this](AbstractMenuItem& item){this->onMenuSubtitlePositionMode(item, false);},
+		[this](MenuComponentValue const& value){this->onMenuSubtitlePositionMode(value, false);},
 		(!m_autoSubtitlesHeight)?getItemImage():nullptr);
 	//m_optionsMenu->addMenuItem( TRANS("Setup"), std::bind(&VideoComponent::onMenuVoutIntOption, this, _1,
 	//	TRANS("Subtitle pos.: %+.f"),
@@ -1296,87 +1298,27 @@ private:
 	Listener m_listener;
 };
 
-void VideoComponent:: onVLCOptionColor(AbstractMenuItem& item, std::string attr)
+void VideoComponent:: onVLCOptionColor(MenuComponentValue const& value, std::string attr)
 {
-	juce::Colour init(RGB2ARGB(vlc->getConfigOptionInt(attr.c_str())));
-
-
-    juce::CallOutBox& box = juce::CallOutBox::launchAsynchronously(std::make_unique<PopupColourSelector>(init,getWidth() / 2, getHeight() /2,
-	 									[attr, this](juce::Colour const& colour)
-										{
-											int newCol = ARGB2RGB(colour);
-											vlc->setConfigOptionInt(attr.c_str(), newCol);
-											m_settings.setValue(attr.c_str(), newCol);
-										}),
-										m_optionsMenu->asComponent()->getScreenBounds(), nullptr);
-	box.addMouseListener(this, true);
-
-	setBrowsingFiles(false);
-}
-
-
-void VideoComponent::onVLCOptionIntRangeMenu(AbstractMenuItem& item, std::string attr, const char* format, int min, int max, int defaultVal)
-{
-	int init(vlc->getConfigOptionInt(attr.c_str()));
-
-
-	auto slider = std::make_unique<juce::Slider>();
-	slider->setRange((double)min, (double)max, 1.);
-	slider->setValue(init);
-	slider->setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
-	slider->setSize(getWidth()/2, (int)m_optionsMenu->getItemHeight());
-
-
-	juce::Rectangle<int> componentParentBounds(m_optionsMenu->asComponent()->getBounds());
-	componentParentBounds.setTop(0);
-	componentParentBounds.setHeight(getHeight());
-
-	auto asyncAlertWindow = std::make_unique<AlertWindow> ( juce::String{}, juce::String::formatted(format,defaultVal),
-														MessageBoxIconType::NoIcon);
-
-	asyncAlertWindow->addCustomComponent (slider.get());
-	enum Result{CANCEL = 0, OK = 1};
-	asyncAlertWindow->addButton ("OK",     OK, KeyPress (KeyPress::returnKey, 0, 0));
-	asyncAlertWindow->addButton ("Cancel", CANCEL, KeyPress (KeyPress::escapeKey, 0, 0));
-
-	asyncAlertWindow->setColour(AlertWindow::backgroundColourId, juce::Colours::darkgrey.darker().darker().darker());
-	asyncAlertWindow->setColour(AlertWindow::outlineColourId, juce::Colours::darkgrey.darker().darker().darker());
-	asyncAlertWindow->setColour(AlertWindow::textColourId, juce::Colours::white);
-
-	struct Listener : public juce::Slider::Listener
+	if ( juce::Colour const* colour = std::get_if<juce::Colour>(&value) )
 	{
-		std::string attr;
-		const char* format;
-		AlertWindow* alert;
-		Listener(std::string const& attr, const char* format, AlertWindow*alert)
-		:attr(attr), format(format), alert(alert) {}
-        void sliderValueChanged (Slider* slider) override
-		{
-			alert->setMessage(juce::String::formatted(format,slider->getValue()));
-		}
-	};
-	auto l = std::make_unique<Listener>(attr, format,asyncAlertWindow.get());
-	slider->addListener(l.get());
-
-	asyncAlertWindow->enterModalState(true,
-									  ModalCallbackFunction::create(
-										  [ l = std::move(l), slider = std::move(slider), asyncAlertWindow = std::move(asyncAlertWindow), this, attr](int result)
-										  {
-											  if (!slider || !l)
-												  return;
-
-											  asyncAlertWindow->exitModalState(result);
-											  asyncAlertWindow->setVisible(false);
-
-											  if (result == OK)
-											  {
-												  this->vlc->setConfigOptionInt(attr.c_str(), (int)slider->getValue());
-												  this->m_settings.setValue(attr.c_str(), (int)slider->getValue());
-											  }
-										  }));
+		int newCol = ARGB2RGB(*colour);
+		vlc->setConfigOptionInt(attr.c_str(), newCol);
+		m_settings.setValue(attr.c_str(), newCol);
+	}
 }
 
-void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
+
+void VideoComponent::onVLCOptionIntRangeMenu(MenuComponentValue const& value, const char* attr)
+{
+	if ( double const* doublePtr = std::get_if<double>(&value) )
+	{
+		this->vlc->setConfigOptionInt(attr, (int)*doublePtr);
+		this->m_settings.setValue(attr, (int)*doublePtr);
+	}
+}
+
+void VideoComponent::onMenuSubtitleMenu(MenuComponentValue const&)
 {
 	std::vector<std::pair<int, std::string> > subs = vlc->getSubtitles();
 	int current = vlc->getCurrentSubtitleIndex();
@@ -1396,32 +1338,49 @@ void VideoComponent::onMenuSubtitleMenu(AbstractMenuItem& item)
 		std::bind(&VideoComponent::onMenuLoadSubtitle, this, _1,
 				  [this](auto& item, auto const& file){this->onMenuOpenSubtitleFolder(item, file);}));
 	//m_optionsMenu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSearchOpenSubtitles, this, _1));
-	m_optionsMenu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [this](AbstractMenuItem& item){this->onMenuSearchSubtitleSeeker(item);});
+	m_optionsMenu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [this](MenuComponentValue const& value){this->onMenuSearchSubtitleSeeker(value);});
+
+
+	auto addColorItem = [&](juce::String const& label, const char* vlcKey)
+	{
+		m_optionsMenu->addMenuItem( label,
+			AbstractMenuItem::STORE_AND_OPEN_COLOR,
+			std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(vlcKey)),
+			nullptr, RGB2ARGB(vlc->getConfigOptionInt(vlcKey)));
+	};
+	auto addSliderItem = [&](juce::String const& label, const char* vlcKey, double min, double max)
+	{
+		m_optionsMenu->addMenuItem( label,
+			AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+			std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, vlcKey),
+			nullptr, SliderParams{(double)vlc->getConfigOptionInt(vlcKey), min, max});
+	};
+
 	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuShiftSubtitlesSlider, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSubtitlePosition, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	m_optionsMenu->addMenuItem( TRANS("Opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OPACITY), "Opacity: %.0f",0, 255, 255));
-	m_optionsMenu->addMenuItem( TRANS("Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_COLOR)));
+	addSliderItem( TRANS("Opacity"), CONFIG_INT_OPTION_SUBTITLE_OPACITY, 0, 255);
+	addColorItem( TRANS("Color"), CONFIG_COLOR_OPTION_SUBTITLE_COLOR);
 	m_optionsMenu->addMenuItem( TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	m_optionsMenu->addMenuItem( TRANS("Outline opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY), "Outline opacity: %.0f",0, 255, 255));
-	m_optionsMenu->addMenuItem( TRANS("Outline Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR)));
-	m_optionsMenu->addMenuItem( TRANS("Background opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY), "Background opacity: %.0f",0, 255, 0));
-	m_optionsMenu->addMenuItem( TRANS("Background Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR)));
-	m_optionsMenu->addMenuItem( TRANS("Shadow opacity"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionIntRangeMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY), "Shadow opacity: %.0f",0, 255, 0));
-	m_optionsMenu->addMenuItem( TRANS("Shadow Color"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onVLCOptionColor, this, _1, std::string(CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR)));
+	addSliderItem( TRANS("Outline opacity"), CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY, 0, 255);
+	addColorItem( TRANS("Outline Color"), CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR);
+	addSliderItem( TRANS("Background opacity"), CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY, 0, 255);
+	addColorItem( TRANS("Background Color"), CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR);
+	addSliderItem( TRANS("Shadow opacity"), CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY,0, 255);
+	addColorItem( TRANS("Shadow Color"), CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR);
 
 	setBrowsingFiles(false);
 
 }
-void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item)
+void VideoComponent::onMenuSearchOpenSubtitles(MenuComponentValue const& value)
 {
-	onMenuSearchOpenSubtitlesSelectLanguage(item, vlc->getCurrentPlayListItem().c_str());
+	onMenuSearchOpenSubtitlesSelectLanguage(value, vlc->getCurrentPlayListItem().c_str());
 }
-void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item)
+void VideoComponent::onMenuSearchSubtitleSeeker(MenuComponentValue const& value)
 {
-	onMenuSearchSubtitleSeeker(item, vlc->getCurrentPlayListItem().c_str());
+	onMenuSearchSubtitleSeeker(value, vlc->getCurrentPlayListItem().c_str());
 }
-void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce::String lang)
+void VideoComponent::onMenuSearchSubtitlesManually(MenuComponentValue const& value, juce::String lang)
 {
 	juce::TextEditor editor("Subtitle search");
 
@@ -1436,7 +1395,7 @@ void VideoComponent::onMenuSearchSubtitlesManually(AbstractMenuItem& item, juce:
 
 	callOut.runModalLoop();
 
-	onMenuSearchOpenSubtitles(item, lang, editor.getText());
+	onMenuSearchOpenSubtitles(value, lang, editor.getText());
 }
 
 template <typename Op>
@@ -1514,16 +1473,16 @@ void applyOnAllSubtitleLanguages(Op const& add)
 
 #define addItem
 
-void VideoComponent::onMenuSearchOpenSubtitlesSelectLanguage(AbstractMenuItem& item, juce::String movieName)
+void VideoComponent::onMenuSearchOpenSubtitlesSelectLanguage(MenuComponentValue const&, juce::String movieName)
 {
 	applyOnAllSubtitleLanguages([&](const char* shortName, const char* ui, const char* label)
 	{
 		m_optionsMenu->addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		  [this, shortName, movieName](AbstractMenuItem& item){this->onMenuSearchOpenSubtitles(item, shortName, movieName);});
+		  [this, shortName, movieName](MenuComponentValue const& value){this->onMenuSearchOpenSubtitles(value, shortName, movieName);});
 	});
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::String lang, juce::String movieName)
+void VideoComponent::onMenuSearchOpenSubtitles(MenuComponentValue const&, juce::String lang, juce::String movieName)
 {
 	movieName = movieName.replace("%", "%37");
 	movieName = movieName.replace(" ", "-");
@@ -1538,7 +1497,7 @@ void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::Str
 	if(!pIStream.get())
 	{
 		m_optionsMenu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU,
-			[this, lang, movieName](AbstractMenuItem& item){this->onMenuSearchOpenSubtitles(item, lang, movieName);});
+			[this, lang, movieName](MenuComponentValue const& value){this->onMenuSearchOpenSubtitles(value, lang, movieName);});
 		return;
 	}
 	std::unique_ptr<juce::XmlElement> e(juce::XmlDocument::parse(pIStream->readEntireStreamAsString()));
@@ -1571,7 +1530,7 @@ void VideoComponent::onMenuSearchOpenSubtitles(AbstractMenuItem& item, juce::Str
 
 	//m_optionsMenu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
 	m_optionsMenu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU,
-		[this, lang, movieName](AbstractMenuItem& item){this->onMenuSearchOpenSubtitles(item, lang, movieName);});
+		[this, lang, movieName](MenuComponentValue const& value){this->onMenuSearchOpenSubtitles(value, lang, movieName);});
 
 	setBrowsingFiles(false);
 }
@@ -1589,7 +1548,7 @@ bool isTVEpisode(juce::String str, int &season, int& episode)
 }
 #define SUBTITLESEEKER_URL "&search_in=tv_episodes"
 #define SUBTITLESEEKER_TV_EPISODE_OPTION "&search_in=tv_episodes"
-void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item, juce::String movieName)
+void VideoComponent::onMenuSearchSubtitleSeeker(MenuComponentValue const&, juce::String movieName)
 {
 	movieName = movieName.replace("%", "%37");
 	movieName = movieName.replace("%20", "+");
@@ -1611,7 +1570,7 @@ void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item, juce::St
 	if(!pIStream.get())
 	{
 		m_optionsMenu->addMenuItem( TRANS("Network error, Retry..."), AbstractMenuItem::REFRESH_MENU,
-			[this, movieName](AbstractMenuItem& item){this->onMenuSearchSubtitleSeeker(item, movieName);});
+			[this, movieName](MenuComponentValue const& value){this->onMenuSearchSubtitleSeeker(value, movieName);});
 		return;
 	}
 	juce::String content = pIStream->readEntireStreamAsString();
@@ -1657,12 +1616,12 @@ void VideoComponent::onMenuSearchSubtitleSeeker(AbstractMenuItem& item, juce::St
 
 	//m_optionsMenu->addMenuItem( TRANS("Manual search..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSearchSubtitlesManually, this, _1, lang), getItemImage());
 	m_optionsMenu->addMenuItem( TRANS("Retry..."), AbstractMenuItem::REFRESH_MENU,
-		[this, movieName](AbstractMenuItem& item){this->onMenuSearchSubtitleSeeker(item, movieName);});
+		[this, movieName](MenuComponentValue const& value){this->onMenuSearchSubtitleSeeker(value, movieName);});
 
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce::String imdb, bool tvEpisode, int season, int episode)
+void VideoComponent::onMenuSearchSubtitleSeekerImdb(MenuComponentValue const&, juce::String imdb, bool tvEpisode, int season, int episode)
 {
 	std::string name = std::format("http://api.subtitleseeker.com/get/title_languages/?api_key=d24dcf4eeff7709e62e89385334da2b690da5bf4&imdb={}",imdb.toUTF8().getAddress());
     juce::URL url(name.c_str());
@@ -1705,7 +1664,7 @@ void VideoComponent::onMenuSearchSubtitleSeekerImdb(AbstractMenuItem& item, juce
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuSearchSubtitleSeekerImdbLang(AbstractMenuItem& item, juce::String imdb, juce::String lang, bool tvEpisode, int season, int episode)
+void VideoComponent::onMenuSearchSubtitleSeekerImdbLang(MenuComponentValue const&, juce::String imdb, juce::String lang, bool tvEpisode, int season, int episode)
 {
 	std::string name = std::format("http://api.subtitleseeker.com/get/title_subtitles/?api_key=d24dcf4eeff7709e62e89385334da2b690da5bf4&imdb={}&language={}",imdb.toUTF8().getAddress(),lang.toUTF8().getAddress());
     if(tvEpisode)
@@ -1782,7 +1741,7 @@ struct ZipEntrySorter
 	}
 };
 
-bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce::String const& resultSite,
+bool VideoComponent::downloadedSubtitleSeekerResult(MenuComponentValue const& value, juce::String const& resultSite,
                                                      char* cstr,
                                                      juce::String const& siteTarget,
                                                      std::string const& match,
@@ -1797,7 +1756,7 @@ bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce
         {
 
             juce::String downloadURL( std::vformat(downloadURLPattern.c_str(),std::make_format_args(matchesSubscene[1].str())).c_str() );
-            onMenuDowloadOpenSubtitle(item, downloadURL);
+            onMenuDowloadOpenSubtitle(value, downloadURL);
 /*
             //get html
             juce::String outPath = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
@@ -1817,7 +1776,7 @@ bool VideoComponent::downloadedSubtitleSeekerResult(AbstractMenuItem& item, juce
     }
     return false;
 }
-void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::String downloadUrl, juce::String site)
+void VideoComponent::onMenuDowloadSubtitleSeeker(MenuComponentValue const& value, juce::String downloadUrl, juce::String site)
 {
 	juce::URL url(downloadUrl);
     std::unique_ptr<juce::InputStream> pIStream(url.createInputStream(false, 0, 0, "", SUBTITLE_DOWNLOAD_TIMEOUT_MS));
@@ -1840,7 +1799,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
            {
                 juce::String otherStr(matches[1].str().c_str());
 
-                if(downloadedSubtitleSeekerResult(item, site, otherStr.getCharPointer().getAddress(), "Opensubtitles.org",
+                if(downloadedSubtitleSeekerResult(value, site, otherStr.getCharPointer().getAddress(), "Opensubtitles.org",
                                                                         "/subtitles/([^/]*)/",
                                                                         "http://dl.opensubtitles.org/en/download/sub/{}"))
                 {
@@ -1857,7 +1816,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
                     {
                         memStream.writeByte(0);//simulate end of c string
 
-                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Podnapisi.net",
+                        if(downloadedSubtitleSeekerResult(value, site, (char*)memStream.getData(), "Podnapisi.net",
                                                             "<a[^>]*class=\"button big download\"[^>]*href=\"([^\"]*)\"[^>]*>",
                                                             "http://www.podnapisi.net{}"))
                         {
@@ -1865,7 +1824,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
                             //second level: "<a href='([^'])'>here</a>" --> "http://www.podnapisi.net%s"))
                             return;
                         }
-                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Subscene.com",
+                        if(downloadedSubtitleSeekerResult(value, site, (char*)memStream.getData(), "Subscene.com",
                                                             "<a.*href=\"([^\"]*)\".*id=\"downloadButton\".*>",
                                                             "http://subscene.com{}}"))
                         {
@@ -1873,7 +1832,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
                         }
                         //need to look at iframe target before inspecting some pages:
                         //	<iframe width="100%" height="9000px" frameborder="0" marginheight="0" marginwidth="0" scrolling="no" src="http://www.engsub.net/NNNNNNNN/">
-                        if(downloadedSubtitleSeekerResult(item, site, (char*)memStream.getData(), "Undertexter.se",
+                        if(downloadedSubtitleSeekerResult(value, site, (char*)memStream.getData(), "Undertexter.se",
                                                             "<a[^>]*title=\"Download subtitle to[^\"][^>]*\".*href=\"([^\"]*)\".*>",
                                                             "{}}"))
                         {
@@ -1890,7 +1849,7 @@ void VideoComponent::onMenuDowloadSubtitleSeeker(AbstractMenuItem& item, juce::S
     }
     juce::Process::openDocument(downloadUrl,{});
 }
-void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::String downloadUrl)
+void VideoComponent::onMenuDowloadOpenSubtitle(MenuComponentValue const& value, juce::String downloadUrl)
 {
 	juce::URL url(downloadUrl);
 
@@ -1932,7 +1891,7 @@ void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::Str
 					memInput.setPosition(0);
 					if(outStream.writeFromInputStream(memInput, written)>0)
 					{
-						onMenuOpenSubtitleFile(item,out);
+						onMenuOpenSubtitleFile(value,out);
 					}
 				}
 				return;
@@ -1985,18 +1944,18 @@ void VideoComponent::onMenuDowloadOpenSubtitle(AbstractMenuItem& item, juce::Str
 
             if(entriesToExtract.size()==1)
             {
-                onMenuOpenSubtitleFile(item,out.getChildFile(entriesToExtract.getFirst()->filename));
+                onMenuOpenSubtitleFile(value,out.getChildFile(entriesToExtract.getFirst()->filename));
 
             }
 		}
 	}
 }
-void VideoComponent::onMenuSubtitleSelect(AbstractMenuItem& item, int i)
+void VideoComponent::onMenuSubtitleSelect(MenuComponentValue const&, int i)
 {
 	vlc->setSubtitleIndex(i);
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenSubtitleFolder (MenuComponentValue const&, juce::File file)
 {
 	if(file.isDirectory())
 	{
@@ -2023,7 +1982,7 @@ void VideoComponent::onMenuOpenSubtitleFolder (AbstractMenuItem& item, juce::Fil
 		setBrowsingFiles(true);
 	}
 }
-void VideoComponent::onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenSubtitleFile (MenuComponentValue const&, juce::File file)
 {
 	if(!file.isDirectory())
 	{
@@ -2031,11 +1990,11 @@ void VideoComponent::onMenuOpenSubtitleFile (AbstractMenuItem& item, juce::File 
 		vlc->loadSubtitle(file.getFullPathName().toUTF8().getAddress());
 	}
 }
-void VideoComponent::onMenuOpenPlaylist (AbstractMenuItem& item, juce::File file)
+void VideoComponent::onMenuOpenPlaylist (MenuComponentValue const&, juce::File file)
 {
 }
 
-void VideoComponent::onMenuZoom(AbstractMenuItem& item, double ratio)
+void VideoComponent::onMenuZoom(MenuComponentValue const&, double ratio)
 {
 	vlc->setScale(ratio);
 
@@ -2043,7 +2002,7 @@ void VideoComponent::onMenuZoom(AbstractMenuItem& item, double ratio)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuCrop (AbstractMenuItem& item, juce::String ratio)
+void VideoComponent::onMenuCrop (MenuComponentValue const&, juce::String ratio)
 {
 	vlc->setAutoCrop(false);
 	vlc->setCrop(std::string(ratio.getCharPointer().getAddress()));
@@ -2052,12 +2011,12 @@ void VideoComponent::onMenuCrop (AbstractMenuItem& item, juce::String ratio)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuAutoCrop (AbstractMenuItem& item)
+void VideoComponent::onMenuAutoCrop (MenuComponentValue const&)
 {
 	vlc->setAutoCrop(true);
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuCropList (AbstractMenuItem& item)
+void VideoComponent::onMenuCropList (MenuComponentValue const&)
 {
 	//m_optionsMenu->addMenuItem( TRANS("Auto"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuAutoCrop, this, _1), vlc->isAutoCrop()?getItemImage():nullptr);
 	std::string current = vlc->getCrop();
@@ -2070,7 +2029,7 @@ void VideoComponent::onMenuCropList (AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuRate (AbstractMenuItem& item, double rate)
+void VideoComponent::onMenuRate (MenuComponentValue const&, double rate)
 {
 	vlc->setRate(rate);
 
@@ -2078,7 +2037,7 @@ void VideoComponent::onMenuRate (AbstractMenuItem& item, double rate)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuRateListAndSlider (AbstractMenuItem& item)
+void VideoComponent::onMenuRateListAndSlider (MenuComponentValue const&)
 {
 	showPlaybackSpeedSlider();
 
@@ -2100,7 +2059,7 @@ void VideoComponent::onMenuShiftAudio(double s)
 	vlc->setAudioDelay((int64_t)(s*1000000.));
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuShiftAudioSlider(AbstractMenuItem& item)
+void VideoComponent::onMenuShiftAudioSlider(MenuComponentValue const&)
 {
 	showAudioOffsetSlider();
 	setBrowsingFiles(false);
@@ -2110,18 +2069,18 @@ void VideoComponent::onMenuShiftSubtitles(double s)
 	vlc->setSubtitleDelay((int64_t)(s*1000000.));
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuShiftSubtitlesSlider(AbstractMenuItem& item)
+void VideoComponent::onMenuShiftSubtitlesSlider(MenuComponentValue const&)
 {
 	showSubtitlesOffsetSlider();
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onVLCAoutStringSelect(AbstractMenuItem& item, std::string filter, std::string name, std::string v)
+void VideoComponent::onVLCAoutStringSelect(MenuComponentValue const&, std::string filter, std::string name, std::string v)
 {
 	vlc->setAoutFilterOptionString(name.c_str(), filter, v);
 	m_settings.setValue(name.c_str(), v.c_str());
 }
-void VideoComponent::onVLCAoutStringSelectListMenu(AbstractMenuItem& item, std::string filter, std::string name)
+void VideoComponent::onVLCAoutStringSelectListMenu(MenuComponentValue const&, std::string filter, std::string name)
 {
 	std::string current = vlc->getAoutFilterOptionString(name.c_str());
 	m_optionsMenu->addMenuItem( TRANS("Disable"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onVLCAoutStringSelect, this, _1, filter, name, std::string("")), current.empty()?getItemImage():nullptr);
@@ -2134,7 +2093,7 @@ void VideoComponent::onVLCAoutStringSelectListMenu(AbstractMenuItem& item, std::
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuAudioVolume(AbstractMenuItem& item, double volume)
+void VideoComponent::onMenuAudioVolume(MenuComponentValue const&, double volume)
 {
 	vlc->setVolume(volume);
 
@@ -2145,7 +2104,7 @@ void VideoComponent::onMenuAudioVolume(AbstractMenuItem& item, double volume)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuAudioVolumeListAndSlider(AbstractMenuItem& item)
+void VideoComponent::onMenuAudioVolumeListAndSlider(MenuComponentValue const&)
 {	showVolumeSlider();
 
 	m_optionsMenu->addMenuItem( "10%", AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuAudioVolume, this, _1, 10.), 10==(int)(vlc->getVolume())?getItemImage():nullptr);
@@ -2161,19 +2120,19 @@ void VideoComponent::onMenuAudioVolumeListAndSlider(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuFullscreen(AbstractMenuItem& item, bool fs)
+void VideoComponent::onMenuFullscreen(MenuComponentValue const&, bool fs)
 {	setFullScreen(fs);
 
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuAudioTrack (AbstractMenuItem& item, int id)
+void VideoComponent::onMenuAudioTrack (MenuComponentValue const&, int id)
 {
 	vlc->setAudioTrack(id);
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuAudioTrackList (AbstractMenuItem& item)
+void VideoComponent::onMenuAudioTrackList (MenuComponentValue const&)
 {
 	int current = vlc->getAudioTrack();
 	std::vector<std::pair<int, std::string> > list = vlc->getAudioTrackList();
@@ -2184,13 +2143,13 @@ void VideoComponent::onMenuAudioTrackList (AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuVideoAdjust (AbstractMenuItem& item)
+void VideoComponent::onMenuVideoAdjust (MenuComponentValue const&)
 {
 	vlc->setVideoAdjust(!vlc->getVideoAdjust());
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuVideoContrast (AbstractMenuItem& item)
+void VideoComponent::onMenuVideoContrast (MenuComponentValue const&)
 {
 	controlComponent->auxilliaryControlComponent().show(TRANS("Contrast: %+.3fs"),
 		std::bind<void>(&VLCWrapper::setVideoContrast, vlc.get(), _1),
@@ -2198,7 +2157,7 @@ void VideoComponent::onMenuVideoContrast (AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void  VideoComponent::onMenuVideoBrightness (AbstractMenuItem& item)
+void  VideoComponent::onMenuVideoBrightness (MenuComponentValue const&)
 {
 	controlComponent->auxilliaryControlComponent().show(TRANS("Brightness: %+.3f"),
 		std::bind<void>(&VLCWrapper::setVideoBrightness, vlc.get(), _1),
@@ -2206,21 +2165,21 @@ void  VideoComponent::onMenuVideoBrightness (AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void  VideoComponent::onMenuVideoHue (AbstractMenuItem& item)
+void  VideoComponent::onMenuVideoHue (MenuComponentValue const&)
 {
 	controlComponent->auxilliaryControlComponent().show(TRANS("Hue"),
 		std::bind<void>(&VLCWrapper::setVideoHue, vlc.get(), _1),
 		vlc->getVideoHue(), vlc->getVideoHue(), 0, 256., .1);
 	setBrowsingFiles(false);
 }
-void  VideoComponent::onMenuVideoSaturation (AbstractMenuItem& item)
+void  VideoComponent::onMenuVideoSaturation (MenuComponentValue const&)
 {
 	controlComponent->auxilliaryControlComponent().show(TRANS("Saturation: %+.3f"),
 		std::bind<void>(&VLCWrapper::setVideoSaturation, vlc.get(), _1),
 		vlc->getVideoSaturation(), 1., 0., 2., .01);
 	setBrowsingFiles(false);
 }
-void  VideoComponent::onMenuVideoGamma (AbstractMenuItem& item)
+void  VideoComponent::onMenuVideoGamma (MenuComponentValue const&)
 {
 	controlComponent->auxilliaryControlComponent().show(TRANS("Gamma: %+.3f"),
 		std::bind<void>(&VLCWrapper::setVideoGamma, vlc.get(), _1),
@@ -2228,12 +2187,12 @@ void  VideoComponent::onMenuVideoGamma (AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuVideoTrack (AbstractMenuItem& item, int id)
+void VideoComponent::onMenuVideoTrack (MenuComponentValue const&, int id)
 {
 	vlc->setVideoTrack(id);
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuVideoTrackList (AbstractMenuItem& item)
+void VideoComponent::onMenuVideoTrackList (MenuComponentValue const&)
 {
 	int current = vlc->getVideoTrack();
 	std::vector<std::pair<int, std::string> > list = vlc->getVideoTrackList();
@@ -2243,7 +2202,7 @@ void VideoComponent::onMenuVideoTrackList (AbstractMenuItem& item)
 	}
 	setBrowsingFiles(false);
 }
-void VideoComponent::onVLCAudioChannelSelect(AbstractMenuItem& item)
+void VideoComponent::onVLCAudioChannelSelect(MenuComponentValue const&)
 {
 	VLCWrapper::AudioChannel c = vlc->getAudioChannel();
 
@@ -2256,7 +2215,7 @@ void VideoComponent::onVLCAudioChannelSelect(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onVLCAudioOutputDeviceSelect(AbstractMenuItem& item, std::string output, std::string device)
+void VideoComponent::onVLCAudioOutputDeviceSelect(MenuComponentValue const&, std::string output, std::string device)
 {
 	vlc->setAudioOutputDevice(output, device);
 	m_settings.setValue(SETTINGS_AUDIO_OUTPUT, juce::String(output.c_str()));
@@ -2264,7 +2223,7 @@ void VideoComponent::onVLCAudioOutputDeviceSelect(AbstractMenuItem& item, std::s
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onVLCAudioOutputSelect(AbstractMenuItem& item, std::string output, std::vector< std::pair<std::string, std::string> > list)
+void VideoComponent::onVLCAudioOutputSelect(MenuComponentValue const&, std::string output, std::vector< std::pair<std::string, std::string> > list)
 {
 	for(std::vector< std::pair<std::string, std::string> >::const_iterator it = list.begin();it != list.end();++it)
 	{
@@ -2274,13 +2233,13 @@ void VideoComponent::onVLCAudioOutputSelect(AbstractMenuItem& item, std::string 
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onVLCAudioOutputList(AbstractMenuItem& item)
+void VideoComponent::onVLCAudioOutputList(MenuComponentValue const& value)
 {
 	std::vector< std::pair< std::pair<std::string, std::string>, std::vector< std::pair<std::string, std::string> > > > list = vlc->getAudioOutputList();
 
 	if(list.size() == 1)
 	{
-		onVLCAudioOutputSelect(item, list.front().first.second, list.front().second);
+		onVLCAudioOutputSelect(value, list.front().first.second, list.front().second);
 	}
 	else
 	{
@@ -2293,7 +2252,7 @@ void VideoComponent::onVLCAudioOutputList(AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
+void VideoComponent::onMenuSoundOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Volume"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuAudioVolumeListAndSlider, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuShiftAudioSlider, this, _1));
@@ -2308,13 +2267,13 @@ void VideoComponent::onMenuSoundOptions(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuSetAspectRatio(AbstractMenuItem& item, juce::String ratio)
+void VideoComponent::onMenuSetAspectRatio(MenuComponentValue const&, juce::String ratio)
 {
 		vlc->setAspect(ratio.getCharPointer().getAddress());
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuRatio(AbstractMenuItem& item)
+void VideoComponent::onMenuRatio(MenuComponentValue const&)
 {
 		std::string current = vlc->getAspect();
 
@@ -2332,7 +2291,7 @@ void VideoComponent::onMenuRatio(AbstractMenuItem& item)
 
 }
 
-void VideoComponent::onMenuVideoAdjustOptions(AbstractMenuItem& item)
+void VideoComponent::onMenuVideoAdjustOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuVideoAdjust, this, _1), vlc->getVideoAdjust()?getItemImage():nullptr);
 	m_optionsMenu->addMenuItem( TRANS("Contrast"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuVideoContrast, this, _1));
@@ -2344,7 +2303,7 @@ void VideoComponent::onMenuVideoAdjustOptions(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onMenuVideoOptions(AbstractMenuItem& item)
+void VideoComponent::onMenuVideoOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Speed"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuRateListAndSlider, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Zoom"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuCropList, this, _1));
@@ -2357,17 +2316,17 @@ void VideoComponent::onMenuVideoOptions(AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onMenuExit(AbstractMenuItem& item)
+void VideoComponent::onMenuExit(MenuComponentValue const&)
 {
 	m_fileMenu->addMenuItem( TRANS("Confirm Exit"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&VideoComponent::onMenuExitConfirmation, this, _1), getExitImage());
 }
 
-void VideoComponent::onMenuExitConfirmation(AbstractMenuItem& item)
+void VideoComponent::onMenuExitConfirmation(MenuComponentValue const&)
 {
     juce::JUCEApplication::getInstance()->systemRequestedQuit();
 }
 
-void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
+void VideoComponent::onPlaylistItem(MenuComponentValue const&, int index)
 {
 	saveCurrentMediaTime();
 
@@ -2388,7 +2347,7 @@ void VideoComponent::onPlaylistItem(AbstractMenuItem& item, int index)
 
 	forceSetVideoTime(name);
 }
-void VideoComponent::onShowPlaylist(AbstractMenuItem& item)
+void VideoComponent::onShowPlaylist(MenuComponentValue const&)
 {
 	int current = vlc->getCurrentPlayListItemIndex ();
 	std::vector<std::string > list = vlc->getCurrentPlayList();
@@ -2402,7 +2361,7 @@ void VideoComponent::onShowPlaylist(AbstractMenuItem& item)
 	setBrowsingFiles(true);
 
 }
-void VideoComponent::onLanguageSelect(AbstractMenuItem& item, std::string lang)
+void VideoComponent::onLanguageSelect(MenuComponentValue const&, std::string lang)
 {
 	Languages::getInstance().setCurrentLanguage(lang);
 
@@ -2410,7 +2369,7 @@ void VideoComponent::onLanguageSelect(AbstractMenuItem& item, std::string lang)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onLanguageOptions(AbstractMenuItem& item)
+void VideoComponent::onLanguageOptions(MenuComponentValue const&)
 {
 	std::vector< std::string > list = Languages::getInstance().getLanguages();
 	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
@@ -2420,7 +2379,7 @@ void VideoComponent::onLanguageOptions(AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onSetPlayerFonSize(AbstractMenuItem& item, int size)
+void VideoComponent::onSetPlayerFonSize(MenuComponentValue const&, int size)
 {
 	AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(size);
 
@@ -2430,7 +2389,7 @@ void VideoComponent::onSetPlayerFonSize(AbstractMenuItem& item, int size)
 
 	if(invokeLater)invokeLater->queuef(std::bind<void>(&VideoComponent::resized, this));
 }
-void VideoComponent::onPlayerFonSize(AbstractMenuItem& item)
+void VideoComponent::onPlayerFonSize(MenuComponentValue const&)
 {
 	for(int i=50;i<=175;i+=25)
 	{
@@ -2440,7 +2399,7 @@ void VideoComponent::onPlayerFonSize(AbstractMenuItem& item)
 	setBrowsingFiles(false);
 }
 
-void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name, int enable)
+void VideoComponent::onSetVLCOptionInt(MenuComponentValue const&, std::string name, int enable)
 {
 	vlc->setConfigOptionInt(name.c_str(), enable);
 
@@ -2448,7 +2407,7 @@ void VideoComponent::onSetVLCOptionInt(AbstractMenuItem& item, std::string name,
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onSetVLCOption(AbstractMenuItem& item, std::string name, bool enable)
+void VideoComponent::onSetVLCOption(MenuComponentValue const&, std::string name, bool enable)
 {
 	vlc->setConfigOptionBool(name.c_str(), enable);
 
@@ -2456,7 +2415,7 @@ void VideoComponent::onSetVLCOption(AbstractMenuItem& item, std::string name, bo
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
+void VideoComponent::onPlayerOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("FullScreen"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuFullscreen, this, _1, true), isFullScreen()?getItemImage():nullptr);
 	m_optionsMenu->addMenuItem( TRANS("Windowed"), AbstractMenuItem::REFRESH_MENU, std::bind(&VideoComponent::onMenuFullscreen, this, _1, false), isFullScreen()?nullptr:getItemImage());
@@ -2469,7 +2428,7 @@ void VideoComponent::onPlayerOptions(AbstractMenuItem& item)
 
 	setBrowsingFiles(false);
 }
-void VideoComponent::onOptionMenuRoot(AbstractMenuItem& item)
+void VideoComponent::onOptionMenuRoot(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onShowPlaylist, this, _1), getPlaylistImage());
 	m_optionsMenu->addMenuItem( TRANS("Subtitles"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&VideoComponent::onMenuSubtitleMenu, this, _1), getSubtitlesImage());

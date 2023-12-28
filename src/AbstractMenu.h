@@ -2,26 +2,25 @@
 #define ABSTRACT_MENU_H
 
 
+#include "AppProportionnalComponent.h"
+#include "MenuComponentValue.h"
 
 #include <JuceHeader.h>
-#include "AppProportionnalComponent.h"
 #include <functional>
 
-class AbstractMenuItem;
-typedef std::function<void (AbstractMenuItem&)> AbstractAction;
+using AbstractAction = std::function<void (MenuComponentValue const&)> ;
 
 //==============================================================================
-class AbstractMenuItem
+namespace AbstractMenuItem{
+enum ActionEffect
 {
-public:
-	enum ActionEffect
-	{
-		EXECUTE_ONLY,
-		REFRESH_MENU,
-		STORE_AND_OPEN_CHILDREN
-	};
-	virtual ~AbstractMenuItem() = default;
+	EXECUTE_ONLY,
+	REFRESH_MENU,
+	STORE_AND_OPEN_CHILDREN,
+	STORE_AND_OPEN_COLOR,
+	STORE_AND_OPEN_SLIDER
 };
+}
 //==============================================================================
 class AbstractMenu : public AppProportionnalComponent
 {
@@ -30,7 +29,7 @@ class AbstractMenu : public AppProportionnalComponent
 	std::set<juce::String> m_subtitlesExtensions;
 	std::vector< std::set<juce::String> > m_supportedExtensions;
 public:
-	using FileMethod = std::function<void(AbstractMenuItem&, juce::File)>;
+	using FileMethod = std::function<void(MenuComponentValue const&, juce::File)>;
 
 	AbstractMenu();
 	virtual ~AbstractMenu() = default;
@@ -40,15 +39,15 @@ public:
 	virtual juce::Component* asComponent() = 0;
 	virtual juce::Component const* asComponent() const = 0;
 
-	virtual int itemCount()const = 0;
+	virtual int preferredHeight()const = 0;
 
-	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
+	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr, MenuComponentParams const& params = {}) = 0;
 	virtual void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon = nullptr) = 0;
 
-	void listRecentPath(AbstractMenuItem& item, FileMethod const& fileMethod, juce::File const& path);
-	void listFiles(AbstractMenuItem& item, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod);
-	void listShortcuts(AbstractMenuItem&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
-	void listRootFiles(AbstractMenuItem& item, FileMethod const& fileMethod);
+	void listRecentPath(MenuComponentValue const&, FileMethod const& fileMethod, juce::File const& path);
+	void listFiles(MenuComponentValue const&, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod);
+	void listShortcuts(MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
+	void listRootFiles(MenuComponentValue const&, FileMethod const& fileMethod);
 
 	virtual juce::Drawable const* getIcon(juce::String const& e) = 0;
 	virtual juce::Drawable const* getIcon(juce::File const& f) = 0;

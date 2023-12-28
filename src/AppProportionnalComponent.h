@@ -16,8 +16,8 @@ public:
 	static void setItemHeightPercentageRelativeToScreen(int percent, AppProportionnalComponent* = nullptr);
 
 	virtual void setScaleComponent(juce::Component* scaleComponent);
-	float getFontHeight();
-	float getItemHeight();
+	float getFontHeight() const;
+	float getItemHeight() const;
     virtual void componentMovedOrResized (juce::Component& component,
                                           bool wasMoved,
                                           bool wasResized);

@@ -7,36 +7,37 @@
 
 using namespace std::placeholders;
 
-void NullAbstractAction(AbstractMenuItem&){};
+void NullAbstractAction(MenuComponentValue const&){};
 
 
-class MenuItem : public virtual AbstractMenuItem
+class MenuItem
 {
 protected:
 	juce::String name;
 	const juce::Drawable* icon;
 	AbstractAction action;
 	AbstractMenuItem::ActionEffect actionEffect;
-	bool isShortcut;
+	MenuComponentParams params;
 public:
 
-    MenuItem (juce::String const& name = {}, AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY, AbstractAction action = NullAbstractAction, const juce::Drawable* icon = nullptr, bool isShortcut = false)
+    MenuItem (juce::String const& name = {},
+				AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY,
+				AbstractAction action = NullAbstractAction,
+				const juce::Drawable* icon = nullptr,
+				MenuComponentParams const& params = {})
 	:name(name)
 	,icon(icon)
 	,action(action)
 	,actionEffect(actionEffect)
-	{
-	}
+	,params(params)
+	{}
 
-	virtual ~MenuItem()
-	{
-	}
-
-	virtual const juce::Drawable* getIcon(){ return icon;}
-	virtual juce::String const& getName(){ return name;}
-	virtual void execute(AbstractMenuItem & m){ action(m);}
-	virtual AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
-	virtual AbstractAction const& getAction()const{ return action; }
+	const juce::Drawable* getIcon(){ return icon;}
+	juce::String const& getName(){ return name;}
+	void execute(MenuComponentValue const& value){ action(value);}
+	AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
+	AbstractAction const& getAction()const{ return action; }
+	MenuComponentParams const& getParams()const{ return params; }
 
 };
 
@@ -146,9 +147,10 @@ public:
 	}
 
 
-    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect,
+					AbstractAction action, const juce::Drawable* icon, MenuComponentParams const& params)
 	{
-		items.add(MenuItem(name, actionEffect, action, icon, false));
+		items.add(MenuItem(name, actionEffect, action, icon, params));
         box.updateContent();
 	}
 
@@ -239,9 +241,11 @@ public:
 		listBoxSelectionCallback(lastRowselected);
 	}
 
-    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+    virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect,
+	                 AbstractAction action, const juce::Drawable* icon,
+				     MenuComponentParams const& params = {})
 	{
-		items.add(MenuItem(name, actionEffect, action, icon, true));
+		items.add(MenuItem(name, actionEffect, action, icon, params));
         box.updateContent();
 	}
 
@@ -274,10 +278,16 @@ MenuComponent::MenuComponent(bool const gradient)
 	, likeRemoveImage         (juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize))
 	, backImage               (juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize))
 	, m_gradient(gradient)
+	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
 {
     addAndMakeVisible (recentList->getListBox());
     addAndMakeVisible (menuList->getListBox());
+    addChildComponent (m_colourSelector);
+    addChildComponent (m_slider);
 	setOpaque(true);
+	m_colourSelector.addChangeListener (this);
+	m_slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+
 
 }
 MenuComponent::~MenuComponent()
@@ -314,15 +324,77 @@ void MenuComponent::resized()
 
 	recentList->getListBox()->setBounds(0, 0, getWidth(), recentSize);
 	menuList->getListBox()->setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
+	m_colourSelector.setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
+	m_slider.setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), (int)getItemHeight());
 	Component::resized();
 }
 
-void MenuComponent::forceRecentItem(MenuItem& selected)
+void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 {
-	menuList->clear();
-	selected.execute(selected);
 
-	resized();
+	switch(item.getActionEffect())
+	{
+		case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
+		{
+			MenuItem copy = item;
+			setMode(Mode::LIST);
+
+			if(!isRecent)
+			{
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+			}
+
+			menuList->clear();
+			copy.execute({});
+
+			resized();
+			break;
+		}
+		case AbstractMenuItem::STORE_AND_OPEN_COLOR:
+		{
+			setMode(Mode::COLOR);
+			if(!isRecent)
+			{
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+			}
+
+			menuList->clear();
+
+			resized();
+			break;
+		}
+		case AbstractMenuItem::STORE_AND_OPEN_SLIDER:
+		{
+			setMode(Mode::SLIDER);
+			SliderParams const& params = std::get<SliderParams>(item.getParams());
+			m_slider.setRange(params.min, params.max, 1.);
+			m_slider.setValue(params.init);
+			if(!isRecent)
+			{
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+			}
+
+			menuList->clear();
+
+			resized();
+			break;
+		}
+		case AbstractMenuItem::EXECUTE_ONLY:
+		{
+			item.execute({});
+
+			resized();
+			break;
+		}
+		case AbstractMenuItem::REFRESH_MENU:
+		{
+			item.execute({});
+
+			forceMenuRefresh();
+			break;
+		}
+	}
+	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 }
 void MenuComponent::recentItemSelected(int lastRowselected)
 {
@@ -331,8 +403,37 @@ void MenuComponent::recentItemSelected(int lastRowselected)
 		recentList->unstack();
 		if(auto *item = recentList->getLastItem())
 		{
-			forceRecentItem(*item);
+			activateItem(*item, true);
 			recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+		}
+	}
+}
+
+void MenuComponent::setMode(Mode mode)
+{
+	m_colourSelector.setVisible(mode == Mode::COLOR);
+	m_slider.setVisible(mode == Mode::SLIDER);
+	menuList->getListBox()->setVisible(mode == Mode::LIST);
+}
+
+void MenuComponent::changeListenerCallback (ChangeBroadcaster* broadcaster)
+{
+	if( MenuItem* item = recentList->getLastItem() )
+	{
+		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_COLOR &&  m_colourSelector.isVisible() && broadcaster == &m_colourSelector )
+		{
+			item->execute(m_colourSelector.getCurrentColour());
+		}
+	}
+}
+
+void MenuComponent::sliderValueChanged (Slider* slider)
+{
+	if( MenuItem* item = recentList->getLastItem() )
+	{
+		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_SLIDER && m_slider.isVisible() && slider == &m_slider)
+		{
+			item->execute(m_slider.getValue());
 		}
 	}
 }
@@ -342,35 +443,7 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 	MenuItem* item = menuList->getSelectedItem();
     if (item != nullptr)
 	{
-		switch(item->getActionEffect())
-		{
-			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
-			{
-				recentList->add(item->getName(), item->getActionEffect(), item->getAction(), getBackImage());
-
-				MenuItem copy = *item;
-				menuList->clear();
-				copy.execute(copy);
-
-				resized();
-				break;
-			}
-			case AbstractMenuItem::EXECUTE_ONLY:
-			{
-				item->execute(*item);
-
-				resized();
-				break;
-			}
-			case AbstractMenuItem::REFRESH_MENU:
-			{
-				item->execute(*item);
-
-				forceMenuRefresh();
-				break;
-			}
-		}
-		menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+		activateItem(*item, false);
 	}
 }
 
@@ -381,13 +454,15 @@ void MenuComponent::forceMenuRefresh()
 	{
 		MenuItem itemCopy = *item;
 		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
-		forceRecentItem(itemCopy);
+		activateItem(itemCopy, true);
 	}
 }
 
-void MenuComponent::addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+void MenuComponent::addMenuItem(juce::String const& name,
+	AbstractMenuItem::ActionEffect actionEffect, AbstractAction action,
+	const juce::Drawable* icon, MenuComponentParams const& params)
 {
-	menuList->add(name, actionEffect, action, icon);
+	menuList->add(name, actionEffect, action, icon, params);
 	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 }
 void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
@@ -423,7 +498,32 @@ juce::Drawable const* MenuComponent::getIcon(juce::File const& f)
 }
 
 
-int MenuComponent::itemCount()const
+int MenuComponent::preferredHeight()const
 {
-	return menuList->getNumRows() + recentList->getNumRows();
+	int h = recentList->getNumRows()*getItemHeight()*1.25;
+
+	if(auto *item = recentList->getLastItem())
+	{
+		switch(item->getActionEffect())
+		{
+			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
+			case AbstractMenuItem::EXECUTE_ONLY:
+			case AbstractMenuItem::REFRESH_MENU:
+			{
+	 			h += menuList->getNumRows()*getItemHeight();
+				break;
+			}
+			case AbstractMenuItem::STORE_AND_OPEN_COLOR:
+			{
+	 			h += 4*getItemHeight();
+				break;
+			}
+			case AbstractMenuItem::STORE_AND_OPEN_SLIDER:
+			{
+	 			h += getItemHeight();
+				break;
+			}
+		}
+	}
+	 return h;
 }
