@@ -177,7 +177,6 @@ VideoComponent::VideoComponent()
 	controlComponent->fullscreenButton().addListener(this);
 	controlComponent->menuButton().addListener(this);
 	controlComponent->auxilliarySliderModeButton().addListener(this);
-	controlComponent->resetButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 	controlComponent->setVisible(false);
 
@@ -209,7 +208,6 @@ VideoComponent::VideoComponent()
 	////////////////
 	m_optionsMenu->setScaleComponent(this);
 	controlComponent->setScaleComponent(this);
-	controlComponent->slider().setScaleComponent(this);
 	m_fileMenu->setScaleComponent(this);
 
 
@@ -573,10 +571,6 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(!m_optionsMenu->isShown());
 	}
-	else if(button == &controlComponent->resetButton())
-	{
-		controlComponent->auxilliaryControlComponent().reset();
-	}
 	else if(button == &controlComponent->auxilliarySliderModeButton())
 	{
 
@@ -883,33 +877,33 @@ void VideoComponent::showVolumeSlider()
 }
 void VideoComponent::showVolumeSlider(double value)
 {
-	controlComponent->auxilliaryControlComponent().show(TRANS("Audio Volume: %.f%%"),
+	controlComponent->setupAuxilliaryControlComponent(
 		std::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
-		value, 100., 1., 200., .1);
+		SettingSlider::Params{TRANS("Audio Volume: %.f%%"),value, 100., 1., 200., .1});
 }
 void VideoComponent::showPlaybackSpeedSlider ()
 {
-	controlComponent->auxilliaryControlComponent().show(TRANS("Speed: %.f%%"),
+	controlComponent->setupAuxilliaryControlComponent(
 		std::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
-		vlc->getRate(), 100., 50., 800., .1);
+		SettingSlider::Params{TRANS("Speed: %.f%%"),vlc->getRate(), 100., 50., 800., .1});
 }
 void VideoComponent::showZoomSlider ()
 {
-	controlComponent->auxilliaryControlComponent().show(TRANS("Zoom: %.f%%"),
+	controlComponent->setupAuxilliaryControlComponent(
 		std::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
-		vlc->getScale(), 100., 50., 500., .1);
+		SettingSlider::Params{TRANS("Zoom: %.f%%"),vlc->getScale(), 100., 50., 500., .1});
 }
 void VideoComponent::showAudioOffsetSlider ()
 {
-	controlComponent->auxilliaryControlComponent().show(TRANS("Audio offset: %+.3fs"),
+	controlComponent->setupAuxilliaryControlComponent(
 		std::bind<void>(&PlayerMenus::onMenuShiftAudio, std::ref(*m_videoPlayerEngine), _1),
-		vlc->getAudioDelay()/1000000., 0., -2., 2., .01, 2.);
+		SettingSlider::Params{TRANS("Audio offset: %+.2fs"),vlc->getAudioDelay()/1000000., 0., -2., 2., .01, 2.});
 }
 void VideoComponent::showSubtitlesOffsetSlider ()
 {
-	controlComponent->auxilliaryControlComponent().show(TRANS("Subtitles offset: %+.3fs"),
+	controlComponent->setupAuxilliaryControlComponent(
 		std::bind<void>(&PlayerMenus::onMenuShiftSubtitles, std::ref(*m_videoPlayerEngine), _1),
-		vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.);
+		SettingSlider::Params{TRANS("Subtitles offset: %+.2fs"),vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.});
 }
 
 void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)

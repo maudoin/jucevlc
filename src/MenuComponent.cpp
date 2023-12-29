@@ -221,7 +221,7 @@ public:
 	 		g.drawLine(0, height, (float)width, height, 2.f);
 
 			juce::String path;
-			for(int i=1;i<items.size();++i)
+			for(int i=std::max(1, items.size()-2);i<items.size();++i)
 			{
 				if(!path.isEmpty())
 				{
@@ -294,13 +294,17 @@ MenuComponent::MenuComponent(bool const gradient)
     addChildComponent (m_slider);
 	setOpaque(true);
 	m_colourSelector.addChangeListener (this);
-	m_slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
 	m_slider.addListener(this);
-
 
 }
 MenuComponent::~MenuComponent()
 {
+}
+
+void MenuComponent::setScaleComponent(juce::Component* scaleComponent)
+{
+	AppProportionnalComponent::setScaleComponent(scaleComponent);
+	m_slider.setScaleComponent(scaleComponent);
 }
 
 juce::Drawable const* MenuComponent::getImage(AbstractMenuItem::Icon icon)const
@@ -348,9 +352,9 @@ void MenuComponent::resized()
 	}
 
 	recentList->getListBox()->setBounds(0, 0, getWidth(), recentSize);
-	menuList->getListBox()->setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
-	m_colourSelector.setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), getHeight()-recentSize);
-	m_slider.setBounds((int)getItemHeight(), recentSize, getWidth()-(int)getItemHeight(), (int)getItemHeight());
+	menuList->getListBox()->setBounds(0, recentSize, getWidth(), getHeight()-recentSize);
+	m_colourSelector.setBounds(0, recentSize, getWidth(), getHeight()-recentSize);
+	m_slider.setBounds((int)getItemHeight(), recentSize, getWidth()-2*(int)getItemHeight(), (int)getItemHeight());
 	Component::resized();
 }
 
@@ -391,9 +395,7 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 		case AbstractMenuItem::STORE_AND_OPEN_SLIDER:
 		{
 			setMode(Mode::SLIDER);
-			SliderParams const& params = std::get<SliderParams>(item.getParams());
-			m_slider.setRange(params.min, params.max, 1.);
-			m_slider.setValue(params.init);
+			m_slider.setup(std::get<SettingSlider::Params>(item.getParams()));
 			if(!isRecent)
 			{
 				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
@@ -457,7 +459,7 @@ void MenuComponent::sliderValueChanged (Slider* slider)
 {
 	if( MenuItem* item = recentList->getLastItem() )
 	{
-		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_SLIDER && m_slider.isVisible() && slider == &m_slider)
+		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_SLIDER && m_slider.isVisible() && m_slider.is(slider))
 		{
 			item->execute(m_slider.getValue());
 		}

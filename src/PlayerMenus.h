@@ -105,6 +105,8 @@ public:
 	void onMenuSubtitleSelect(MenuComponentValue const&, int i);
     void onMenuSubtitlePosition (MenuComponentValue const&);
 	void onVLCOptionColor(MenuComponentValue const&, std::string);
+    void onMenuSubtitleSelectMenu (MenuComponentValue const&);
+    void onMenuSubtitleFontMenu (MenuComponentValue const&);
     void onMenuSubtitleMenu (MenuComponentValue const&);
 	void onMenuZoomSlider (MenuComponentValue const& value);
     void onMenuCrop (MenuComponentValue const&, juce::String const& crop);

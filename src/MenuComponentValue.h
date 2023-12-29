@@ -2,12 +2,12 @@
 #define MENU_COMPONENT_VALUE_H
 
 
+#include "SettingSlider.h"
 #include <JuceHeader.h>
 #include <variant>
 
 
 using MenuComponentValue = std::variant<std::monostate, juce::Colour, double>;
-struct SliderParams{double init, min, max;};
-using MenuComponentParams = std::variant<std::monostate, juce::Colour, SliderParams>;
+using MenuComponentParams = std::variant<std::monostate, juce::Colour, SettingSlider::Params>;
 
 #endif //MENU_COMPONENT_VALUE_H

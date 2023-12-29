@@ -1,155 +1,12 @@
 
 #include "ControlComponent.h"
 #include "Icons.h"
+#include "SettingSlider.h"
 #include <algorithm>
 
 
 using namespace std::placeholders;
 
-////////////////////////////////////////////////////////////
-//
-// 2ND SLIDER
-//
-////////////////////////////////////////////////////////////
-
-
-SecondaryControlComponent::SecondaryControlComponent()
-	:m_buttonsStep(0.)
-	,m_sliderAction([](double){})
-{
-	setOpaque(true);
-	m_leftImage = juce::Drawable::createFromImageData (Icons::left_svg, Icons::left_svgSize);
-	m_rightImage = juce::Drawable::createFromImageData (Icons::right_svg, Icons::right_svgSize);
-
-	m_leftButton = std::make_unique<juce::DrawableButton>("m_leftButton", juce::DrawableButton::ImageFitted);
-	m_leftButton->setOpaque(false);
-	m_leftButton->setImages(m_leftImage.get());
-	m_leftButton->addListener(this);
-
-	m_rightButton = std::make_unique<juce::DrawableButton>("m_rightButton", juce::DrawableButton::ImageFitted);
-	m_rightButton->setOpaque(false);
-	m_rightButton->setImages(m_rightImage.get());
-	m_rightButton->addListener(this);
-
-	m_slider = std::make_unique<juce::Slider>("AlternateControlComponentSlider");
-	m_slider->addListener(this);
-    m_slider->setSliderStyle (Slider::LinearHorizontal);
-	m_slider->setTextBoxStyle (Slider::NoTextBox, false, 80, 20);
-	m_slider->setColour(Slider::textBoxTextColourId, juce::Colours::white);
-	m_slider->setOpaque(false);
-	addAndMakeVisible(*m_slider);
-
-	addChildComponent(*m_leftButton);
-	addChildComponent(*m_rightButton);
-
-	setOpaque(false);
-}
-SecondaryControlComponent::~SecondaryControlComponent()
-{
-}
-void SecondaryControlComponent::resized()
-{
-	bool showButtons = m_buttonsStep>0.;
-	int buttonSize = showButtons?getHeight():0;
-	int leftButtonSize= m_leftButton->isVisible() ? buttonSize : 0;
-	int rightButtonSize= m_rightButton->isVisible() ? buttonSize : 0;
-
-	int w = getWidth()-leftButtonSize-rightButtonSize;
-	int sliderW = (2*w)/3;
-
-	if(m_leftButton->isVisible())
-	{
-		m_leftButton->setBounds(0, 0, buttonSize, getHeight());
-	}
-	m_slider->setBounds(leftButtonSize, 0, sliderW, getHeight());
-	if(m_rightButton->isVisible())
-	{
-		m_rightButton->setBounds(leftButtonSize+sliderW, 0, buttonSize, getHeight());
-	}
-}
-
-void SecondaryControlComponent::paint(juce::Graphics& g)
-{
-	//paint label
-	bool showButtons = m_buttonsStep>0.;
-	int buttonSize = showButtons?getHeight():0;
-	int leftButtonSize= m_leftButton->isVisible() ? buttonSize : 0;
-	int rightButtonSize= m_rightButton->isVisible() ? buttonSize : 0;
-
-	int w = getWidth()-leftButtonSize-rightButtonSize;
-	int sliderW = (2*w)/3;
-	int labelW = w-sliderW;
-
-	Rectangle<int> labelBounds(leftButtonSize+sliderW+rightButtonSize, 0, labelW, getHeight());
-
-	juce::Font f = g.getCurrentFont().withHeight(getFontHeight()*3.f/4.f);
-	//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
-	f.setStyleFlags(juce::Font::plain);
-	g.setFont(f);
-
-	g.setColour (juce::Colours::white);
-	g.drawFittedText (juce::String::formatted(m_labelFormat, m_slider->getValue()),
-		labelBounds,
-		juce::Justification::centredLeft,
-		1, //1 line
-		1.f//no h scale
-		);
-}
-
-void SecondaryControlComponent::sliderValueChanged (juce::Slider* slider)
-{
-	m_sliderAction(slider->getValue());
-}
-
-void SecondaryControlComponent::show(juce::String const& label, ActionSliderCallback const& f, double value, double resetValue, double volumeMin, double volumeMax, double step, double buttonsStep)
-{
-	m_sliderAction = f;
-	m_labelFormat = label;
-	m_buttonsStep = buttonsStep;
-	m_resetValue = resetValue;
-	bool showButtons = m_buttonsStep>0.;
-	m_leftButton->setVisible(showButtons);
-	m_rightButton->setVisible(showButtons);
-	m_slider->setRange(volumeMin, volumeMax, step);
-	m_slider->setValue(value);
-	resized();
-	setVisible(true);
-}
-
-void SecondaryControlComponent::reset()
-{
-	double min = m_slider->getMinimum();
-	double max = m_slider->getMaximum();
-	if(m_resetValue < min || m_resetValue > max)
-	{
-		double fix = std::ceil((m_resetValue - (min + max) / 2.  )/m_buttonsStep)*m_buttonsStep;
-		m_slider->setRange(min+fix, max+fix, m_slider->getInterval());
-	}
-	m_slider->setValue(m_resetValue);
-}
-void SecondaryControlComponent::disableAndHide()
-{
-	m_sliderAction = [](double){};
-	setVisible(false);
-}
-void SecondaryControlComponent::buttonClicked (juce::Button* button)
-{
-	double value = m_slider->getValue();
-	double min = m_slider->getMinimum();
-	double max = m_slider->getMaximum();
-	double step = m_slider->getInterval();
-
-	if( button == m_leftButton.get() )
-	{
-		m_slider->setRange(min-m_buttonsStep, max-m_buttonsStep, step);
-		m_slider->setValue(std::min(value, max-m_buttonsStep));
-	}
-	else if( button == m_rightButton.get() )
-	{
-		m_slider->setRange(min+m_buttonsStep, max+m_buttonsStep, step);
-		m_slider->setValue(std::max(value, min-m_buttonsStep));
-	}
-}
 ////////////////////////////////////////////////////////////
 //
 // TimeSlider
@@ -254,49 +111,43 @@ void TimeSlider::paint (juce::Graphics& g)
 //
 ////////////////////////////////////////////////////////////
 ControlComponent::ControlComponent()
+	: m_slider( std::make_unique<TimeSlider>())
+    , m_playPauseButton (std::make_unique<juce::DrawableButton>("playPause", juce::DrawableButton::ImageFitted))
+    , m_stopButton (std::make_unique<juce::DrawableButton>("stop", juce::DrawableButton::ImageFitted))
+    , m_menuButton (std::make_unique<juce::DrawableButton>("menuButton", juce::DrawableButton::ImageFitted))
+    , m_fullscreenButton (std::make_unique<juce::DrawableButton>("fullscreenButton", juce::DrawableButton::ImageFitted))
+    , m_auxilliarySliderModeButton (std::make_unique<juce::DrawableButton>("2ndSliderModeButton", juce::DrawableButton::ImageFitted))
+    , m_playImage       (juce::Drawable::createFromImageData (Icons::play_svg,           Icons::play_svgSize))
+    , m_pauseImage      (juce::Drawable::createFromImageData (Icons::pause_svg,          Icons::pause_svgSize))
+    , m_stopImage       (juce::Drawable::createFromImageData (Icons::stop_svg,           Icons::stop_svgSize))
+    , m_itemImage       (juce::Drawable::createFromImageData (Icons::blank_svg,          Icons::blank_svgSize))
+    , m_folderImage     (juce::Drawable::createFromImageData (Icons::openshort_svg,      Icons::openshort_svgSize))
+    , m_starImage       (juce::Drawable::createFromImageData (Icons::sliders_svg,        Icons::sliders_svgSize))
+    , m_fullscreenImage (juce::Drawable::createFromImageData (Icons::fullscreen_svg,     Icons::fullscreen_svgSize))
+    , m_windowImage     (juce::Drawable::createFromImageData (Icons::window_svg,    		Icons::window_svgSize))
+	, m_auxilliaryControlComponent (std::make_unique<SettingSlider>())
+	, timeString("")
+	, m_auxilliarySliderAction([](double){})
 {
-	m_slider = std::make_unique<TimeSlider>();
+	m_slider->addListener(this);
 
 
-    m_playImage       = juce::Drawable::createFromImageData (Icons::play_svg,           Icons::play_svgSize);
-    m_pauseImage      = juce::Drawable::createFromImageData (Icons::pause_svg,          Icons::pause_svgSize);
-    m_stopImage       = juce::Drawable::createFromImageData (Icons::stop_svg,           Icons::stop_svgSize);
-    m_itemImage       = juce::Drawable::createFromImageData (Icons::blank_svg,          Icons::blank_svgSize);
-    m_folderImage     = juce::Drawable::createFromImageData (Icons::openshort_svg,      Icons::openshort_svgSize);
-    m_starImage       = juce::Drawable::createFromImageData (Icons::sliders_svg,        Icons::sliders_svgSize);
-    m_fullscreenImage = juce::Drawable::createFromImageData (Icons::fullscreen_svg,     Icons::fullscreen_svgSize);
-    m_windowImage     = juce::Drawable::createFromImageData (Icons::window_svg,    		Icons::window_svgSize);
-    m_undoImage       = juce::Drawable::createFromImageData (Icons::backCircle_svg,     Icons::backCircle_svgSize);
-
-    m_playPauseButton = std::make_unique<juce::DrawableButton>("playPause", juce::DrawableButton::ImageFitted);
 	m_playPauseButton->setOpaque(false);
 	m_playPauseButton->setImages(m_playImage.get());
 
-    m_stopButton = std::make_unique<juce::DrawableButton>("stop", juce::DrawableButton::ImageFitted);
 	m_stopButton->setOpaque(false);
 	m_stopButton->setImages(m_stopImage.get());
 
-    m_fullscreenButton = std::make_unique<juce::DrawableButton>("fullscreenButton", juce::DrawableButton::ImageFitted);
 	m_fullscreenButton->setOpaque(false);
 	m_fullscreenButton->setImages(m_fullscreenImage.get());
 	m_fullscreenButton->setTooltip(TRANS("Switch fullscreen"));
 
-    m_menuButton = std::make_unique<juce::DrawableButton>("menuButton", juce::DrawableButton::ImageFitted);
 	m_menuButton->setOpaque(false);
 	m_menuButton->setImages(m_folderImage.get());
 	m_menuButton->setTooltip(TRANS("Quick menu"));
 
-    m_auxilliarySliderModeButton = std::make_unique<juce::DrawableButton>("2ndSliderModeButton", juce::DrawableButton::ImageFitted);
 	m_auxilliarySliderModeButton->setOpaque(false);
 	m_auxilliarySliderModeButton->setImages(m_starImage.get());
-
-    m_resetButton = std::make_unique<juce::DrawableButton>("ResetButton", juce::DrawableButton::ImageFitted);
-	m_resetButton->setOpaque(false);
-	m_resetButton->setImages(m_undoImage.get());
-	m_resetButton->setTooltip(TRANS("Reset"));
-
-
-	m_auxilliaryControlComponent = std::make_unique<SecondaryControlComponent>();
 
 	addAndMakeVisible(*m_slider);
     addAndMakeVisible(*m_playPauseButton);
@@ -304,7 +155,6 @@ ControlComponent::ControlComponent()
     addAndMakeVisible(*m_fullscreenButton);
     addAndMakeVisible(*m_menuButton);
     addAndMakeVisible(*m_auxilliarySliderModeButton);
-    addAndMakeVisible(*m_resetButton);
     addChildComponent(*m_auxilliaryControlComponent);
 
 
@@ -316,15 +166,23 @@ ControlComponent::~ControlComponent()
 	m_playPauseButton = nullptr;
 	m_stopButton = nullptr;
 	m_auxilliarySliderModeButton = nullptr;
-	m_resetButton = nullptr;
 	m_playImage = nullptr;
 	m_pauseImage = nullptr;
 	m_stopImage = nullptr;
 }
+
+void ControlComponent::setupAuxilliaryControlComponent(ActionSliderCallback const& f, SettingSlider::Params const& params)
+{
+	m_auxilliaryControlComponent->setup(params);
+	m_auxilliaryControlComponent->setVisible(true);
+	m_auxilliarySliderAction = f;
+}
+
 void ControlComponent::setScaleComponent(juce::Component* scaleComponent)
 {
 	AppProportionnalComponent::setScaleComponent(scaleComponent);
 	m_auxilliaryControlComponent->setScaleComponent(scaleComponent);
+	m_slider->setScaleComponent(scaleComponent);
 }
 void ControlComponent::resized()
 {
@@ -346,8 +204,6 @@ void ControlComponent::resized()
 	m_auxilliarySliderModeButton->setBounds (auxilliaryX-buttonSize, h-buttonSize, buttonSize, buttonSize);
 	int auxilliaryH = sliderHeight*4/5;
 	m_auxilliaryControlComponent->setBounds (auxilliaryX, h-buttonSize+(buttonSize-auxilliaryH)/2, auxilliaryW, auxilliaryH);
-
-	m_resetButton->setBounds (auxilliaryX+m_auxilliaryControlComponent->getWidth(), h-buttonSize, buttonSize, buttonSize);
 
 	m_fullscreenButton->setBounds (w-wMargin-2*buttonSize, h-buttonSize, buttonSize, buttonSize);
 	m_menuButton->setBounds (w-wMargin-buttonSize, h-buttonSize, buttonSize, buttonSize);
@@ -433,4 +289,12 @@ void ControlComponent::showWindowedControls()
 void ControlComponent::hidePlayingControls()
 {
 	setVisible(false);
+}
+
+void ControlComponent::sliderValueChanged (Slider* slider)
+{
+	if(m_auxilliaryControlComponent->is(slider) && m_auxilliaryControlComponent->isVisible())
+	{
+		m_auxilliarySliderAction(slider->getValue());
+	}
 }

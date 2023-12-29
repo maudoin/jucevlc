@@ -8,14 +8,14 @@
 
 #define LANG_EXTENSION "lang"
 
-const char* lang_fr="language: France\n\
+const char* lang_fr="language: Français\n\
 countries: fr be mc ch lu\n\
 \n\
 \"Audio Volume: %.f%%\" = \"Volume audio: %.f%%\"\n\
 \"Speed: %.f%%\" = \"Vitesse: %.f%%\"\n\
 \"Zoom: %.f%%\" = \"Zoom: %.f%%\"\n\
-\"Audio offset: %+.3fs\" = \"Décalage audio: %+.3fs\"\n\
-\"Subtitles offset: %+.3fs\" = \"Décalage sous-titres: %+.3fs\"\n\
+\"Audio offset: %+.2fs\" = \"Décalage audio: %+.2fs\"\n\
+\"Subtitles offset: %+.2fs\" = \"Décalage sous-titres: %+.2fs\"\n\
 \"Play All\" = \"Lire Tout\"\n\
 \"Add All\" = \"Ajouter Tout\"\n\
 \"All videos...\" = \"Toutes les vidéos...\"\n\
@@ -47,6 +47,8 @@ countries: fr be mc ch lu\n\
 \"Apply\" = \"Appliquer\"\n\
 \"Position\" = \"Position\"\n\
 \"Subtitle pos.: %+.f\" = \"Pos. sous-titres: %+.f\"\n\
+\"Select\" = \"Selectionner\"\n\
+\"Font\" = \"Police\"\n\
 \"Opacity\" = \"Opacité\"\n\
 \"Background\" = \"Fond\"\n\
 \"Background opacity\" = \"Opacité fond\"\n\
@@ -89,11 +91,11 @@ countries: fr be mc ch lu\n\
 \"Setup\" = \"Définir\"\n\
 \"Color\" = \"Couleur\"\n\
 \"Outline Color\" = \"Couleur du contour\"\n\
+\"Shadow Color\" = \"Couleur de l'ombre\"\n\
+\"Background Color\" = \"Couleur du fond\"\n\
 \"Equalizer\" = \"Equaliseur\"\n\
 \"Quick menu\" = \"Raccourcis\"\n\
 \"Reset\" = \"Réinitialiser\"\n\
-\"Set as frontpage\" = \"Comme page d'accueil\"\n\
-\"You may set this frontpage root folder from the right click file browser menu (end of list)\" = \"Choisissez le dossier racine de cette page d'accueil depuis le selecteur de fichier accessible via un clic droit (fin de liste)\"\n\
 \"Channel\" = \"Canal\"\n\
 \"Stereo\" = \"Stéreo\"\n\
 \"Reverse\" = \"Inverse\"\n\

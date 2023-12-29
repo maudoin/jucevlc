@@ -404,8 +404,6 @@ void PlayerMenus::onMenuSubtitlePositionCustomMode(MenuComponentValue const& val
 }
 void PlayerMenus::onMenuSubtitlePosition(MenuComponentValue const&)
 {
-	m_viewHandler.setBrowsingFiles(false);
-
 	m_optionsMenu->addMenuItem( TRANS("Automatic"), AbstractMenuItem::REFRESH_MENU,
 		[this](MenuComponentValue const& value){this->onMenuSubtitlePositionAutomaticMode(value);},
 		m_autoSubtitlesHeight?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
@@ -413,13 +411,9 @@ void PlayerMenus::onMenuSubtitlePosition(MenuComponentValue const&)
 	m_optionsMenu->addMenuItem( TRANS("Custom"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
 		[this](MenuComponentValue const& value){this->onMenuSubtitlePositionCustomMode(value);},
 		(!m_autoSubtitlesHeight)?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None,
-		SliderParams{(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., MAX_SUBTITLE_OFFSET});
-	//m_optionsMenu->addMenuItem( TRANS("Setup"), std::bind(&PlayerMenus::onMenuVoutIntOption, this, _1,
-	//	TRANS("Subtitle pos.: %+.f"),
-	//	std::string(CONFIG_INT_OPTION_SUBTITLE_MARGIN),
-	//	(double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., (double)getHeight(), 1., 0.));
+		SettingSlider::Params{"", (double)vlc->getVoutOptionInt(CONFIG_INT_OPTION_SUBTITLE_MARGIN), 0., 0., MAX_SUBTITLE_OFFSET});
 
-
+	m_viewHandler.setBrowsingFiles(false);
 }
 inline juce::Colour RGB2ARGB(int rgb)
 {
@@ -490,7 +484,7 @@ void PlayerMenus::onVLCOptionIntRangeMenu(MenuComponentValue const& value, const
 	}
 }
 
-void PlayerMenus::onMenuSubtitleMenu(MenuComponentValue const&)
+void PlayerMenus::onMenuSubtitleSelectMenu(MenuComponentValue const&)
 {
 	std::vector<std::pair<int, std::string> > subs = vlc->getSubtitles();
 	int current = vlc->getCurrentSubtitleIndex();
@@ -512,6 +506,11 @@ void PlayerMenus::onMenuSubtitleMenu(MenuComponentValue const&)
 	//m_optionsMenu->addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSearchOpenSubtitles, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("SubtitleSeeker.com"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [this](MenuComponentValue const& value){this->onMenuSearchSubtitleSeeker(value);});
 
+	m_viewHandler.setBrowsingFiles(false);
+}
+
+void PlayerMenus::onMenuSubtitleFontMenu(MenuComponentValue const&)
+{
 
 	auto addColorItem = [&](juce::String const& label, const char* vlcKey)
 	{
@@ -520,26 +519,39 @@ void PlayerMenus::onMenuSubtitleMenu(MenuComponentValue const&)
 			std::bind(&PlayerMenus::onVLCOptionColor, this, _1, std::string(vlcKey)),
 			AbstractMenuItem::Icon::None, RGB2ARGB(vlc->getConfigOptionInt(vlcKey)));
 	};
-	auto addSliderItem = [&](juce::String const& label, const char* vlcKey, double min, double max)
+	auto addSliderItem = [&](juce::String const& label, const char* vlcKey, double defaultV, double min, double max)
 	{
 		m_optionsMenu->addMenuItem( label,
 			AbstractMenuItem::STORE_AND_OPEN_SLIDER,
 			std::bind(&PlayerMenus::onVLCOptionIntRangeMenu, this, _1, vlcKey),
-			AbstractMenuItem::Icon::None, SliderParams{(double)vlc->getConfigOptionInt(vlcKey), min, max});
+			AbstractMenuItem::Icon::None, SettingSlider::Params{"%.f", (double)vlc->getConfigOptionInt(vlcKey), defaultV, min, max});
 	};
 
-	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuShiftSubtitlesSlider, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getSubtitleDelay()/1000000., -60, 60});
-	m_optionsMenu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSubtitlePosition, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_SIZE)));
-	addSliderItem( TRANS("Opacity"), CONFIG_INT_OPTION_SUBTITLE_OPACITY, 0, 255);
+	addSliderItem( TRANS("Opacity"), CONFIG_INT_OPTION_SUBTITLE_OPACITY, 255, 0, 255);
 	addColorItem( TRANS("Color"), CONFIG_COLOR_OPTION_SUBTITLE_COLOR);
 	m_optionsMenu->addMenuItem( TRANS("Outline"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCOptionIntListMenu, this, _1, std::string(CONFIG_INT_OPTION_SUBTITLE_OUTLINE_THICKNESS)));
-	addSliderItem( TRANS("Outline opacity"), CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY, 0, 255);
+	addSliderItem( TRANS("Outline opacity"), CONFIG_INT_OPTION_SUBTITLE_OUTLINE_OPACITY, 255, 0, 255);
 	addColorItem( TRANS("Outline Color"), CONFIG_COLOR_OPTION_SUBTITLE_OUTLINE_COLOR);
-	addSliderItem( TRANS("Background opacity"), CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY, 0, 255);
+	addSliderItem( TRANS("Background opacity"), CONFIG_INT_OPTION_SUBTITLE_BACKGROUND_OPACITY, 0, 255, 0);
 	addColorItem( TRANS("Background Color"), CONFIG_COLOR_OPTION_SUBTITLE_BACKGROUND_COLOR);
-	addSliderItem( TRANS("Shadow opacity"), CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY,0, 255);
+	addSliderItem( TRANS("Shadow opacity"), CONFIG_INT_OPTION_SUBTITLE_SHADOW_OPACITY,0, 255, 0);
 	addColorItem( TRANS("Shadow Color"), CONFIG_COLOR_OPTION_SUBTITLE_SHADOW_COLOR);
+
+	m_viewHandler.setBrowsingFiles(false);
+}
+
+void PlayerMenus::onMenuSubtitleMenu(MenuComponentValue const&)
+{
+	m_optionsMenu->addMenuItem( TRANS("Select"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSubtitleSelectMenu, this, _1));
+
+	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuShiftSubtitlesSlider, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%+.3fs", vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.});
+
+	m_optionsMenu->addMenuItem( TRANS("Font"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSubtitleFontMenu, this, _1));
+
+	m_optionsMenu->addMenuItem( TRANS("Position"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSubtitlePosition, this, _1));
 
 	m_viewHandler.setBrowsingFiles(false);
 
@@ -1201,7 +1213,7 @@ void PlayerMenus::onMenuRateListAndSlider (MenuComponentValue const&)
 	m_optionsMenu->addMenuItem( "150%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 150.), 150==(int)(vlc->getRate())?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
 	m_optionsMenu->addMenuItem( "200%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 200.), 200==(int)(vlc->getRate())?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
 	m_optionsMenu->addMenuItem( "Custom", AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuCustomRate, this, _1),
-		AbstractMenuItem::Icon::None, SliderParams{vlc->getRate(), 25., 400.});
+		AbstractMenuItem::Icon::None, SettingSlider::Params{"%.f%%", vlc->getRate(), 100., 25., 400., 25.});
 
 	m_viewHandler.setBrowsingFiles(false);
 
@@ -1278,7 +1290,7 @@ void PlayerMenus::onMenuAudioVolumeListAndSlider(MenuComponentValue const&)
 	m_optionsMenu->addMenuItem( "200%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuAudioVolume, this, _1, 200.), 200==(int)(vlc->getVolume())?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
 	m_optionsMenu->addMenuItem( "Custom", AbstractMenuItem::STORE_AND_OPEN_SLIDER,
 		std::bind(&PlayerMenus::onMenuAudioVolume, this, _1, 200.),
-		AbstractMenuItem::Icon::None, SliderParams{vlc->getVolume(), 0., 200.});
+		AbstractMenuItem::Icon::None, SettingSlider::Params{"%.0f",vlc->getVolume(), 100., 0., 200., 5.});
 
 	m_viewHandler.setBrowsingFiles(false);
 }
@@ -1376,11 +1388,16 @@ void PlayerMenus::onVLCAudioOutputList(MenuComponentValue const& value)
 void PlayerMenus::onMenuSoundOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Volume"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuAudioVolumeListAndSlider, this, _1));
-	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuShiftAudioSlider, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getSubtitleDelay()/1000000., -60, 60});
-	m_optionsMenu->addMenuItem( TRANS("Equalizer"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCAoutStringSelectListMenu, this, _1, std::string(AOUT_FILTER_EQUALIZER), std::string(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET)));
-	m_optionsMenu->addMenuItem( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuAudioTrackList, this, _1));
+	m_optionsMenu->addMenuItem( TRANS("Delay"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuShiftAudioSlider, this, _1),
+		AbstractMenuItem::Icon::None, SettingSlider::Params{"%+.3fs", vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.});
+	m_optionsMenu->addMenuItem( TRANS("Equalizer"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+		std::bind(&PlayerMenus::onVLCAoutStringSelectListMenu, this, _1, std::string(AOUT_FILTER_EQUALIZER), std::string(CONFIG_STRING_OPTION_AUDIO_EQUALIZER_PRESET)));
+	m_optionsMenu->addMenuItem( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+		std::bind(&PlayerMenus::onMenuAudioTrackList, this, _1));
 	bool currentStatus=vlc->getConfigOptionBool(CONFIG_STRING_OPTION_AUDIO_OUT);
-	m_optionsMenu->addMenuItem( currentStatus?TRANS("Disable"):TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, std::bind(&VLCWrapper::setConfigOptionBool, vlc, CONFIG_STRING_OPTION_AUDIO_OUT, !currentStatus));
+	m_optionsMenu->addMenuItem( currentStatus?TRANS("Disable"):TRANS("Enable"), AbstractMenuItem::REFRESH_MENU,
+		std::bind(&VLCWrapper::setConfigOptionBool, vlc, CONFIG_STRING_OPTION_AUDIO_OUT, !currentStatus));
 	m_optionsMenu->addMenuItem( TRANS("Channel"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCAudioChannelSelect, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Output"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCAudioOutputList, this, _1));
 //	m_optionsMenu->addMenuItem( TRANS("Audio visu."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onVLCOptionStringMenu, this, _1, std::string(CONFIG_STRING_OPTION_AUDIO_VISUAL)));
@@ -1414,12 +1431,24 @@ void PlayerMenus::onMenuRatio(MenuComponentValue const&)
 
 void PlayerMenus::onMenuVideoAdjustOptions(MenuComponentValue const&)
 {
-	m_optionsMenu->addMenuItem( TRANS("Enable"), AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuVideoAdjust, this, _1), vlc->getVideoAdjust()?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
-	m_optionsMenu->addMenuItem( TRANS("Contrast"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuVideoContrast, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getVideoContrast(), 0., 2.});
-	m_optionsMenu->addMenuItem( TRANS("Brightness"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuVideoBrightness, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getVideoBrightness(), 0., 2.});
-	m_optionsMenu->addMenuItem( TRANS("Saturation"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuVideoSaturation, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getVideoSaturation(), 0., 2.});
-	m_optionsMenu->addMenuItem( TRANS("Hue"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuVideoHue, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getVideoHue(), 0., 256.});
-	m_optionsMenu->addMenuItem( TRANS("Gamma"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuVideoGamma, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getVideoGamma(), 0., 2.});
+	m_optionsMenu->addMenuItem( TRANS("Enable"), AbstractMenuItem::REFRESH_MENU,
+		std::bind(&PlayerMenus::onMenuVideoAdjust, this, _1),
+		vlc->getVideoAdjust()?AbstractMenuItem::Icon::Item : AbstractMenuItem::Icon::None);
+	m_optionsMenu->addMenuItem( TRANS("Contrast"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuVideoContrast, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%.2f", vlc->getVideoContrast(), 1., 0., 2., .01});
+	m_optionsMenu->addMenuItem( TRANS("Brightness"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuVideoBrightness, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%.2f", vlc->getVideoBrightness(), 1., 0., 2., .01});
+	m_optionsMenu->addMenuItem( TRANS("Saturation"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuVideoSaturation, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%.2f", vlc->getVideoSaturation(), 1., 0., 2., .01});
+	m_optionsMenu->addMenuItem( TRANS("Hue"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuVideoHue, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"", vlc->getVideoHue(), 0., 0., 256.});
+	m_optionsMenu->addMenuItem( TRANS("Gamma"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuVideoGamma, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%.2f", vlc->getVideoGamma(), 1., 0., 2., .01});
 
 	m_viewHandler.setBrowsingFiles(false);
 }
@@ -1484,7 +1513,9 @@ void PlayerMenus::onMenuVideoOptions(MenuComponentValue const&)
 {
 	m_optionsMenu->addMenuItem( TRANS("Speed"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuRateListAndSlider, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Crop"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuCropList, this, _1));
-	m_optionsMenu->addMenuItem( TRANS("Scale"), AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuZoomSlider, this, _1), AbstractMenuItem::Icon::None, SliderParams{vlc->getScale(), 25., 400.});
+	m_optionsMenu->addMenuItem( TRANS("Scale"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
+		std::bind(&PlayerMenus::onMenuZoomSlider, this, _1), AbstractMenuItem::Icon::None,
+		SettingSlider::Params{"%.f%%", vlc->getScale(), 100., 25., 400.});
 	m_optionsMenu->addMenuItem( TRANS("Aspect Ratio"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuRatio, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Select Track"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuVideoTrackList, this, _1));
 	m_optionsMenu->addMenuItem( TRANS("Adjust"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuVideoAdjustOptions, this, _1));

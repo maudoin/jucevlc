@@ -3,6 +3,7 @@
 
 
 #include "AbstractMenu.h"
+#include "SettingSlider.h"
 
 class MenuItem;
 class MenuItemList;
@@ -18,7 +19,7 @@ class MenuComponent : public virtual juce::Component,
 	std::vector<std::unique_ptr<juce::Drawable>> m_iconImages;
 	bool m_gradient;
 	juce::ColourSelector m_colourSelector;
-	juce::Slider m_slider;
+	SettingSlider m_slider;
 public:
 	using Value = std::variant<juce::Colour, int>;
 
@@ -27,8 +28,8 @@ public:
 
 	void resized() override;
 	void forceMenuRefresh() override;
-	void  changeListenerCallback (ChangeBroadcaster*) override;
-	void sliderValueChanged (Slider* slider) override;
+	void changeListenerCallback (ChangeBroadcaster*) override;
+	void sliderValueChanged (juce::Slider* slider) override;
 
 	void paint (juce::Graphics& g) final;
 	juce::Component* asComponent() final {return this;}
@@ -43,6 +44,7 @@ public:
 	void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon, MenuComponentParams const& params = {}) override;
 	void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon) override;
 
+	void setScaleComponent(juce::Component* scaleComponent) override;
 protected:
 	enum class Mode{LIST, COLOR, SLIDER};
 	void setMode(Mode mode);
