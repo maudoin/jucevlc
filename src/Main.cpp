@@ -1,6 +1,6 @@
+#include "VideoComponent.h"
 
 #include <JuceHeader.h>
-#include "VideoComponent.h"
 
 //==============================================================================
 /** This is the application object that is started up when Juce starts. It handles
@@ -19,27 +19,16 @@ public:
     }
 
     //==============================================================================
-    void initialise (const juce::String& commandLine)
+    void initialise (const juce::String& /*commandLine*/)
     {
-        // For this demo, we'll just create the main window...
-        window = new VideoComponent();
-
-        /*  ..and now return, which will fall into to the main event
-            dispatch loop, and this will run until something calls
-            JUCEAppliction::quit().
-
-            In this case, JUCEAppliction::quit() will be called by the
-            hello world window being clicked.
-        */
+        // create the main window...
+        window = std::make_unique<VideoComponent>();
     }
 
     void shutdown()
     {
-        // This method is where you should clear-up your app's resources..
-
-        // The window variable is a ScopedPointer, so setting it to a null
-        // pointer will delete the window.
-        delete window;
+        //  clear-up app's resources..
+        window.reset();
     }
 
     //==============================================================================
@@ -60,12 +49,12 @@ public:
         return true;
     }
 
-    void anotherInstanceStarted (const juce::String& commandLine)
+    void anotherInstanceStarted (const juce::String& /*commandLine*/)
     {
     }
 
 private:
-    VideoComponent* window;
+    std::unique_ptr<VideoComponent> window;
 };
 #ifdef JUCE_64BIT
 #include <juce_core/native/juce_BasicNativeHeaders.h>

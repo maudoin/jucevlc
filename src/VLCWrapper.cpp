@@ -864,8 +864,11 @@ int VLCWrapper::getVideoTrack()
 
 void VLCWrapper::setVideoAdjust(bool n)
 {
-	libvlc_video_set_adjust_int(pMediaPlayer_, libvlc_adjust_Enable, n?1:0);
-	m_videoAdjustEnabled = n;
+	if(m_videoAdjustEnabled!=n)
+	{
+		libvlc_video_set_adjust_int(pMediaPlayer_, libvlc_adjust_Enable, n?1:0);
+		m_videoAdjustEnabled = n;
+	}
 }
 bool VLCWrapper::getVideoAdjust()
 {

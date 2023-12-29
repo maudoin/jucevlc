@@ -266,20 +266,28 @@ public:
 MenuComponent::MenuComponent(bool const gradient)
 	: menuList(new MenuItemList("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1)))
 	, recentList(new RecentMenuItemList("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1)))
-    , itemImage               (juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize))
-    , folderImage             (juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize))
-    , playlistImage           (juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize))
-    , folderShortcutImage     (juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize))
-    , hideFolderShortcutImage (juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize))
-    , audioImage              (juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize))
-    , displayImage            (juce::Drawable::createFromImageData (Icons::image_svg, Icons::image_svgSize))
-    , subtitlesImage          (juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize))
-    , likeAddImage            (juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize))
-	, likeRemoveImage         (juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize))
-	, backImage               (juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize))
+	, m_iconImages(EnumSize<AbstractMenuItem::Icon>::value)
 	, m_gradient(gradient)
 	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
 {
+
+    m_iconImages[AbstractMenuItem::Icon::None]               = nullptr;
+    m_iconImages[AbstractMenuItem::Icon::Item]               = juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Folder]             = juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Playlist]           = juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::FolderShortcut]     = juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::HideFolderShortcut] = juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Audio]              = juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Display]            = juce::Drawable::createFromImageData (Icons::image_svg, Icons::image_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Subtitles]          = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::LikeAdd]            = juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::LikeRemove]         = juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Back]               = juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::AddAll]             = juce::Drawable::createFromImageData (Icons::addall_svg, Icons::addall_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::PlayAll]            = juce::Drawable::createFromImageData (Icons::play_svg, Icons::play_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Exit]            	 = juce::Drawable::createFromImageData (Icons::off_svg, Icons::off_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Settings]           = juce::Drawable::createFromImageData (Icons::optionssettings_svg, Icons::optionssettings_svgSize);
+
     addAndMakeVisible (recentList->getListBox());
     addAndMakeVisible (menuList->getListBox());
     addChildComponent (m_colourSelector);
@@ -287,6 +295,7 @@ MenuComponent::MenuComponent(bool const gradient)
 	setOpaque(true);
 	m_colourSelector.addChangeListener (this);
 	m_slider.setTextBoxStyle(juce::Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+	m_slider.addListener(this);
 
 
 }
@@ -294,13 +303,19 @@ MenuComponent::~MenuComponent()
 {
 }
 
+juce::Drawable const* MenuComponent::getImage(AbstractMenuItem::Icon icon)const
+{
+	std::unique_ptr<juce::Drawable> const&ptr = m_iconImages[icon];
+	return ptr?ptr.get():nullptr;
+}
+
 void MenuComponent::paint (juce::Graphics& g)
 {
-	float w = (float)asComponent()->getWidth();
-	float h = (float)asComponent()->getHeight();
+	float w = (float)getWidth();
+	float h = (float)getHeight();
 	if(m_gradient)
 	{
-		float const roundness = 0.01f*asComponent()->getParentWidth();
+		float const roundness = 0.01f*getParentWidth();
 		static const juce::Colour color(uint8(20), uint8(20), uint8(20), 0.9f);
 		g.setColour (color);
 		g.fillRoundedRectangle(0, 0, w, h, roundness);
@@ -311,6 +326,16 @@ void MenuComponent::paint (juce::Graphics& g)
 	}
 
 }
+
+bool MenuComponent::isShown() const
+{
+	return isVisible();
+}
+void MenuComponent::setShown(bool show)
+{
+	setVisible(show);
+}
+
 void MenuComponent::resized()
 {
 	menuList->getListBox()->setRowHeight((int)getItemHeight());
@@ -341,7 +366,7 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
@@ -355,7 +380,7 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			setMode(Mode::COLOR);
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
@@ -371,12 +396,13 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			m_slider.setValue(params.init);
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getBackImage());
+				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
 
 			resized();
+			if(auto* parent = getParentComponent())parent->resized();
 			break;
 		}
 		case AbstractMenuItem::EXECUTE_ONLY:
@@ -460,41 +486,15 @@ void MenuComponent::forceMenuRefresh()
 
 void MenuComponent::addMenuItem(juce::String const& name,
 	AbstractMenuItem::ActionEffect actionEffect, AbstractAction action,
-	const juce::Drawable* icon, MenuComponentParams const& params)
+	AbstractMenuItem::Icon icon, MenuComponentParams const& params)
 {
-	menuList->add(name, actionEffect, action, icon, params);
+	menuList->add(name, actionEffect, action, getImage(icon), params);
 	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
 }
-void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, const juce::Drawable* icon)
+void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon)
 {
-	recentList->add(name, actionEffect, action, icon);
+	recentList->add(name, actionEffect, action, getImage(icon));
 	recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
-}
-
-
-juce::Drawable const* MenuComponent::getIcon(juce::String const& e)
-{
-	if(extensionMatch(Extensions::get().videoExtensions(), e))
-	{
-		return displayImage.get();
-	}
-	if(extensionMatch(Extensions::get().playlistExtensions(), e))
-	{
-		return playlistImage.get();
-	}
-	if(extensionMatch(Extensions::get().subtitlesExtensions(), e))
-	{
-		return subtitlesImage.get();
-	}
-	return nullptr;
-}
-juce::Drawable const* MenuComponent::getIcon(juce::File const& f)
-{
-	if(f.isDirectory())
-	{
-		return folderImage.get();
-	}
-	return getIcon(f.getFileExtension());
 }
 
 

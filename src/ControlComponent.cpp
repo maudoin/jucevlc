@@ -56,7 +56,6 @@ void SecondaryControlComponent::resized()
 
 	int w = getWidth()-leftButtonSize-rightButtonSize;
 	int sliderW = (2*w)/3;
-	int labelW = w-sliderW;
 
 	if(m_leftButton->isVisible())
 	{
@@ -67,7 +66,6 @@ void SecondaryControlComponent::resized()
 	{
 		m_rightButton->setBounds(leftButtonSize+sliderW, 0, buttonSize, getHeight());
 	}
-	//Rectangle<int> labelBounds(leftButtonSize+sliderW+rightButtonSize, 0, labelW, getHeight());
 }
 
 void SecondaryControlComponent::paint(juce::Graphics& g)

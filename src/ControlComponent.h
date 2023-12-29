@@ -82,8 +82,8 @@ public:
 	virtual ~ControlComponent();
 
 	//juce GUI overrides
-    virtual void paint (juce::Graphics& g);
-    virtual void resized();
+    void paint (juce::Graphics& g) final;
+    void resized() final;
 
     void setTime(juce::String const& timeString);
 
