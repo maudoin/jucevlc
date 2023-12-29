@@ -123,7 +123,6 @@ class VLCWrapper
     EventCallBack* m_pEventCallBack;
     InputCallBack* m_pInputCallBack;
     MouseInputCallBack* m_pMouseInputCallBack;
-	AudioCallback* m_pAudioCallback;
 public:
 	VLCWrapper(void);
 	~VLCWrapper(void);

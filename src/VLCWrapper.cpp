@@ -239,7 +239,7 @@ static int popupCallback(vlc_object_t *p_this, const char *psz_variable,
 static int fullscreenControlCallback(vlc_object_t *p_this, const char *psz_variable,
                         vlc_value_t old_val, vlc_value_t new_val, void *param )
 {
-    VLC_UNUSED( p_this ); VLC_UNUSED( psz_variable ); VLC_UNUSED( old_val );
+    VLC_UNUSED( new_val ); VLC_UNUSED( p_this ); VLC_UNUSED( psz_variable ); VLC_UNUSED( old_val );
 
     InputCallBack* cb = reinterpret_cast<InputCallBack*>(param);
 	if(cb)
@@ -249,6 +249,7 @@ static int fullscreenControlCallback(vlc_object_t *p_this, const char *psz_varia
 static int onMouseMoveCallback(vlc_object_t *p_vout, const char *psz_var, vlc_value_t old,
                         vlc_value_t val, void *p_data)
 {
+    VLC_UNUSED(psz_var);
     VLC_UNUSED(old);
 
     MouseInputCallBack* cb = reinterpret_cast<MouseInputCallBack*>(p_data);
@@ -261,6 +262,7 @@ static int onMouseMoveCallback(vlc_object_t *p_vout, const char *psz_var, vlc_va
 static int onMouseClickCallback(vlc_object_t *p_vout, const char *psz_var, vlc_value_t old,
                         vlc_value_t val, void *p_data)
 {
+    VLC_UNUSED(psz_var);
     VLC_UNUSED(old);
     VLC_UNUSED(p_vout);
 
@@ -302,13 +304,12 @@ VLCUPNPMediaList::~VLCUPNPMediaList()
 }
 
 VLCWrapper::VLCWrapper(void)
-:	pMediaPlayer_(0),
-    pEventManager_(0),
-	m_videoAdjustEnabled(0),
-    m_pEventCallBack(0),
-    m_pInputCallBack(0),
-    m_pMouseInputCallBack(0),
-	m_pAudioCallback(0)
+	: pMediaPlayer_(0)
+	, pEventManager_(0)
+	, m_videoAdjustEnabled(0)
+	, m_pEventCallBack(0)
+	, m_pInputCallBack(0)
+	, m_pMouseInputCallBack(0)
 {
 
 	// init vlc modules, should be done only once
@@ -786,25 +787,8 @@ int VLCWrapper::getVoutOptionInt(const char* name)
 	return v;
 }
 
-/* Return the order in which filters should be inserted */
-static int FilterOrder( const char *psz_name )
-{
-    static const struct {
-        const char *psz_name;
-        int        i_order;
-    } filter[] = {
-        { "equalizer",  0 },
-        { NULL,         INT_MAX },
-    };
-    for( int i = 0; filter[i].psz_name; i++ )
-    {
-        if( !strcmp( filter[i].psz_name, psz_name ) )
-            return filter[i].i_order;
-    }
-    return INT_MAX;
-}
 
-void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& filter, std::string const& v)
+void VLCWrapper::setAoutFilterOptionString(const char* name, std::string const& /*filter*/, std::string const& v)
 {
     std::string audioFilters = getConfigOptionString("audio-filter");
     if(std::string::npos == audioFilters.find(AOUT_FILTER_EQUALIZER))
@@ -1006,22 +990,6 @@ bool addMediaSubItemsToMediaList(libvlc_media_t* media, libvlc_media_list_t* ml,
 	}
 	return false;
 }
-std::string urlDecode(std::string const &SRC) {
-    std::string ret;
-    char ch;
-    std::string::size_type i, ii;
-    for (i=0; i<SRC.length(); i++) {
-        if (int(SRC[i])==37) {
-            sscanf(SRC.substr(i+1,2).c_str(), "%x", &ii);
-            ch=static_cast<char>(ii);
-            ret+=ch;
-            i=i+2;
-        } else {
-            ret+=SRC[i];
-        }
-    }
-    return (ret);
-}
 std::string getMediaName(libvlc_media_t* media)
 {
 	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
@@ -1029,6 +997,22 @@ std::string getMediaName(libvlc_media_t* media)
 	libvlc_free(desc);
 	return name;
 	/*
+	auto urlDecode = [](std::string const &SRC)->std::string {
+		std::string ret;
+		char ch;
+		std::string::size_type i, ii;
+		for (i=0; i<SRC.length(); i++) {
+			if (int(SRC[i])==37) {
+				sscanf_s(SRC.substr(i+1,2).c_str(), "%x", &ii);
+				ch=static_cast<char>(ii);
+				ret+=ch;
+				i=i+2;
+			} else {
+				ret+=SRC[i];
+			}
+		}
+		return (ret);
+	}
 	char* str = libvlc_media_get_mrl(media );
 	std::string url = str?urlDecode(str):"";
 	libvlc_free(str);
