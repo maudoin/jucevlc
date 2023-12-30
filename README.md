@@ -1,17 +1,12 @@
 # JuceVLC: A fullscreen User Interface for VLC #
 
-![https://github.com/maudoin/jucevlc/blob/master/web/images/vlc.jpg](https://github.com/maudoin/jucevlc/blob/master/web/images/vlc.jpg)
+## Summary ##
 
-See old webpage here: http://jucevlc.sourceforge.net/index.html
+JuceVLC is VLC with a simple Media Center like fullscreen User Interface.
 
 ![https://github.com/maudoin/jucevlc/blob/master/web/images/banner.jpg](https://github.com/maudoin/jucevlc/blob/master/web/images/banner.jpg)
 
 Download [here](https://github.com/maudoin/jucevlc/releases)
-
-
-## Summary ##
-
-JuceVLC is VLC with a simple Media Center like fullscreen User Interface.
 
 ## Goal ##
 
@@ -19,19 +14,21 @@ Browse and watch movies from your couch with a wireless mouse.
 
 ## Features ##
 
-  * Browse local or remote (via UPNP) files and adjust settings using On Screen Display (O.S.D.)
-  * Frontpage movies menu with automatically downloaded posters (from http://www.omdbapi.com) or generated thumbnails (no setup required)
-  * Big, customizable fonts size and no tiny popup dialogs
+![https://github.com/maudoin/jucevlc/blob/master/icons/vlc.svg](https://github.com/maudoin/jucevlc/blob/master/icons/vlc.svg)
+
+  * Browse local files easily and adjust settings using On Screen Display (O.S.D.), no tiny system file selection dialog
+  * Big, customizable fonts size and no popup dialogs
   * Subtitles selection and synchronization using slider via O.S.D.
-  * Search,Download,Extract and Load subtitles from [opensubtitles.org](http://www.opensubtitles.org)
   * Keep last and favorite video folders, as well as the last thirty videos positions
-  * Does not mess up your system: settings are stored in the application folder
-  * Portable: Paste is on any usb key or external hard drive
-  * You can use the installer multiple times:
+  * Does not mess up your system: settings are stored in the application folder, not the registry (even through the installer)
+  * Portable: Installer can be run multiple times:
     * once for your computer, activating shortcut creation,
-    * and again for your usb key or external hard drive.
-> > Since it does not store anything in the registry subsequent installs won't affect the previous ones (except shortcut creation)
-  * JuceVLC application uses regular VLC core libraries/plugins: You can paste future VLC versions directory along JuceVLC to update the core video player without any JuceVLC update
+    * and again for your usb key or external hard drive. (you can uncheck the shortcuts creation when installing)
+  * Since it does not store anything in the registry subsequent installs won't affect the previous ones (just don't let the installer create shortcuts)
+  * JuceVLC application uses regular VLC core libraries/plugins: You can usually paste future VLC minor updates along JuceVLC to update the core video player without any JuceVLC update
+  * The "space-key" allows your relatives to play/pause your video if they want to interrupt your watching session;-)
+
+See old webpage here: http://jucevlc.sourceforge.net/index.html
 
 ## Reviews ##
 * [![www.clubic.com](https://upload.wikimedia.org/wikipedia/fr/thumb/3/36/Logo-clubic.svg/langfr-225px-Logo-clubic.svg.png) www.clubic.com ](https://www.clubic.com/telecharger/actus-logiciels/article-619750-1-zoom-jucevlc.html)  (French)
@@ -56,10 +53,6 @@ Browse and watch movies from your couch with a wireless mouse.
 * [www.ilovefreesoftware.com](http://www.ilovefreesoftware.com/08/windows/mp3/jucevlc-video-player.html)
 * [www.dinside.no](http://translate.google.com/translate?hl=en&sl=auto&tl=en&u=http%3A%2F%2Fwww.dinside.no%2F913273%2Fjucevlc-mediesenter-basert-paa-vlc) ([Norwegian](http://www.dinside.no/913273/jucevlc-mediesenter-basert-paa-vlc))
 * [www.addictivetips.com](http://www.addictivetips.com/windows-tips/jucevlc-media-center-style-video-player-based-on-vlc/)
-
-## Changelog ##
-
-See [README.txt](https://github.com/maudoin/jucevlc/blob/master/README.txt)
 
 ## Screenshots ##
 
@@ -89,13 +82,13 @@ The project relies on multi-platform libraries **could** also compile on Linux /
 
 Tools / Libraries
 ------------------
-* **Visual code** (facultative)
 * **clang-cli 17.0.6** (for Windows) <https://github.com/llvm/llvm-project/releases/tag/llvmorg-17.0.6>
 * **JUCE 7.0.9** (**repository submodule**) <https://juce.com/>
 * **LibVLC 3.0.8** (**repository submodule**, .lib files extracted from windows 64bits installed  .dll) <http://www.videolan.org/vlc/index.html>
-* **NSIS 3.09** (for Windows) <https://sourceforge.net/projects/nsis/>
+* **CMake 3.15** <https://cmake.org/download>
+* **NSIS 3.09** (for Windows) <https://sourceforge.net/projects/nsis>
 * **NSIS FindProcDLL plugin** <https://nsis.sourceforge.io/FindProcDLL_plug-in>
-* **UPX V4.2.1** (for Windows, copied in contrib) <https://github.com/upx/upx/releases/tag/v4.2.1>
+* **Visual code** (facultative)
 
 VLC/JUCE Submodules update
 ---------------------------
