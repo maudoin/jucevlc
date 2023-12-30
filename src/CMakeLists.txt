@@ -1,6 +1,6 @@
 juce_add_gui_app(jucevlc
     COMPANY_NAME "Matthieu A"
-    BUNDLE_ID "com.matthieuaudoin.jucevlc"
+    BUNDLE_ID "com.maudoin.jucevlc"
     PRODUCT_NAME "JuceVLC"
     ICON_BIG                        ${CMAKE_CURRENT_SOURCE_DIR}/../icons/vlc.png
     NEEDS_CURL                      FALSE
@@ -34,38 +34,26 @@ target_sources(jucevlc
     HEADER_NAME Icons.h
     NAMESPACE Icons
     SOURCES
-        ../icons/vlc.png
-        ../icons/disk.svg
-        ../icons/harddisk.svg
+        ../icons/vlc.svg
+        ../icons/cancel.svg
         ../icons/left.svg
         ../icons/right.svg
-        ../icons/usb.svg
-        ../icons/AlessioAtzeni/add-all.svg
-        ../icons/AlessioAtzeni/arrow-reset.svg
-        ../icons/AlessioAtzeni/atom.svg
-        ../icons/AlessioAtzeni/backCircle.svg
-        ../icons/AlessioAtzeni/blank.svg
-        ../icons/AlessioAtzeni/frontpage.svg
-        ../icons/AlessioAtzeni/fullscreen.svg
-        ../icons/AlessioAtzeni/hide-open.svg
-        ../icons/AlessioAtzeni/image.svg
-        ../icons/AlessioAtzeni/like-add.svg
-        ../icons/AlessioAtzeni/like-remove.svg
-        ../icons/AlessioAtzeni/off.svg
-        ../icons/AlessioAtzeni/open-menu.svg
-        ../icons/AlessioAtzeni/open-short.svg
-        ../icons/AlessioAtzeni/options-settings.svg
-        ../icons/AlessioAtzeni/pause.svg
-        ../icons/AlessioAtzeni/play.svg
-        ../icons/AlessioAtzeni/playlist.svg
-        ../icons/AlessioAtzeni/reset.svg
-        ../icons/AlessioAtzeni/sliders.svg
-        ../icons/AlessioAtzeni/sound-on.svg
-        ../icons/AlessioAtzeni/sound-shift.svg
-        ../icons/AlessioAtzeni/speed.svg
-        ../icons/AlessioAtzeni/stop.svg
-        ../icons/AlessioAtzeni/subtitles.svg
-        ../icons/AlessioAtzeni/window.svg)
+        ../icons/settings.svg
+        ../icons/settings_open.svg
+        ../icons/check.svg
+        ../icons/star.svg
+        ../icons/star_outline.svg
+        ../icons/pause.svg
+        ../icons/play.svg
+        ../icons/stop.svg
+        ../icons/fullscreen.svg
+        ../icons/window.svg
+        ../icons/layers.svg
+        ../icons/sliders.svg
+        ../icons/video.svg
+        ../icons/audio.svg
+        ../icons/subtitles.svg
+        ../icons/exit.svg)
 
         juce_add_binary_data(jucevlcFonts
             HEADER_NAME Fonts.h

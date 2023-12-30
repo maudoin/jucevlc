@@ -24,24 +24,22 @@ enum Icon
 {
 	None = 0,
 	Back,
-	Item,
+	Check,
 	Folder,
-	Playlist,
 	FolderShortcut,
+	FolderShortcutOutline,
 	Audio,
 	Display,
 	Subtitles,
-	HideFolderShortcut,
 	PlayAll,
 	AddAll,
-	LikeAdd,
-	LikeRemove,
-	Exit,
-	Settings
+	Settings,
+	Sliders,
+	Exit
 };
 }
 template <typename Enum> struct EnumSize;
-template<> struct EnumSize<AbstractMenuItem::Icon> : std::integral_constant<int, AbstractMenuItem::Icon::Settings+1>{};
+template<> struct EnumSize<AbstractMenuItem::Icon> : std::integral_constant<int, AbstractMenuItem::Icon::Exit+1>{};
 //==============================================================================
 class AbstractMenu : public AppProportionnalComponent
 {

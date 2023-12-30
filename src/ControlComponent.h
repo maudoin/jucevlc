@@ -30,25 +30,24 @@ public:
 class ControlComponent   : public juce::Component, public AppProportionnalComponent, public juce::Slider::Listener
 {
 public:
-	typedef std::function<void (double)> ActionSliderCallback;
+	typedef std::function<void (double)> VolumeSliderCallback;
 private:
     std::unique_ptr<TimeSlider> m_slider;
     std::unique_ptr<juce::DrawableButton> m_playPauseButton;
     std::unique_ptr<juce::DrawableButton> m_stopButton;
     std::unique_ptr<juce::DrawableButton> m_menuButton;
     std::unique_ptr<juce::DrawableButton> m_fullscreenButton;
-    std::unique_ptr<juce::DrawableButton> m_auxilliarySliderModeButton;
+    std::unique_ptr<juce::DrawableButton> m_volumeButton;
     std::unique_ptr<juce::Drawable> m_playImage;
     std::unique_ptr<juce::Drawable> m_pauseImage;
     std::unique_ptr<juce::Drawable> m_stopImage;
-    std::unique_ptr<juce::Drawable> m_itemImage;
-    std::unique_ptr<juce::Drawable> m_folderImage;
-    std::unique_ptr<juce::Drawable> m_starImage;
+    std::unique_ptr<juce::Drawable> m_settingsImage;
+    std::unique_ptr<juce::Drawable> m_audioImage;
     std::unique_ptr<juce::Drawable> m_fullscreenImage;
     std::unique_ptr<juce::Drawable> m_windowImage;
-    std::unique_ptr<SettingSlider> m_auxilliaryControlComponent;
+    std::unique_ptr<juce::Slider> m_volumeSlider;
 	juce::String timeString;
-	ActionSliderCallback m_auxilliarySliderAction;
+	VolumeSliderCallback m_volumeSliderAction;
 public:
 	ControlComponent();
 	virtual ~ControlComponent();
@@ -66,15 +65,14 @@ public:
 	void showWindowedControls();
 	void setScaleComponent(juce::Component* scaleComponent) override;
 
-	void setupAuxilliaryControlComponent(ActionSliderCallback const& f, SettingSlider::Params const& params);
+	void setupVolumeSlider(VolumeSliderCallback const& f,  double value, double min, double max, double step=1.);
 
 	TimeSlider& slider(){return *m_slider.get();}
 	juce::DrawableButton& playPauseButton(){return *m_playPauseButton.get();}
 	juce::DrawableButton& stopButton(){return *m_stopButton.get();}
 	juce::DrawableButton& menuButton(){return *m_menuButton.get();}
 	juce::DrawableButton& fullscreenButton(){return *m_fullscreenButton.get();}
-	juce::DrawableButton& auxilliarySliderModeButton(){return *m_auxilliarySliderModeButton.get();}
-	SettingSlider& auxilliaryControlComponent(){return *m_auxilliaryControlComponent.get();}
+	juce::DrawableButton& volumeButton(){return *m_volumeButton.get();}
 
 	void sliderValueChanged (Slider* slider) final;
 };

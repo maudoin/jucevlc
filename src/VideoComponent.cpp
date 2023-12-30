@@ -148,35 +148,25 @@ VideoComponent::VideoComponent()
 	, m_backgroundTasks("BG tasks")
 	, m_fileMenu(std::make_unique<MenuComponent>(false))
 	, m_optionsMenu(std::make_unique<MenuComponent>())
+	, controlComponent(std::make_unique<ControlComponent>())
+    , settingsImage    (juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize))
+    , openSettingsImage(juce::Drawable::createFromImageData (Icons::settings_open_svg, Icons::settings_open_svgSize))
+    , audioImage       (juce::Drawable::createFromImageData (Icons::audio_svg, Icons::audio_svgSize))
+    , appImage(juce::ImageFileFormat::loadFrom(Icons::vlc_svg, Icons::vlc_svgSize))
 {
 	Languages::getInstance();
 
 	//m_toolTip = new juce::TooltipWindow( this,50);
 
-    appImage = juce::ImageFileFormat::loadFrom(Icons::vlc_png, Icons::vlc_pngSize);
-
-    itemImage               = juce::Drawable::createFromImageData (Icons::blank_svg, Icons::blank_svgSize);
-    folderImage             = juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize);
-    playlistImage           = juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize);
-    folderShortcutImage     = juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize);
-    hideFolderShortcutImage = juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize);
-    audioImage              = juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize);
-    subtitlesImage          = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
-    exitImage               = juce::Drawable::createFromImageData (Icons::off_svg, Icons::off_svgSize);
-    speedImage              = juce::Drawable::createFromImageData (Icons::speed_svg, Icons::speed_svgSize);
-    audioShiftImage         = juce::Drawable::createFromImageData (Icons::soundshift_svg, Icons::soundshift_svgSize);
-
-
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 
-	controlComponent = std::make_unique<ControlComponent>();
 	controlComponent->slider().addListener(this);
 	controlComponent->playPauseButton().addListener(this);
 	controlComponent->stopButton().addListener(this);
 	controlComponent->fullscreenButton().addListener(this);
 	controlComponent->menuButton().addListener(this);
-	controlComponent->auxilliarySliderModeButton().addListener(this);
+	controlComponent->volumeButton().addListener(this);
 	controlComponent->addMouseListener(this, true);
 	controlComponent->setVisible(false);
 
@@ -229,14 +219,13 @@ VideoComponent::VideoComponent()
 	setSize(800, 600);
 
 	m_videoPlayerEngine->initFromSettings();
-	showVolumeSlider(m_videoPlayerEngine->getSavedVolume());
+	setVolumeSlider(m_videoPlayerEngine->getSavedVolume());
 
-	m_optionsMenu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onOptionMenuRoot, m_videoPlayerEngine.get(), _1), AbstractMenuItem::Icon::Item);
+	m_optionsMenu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onOptionMenuRoot, m_videoPlayerEngine.get(), _1));
 	m_optionsMenu->forceMenuRefresh();
 
 	m_fileMenu->addRecentMenuItem(juce::String("JUCE + VLC ") + vlc->getInfo().c_str(), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		[this](auto& item){m_videoPlayerEngine->onFileMenuRoot( item, [this](auto& item, auto const& file){m_videoPlayerEngine->onMenuOpenFolder(item, file);});},
-		AbstractMenuItem::Icon::Item);
+		[this](auto& item){m_videoPlayerEngine->onFileMenuRoot( item, [this](auto& item, auto const& file){m_videoPlayerEngine->onMenuOpenFolder(item, file);});});
 	m_fileMenu->forceMenuRefresh();
 
     addAndMakeVisible (m_fileMenu->asComponent());
@@ -474,12 +463,8 @@ void VideoComponent::mouseDown (const juce::MouseEvent& e)
 void VideoComponent::mouseWheelMove (const juce::MouseEvent& e,
                                 const juce::MouseWheelDetails& /*wheel*/)
 {
-
 	if(e.eventComponent == this)
 	{
-		if( isFrontpageVisible())
-		{
-		}
 	}
 }
 void VideoComponent::mouseDrag (const juce::MouseEvent& e)
@@ -487,11 +472,9 @@ void VideoComponent::mouseDrag (const juce::MouseEvent& e)
 	m_canHideOSD = e.eventComponent == this;//cannot hide sub component while dragging on sub component
 	lastMouseMoveMovieTime = juce::Time::currentTimeMillis ();
 
-
-	if(e.eventComponent == this && isFrontpageVisible())
+	if(e.eventComponent == this)
 	{
 	}
-
 }
 void VideoComponent::sliderValueChanged (juce::Slider* slider)
 {
@@ -507,7 +490,7 @@ void VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible)
 {
 	m_optionsMenu->setShown(visible);
 	m_fileMenu->setShown(false);
-	controlComponent->menuButton().setImages(m_optionsMenu->isShown()?hideFolderShortcutImage.get():folderShortcutImage.get());
+	controlComponent->menuButton().setImages(m_optionsMenu->isShown()?openSettingsImage.get():settingsImage.get());
 }
 //==============================================================================
 class DrawableMenuComponent  : public juce::PopupMenu::CustomComponent
@@ -537,11 +520,7 @@ public:
     }
 
 };
-static void auxilliarySliderModeButtonCallback (int result, VideoComponent* videoComponent)
-{
-    if (result != 0 && videoComponent != 0)
-        videoComponent->auxilliarySliderModeButton(result);
-}
+
 void VideoComponent::buttonClicked (juce::Button* button)
 {
 	if(!vlc)
@@ -571,46 +550,8 @@ void VideoComponent::buttonClicked (juce::Button* button)
 	{
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(!m_optionsMenu->isShown());
 	}
-	else if(button == &controlComponent->auxilliarySliderModeButton())
-	{
-
-		int buttonWidth = (int)(0.03*controlComponent->getWidth());
-
-        juce::PopupMenu m;
-		m.addCustomItem (E_POPUP_ITEM_VOLUME_SLIDER, std::make_unique<DrawableMenuComponent>(audioImage.get(), buttonWidth));
-        m.addCustomItem (E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER, std::make_unique<DrawableMenuComponent>(subtitlesImage.get(), buttonWidth));
-        m.addCustomItem (E_POPUP_ITEM_VOLUME_DELAY_SLIDER, std::make_unique<DrawableMenuComponent>(audioShiftImage.get(), buttonWidth));
-        m.addCustomItem (E_POPUP_ITEM_PLAY_SPEED_SLIDER, std::make_unique<DrawableMenuComponent>(speedImage.get(), buttonWidth));
-        m.addCustomItem (E_POPUP_ITEM_ZOOM_SLIDER, std::make_unique<DrawableMenuComponent>(itemImage.get(), buttonWidth));
-
-        m.showMenuAsync (juce::PopupMenu::Options().withTargetComponent (button),
-                             juce::ModalCallbackFunction::forComponent (auxilliarySliderModeButtonCallback, this));
-
-		//todo update icon/checked item
-	}
 }
 
-void VideoComponent::auxilliarySliderModeButton(int result)
-{
-	switch(result)
-	{
-	case E_POPUP_ITEM_VOLUME_SLIDER:
-		showVolumeSlider();
-		break;
-	case E_POPUP_ITEM_SUBTITLES_DELAY_SLIDER:
-		showSubtitlesOffsetSlider();
-		break;
-	case E_POPUP_ITEM_VOLUME_DELAY_SLIDER:
-		showAudioOffsetSlider ();
-		break;
-	case E_POPUP_ITEM_PLAY_SPEED_SLIDER:
-		showPlaybackSpeedSlider();
-		break;
-	case E_POPUP_ITEM_ZOOM_SLIDER:
-		showZoomSlider();
-		break;
-	}
-}
 void VideoComponent::broughtToFront()
 {
 	juce::Component::broughtToFront();
@@ -871,41 +812,11 @@ void VideoComponent::componentVisibilityChanged(Component &)
 
 #endif
 
-void VideoComponent::showVolumeSlider()
+void VideoComponent::setVolumeSlider(double value)
 {
-	showVolumeSlider(vlc->getVolume());
+	controlComponent->setupVolumeSlider(
+		std::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),value, 1., 200., .1);
 }
-void VideoComponent::showVolumeSlider(double value)
-{
-	controlComponent->setupAuxilliaryControlComponent(
-		std::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),
-		SettingSlider::Params{TRANS("Audio Volume: %.f%%"),value, 100., 1., 200., .1});
-}
-void VideoComponent::showPlaybackSpeedSlider ()
-{
-	controlComponent->setupAuxilliaryControlComponent(
-		std::bind<void>(&VLCWrapper::setRate, vlc.get(), _1),
-		SettingSlider::Params{TRANS("Speed: %.f%%"),vlc->getRate(), 100., 50., 800., .1});
-}
-void VideoComponent::showZoomSlider ()
-{
-	controlComponent->setupAuxilliaryControlComponent(
-		std::bind<void>(&VLCWrapper::setScale, vlc.get(), _1),
-		SettingSlider::Params{TRANS("Zoom: %.f%%"),vlc->getScale(), 100., 50., 500., .1});
-}
-void VideoComponent::showAudioOffsetSlider ()
-{
-	controlComponent->setupAuxilliaryControlComponent(
-		std::bind<void>(&PlayerMenus::onMenuShiftAudio, std::ref(*m_videoPlayerEngine), _1),
-		SettingSlider::Params{TRANS("Audio offset: %+.2fs"),vlc->getAudioDelay()/1000000., 0., -2., 2., .01, 2.});
-}
-void VideoComponent::showSubtitlesOffsetSlider ()
-{
-	controlComponent->setupAuxilliaryControlComponent(
-		std::bind<void>(&PlayerMenus::onMenuShiftSubtitles, std::ref(*m_videoPlayerEngine), _1),
-		SettingSlider::Params{TRANS("Subtitles offset: %+.2fs"),vlc->getSubtitleDelay()/1000000., 0., -2., 2., .01, 2.});
-}
-
 void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
 {
 	if(browsingFiles != newBrowsingFiles)
@@ -1039,10 +950,10 @@ void VideoComponent::vlcMouseClick(int /*x*/, int /*y*/, int button)
 			if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::switchPlayPause, this));
 		break;
 		case 4:
-			if(invokeLater)invokeLater->queuef([this]{this->showVolumeSlider(vlc->getVolume()+VOLUME_SCROLL_STEP);});
+			if(invokeLater)invokeLater->queuef([this]{this->setVolumeSlider(vlc->getVolume()+VOLUME_SCROLL_STEP);});
 		break;
 		case 5:
-			if(invokeLater)invokeLater->queuef([this]{this->showVolumeSlider(vlc->getVolume()-VOLUME_SCROLL_STEP);});
+			if(invokeLater)invokeLater->queuef([this]{this->setVolumeSlider(vlc->getVolume()-VOLUME_SCROLL_STEP);});
 		break;
 	}
 }

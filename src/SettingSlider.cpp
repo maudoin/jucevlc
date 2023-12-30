@@ -16,7 +16,7 @@ using namespace std::placeholders;
 SettingSlider::SettingSlider()
 	: m_leftImage(juce::Drawable::createFromImageData (Icons::left_svg, Icons::left_svgSize))
 	, m_rightImage(juce::Drawable::createFromImageData (Icons::right_svg, Icons::right_svgSize))
-	, m_resetImage(juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize))
+	, m_resetImage(juce::Drawable::createFromImageData (Icons::cancel_svg, Icons::cancel_svgSize))
 	, m_leftButton(std::make_unique<juce::DrawableButton>("m_leftButton", juce::DrawableButton::ImageFitted))
 	, m_rightButton(std::make_unique<juce::DrawableButton>("m_rightButton", juce::DrawableButton::ImageFitted))
 	, m_resetButton(std::make_unique<juce::DrawableButton>("m_resetButton", juce::DrawableButton::ImageFitted))

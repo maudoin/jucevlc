@@ -52,16 +52,9 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	std::unique_ptr<VLCWrapper> vlc;
 	bool sliderUpdating;
 	bool videoUpdating;
-    std::unique_ptr<juce::Drawable> itemImage;
-    std::unique_ptr<juce::Drawable> folderImage;
-    std::unique_ptr<juce::Drawable> playlistImage;
-    std::unique_ptr<juce::Drawable> folderShortcutImage;
-    std::unique_ptr<juce::Drawable> hideFolderShortcutImage;
+    std::unique_ptr<juce::Drawable> settingsImage;
+    std::unique_ptr<juce::Drawable> openSettingsImage;
     std::unique_ptr<juce::Drawable> audioImage;
-    std::unique_ptr<juce::Drawable> subtitlesImage;
-    std::unique_ptr<juce::Drawable> exitImage;
-    std::unique_ptr<juce::Drawable> speedImage;
-    std::unique_ptr<juce::Drawable> audioShiftImage;
     juce::Image appImage;
 	LnF lnf;
     std::unique_ptr<TitleComponent> titleBar;
@@ -92,12 +85,7 @@ public:
 	void advanceTime ();
 	void switchFullScreen();
 	void switchPlayPause();
-	void showVolumeSlider(double value);
-	void showVolumeSlider();
-	void showPlaybackSpeedSlider();
-	void showZoomSlider();
-	void showAudioOffsetSlider ();
-	void showSubtitlesOffsetSlider ();
+	void setVolumeSlider(double value);
 
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener
@@ -153,7 +141,6 @@ public:
 		, E_POPUP_ITEM_PLAY_SPEED_SLIDER
 		, E_POPUP_ITEM_ZOOM_SLIDER
 	};
-	void auxilliarySliderModeButton(int result);
 private:
 
 	void handleIdleTimeAndControlsVisibility();

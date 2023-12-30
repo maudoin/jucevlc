@@ -49,7 +49,7 @@ AllowRootDirInstall false
 !define MUI_UNABORTWARNING
 
 ; MUI Settings / Icons
-!define MUI_ICON "src\vlc.ico"
+!define MUI_ICON "icons\vlc.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall-nsis.ico"
 
 ; MUI Settings / Header

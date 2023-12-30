@@ -115,19 +115,18 @@ ControlComponent::ControlComponent()
     , m_playPauseButton (std::make_unique<juce::DrawableButton>("playPause", juce::DrawableButton::ImageFitted))
     , m_stopButton (std::make_unique<juce::DrawableButton>("stop", juce::DrawableButton::ImageFitted))
     , m_menuButton (std::make_unique<juce::DrawableButton>("menuButton", juce::DrawableButton::ImageFitted))
-    , m_fullscreenButton (std::make_unique<juce::DrawableButton>("fullscreenButton", juce::DrawableButton::ImageFitted))
-    , m_auxilliarySliderModeButton (std::make_unique<juce::DrawableButton>("2ndSliderModeButton", juce::DrawableButton::ImageFitted))
+    , m_fullscreenButton (std::make_unique<juce::DrawableButton>("fullscreen", juce::DrawableButton::ImageFitted))
+    , m_volumeButton (std::make_unique<juce::DrawableButton>("volume", juce::DrawableButton::ImageFitted))
     , m_playImage       (juce::Drawable::createFromImageData (Icons::play_svg,           Icons::play_svgSize))
     , m_pauseImage      (juce::Drawable::createFromImageData (Icons::pause_svg,          Icons::pause_svgSize))
     , m_stopImage       (juce::Drawable::createFromImageData (Icons::stop_svg,           Icons::stop_svgSize))
-    , m_itemImage       (juce::Drawable::createFromImageData (Icons::blank_svg,          Icons::blank_svgSize))
-    , m_folderImage     (juce::Drawable::createFromImageData (Icons::openshort_svg,      Icons::openshort_svgSize))
-    , m_starImage       (juce::Drawable::createFromImageData (Icons::sliders_svg,        Icons::sliders_svgSize))
+    , m_settingsImage   (juce::Drawable::createFromImageData (Icons::settings_svg,       Icons::settings_svgSize))
+    , m_audioImage      (juce::Drawable::createFromImageData (Icons::audio_svg,          Icons::audio_svgSize))
     , m_fullscreenImage (juce::Drawable::createFromImageData (Icons::fullscreen_svg,     Icons::fullscreen_svgSize))
-    , m_windowImage     (juce::Drawable::createFromImageData (Icons::window_svg,    		Icons::window_svgSize))
-	, m_auxilliaryControlComponent (std::make_unique<SettingSlider>())
+    , m_windowImage     (juce::Drawable::createFromImageData (Icons::window_svg,         Icons::window_svgSize))
+	, m_volumeSlider(std::make_unique<juce::Slider>())
 	, timeString("")
-	, m_auxilliarySliderAction([](double){})
+	, m_volumeSliderAction([](double){})
 {
 	m_slider->addListener(this);
 
@@ -143,19 +142,24 @@ ControlComponent::ControlComponent()
 	m_fullscreenButton->setTooltip(TRANS("Switch fullscreen"));
 
 	m_menuButton->setOpaque(false);
-	m_menuButton->setImages(m_folderImage.get());
+	m_menuButton->setImages(m_settingsImage.get());
 	m_menuButton->setTooltip(TRANS("Quick menu"));
 
-	m_auxilliarySliderModeButton->setOpaque(false);
-	m_auxilliarySliderModeButton->setImages(m_starImage.get());
+	m_volumeButton->setOpaque(false);
+	m_volumeButton->setImages(m_audioImage.get());
+
+    m_volumeSlider->setSliderStyle (Slider::LinearHorizontal);
+	m_volumeSlider->setTextBoxStyle (Slider::NoTextBox, false, 80, 20);
+	m_volumeSlider->setVisible(true);
+	m_volumeSlider->addListener(this);
 
 	addAndMakeVisible(*m_slider);
     addAndMakeVisible(*m_playPauseButton);
     addAndMakeVisible(*m_stopButton);
     addAndMakeVisible(*m_fullscreenButton);
     addAndMakeVisible(*m_menuButton);
-    addAndMakeVisible(*m_auxilliarySliderModeButton);
-    addChildComponent(*m_auxilliaryControlComponent);
+    addAndMakeVisible(*m_volumeButton);
+    addChildComponent(*m_volumeSlider);
 
 
 	setOpaque(false);
@@ -165,23 +169,22 @@ ControlComponent::~ControlComponent()
 	m_slider = nullptr;
 	m_playPauseButton = nullptr;
 	m_stopButton = nullptr;
-	m_auxilliarySliderModeButton = nullptr;
+	m_volumeButton = nullptr;
 	m_playImage = nullptr;
 	m_pauseImage = nullptr;
 	m_stopImage = nullptr;
 }
 
-void ControlComponent::setupAuxilliaryControlComponent(ActionSliderCallback const& f, SettingSlider::Params const& params)
+void ControlComponent::setupVolumeSlider(VolumeSliderCallback const& f,  double value, double min, double max, double step)
 {
-	m_auxilliaryControlComponent->setup(params);
-	m_auxilliaryControlComponent->setVisible(true);
-	m_auxilliarySliderAction = f;
+	m_volumeSliderAction = f;
+	m_volumeSlider->setRange({min, max}, step);
+	m_volumeSlider->setValue(value);
 }
 
 void ControlComponent::setScaleComponent(juce::Component* scaleComponent)
 {
 	AppProportionnalComponent::setScaleComponent(scaleComponent);
-	m_auxilliaryControlComponent->setScaleComponent(scaleComponent);
 	m_slider->setScaleComponent(scaleComponent);
 }
 void ControlComponent::resized()
@@ -200,10 +203,10 @@ void ControlComponent::resized()
 	m_stopButton->setBounds (wMargin+buttonSize, h-buttonSize, buttonSize, buttonSize);
 
 	int auxilliaryX = wMargin+7*buttonSize;
-	int auxilliaryW = w - 2*auxilliaryX;
-	m_auxilliarySliderModeButton->setBounds (auxilliaryX-buttonSize, h-buttonSize, buttonSize, buttonSize);
+	int auxilliaryW = 4*buttonSize;
+	m_volumeButton->setBounds (auxilliaryX-buttonSize, h-buttonSize, buttonSize, buttonSize);
 	int auxilliaryH = sliderHeight*4/5;
-	m_auxilliaryControlComponent->setBounds (auxilliaryX, h-buttonSize+(buttonSize-auxilliaryH)/2, auxilliaryW, auxilliaryH);
+	m_volumeSlider->setBounds (auxilliaryX, h-buttonSize+(buttonSize-auxilliaryH)/2, auxilliaryW, auxilliaryH);
 
 	m_fullscreenButton->setBounds (w-wMargin-2*buttonSize, h-buttonSize, buttonSize, buttonSize);
 	m_menuButton->setBounds (w-wMargin-buttonSize, h-buttonSize, buttonSize, buttonSize);
@@ -293,8 +296,8 @@ void ControlComponent::hidePlayingControls()
 
 void ControlComponent::sliderValueChanged (Slider* slider)
 {
-	if(m_auxilliaryControlComponent->is(slider) && m_auxilliaryControlComponent->isVisible())
+	if(m_volumeSlider.get() == slider && m_volumeSlider->isVisible())
 	{
-		m_auxilliarySliderAction(slider->getValue());
+		m_volumeSliderAction(slider->getValue());
 	}
 }

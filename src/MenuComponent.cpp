@@ -271,22 +271,20 @@ MenuComponent::MenuComponent(bool const gradient)
 	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
 {
 
-    m_iconImages[AbstractMenuItem::Icon::None]               = nullptr;
-    m_iconImages[AbstractMenuItem::Icon::Item]               = juce::Drawable::createFromImageData (Icons::atom_svg, Icons::atom_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Folder]             = juce::Drawable::createFromImageData (Icons::openmenu_svg, Icons::openmenu_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Playlist]           = juce::Drawable::createFromImageData (Icons::playlist_svg, Icons::playlist_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::FolderShortcut]     = juce::Drawable::createFromImageData (Icons::openshort_svg, Icons::openshort_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::HideFolderShortcut] = juce::Drawable::createFromImageData (Icons::hideopen_svg, Icons::hideopen_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Audio]              = juce::Drawable::createFromImageData (Icons::soundon_svg, Icons::soundon_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Display]            = juce::Drawable::createFromImageData (Icons::image_svg, Icons::image_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Subtitles]          = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::LikeAdd]            = juce::Drawable::createFromImageData (Icons::likeadd_svg, Icons::likeadd_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::LikeRemove]         = juce::Drawable::createFromImageData (Icons::likeremove_svg, Icons::likeremove_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::Back]               = juce::Drawable::createFromImageData (Icons::backCircle_svg, Icons::backCircle_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::AddAll]             = juce::Drawable::createFromImageData (Icons::addall_svg, Icons::addall_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::PlayAll]            = juce::Drawable::createFromImageData (Icons::play_svg, Icons::play_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::Exit]            	 = juce::Drawable::createFromImageData (Icons::off_svg, Icons::off_svgSize);
-	m_iconImages[AbstractMenuItem::Icon::Settings]           = juce::Drawable::createFromImageData (Icons::optionssettings_svg, Icons::optionssettings_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::None]                  = nullptr;
+    m_iconImages[AbstractMenuItem::Icon::Check]                 = juce::Drawable::createFromImageData (Icons::check_svg, Icons::check_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Folder]                = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::FolderShortcut]        = juce::Drawable::createFromImageData (Icons::star_svg, Icons::star_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::FolderShortcutOutline] = juce::Drawable::createFromImageData (Icons::star_outline_svg, Icons::star_outline_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Audio]                 = juce::Drawable::createFromImageData (Icons::audio_svg, Icons::audio_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Display]               = juce::Drawable::createFromImageData (Icons::video_svg, Icons::video_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Subtitles]             = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Back]                  = juce::Drawable::createFromImageData (Icons::cancel_svg, Icons::cancel_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::AddAll]                = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::PlayAll]               = juce::Drawable::createFromImageData (Icons::play_svg, Icons::play_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Settings]              = juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Sliders]               = juce::Drawable::createFromImageData (Icons::sliders_svg, Icons::sliders_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Exit]            	    = juce::Drawable::createFromImageData (Icons::exit_svg, Icons::exit_svgSize);
 
     addAndMakeVisible (recentList->getListBox());
     addAndMakeVisible (menuList->getListBox());

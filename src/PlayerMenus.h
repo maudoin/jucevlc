@@ -122,9 +122,6 @@ public:
     void onMenuShiftSubtitlesSlider(MenuComponentValue const&);
 	void onVLCAoutStringSelect(MenuComponentValue const&, std::string const&, std::string const&, std::string const&i);
     void onVLCAoutStringSelectListMenu (MenuComponentValue const&, std::string const&, std::string const&);
-    void onMenuAudioVolume(MenuComponentValue const&, double volume);
-    void onMenuAudioVolumeSlider(MenuComponentValue const&);
-    void onMenuAudioVolumeListAndSlider (MenuComponentValue const&);
 
     void onMenuAudioTrack (MenuComponentValue const&, int id);
     void onMenuAudioTrackList (MenuComponentValue const&);
@@ -140,6 +137,7 @@ public:
     void onMenuFullscreen(MenuComponentValue const&, bool fs);
 
 	void onMenuExit(MenuComponentValue const&);
+	void onOptionMenuExit(MenuComponentValue const&);
 	void onMenuExitConfirmation(MenuComponentValue const&);
 	void onMenuSoundOptions(MenuComponentValue const&);
 	void onMenuRatio(MenuComponentValue const&);
