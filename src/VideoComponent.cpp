@@ -70,7 +70,14 @@ public:
 		setOpaque(false);
 	}
 	virtual ~TitleComponent() = default;
-	void setTitle(std::string const& title){m_title=title;}
+	void setTitle(std::string const& title)
+	{
+		m_title=title;
+		if (title.empty())
+		{
+			m_currentTimeString="";
+		}
+	}
 	void allowDrag(bool allow){m_allowDrag=allow;}
     void setTime(juce::int64 time, juce::int64 len)
 	{
@@ -106,13 +113,16 @@ public:
 							1.f//no h scale
 							);
 
-		float timeWidth = f.getStringWidthFloat(m_currentTimeString);
-		g.drawFittedText (m_currentTimeString,
-			getWidth()-timeWidth-4, 2, timeWidth+2, getHeight()-4,
-			juce::Justification::centredRight,
-			1, //1 line
-			1.f//no h scale
-			);
+		if(!m_title.empty())
+		{
+			float timeWidth = f.getStringWidthFloat(m_currentTimeString);
+			g.drawFittedText (m_currentTimeString,
+				getWidth()-timeWidth-4, 2, timeWidth+2, getHeight()-4,
+				juce::Justification::centredRight,
+				1, //1 line
+				1.f//no h scale
+				);
+		}
 	}
 	void mouseDown (const juce::MouseEvent& e)
 	{
