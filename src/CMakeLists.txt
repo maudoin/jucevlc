@@ -53,6 +53,7 @@ target_sources(jucevlc
         ../icons/video.svg
         ../icons/audio.svg
         ../icons/subtitles.svg
+        ../icons/download.svg
         ../icons/exit.svg)
 
         juce_add_binary_data(jucevlcFonts

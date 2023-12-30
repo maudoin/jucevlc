@@ -35,6 +35,7 @@ enum Icon
 	AddAll,
 	Settings,
 	Sliders,
+	Download,
 	Exit
 };
 }

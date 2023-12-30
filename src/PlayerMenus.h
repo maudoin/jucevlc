@@ -90,15 +90,9 @@ public:
 	void onVLCAudioOutputDeviceSelect(MenuComponentValue const&, std::string const& output, std::string const& device);
     void onVLCAudioOutputSelect(MenuComponentValue const&, std::string const&, std::vector< std::pair<std::string, std::string> >const&);
     void onVLCAudioOutputList(MenuComponentValue const&);
-	void onMenuSearchOpenSubtitles(MenuComponentValue const&);
-	void onMenuSearchSubtitleSeeker(MenuComponentValue const&);
 	void onMenuSearchOpenSubtitlesSelectLanguage(MenuComponentValue const&, juce::String const& name);
-	void onMenuSearchOpenSubtitles(MenuComponentValue const&, juce::String const& lang, juce::String const& name);
-	void onMenuSearchSubtitleSeeker(MenuComponentValue const&, juce::String const& name);
-	void onMenuSearchSubtitleSeekerImdb(MenuComponentValue const&, juce::String const& imdb, bool tvEpisode, int season, int episode);
-	void onMenuSearchSubtitleSeekerImdbLang(MenuComponentValue const&, juce::String const& imdb, juce::String const& lang, bool tvEpisode, int season, int episode);
+	void onMenuListOpenSubtitles(MenuComponentValue const&, juce::String const& url);
 	void onMenuDowloadOpenSubtitle(MenuComponentValue const&, juce::String const& url);
-	void onMenuDowloadSubtitleSeeker(MenuComponentValue const&, juce::String const& url, juce::String const& site);
 	void onMenuSubtitlePositionAutomaticMode(MenuComponentValue const&);
 	void onMenuSubtitlePositionCustomMode(MenuComponentValue const&);
 	void onMenuSubtitlePositionMode(MenuComponentValue const&);

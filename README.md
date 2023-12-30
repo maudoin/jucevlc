@@ -19,6 +19,7 @@ Browse and watch movies from your couch with a wireless mouse.
   * Browse local files easily and adjust settings using On Screen Display (O.S.D.), no tiny system file selection dialog
   * Big, customizable fonts size and no popup dialogs
   * Subtitles selection and synchronization using slider via O.S.D.
+  * Search,Download,Extract and Load subtitles from [opensubtitles.org](http://www.opensubtitles.org)
   * Keep last and favorite video folders, as well as the last thirty videos positions
   * Does not mess up your system: settings are stored in the application folder, not the registry (even through the installer)
   * Portable: Installer can be run multiple times:

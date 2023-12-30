@@ -284,6 +284,7 @@ MenuComponent::MenuComponent(bool const gradient)
 	m_iconImages[AbstractMenuItem::Icon::PlayAll]               = juce::Drawable::createFromImageData (Icons::play_svg, Icons::play_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Settings]              = juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Sliders]               = juce::Drawable::createFromImageData (Icons::sliders_svg, Icons::sliders_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Download]              = juce::Drawable::createFromImageData (Icons::download_svg, Icons::download_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Exit]            	    = juce::Drawable::createFromImageData (Icons::exit_svg, Icons::exit_svgSize);
 
     addAndMakeVisible (recentList->getListBox());
