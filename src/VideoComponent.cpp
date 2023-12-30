@@ -246,6 +246,7 @@ VideoComponent::VideoComponent()
 	m_backgroundTasks.addTimeSliceClient(this);
 	m_backgroundTasks.startThread();
 
+	if(invokeLater)invokeLater->queuef(std::bind(&ControlComponent::hidePlayingControls,controlComponent.get()));
 }
 
 VideoComponent::~VideoComponent()
