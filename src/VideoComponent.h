@@ -55,7 +55,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<juce::Drawable> settingsImage;
     std::unique_ptr<juce::Drawable> openSettingsImage;
     std::unique_ptr<juce::Drawable> audioImage;
-    juce::Image appImage;
+    std::unique_ptr<juce::Drawable> appImage;
 	LnF lnf;
     std::unique_ptr<TitleComponent> titleBar;
     std::unique_ptr<juce::ResizableBorderComponent> resizableBorder;

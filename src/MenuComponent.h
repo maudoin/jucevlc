@@ -17,13 +17,12 @@ class MenuComponent : public virtual juce::Component,
 	std::unique_ptr<MenuItemList> menuList;
 	std::unique_ptr<RecentMenuItemList> recentList;
 	std::vector<std::unique_ptr<juce::Drawable>> m_iconImages;
-	bool m_gradient;
 	juce::ColourSelector m_colourSelector;
 	SettingSlider m_slider;
 public:
 	using Value = std::variant<juce::Colour, int>;
 
-	MenuComponent(bool gradient = true);
+	MenuComponent();
 	virtual ~MenuComponent();
 
 	void resized() override;
@@ -31,7 +30,6 @@ public:
 	void changeListenerCallback (ChangeBroadcaster*) override;
 	void sliderValueChanged (juce::Slider* slider) override;
 
-	void paint (juce::Graphics& g) final;
 	juce::Component* asComponent() final {return this;}
 	juce::Component const* asComponent() const final {return this;}
 	bool isShown() const final;

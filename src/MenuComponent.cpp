@@ -263,14 +263,12 @@ public:
 	}
 };
 
-MenuComponent::MenuComponent(bool const gradient)
-	: menuList(new MenuItemList("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1)))
-	, recentList(new RecentMenuItemList("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1)))
+MenuComponent::MenuComponent()
+	: menuList(std::make_unique<MenuItemList>("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1)))
+	, recentList(std::make_unique<RecentMenuItemList>("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1)))
 	, m_iconImages(EnumSize<AbstractMenuItem::Icon>::value)
-	, m_gradient(gradient)
 	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
 {
-
     m_iconImages[AbstractMenuItem::Icon::None]                  = nullptr;
     m_iconImages[AbstractMenuItem::Icon::Check]                 = juce::Drawable::createFromImageData (Icons::check_svg, Icons::check_svgSize);
     m_iconImages[AbstractMenuItem::Icon::Folder]                = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);
@@ -310,24 +308,6 @@ juce::Drawable const* MenuComponent::getImage(AbstractMenuItem::Icon icon)const
 {
 	std::unique_ptr<juce::Drawable> const&ptr = m_iconImages[icon];
 	return ptr?ptr.get():nullptr;
-}
-
-void MenuComponent::paint (juce::Graphics& g)
-{
-	float w = (float)getWidth();
-	float h = (float)getHeight();
-	if(m_gradient)
-	{
-		float const roundness = 0.01f*getParentWidth();
-		static const juce::Colour color(uint8(20), uint8(20), uint8(20), 0.9f);
-		g.setColour (color);
-		g.fillRoundedRectangle(0, 0, w, h, roundness);
-	}
-	else
-	{
-		g.fillRect(0.f, 0.f, w, h);
-	}
-
 }
 
 bool MenuComponent::isShown() const
@@ -501,30 +481,37 @@ void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem
 
 int MenuComponent::preferredHeight()const
 {
-	int h = recentList->getNumRows()*getItemHeight()*1.25;
+	float rowHeight = getItemHeight();
+
+	//margin
+	int h = rowHeight/4;
+
+	//recent
+	h += recentList->getNumRows()*rowHeight;
 
 	if(auto *item = recentList->getLastItem())
 	{
+		//current content
 		switch(item->getActionEffect())
 		{
 			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
 			case AbstractMenuItem::EXECUTE_ONLY:
 			case AbstractMenuItem::REFRESH_MENU:
 			{
-	 			h += menuList->getNumRows()*getItemHeight();
+	 			h += menuList->getNumRows()*rowHeight;
 				break;
 			}
 			case AbstractMenuItem::STORE_AND_OPEN_COLOR:
 			{
-	 			h += 4*getItemHeight();
+	 			h += 4*rowHeight;
 				break;
 			}
 			case AbstractMenuItem::STORE_AND_OPEN_SLIDER:
 			{
-	 			h += getItemHeight();
+	 			h += rowHeight;
 				break;
 			}
 		}
 	}
-	 return h;
+	return h;
 }

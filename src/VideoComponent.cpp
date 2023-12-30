@@ -141,6 +141,41 @@ public:
 	}
 };
 
+class FileMenuComponent : public MenuComponent
+{
+	std::unique_ptr<juce::Drawable> m_appImage;
+public:
+
+	FileMenuComponent()
+    : m_appImage(juce::Drawable::createFromImageData (Icons::vlc_svg, Icons::vlc_svgSize))
+	{}
+	virtual ~FileMenuComponent() = default;
+
+	void paint (juce::Graphics& g) final
+	{
+		float w2 = getWidth()/2.f;
+		float h2 = getHeight()/2.f;
+		g.fillAll(juce::Colours::black);
+		m_appImage->drawWithin(g, {w2, h2, w2, h2}, juce::RectanglePlacement::xRight|juce::RectanglePlacement::yBottom, 1.f);
+	}
+};
+
+class OptionMenuComponent : public MenuComponent
+{
+	std::vector<std::unique_ptr<juce::Drawable>> m_appImage;
+public:
+	virtual ~OptionMenuComponent() = default;
+
+	void paint (juce::Graphics& g) final
+	{
+		float w = (float)getWidth();
+		float h = (float)getHeight();
+		float const roundness = 0.01f*getParentWidth();
+		static const juce::Colour color(uint8(20), uint8(20), uint8(20), 0.9f);
+		g.setColour (color);
+		g.fillRoundedRectangle(0, 0, w, h, roundness);
+	}
+};
 
 }
 ////////////////////////////////////////////////////////////
@@ -158,13 +193,12 @@ VideoComponent::VideoComponent()
 	, browsingFiles(false)
 	, m_canHideOSD(true)
 	, m_backgroundTasks("BG tasks")
-	, m_fileMenu(std::make_unique<MenuComponent>(false))
-	, m_optionsMenu(std::make_unique<MenuComponent>())
+	, m_fileMenu(std::make_unique<FileMenuComponent>())
+	, m_optionsMenu(std::make_unique<OptionMenuComponent>())
 	, controlComponent(std::make_unique<ControlComponent>())
     , settingsImage    (juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize))
     , openSettingsImage(juce::Drawable::createFromImageData (Icons::settings_open_svg, Icons::settings_open_svgSize))
     , audioImage       (juce::Drawable::createFromImageData (Icons::audio_svg, Icons::audio_svgSize))
-    , appImage(juce::ImageFileFormat::loadFrom(Icons::vlc_svg, Icons::vlc_svgSize))
 {
 	Languages::getInstance();
 
@@ -594,24 +628,6 @@ void VideoComponent::paint (juce::Graphics& g)
 	if(!vlcNativePopupComponent->isVisible() || vlc->isStopped() )
 	{
 		g.fillAll (juce::Colours::black);
-		if(m_optionsMenu->isShown())
-		{
-			g.drawImageAt(appImage, (getWidth() - appImage.getWidth())/2, (getHeight() - appImage.getHeight())/2 );
-
-
-			juce::Font f = g.getCurrentFont().withHeight(m_optionsMenu->getFontHeight());
-			f.setStyleFlags(juce::Font::plain);
-			g.setFont(f);
-			g.setColour (juce::Colours::grey);
-			g.drawText(juce::String("Featuring VLC ") + vlc->getInfo().c_str(),(getWidth() - appImage.getWidth())/2,
-				(getHeight() + appImage.getHeight())/2, appImage.getWidth(),
-				(int)m_optionsMenu->getFontHeight(),
-				juce::Justification::centred, true);
-		}
-	}
-	else
-	{
-		//g.fillAll (juce::Colours::black);
 	}
 #endif
 
