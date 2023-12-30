@@ -44,6 +44,9 @@ It controls:
 **Changelog**
 ==================
 
+0.93 (2024/01/01):
+- Complete UI overhaul
+
 0.92 (2023/12/12):
 - libVLC 3.0.20
 - JUCE 7.0.9
