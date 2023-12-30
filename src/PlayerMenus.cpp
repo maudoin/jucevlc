@@ -170,8 +170,36 @@ void PlayerMenus::onFileMenuRoot(MenuComponentValue const& value, FileMethod con
 	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
 	juce::File f(path);
 
-	m_fileMenu->addMenuItem( TRANS("Exit"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuExit, this, _1), AbstractMenuItem::Icon::Exit);
 	onMenuListFavorites(value, fileMethod);
+	m_fileMenu->addMenuItem( TRANS("Settings"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onFileMenuSettings, this, _1), AbstractMenuItem::Icon::Settings);
+	m_fileMenu->addMenuItem( TRANS("Exit"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuExit, this, _1), AbstractMenuItem::Icon::Exit);
+}
+void PlayerMenus::onFileMenuSettings(MenuComponentValue const&)
+{
+	m_fileMenu->addMenuItem( TRANS("FullScreen"), AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuFullscreen, this, _1, true), m_viewHandler.isFullScreen()?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	m_fileMenu->addMenuItem( TRANS("Windowed"), AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuFullscreen, this, _1, false), m_viewHandler.isFullScreen()?AbstractMenuItem::Icon::None : AbstractMenuItem::Icon::Check);
+
+	m_fileMenu->addMenuItem( TRANS("Language"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onFileMenuLanguageOptions, this, _1), AbstractMenuItem::Icon::Folder);
+	m_fileMenu->addMenuItem( TRANS("Menu font size"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onFileMenuPlayerFonSize, this, _1));
+}
+void PlayerMenus::onFileMenuLanguageOptions(MenuComponentValue const&)
+{
+	std::vector< std::string > list = Languages::getInstance().getLanguages();
+	for(std::vector< std::string >::const_iterator it = list.begin();it != list.end();++it)
+	{
+		m_fileMenu->addMenuItem(it->c_str(), AbstractMenuItem::REFRESH_MENU,
+			std::bind(&PlayerMenus::onLanguageSelect, this, _1, *it),
+			(*it==Languages::getInstance().getCurrentLanguage())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	}
+}
+void PlayerMenus::onFileMenuPlayerFonSize(MenuComponentValue const&)
+{
+	for(int i=50;i<=175;i+=25)
+	{
+		m_fileMenu->addMenuItem( juce::String::formatted("%d%%", i), AbstractMenuItem::REFRESH_MENU,
+			std::bind(&PlayerMenus::onSetPlayerFonSize, this, _1, i),
+			i==(AppProportionnalComponent::getItemHeightPercentageRelativeToScreen())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	}
 }
 
 void PlayerMenus::onMenuLoadSubtitle(MenuComponentValue const& value, FileMethod const& fileMethod)

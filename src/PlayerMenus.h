@@ -64,6 +64,10 @@ public:
 
 	/////////////// MenuTree
 	void onFileMenuRoot(MenuComponentValue const&, FileMethod const& fileMethod);
+	void onFileMenuSettings(MenuComponentValue const&);
+	void onFileMenuLanguageOptions(MenuComponentValue const&);
+	void onFileMenuPlayerFonSize(MenuComponentValue const&);
+
 	void onMenuLoadSubtitle(MenuComponentValue const&, FileMethod const& fileMethod);
 	void onMenuListRootFiles(MenuComponentValue const&, FileMethod const& fileMethod);
 	void onMenuListUPNPFiles(MenuComponentValue const&, std::vector<std::string> const& path);
