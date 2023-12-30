@@ -56,12 +56,14 @@ class TitleComponent   : public juce::Component
 	juce::Component* m_componentToMove;
 	juce::ComponentDragger dragger;
 	std::string m_title;
+	std::string m_defaultTitle;
 	bool m_allowDrag;
 	juce::String m_currentTimeString;
 public:
-	TitleComponent(juce::Component* componentToMove)
+	TitleComponent(juce::Component* componentToMove, std::string const& defaultTitle)
 		:juce::Component("Title")
 		,m_componentToMove(componentToMove)
+		,m_defaultTitle(defaultTitle)
 		,m_allowDrag(false)
 		,m_currentTimeString()
 	{
@@ -79,7 +81,7 @@ public:
 	}
 	void paint (juce::Graphics& g)
 	{
-		juce::String title = juce::String::fromUTF8(m_title.empty()? "JuceVLC player":m_title.c_str());
+		juce::String title = juce::String::fromUTF8((m_title.empty()? m_defaultTitle:m_title).c_str());
 		juce::Font f = g.getCurrentFont().withHeight((float)getHeight());
 		//f.setTypefaceName("Times New Roman");//"Forgotten Futurist Shadow");
 		f.setStyleFlags(juce::Font::plain);
@@ -202,7 +204,7 @@ VideoComponent::VideoComponent()
 
 
     defaultConstrainer.setMinimumSize (100, 100);
-	addChildComponent (*(titleBar = std::make_unique<TitleComponent>(this)));
+	addChildComponent (*(titleBar = std::make_unique<TitleComponent>(this, std::string("JuceVLC feat. VLC ")+vlc->getInfo())));
 	titleBar->addMouseListener(this, true);
     addChildComponent (*(resizableBorder = std::make_unique<juce::ResizableBorderComponent>(this, &defaultConstrainer)));
 
