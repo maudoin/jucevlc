@@ -372,7 +372,7 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			}
 
 			menuList->clear();
-			copy.execute({});
+			copy.execute(isRecent?MenuComponentValue{MenuComponentBack{}}:MenuComponentValue{});
 
 			resized();
 			break;

@@ -176,9 +176,16 @@ void PlayerMenus::onFileMenuRoot(MenuComponentValue const& value, FileMethod con
 
 void PlayerMenus::onMenuLoadSubtitle(MenuComponentValue const& value, FileMethod const& fileMethod)
 {
-	juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
-	juce::File f(path);
-	listRecentPath(*m_optionsMenu, value, fileMethod, f);
+	if(std::get_if<MenuComponentBack>(&value))
+	{
+		listRootFiles(*m_optionsMenu, value, fileMethod);
+	}
+	else
+	{
+		juce::String path = m_settings.getValue(SETTINGS_LAST_OPEN_PATH);
+		juce::File f(path);
+		listRecentPath(*m_optionsMenu, value, fileMethod, f);
+	}
 }
 
 void PlayerMenus::onMenuListRootFiles(MenuComponentValue const& value, FileMethod const& fileMethod)

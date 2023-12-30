@@ -6,8 +6,8 @@
 #include <JuceHeader.h>
 #include <variant>
 
-
-using MenuComponentValue = std::variant<std::monostate, juce::Colour, double>;
+struct MenuComponentBack{};
+using MenuComponentValue = std::variant<std::monostate, juce::Colour, double, MenuComponentBack>;
 using MenuComponentParams = std::variant<std::monostate, juce::Colour, SettingSlider::Params>;
 
 #endif //MENU_COMPONENT_VALUE_H
