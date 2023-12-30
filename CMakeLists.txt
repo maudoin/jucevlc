@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(WINDOWS_KIT_VERS "10.0.22621.0")
 set(WINDOWS_10_KIT_DIR "C:/Program Files (x86)/Windows Kits/10")
 
-project(JuceVLC VERSION 0.9.3)
+project(JuceVLC VERSION 0.9.4)
 
 # we use inplace sources with a submodule
 add_subdirectory(JUCE)
