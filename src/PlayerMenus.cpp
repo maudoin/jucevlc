@@ -1375,7 +1375,7 @@ void PlayerMenus::onPlayerOptions(MenuComponentValue const& entry)
 }
 void PlayerMenus::onOptionMenuRoot(MenuComponentValue const& entry)
 {
-	// TODO is it usefull for ninge watching? entry.menu().addMenuItem( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onShowPlaylist, this, _1), AbstractMenuItem::Icon::Folder);
+	// TODO is it usefull for binge watching? entry.menu().addMenuItem( TRANS("Now playing"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onShowPlaylist, this, _1), AbstractMenuItem::Icon::Folder);
 	entry.menu().addMenuItem( TRANS("Subtitles"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSubtitleMenu, this, _1), AbstractMenuItem::Icon::Subtitles);
 	entry.menu().addMenuItem( TRANS("Sound"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSoundOptions, this, _1), AbstractMenuItem::Icon::Audio);
 	entry.menu().addMenuItem( TRANS("Video"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuVideoOptions, this, _1), AbstractMenuItem::Icon::Display);
@@ -1555,7 +1555,7 @@ void PlayerMenus::listRecentPath(MenuComponentValue const& entry, FileMethod con
 		for(int i=parentFolders.size()-1;i>=0;--i)
 		{
 			juce::File const& file(parentFolders[i]);
-			entry.menu().addRecentMenuItem( name(file), AbstractMenuItem::EXECUTE_ONLY,
+			entry.menu().addRecentMenuItem( name(file), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
 				[file, fileMethod](MenuComponentValue const& v){return fileMethod(v, file);}, AbstractMenuItem::Icon::Back);
 		}
 		//select the last item

@@ -202,8 +202,6 @@ VideoComponent::VideoComponent(const juce::String& commandLine)
 {
 	Languages::getInstance();
 
-	//m_toolTip = new juce::TooltipWindow( this,50);
-
 	const juce::GenericScopedLock<juce::CriticalSection> lock (imgCriticalSection);
 
 
