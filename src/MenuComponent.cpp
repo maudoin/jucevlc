@@ -13,28 +13,28 @@ void NullAbstractAction(MenuComponentValue const&){};
 class MenuItem
 {
 protected:
-	juce::String name;
+	juce::String text;
 	const juce::Drawable* icon;
 	AbstractAction action;
 	AbstractMenuItem::ActionEffect actionEffect;
 	MenuComponentParams params;
 public:
 
-    MenuItem (juce::String const& name = {},
+    MenuItem (juce::String const& text = {},
 				AbstractMenuItem::ActionEffect actionEffect = AbstractMenuItem::EXECUTE_ONLY,
-				AbstractAction action = NullAbstractAction,
+				AbstractAction const& action = NullAbstractAction,
 				const juce::Drawable* icon = nullptr,
 				MenuComponentParams const& params = {})
-	:name(name)
-	,icon(icon)
-	,action(action)
-	,actionEffect(actionEffect)
-	,params(params)
+	: text(text)
+	, icon(icon)
+	, action(action)
+	, actionEffect(actionEffect)
+	, params(params)
 	{}
 
-	const juce::Drawable* getIcon(){ return icon;}
-	juce::String const& getName(){ return name;}
-	void execute(MenuComponentValue const& value){ action(value);}
+	const juce::Drawable* getIcon()const{ return icon;}
+	juce::String const& getText() const { return text;}
+	void execute(MenuComponentValue const& value)const{ action(value);}
 	AbstractMenuItem::ActionEffect getActionEffect()const{ return actionEffect; }
 	AbstractAction const& getAction()const{ return action; }
 	MenuComponentParams const& getParams()const{ return params; }
@@ -43,17 +43,19 @@ public:
 
 
 
-class TransparentListBox : public virtual juce::ListBox
+class TransparentListBox : public juce::ListBox, public AppProportionnalComponent
 {
 public:
 	TransparentListBox(const juce::String& componentName = {},
              juce::ListBoxModel* model = nullptr) : juce::ListBox(componentName, model)
 	{
 		setColour(backgroundColourId, juce::Colour());
+		addComponentListener(this);
 	}
-	void paint (juce::Graphics& /*g*/)
+	void paint (juce::Graphics&) final
 	{
 	}
+	float getFontItemScaleRatio() const final {return 1.1f;}
 };
 
 
@@ -65,25 +67,24 @@ private:
 	TransparentListBox box;
 	juce::Array<MenuItem> items;
 	SelectionCallback listBoxSelectionCallback;
+	int m_preferredWidth;
 public:
 
 	MenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback)
-		:box(name, this)
-		,listBoxSelectionCallback(listBoxSelectionCallback)
+		: box(name, this)
+		, listBoxSelectionCallback(listBoxSelectionCallback)
+		, m_preferredWidth(0)
 	{
 	}
-	virtual ~MenuItemList()
-	{
-	}
+	virtual ~MenuItemList() = default;
 
-
-	juce::ListBox * getListBox()
+	TransparentListBox& getListBox()
 	{
-		return &box;
+		return box;
 	}
 
     // implements the ListBoxModel method
-    int getNumRows()
+    int getNumRows() final
     {
         return items.size();
     }
@@ -97,20 +98,26 @@ public:
         if (rowNumber >= 0 && rowNumber < items.size())
 		{
 			MenuItem& item = items.getReference(rowNumber);
-			paintMenuItem(g, width, height, item.getName(), item.getIcon());
+			paintMenuItem(g, width, height, item.getText(), item.getIcon(), box.getFont());
 		}
     }
+	static float iconSizeFor(int height){return height;}
+	static float hborderFor(int height){return height/8.f;}
+	static float iconhborderFor(int height){return  height/4.f;}
+	static int getWidth(int height, juce::Font const& font, juce::String const& text)
+	{
+		return iconSizeFor(height)+iconSizeFor(height)+iconSizeFor(height)+font.getStringWidth(text);
+	}
 
 	static void paintMenuItem(juce::Graphics& g, int width, int height,
-		juce::String const& name, const juce::Drawable* d)
+		juce::String const& text, const juce::Drawable* d, juce::Font const& font)
 	{
 
-		float fontSize =  1.1f*height;
 
-		float hborder = height/8.f;
+		float hborder = hborderFor(height);
 
-		float iconhborder = height/4.f;
-		int iconSize = height;
+		float iconhborder = iconhborderFor(height);
+		float iconSize = iconSizeFor(height);
 
 
 		float xBounds = iconSize + iconhborder;
@@ -121,19 +128,16 @@ public:
 
 		if (d != nullptr)
 		{
-				d->drawWithin (g, juce::Rectangle<float> (iconhborder, 0.0f, (float)iconSize, (float)iconSize),
+				d->drawWithin (g, juce::Rectangle<float> (iconhborder, 0.0f, iconSize, iconSize),
 								juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize, 1.0f);
 		}
 
-		juce::Font f = g.getCurrentFont().withHeight(fontSize);
-		//f.setTypefaceName(/*"Forgotten Futurist Shadow"*/"Times New Roman");
-		f.setStyleFlags(juce::Font::plain);
-		g.setFont(f);
+		g.setFont(font);
 
 		g.setColour (juce::Colours::white);
 
 		int xText = iconSize + 2*(int)iconhborder;
-		g.drawFittedText (name,
+		g.drawFittedText (text,
 							xText, 0, width - xText, height,
 							juce::Justification::centredLeft,
 							1, //1 line
@@ -141,36 +145,49 @@ public:
 							);
 	}
 
-    void selectedRowsChanged (int lastRowselected)
+    void selectedRowsChanged(int lastRowselected)
 	{
 		listBoxSelectionCallback(lastRowselected);
 	}
 
 
     virtual void add(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect,
-					AbstractAction action, const juce::Drawable* icon, MenuComponentParams const& params)
+					AbstractAction const& action, const juce::Drawable* icon, MenuComponentParams const& params)
 	{
 		items.add(MenuItem(name, actionEffect, action, icon, params));
-        box.updateContent();
+        contentChanged();
 	}
 
-	MenuItem* getItem(int rowNumber)
+	MenuItem const* getItem(int rowNumber) const
 	{
-		if (rowNumber < 0 || rowNumber>= getNumRows())
+		if (rowNumber < 0 || rowNumber>= items.size())
 		{
 			return nullptr;
 		}
 		return &(items.getReference(rowNumber));
 	}
 
-	MenuItem* getSelectedItem()
+	MenuItem const* getSelectedItem() const
 	{
 		return getItem(box.getSelectedRow());
 	}
 	void clear()
 	{
 		items.clear();
-		box.updateContent();
+		contentChanged();
+	}
+	void contentChanged()
+	{
+		m_preferredWidth = 0;
+		for(auto const& item: items)
+		{
+			m_preferredWidth = std::max(m_preferredWidth, getWidth(box.getRowHeight(), box.getFont(), item.getText()));
+		}
+        box.updateContent();
+	}
+	int preferredWidth()const
+	{
+		return m_preferredWidth;
 	}
 
 };
@@ -183,19 +200,21 @@ private:
 	TransparentListBox box;
 	juce::Array<MenuItem> items;
 	SelectionCallback listBoxSelectionCallback;
+	int m_preferredWidth;
 public:
 
 	RecentMenuItemList(juce::String const& name,SelectionCallback listBoxSelectionCallback)
-		:box(name, this)
-		,listBoxSelectionCallback(listBoxSelectionCallback)
+		: box(name, this)
+		, listBoxSelectionCallback(listBoxSelectionCallback)
+		, m_preferredWidth(0)
 	{
 	}
 	virtual ~RecentMenuItemList() = default;
 
 
-	juce::ListBox * getListBox()
+	TransparentListBox& getListBox()
 	{
-		return &box;
+		return box;
 	}
 
     // implements the ListBoxModel method
@@ -204,13 +223,33 @@ public:
         return items.size()<=1?0:1;
     }
 
+	juce::String getText()const
+	{
+		juce::String path;
+        if (!items.isEmpty())
+		{
+			for(int i=std::max(1, items.size()-2);i<items.size();++i)
+			{
+				if(!path.isEmpty())
+				{
+					path = path+" > "+items[i].getText();
+				}
+				else
+				{
+					path = items[i].getText();
+				}
+			}
+		}
+		return path;
+	}
+
     // implements the ListBoxModel method
     void paintListBoxItem (int /*rowNumber*/,
                            juce::Graphics& g,
                            int width, int height,
                            bool /*rowIsSelected*/) override
     {
-        if (MenuItem* item = getLastItem())
+        if (MenuItem const* item = getLastItem())
 		{
 	 		g.setGradientFill (juce::ColourGradient(juce::Colours::lightgrey,
 	 											0, 0.f,
@@ -220,19 +259,7 @@ public:
 
 	 		g.drawLine(0, height, (float)width, height, 2.f);
 
-			juce::String path;
-			for(int i=std::max(1, items.size()-2);i<items.size();++i)
-			{
-				if(!path.isEmpty())
-				{
-					path = path+" > "+items[i].getName();
-				}
-				else
-				{
-					path = items[i].getName();
-				}
-			}
-			MenuItemList::paintMenuItem(g, width, height, path, item->getIcon());
+			MenuItemList::paintMenuItem(g, width, height, getText(), item->getIcon(), box.getFont());
 		}
     }
 
@@ -246,10 +273,20 @@ public:
 				     MenuComponentParams const& params = {})
 	{
 		items.add(MenuItem(name, actionEffect, action, icon, params));
-        box.updateContent();
+        contentChanged();
 	}
 
-	MenuItem* getLastItem()
+	void contentChanged()
+	{
+		m_preferredWidth = box.getRowHeight() + (items.isEmpty() ? 0 : MenuItemList::getWidth(box.getRowHeight(), box.getFont(), getText()));
+        box.updateContent();
+	}
+	int preferredWidth()const
+	{
+		return m_preferredWidth;
+	}
+
+	MenuItem const* getLastItem() const
 	{
 		return (items.isEmpty()) ? nullptr : &(items.getReference(items.size()-1));
 	}
@@ -259,15 +296,20 @@ public:
 		{
 			items.removeLast(1);
 		}
-		box.updateContent();
+		contentChanged();
 	}
 };
 
 MenuComponent::MenuComponent()
+ : MenuComponent([this]{this->resized();})
+{}
+
+MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
 	: menuList(std::make_unique<MenuItemList>("MenuList", std::bind(&MenuComponent::menuItemSelected, this, _1)))
 	, recentList(std::make_unique<RecentMenuItemList>("RecentList", std::bind(&MenuComponent::recentItemSelected, this, _1)))
 	, m_iconImages(EnumSize<AbstractMenuItem::Icon>::value)
 	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
+	, m_updateBoundsCallback(updateBoundsCallback)
 {
     m_iconImages[AbstractMenuItem::Icon::None]                  = nullptr;
     m_iconImages[AbstractMenuItem::Icon::Check]                 = juce::Drawable::createFromImageData (Icons::check_svg, Icons::check_svgSize);
@@ -302,6 +344,8 @@ void MenuComponent::setScaleComponent(juce::Component* scaleComponent)
 {
 	AppProportionnalComponent::setScaleComponent(scaleComponent);
 	m_slider.setScaleComponent(scaleComponent);
+	menuList->getListBox().setScaleComponent(scaleComponent);
+	recentList->getListBox().setScaleComponent(scaleComponent);
 }
 
 juce::Drawable const* MenuComponent::getImage(AbstractMenuItem::Icon icon)const
@@ -321,8 +365,8 @@ void MenuComponent::setShown(bool show)
 
 void MenuComponent::resized()
 {
-	menuList->getListBox()->setRowHeight((int)getItemHeight());
-	recentList->getListBox()->setRowHeight((int)getItemHeight());
+	menuList->getListBox().setRowHeight((int)getItemHeight());
+	recentList->getListBox().setRowHeight((int)getItemHeight());
 
 	int recentSize = recentList->getNumRows()*(int)getItemHeight()+2;
 	if(recentSize > getHeight()/2)
@@ -330,14 +374,14 @@ void MenuComponent::resized()
 		recentSize = getHeight()/2;
 	}
 
-	recentList->getListBox()->setBounds(0, 0, getWidth(), recentSize);
-	menuList->getListBox()->setBounds(0, recentSize, getWidth(), getHeight()-recentSize);
+	recentList->getListBox().setBounds(0, 0, getWidth(), recentSize);
+	menuList->getListBox().setBounds(0, recentSize, getWidth(), getHeight()-recentSize);
 	m_colourSelector.setBounds(0, recentSize, getWidth(), getHeight()-recentSize);
 	m_slider.setBounds((int)getItemHeight(), recentSize, getWidth()-2*(int)getItemHeight(), (int)getItemHeight());
 	Component::resized();
 }
 
-void MenuComponent::activateItem(MenuItem& item, bool isRecent)
+void MenuComponent::activateItem(MenuItem const& item, bool isRecent)
 {
 
 	switch(item.getActionEffect())
@@ -349,13 +393,13 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
+				recentList->add(item.getText(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
 			copy.execute(isRecent?MenuComponentValue{MenuComponentBack{}}:MenuComponentValue{});
 
-			resized();
+			m_updateBoundsCallback();
 			break;
 		}
 		case AbstractMenuItem::STORE_AND_OPEN_COLOR:
@@ -363,12 +407,12 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			setMode(Mode::COLOR);
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
+				recentList->add(item.getText(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
 
-			resized();
+			m_updateBoundsCallback();
 			break;
 		}
 		case AbstractMenuItem::STORE_AND_OPEN_SLIDER:
@@ -377,12 +421,12 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			m_slider.setup(std::get<SettingSlider::Params>(item.getParams()));
 			if(!isRecent)
 			{
-				recentList->add(item.getName(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
+				recentList->add(item.getText(), item.getActionEffect(), item.getAction(), getImage(AbstractMenuItem::Icon::Back));
 			}
 
 			menuList->clear();
 
-			resized();
+			m_updateBoundsCallback();
 			if(auto* parent = getParentComponent())parent->resized();
 			break;
 		}
@@ -390,7 +434,7 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 		{
 			item.execute({});
 
-			resized();
+			m_updateBoundsCallback();
 			break;
 		}
 		case AbstractMenuItem::REFRESH_MENU:
@@ -401,17 +445,17 @@ void MenuComponent::activateItem(MenuItem& item, bool isRecent)
 			break;
 		}
 	}
-	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+	menuList->getListBox().setSelectedRows(juce::SparseSet<int>());
 }
 void MenuComponent::recentItemSelected(int lastRowselected)
 {
 	if(lastRowselected >= 0)
 	{
 		recentList->unstack();
-		if(auto *item = recentList->getLastItem())
+		if(auto const*item = recentList->getLastItem())
 		{
 			activateItem(*item, true);
-			recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+			recentList->getListBox().setSelectedRows(juce::SparseSet<int>());
 		}
 	}
 }
@@ -420,12 +464,12 @@ void MenuComponent::setMode(Mode mode)
 {
 	m_colourSelector.setVisible(mode == Mode::COLOR);
 	m_slider.setVisible(mode == Mode::SLIDER);
-	menuList->getListBox()->setVisible(mode == Mode::LIST);
+	menuList->getListBox().setVisible(mode == Mode::LIST);
 }
 
 void MenuComponent::changeListenerCallback (ChangeBroadcaster* broadcaster)
 {
-	if( MenuItem* item = recentList->getLastItem() )
+	if( MenuItem const* item = recentList->getLastItem() )
 	{
 		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_COLOR &&  m_colourSelector.isVisible() && broadcaster == &m_colourSelector )
 		{
@@ -436,7 +480,7 @@ void MenuComponent::changeListenerCallback (ChangeBroadcaster* broadcaster)
 
 void MenuComponent::sliderValueChanged (Slider* slider)
 {
-	if( MenuItem* item = recentList->getLastItem() )
+	if( MenuItem const* item = recentList->getLastItem() )
 	{
 		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_SLIDER && m_slider.isVisible() && m_slider.is(slider))
 		{
@@ -447,7 +491,7 @@ void MenuComponent::sliderValueChanged (Slider* slider)
 
 void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 {
-	MenuItem* item = menuList->getSelectedItem();
+	MenuItem const* item = menuList->getSelectedItem();
     if (item != nullptr)
 	{
 		activateItem(*item, false);
@@ -456,26 +500,33 @@ void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 
 void MenuComponent::forceMenuRefresh()
 {
-	MenuItem* item = recentList->getLastItem();
+	MenuItem const* item = recentList->getLastItem();
     if (item != nullptr)
 	{
 		MenuItem itemCopy = *item;
-		recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+		recentList->getListBox().setSelectedRows(juce::SparseSet<int>());
 		activateItem(itemCopy, true);
 	}
 }
 
 void MenuComponent::addMenuItem(juce::String const& name,
-	AbstractMenuItem::ActionEffect actionEffect, AbstractAction action,
+	AbstractMenuItem::ActionEffect actionEffect, AbstractAction const& action,
 	AbstractMenuItem::Icon icon, MenuComponentParams const& params)
 {
 	menuList->add(name, actionEffect, action, getImage(icon), params);
-	menuList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+	menuList->getListBox().setSelectedRows(juce::SparseSet<int>());
 }
-void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon)
+void MenuComponent::addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction const& action, AbstractMenuItem::Icon icon)
 {
 	recentList->add(name, actionEffect, action, getImage(icon));
-	recentList->getListBox()->setSelectedRows(juce::SparseSet<int>());
+	recentList->getListBox().setSelectedRows(juce::SparseSet<int>());
+}
+
+
+int MenuComponent::preferredWidth()const
+{
+	return std::max(recentList->preferredWidth(),
+				menuList->preferredWidth());
 }
 
 
@@ -495,8 +546,6 @@ int MenuComponent::preferredHeight()const
 		switch(item->getActionEffect())
 		{
 			case AbstractMenuItem::STORE_AND_OPEN_CHILDREN:
-			case AbstractMenuItem::EXECUTE_ONLY:
-			case AbstractMenuItem::REFRESH_MENU:
 			{
 	 			h += menuList->getNumRows()*rowHeight;
 				break;
@@ -511,6 +560,9 @@ int MenuComponent::preferredHeight()const
 	 			h += rowHeight;
 				break;
 			}
+			case AbstractMenuItem::EXECUTE_ONLY:
+			case AbstractMenuItem::REFRESH_MENU:
+				break;
 		}
 	}
 	return h;

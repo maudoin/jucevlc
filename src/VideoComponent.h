@@ -33,7 +33,6 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
 	juce::Slider::Listener, juce::Button::Listener, EventCallBack, InputCallBack, MouseInputCallBack, juce::TimeSliceClient,
 	public PlayerMenus::ViewHandler
 {
-	bool browsingFiles;
 	bool m_canHideOSD;
 	juce::TimeSliceThread m_backgroundTasks;
 	std::unique_ptr<AbstractMenu> m_fileMenu;
@@ -76,7 +75,6 @@ public:
 	void playPlayListItem(int index, std::string const& name) override;
 	bool isFullScreen() const final;
 	void setFullScreen(bool fs) final;
-	void setBrowsingFiles(bool newBrowsingFiles = true) final;
 
 	void play();
 	void pause();
@@ -145,6 +143,7 @@ private:
 
 	void handleIdleTimeAndControlsVisibility();
 	void setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible);
+	void updateOptionMenuBounds();
 	void updateSubComponentsBounds();
 
 	void forceSetVideoTime(int64_t start);

@@ -54,12 +54,13 @@ public:
 	virtual bool isShown() const = 0;
 	virtual void setShown(bool show) = 0;
 
-	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon = AbstractMenuItem::Icon::None, MenuComponentParams const& params = {}) = 0;
-	virtual void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction action, AbstractMenuItem::Icon icon = AbstractMenuItem::Icon::None) = 0;
+	virtual void addMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction const&  action, AbstractMenuItem::Icon icon = AbstractMenuItem::Icon::None, MenuComponentParams const& params = {}) = 0;
+	virtual void addRecentMenuItem(juce::String const& name, AbstractMenuItem::ActionEffect actionEffect, AbstractAction const& action, AbstractMenuItem::Icon icon = AbstractMenuItem::Icon::None) = 0;
 
 	//TBR
 	virtual juce::Component* asComponent() = 0;
 	virtual juce::Component const* asComponent() const = 0;
+	virtual int preferredWidth()const = 0;
 	virtual int preferredHeight()const = 0;
 };
 

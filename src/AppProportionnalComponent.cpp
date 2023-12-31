@@ -19,6 +19,7 @@ void AppProportionnalComponent::setItemHeightPercentageRelativeToScreen(int perc
 	m_itemHeightScalePercent = percent;
 	if(component)
 	{
+		component->resizeFont();
 		component->appProportionnalComponentResized();
 	}
 }
@@ -48,6 +49,12 @@ void AppProportionnalComponent::componentMovedOrResized (juce::Component&,
 {
 	if(wasResized)
 	{
+		resizeFont();
 		appProportionnalComponentResized();
 	}
+}
+
+void AppProportionnalComponent::resizeFont()
+{
+	m_font = m_font.withHeight( getFontItemScaleRatio()* getItemHeight());
 }

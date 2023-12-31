@@ -164,6 +164,7 @@ class OptionMenuComponent : public MenuComponent
 {
 	std::vector<std::unique_ptr<juce::Drawable>> m_appImage;
 public:
+	using MenuComponent::MenuComponent;
 	virtual ~OptionMenuComponent() = default;
 
 	void paint (juce::Graphics& g) final
@@ -190,11 +191,10 @@ VideoComponent::VideoComponent()
 #else
 	:juce::Component("JuceVLC")
 #endif
-	, browsingFiles(false)
 	, m_canHideOSD(true)
 	, m_backgroundTasks("BG tasks")
 	, m_fileMenu(std::make_unique<FileMenuComponent>())
-	, m_optionsMenu(std::make_unique<OptionMenuComponent>())
+	, m_optionsMenu(std::make_unique<OptionMenuComponent>([this]{this->updateOptionMenuBounds();}))
 	, controlComponent(std::make_unique<ControlComponent>())
     , settingsImage    (juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize))
     , openSettingsImage(juce::Drawable::createFromImageData (Icons::settings_open_svg, Icons::settings_open_svgSize))
@@ -539,34 +539,6 @@ void VideoComponent::setMenuTreeVisibleAndUpdateMenuButtonIcon(bool visible)
 	m_fileMenu->setShown(false);
 	controlComponent->menuButton().setImages(m_optionsMenu->isShown()?openSettingsImage.get():settingsImage.get());
 }
-//==============================================================================
-class DrawableMenuComponent  : public juce::PopupMenu::CustomComponent
-{
-	juce::Drawable* m_drawable;
-	int m_size;
-public:
-    DrawableMenuComponent(juce::Drawable* drawable, int size)
-        : m_drawable (drawable), m_size(size)
-    {
-    }
-
-    ~DrawableMenuComponent()
-    {
-    }
-
-    void getIdealSize (int& idealWidth,
-                       int& idealHeight)
-    {
-        idealHeight = idealWidth = m_size;
-    }
-
-    void paint (juce::Graphics& g)
-    {
-		g.fillAll(juce::Colours::black);
-		m_drawable->drawWithin(g, getLocalBounds().toFloat(), juce::RectanglePlacement(juce::RectanglePlacement::stretchToFit), 1.f );
-    }
-
-};
 
 void VideoComponent::buttonClicked (juce::Button* button)
 {
@@ -633,22 +605,31 @@ void VideoComponent::paint (juce::Graphics& g)
 
 }
 
-void VideoComponent::updateSubComponentsBounds()
+void VideoComponent::updateOptionMenuBounds()
 {
 	int w =  getWidth();
 	int h =  getHeight();
 
 	int optionItemHeight = m_optionsMenu->getItemHeight();
 	int hMargin = (int)(optionItemHeight/2.);
-	int treeWidth = (browsingFiles?3:1)*w/4;
+	int optionPopupWidth = std::min(m_optionsMenu->preferredWidth(), w/2);
 	int controlHeight = 3*(int)optionItemHeight;
 	int optionHeight = std::min(h-controlHeight-hMargin, m_optionsMenu->preferredHeight());
 
-	m_optionsMenu->asComponent()->setBounds (w-treeWidth,h-optionHeight-controlHeight,treeWidth, optionHeight);
+	m_optionsMenu->asComponent()->setBounds (w-optionPopupWidth,h-optionHeight-controlHeight,optionPopupWidth, optionHeight);
+}
 
-	int frontpageMargin = (int)optionItemHeight;
+void VideoComponent::updateSubComponentsBounds()
+{
+	updateOptionMenuBounds();
+
+	int w =  getWidth();
+	int h =  getHeight();
+
+	int frontpageMargin = (int)m_optionsMenu->getItemHeight();
     m_fileMenu->asComponent()->setBounds (frontpageMargin, frontpageMargin, w-2*frontpageMargin, h-2*frontpageMargin);
 
+	int controlHeight = 3*(int)m_optionsMenu->getItemHeight();
 	controlComponent->setBounds (0, h-controlHeight, w, controlHeight);
 }
 
@@ -846,14 +827,7 @@ void VideoComponent::setVolumeSlider(double value)
 	controlComponent->setupVolumeSlider(
 		std::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),value, 1., 200., .1);
 }
-void VideoComponent::setBrowsingFiles(bool newBrowsingFiles)
-{
-	if(browsingFiles != newBrowsingFiles)
-	{
-		browsingFiles = newBrowsingFiles;
-	}
-	updateSubComponentsBounds();//m_optionsMenu may be larger! (or not)
-}
+
 ////////////////////////////////////////////////////////////
 //
 // VLC CALLBACKS

@@ -27,7 +27,6 @@ public:
 		virtual void playPlayListItem(int index, std::string const& name) = 0;
 		virtual bool isFullScreen()const = 0;
 		virtual void setFullScreen(bool fs = true) = 0;
-		virtual void setBrowsingFiles(bool newBrowsingFiles = true) = 0;
 	};
 private:
 	//all thos pointers are fine, they are owned by the instance that owns this
