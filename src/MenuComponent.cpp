@@ -1,6 +1,7 @@
 #include "MenuComponent.h"
 #include "FileSorter.h"
 #include "Extensions.h"
+#include "InvokeLater.h"
 #include "Icons.h"
 
 #define SHORTCUTS_FILE "shortcuts.list"
@@ -93,7 +94,7 @@ public:
     void paintListBoxItem (int rowNumber,
                            juce::Graphics& g,
                            int width, int height,
-                           bool /*rowIsSelected*/)
+                           bool /*rowIsSelected*/) final
     {
         if (rowNumber >= 0 && rowNumber < items.size())
 		{
@@ -145,7 +146,7 @@ public:
 							);
 	}
 
-    void selectedRowsChanged(int lastRowselected)
+    void selectedRowsChanged(int lastRowselected) override
 	{
 		listBoxSelectionCallback(lastRowselected);
 	}
@@ -310,6 +311,7 @@ MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
 	, m_iconImages(EnumSize<AbstractMenuItem::Icon>::value)
 	, m_colourSelector(juce::ColourSelector::showColourspace, 0, 0)
 	, m_updateBoundsCallback(updateBoundsCallback)
+	, m_invokeLater(std::make_unique<InvokeLater>())
 {
     m_iconImages[AbstractMenuItem::Icon::None]                  = nullptr;
     m_iconImages[AbstractMenuItem::Icon::Check]                 = juce::Drawable::createFromImageData (Icons::check_svg, Icons::check_svgSize);
@@ -338,6 +340,7 @@ MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
 }
 MenuComponent::~MenuComponent()
 {
+	m_invokeLater->close();
 }
 
 void MenuComponent::setScaleComponent(juce::Component* scaleComponent)
@@ -451,11 +454,16 @@ void MenuComponent::recentItemSelected(int lastRowselected)
 {
 	if(lastRowselected >= 0)
 	{
-		recentList->unstack();
-		if(auto const*item = recentList->getLastItem())
+		if(m_invokeLater)
 		{
-			activateItem(*item, true);
-			recentList->getListBox().setSelectedRows(juce::SparseSet<int>());
+			m_invokeLater->queuef([this]{
+				this->recentList->unstack();
+				if(auto const*item = this->recentList->getLastItem())
+				{
+					activateItem(*item, true);
+					this->recentList->getListBox().setSelectedRows(juce::SparseSet<int>());
+				}
+			});
 		}
 	}
 }
@@ -491,10 +499,15 @@ void MenuComponent::sliderValueChanged (Slider* slider)
 
 void MenuComponent::menuItemSelected (int /*lastRowselected*/)
 {
-	MenuItem const* item = menuList->getSelectedItem();
-    if (item != nullptr)
+	if(m_invokeLater)
 	{
-		activateItem(*item, false);
+		m_invokeLater->queuef([this]{
+			MenuItem const* item = menuList->getSelectedItem();
+			if (item != nullptr)
+			{
+				activateItem(*item, false);
+			}
+		});
 	}
 }
 

@@ -5,6 +5,7 @@
 #include "AbstractMenu.h"
 #include "SettingSlider.h"
 
+class InvokeLater;
 class MenuItem;
 class MenuItemList;
 class RecentMenuItemList;
@@ -25,6 +26,7 @@ private:
 	juce::ColourSelector m_colourSelector;
 	SettingSlider m_slider;
 	UpdateBoundsCallback m_updateBoundsCallback;
+    std::unique_ptr<InvokeLater> m_invokeLater;
 
 public:
 	MenuComponent();
