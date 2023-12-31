@@ -10,7 +10,7 @@
 !define COMP_NAME "Matthieu A."
 !define WEB_SITE "https://github.com/maudoin/jucevlc"
 !define VERSION "00.09.03.00"
-!define V "0.9.4"
+!define V "0.9.5"
 !define COPYRIGHT "Matthieu A. © 2023"
 !define DESCRIPTION "JuceVLC Video Player"
 !define INSTALLER_NAME "${APP_NAME}setup-${V}.exe"
