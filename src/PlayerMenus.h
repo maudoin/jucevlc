@@ -93,6 +93,7 @@ public:
 	void onVLCAudioOutputDeviceSelect(MenuComponentValue const&, std::string const& output, std::string const& device);
     void onVLCAudioOutputSelect(MenuComponentValue const&, std::string const&, std::vector< std::pair<std::string, std::string> >const&);
     void onVLCAudioOutputList(MenuComponentValue const&);
+	void onMenuSearchOpenSubtitlesSelectName(MenuComponentValue const&, juce::String const& name);
 	void onMenuSearchOpenSubtitlesSelectLanguage(MenuComponentValue const&, juce::String const& name);
 	void onMenuListOpenSubtitles(MenuComponentValue const&, juce::String const& url);
 	void onMenuDowloadOpenSubtitle(MenuComponentValue const&, juce::String const& url);

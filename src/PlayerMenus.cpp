@@ -543,7 +543,7 @@ void PlayerMenus::onMenuSubtitleSelectMenu(MenuComponentValue const& entry)
 		std::bind(&PlayerMenus::onMenuLoadSubtitle, this, _1,
 				  [this](auto& item, auto const& file){this->onMenuOpenSubtitleFolder(item, file);}), AbstractMenuItem::Icon::Folder);
 	entry.menu().addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		[this](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectLanguage(entry, vlc->getCurrentPlayListItem().c_str());},
+		[this](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectName(entry, vlc->getCurrentPlayListItem().c_str());},
 		AbstractMenuItem::Icon::Download);
 
 }
@@ -666,12 +666,29 @@ void applyOnAllSubtitleLanguages(Op const& add)
 	add("vie","vi","Vietnamese");
 }
 
+void PlayerMenus::onMenuSearchOpenSubtitlesSelectName(MenuComponentValue const& entry, juce::String const& movieNameQuery)
+{
+	juce::String movieName = movieNameQuery;
+	entry.menu().addMenuItem( movieName, AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+		[this, movieName](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectLanguage(entry, movieName);});
+
+	juce::String separators = " +_.-";
+	int index;
+	while((index = movieName.lastIndexOfAnyOf(separators))>0)
+	{
+		movieName = movieName.substring(0, index);
+		entry.menu().addMenuItem( movieName, AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+			[this, movieName](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectLanguage(entry, movieName);});
+	}
+}
+
 void PlayerMenus::onMenuSearchOpenSubtitlesSelectLanguage(MenuComponentValue const& entry, juce::String const& movieNameQuery)
 {
 	juce::String movieName = movieNameQuery.replace("%", "%37");
-	movieName = movieName.replace(" ", "-");
-	movieName = movieName.replace("_", "-");
-	movieName = movieName.replace(".", "-");
+	movieName = movieName.replace(" ", "+");
+	movieName = movieName.replace("_", "+");
+	movieName = movieName.replace(".", "+");
+	movieName = movieName.replace("-", "+");
 	applyOnAllSubtitleLanguages([&](const char* lang, const char* /*ui*/, const char* label)
 	{
 		entry.menu().addMenuItem( label, AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
@@ -715,7 +732,8 @@ void PlayerMenus::onMenuListOpenSubtitles(MenuComponentValue const& entry, juce:
 							if(juce::XmlElement* id = sub->getChildByName("MovieID"))
 							{
 								juce::String downloadURL = id->getStringAttribute("Link");
-								juce::String name = sub->getChildElementAllSubText("MovieName", {});
+								juce::String defaultName = sub->getChildElementAllSubText("MovieName", {});
+								juce::String name = sub->getChildElementAllSubText("MovieReleaseName", defaultName);
 								if(!name.isEmpty() && !downloadURL.isEmpty())
 								{
 									juce::String count = sub->getChildElementAllSubText("TotalSubs", {});
@@ -750,7 +768,8 @@ void PlayerMenus::onMenuListOpenSubtitles(MenuComponentValue const& entry, juce:
 							if(juce::XmlElement* id = sub->getChildByName("IDSubtitle"))
 							{
 								juce::String downloadURL = id->getStringAttribute("LinkDownload");
-								juce::String name = sub->getChildElementAllSubText("MovieName", {});
+								juce::String defaultName = sub->getChildElementAllSubText("MovieName", {});
+								juce::String name = sub->getChildElementAllSubText("MovieReleaseName", defaultName);
 								if(!name.isEmpty() && !downloadURL.isEmpty())
 								{
 									entry.menu().addMenuItem(name, AbstractMenuItem::EXECUTE_ONLY,
