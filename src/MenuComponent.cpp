@@ -315,7 +315,7 @@ MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
 {
     m_iconImages[AbstractMenuItem::Icon::None]                  = nullptr;
     m_iconImages[AbstractMenuItem::Icon::Check]                 = juce::Drawable::createFromImageData (Icons::check_svg, Icons::check_svgSize);
-    m_iconImages[AbstractMenuItem::Icon::Folder]                = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::Layer]                 = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);
     m_iconImages[AbstractMenuItem::Icon::FolderShortcut]        = juce::Drawable::createFromImageData (Icons::star_svg, Icons::star_svgSize);
     m_iconImages[AbstractMenuItem::Icon::FolderShortcutOutline] = juce::Drawable::createFromImageData (Icons::star_outline_svg, Icons::star_outline_svgSize);
     m_iconImages[AbstractMenuItem::Icon::Audio]                 = juce::Drawable::createFromImageData (Icons::audio_svg, Icons::audio_svgSize);
@@ -327,6 +327,17 @@ MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
 	m_iconImages[AbstractMenuItem::Icon::Settings]              = juce::Drawable::createFromImageData (Icons::settings_svg, Icons::settings_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Sliders]               = juce::Drawable::createFromImageData (Icons::sliders_svg, Icons::sliders_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Download]              = juce::Drawable::createFromImageData (Icons::download_svg, Icons::download_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::File]              	= juce::Drawable::createFromImageData (Icons::file_svg, Icons::file_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Folder]              	= juce::Drawable::createFromImageData (Icons::folder_svg, Icons::folder_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::AspectRatio]           = juce::Drawable::createFromImageData (Icons::aspect_ratio_svg, Icons::aspect_ratio_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Font]              	= juce::Drawable::createFromImageData (Icons::font_svg, Icons::font_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Size]              	= juce::Drawable::createFromImageData (Icons::size_svg, Icons::size_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::HorizontalOffset]      = juce::Drawable::createFromImageData (Icons::horizontal_offset_svg, Icons::horizontal_offset_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::VerticalOffset]        = juce::Drawable::createFromImageData (Icons::vertical_offset_svg, Icons::vertical_offset_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::Crop]      			= juce::Drawable::createFromImageData (Icons::crop_svg, Icons::crop_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::FastForward]        	= juce::Drawable::createFromImageData (Icons::fast_forward_svg, Icons::fast_forward_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::ToggleOn]      	  	= juce::Drawable::createFromImageData (Icons::toggle_on_svg, Icons::toggle_on_svgSize);
+	m_iconImages[AbstractMenuItem::Icon::ToggleOff] 	       	= juce::Drawable::createFromImageData (Icons::toggle_off_svg, Icons::toggle_off_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Exit]            	    = juce::Drawable::createFromImageData (Icons::exit_svg, Icons::exit_svgSize);
 
     addAndMakeVisible (recentList->getListBox());

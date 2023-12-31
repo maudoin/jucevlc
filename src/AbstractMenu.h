@@ -25,7 +25,7 @@ enum Icon
 	None = 0,
 	Back,
 	Check,
-	Folder,
+	Layer,
 	FolderShortcut,
 	FolderShortcutOutline,
 	Audio,
@@ -36,6 +36,17 @@ enum Icon
 	Settings,
 	Sliders,
 	Download,
+    AspectRatio,
+    Font,
+    Size,
+    HorizontalOffset,
+    VerticalOffset,
+    Crop,
+    FastForward,
+    ToggleOn,
+    ToggleOff,
+    File,
+    Folder,
 	Exit
 };
 }

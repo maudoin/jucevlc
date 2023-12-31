@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   viewBox="0 0 512 512"
+   id="svg1"
+   sodipodi:docname="fast_forwardt.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="1.1533203"
+     inkscape:cx="140.89754"
+     inkscape:cy="293.50042"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="g1"
+     transform="translate(4.3711335)">
+    <path
+       d="M 72.290113,366 V 146 L 250.69041,256 Z"
+       fill="#ffffff"
+       id="path1"
+       style="stroke-width:0.81091" />
+    <path
+       d="M 252.56732,366 V 146 l 178.4003,110 z"
+       fill="#ffffff"
+       id="path1-2"
+       style="stroke-width:0.81091" />
+  </g>
+  <rect
+     x="1.5259e-5"
+     y="1.5259e-5"
+     width="512"
+     height="512"
+     fill-opacity="0"
+     stroke-dasharray="10.5756, 21.1511"
+     stroke-linecap="round"
+     stroke-width="5.2878"
+     style="paint-order:markers stroke fill"
+     id="rect1" />
+</svg>

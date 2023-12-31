@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 -256 512 512"
+   id="svg2989"
+   version="1.1"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   width="512"
+   height="512"
+   sodipodi:docname="size.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata
+     id="metadata2999">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs2997" />
+  <sodipodi:namedview
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1206"
+     inkscape:window-height="724"
+     id="namedview2995"
+     showgrid="false"
+     inkscape:zoom="0.13169643"
+     inkscape:cx="899.7966"
+     inkscape:cy="895.99999"
+     inkscape:window-x="630"
+     inkscape:window-y="466"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2989"
+     inkscape:showpageshadow="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050" />
+  <g
+     transform="matrix(0.22786458,0,0,-0.22786458,81.000003,145.83333)"
+     id="g2991"
+     style="fill:#ffffff;fill-opacity:1;stroke:none">
+    <path
+       d="m 755,480 q 0,-13 -10,-23 L 413,125 557,-19 q 19,-19 19,-45 0,-26 -19,-45 -19,-19 -45,-19 H 64 q -26,0 -45,19 -19,19 -19,45 v 448 q 0,26 19,45 19,19 45,19 26,0 45,-19 L 253,285 585,617 q 10,10 23,10 13,0 23,-10 L 745,503 q 10,-10 10,-23 z m 781,864 V 896 q 0,-26 -19,-45 -19,-19 -45,-19 -26,0 -45,19 L 1283,995 951,663 q -10,-10 -23,-10 -13,0 -23,10 L 791,777 q -10,10 -10,23 0,13 10,23 l 332,332 -144,144 q -19,19 -19,45 0,26 19,45 19,19 45,19 h 448 q 26,0 45,-19 19,-19 19,-45 z"
+       id="path2993"
+       inkscape:connector-curvature="0"
+       style="fill:#ffffff;fill-opacity:1;stroke:none" />
+  </g>
+  <rect
+     style="fill:#ffffff;fill-opacity:0;fill-rule:evenodd;stroke-width:5.28775;stroke-linecap:round;stroke-dasharray:10.5756, 21.1511;paint-order:markers stroke fill"
+     id="rect2"
+     width="512"
+     height="512"
+     x="0"
+     y="-256" />
+</svg>

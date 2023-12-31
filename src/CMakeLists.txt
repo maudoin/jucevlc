@@ -54,6 +54,17 @@ target_sources(jucevlc
         ../icons/audio.svg
         ../icons/subtitles.svg
         ../icons/download.svg
+        ../icons/aspect_ratio.svg
+        ../icons/font.svg
+        ../icons/size.svg
+        ../icons/horizontal_offset.svg
+        ../icons/vertical_offset.svg
+        ../icons/crop.svg
+        ../icons/fast_forward.svg
+        ../icons/toggle_on.svg
+        ../icons/toggle_off.svg
+        ../icons/file.svg
+        ../icons/folder.svg
         ../icons/exit.svg)
 
         juce_add_binary_data(jucevlcFonts

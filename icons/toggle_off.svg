@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="512"
+   height="512"
+   fill="currentColor"
+   class="bi bi-toggle-off"
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="toggle_off.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="0.81552062"
+     inkscape:cx="-207.84269"
+     inkscape:cy="373.38112"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     d="m 321.625,168.5 a 87.5,87.5 0 0 1 0,175 H 256 A 109.2,109.2 0 0 0 299.75,256 109.2,109.2 0 0 0 256,168.5 Z m -131.25,175 a 87.5,87.5 0 1 1 0,-175 87.5,87.5 0 0 1 0,175 z M 81,256 a 109.375,109.375 0 0 0 109.375,109.375 h 131.25 a 109.375,109.375 0 0 0 0,-218.75 H 190.375 A 109.375,109.375 0 0 0 81,256 Z"
+     id="path1"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:21.875" />
+  <rect
+     x="0"
+     y="0"
+     width="512"
+     height="512"
+     fill-opacity="0"
+     stroke-dasharray="10.5756, 21.1511"
+     stroke-linecap="round"
+     stroke-width="5.2878"
+     style="paint-order:markers stroke fill"
+     id="rect1" />
+</svg>
