@@ -78,6 +78,7 @@ public:
 	void onMenuRemoveFavorite (MenuComponentValue const&, juce::String const& path);
 	void mayPurgeFavorites();
 	void writeFavorites();
+	void onMenuSortFilter (MenuComponentValue const&);
     void onMenuOpenFile (MenuComponentValue const&, juce::File const& file);
     void onMenuOpenFolder (MenuComponentValue const&, juce::File const& file);
     void onMenuOpenUnconditionnal (MenuComponentValue const&,  juce::String const& path);
@@ -161,7 +162,9 @@ private:
 
 
 	static void listRecentPath(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod, juce::File const& path);
-	static void listFiles(AbstractMenu& menu, MenuComponentValue const&, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod);
+	static void listFiles(AbstractMenu& menu, MenuComponentValue const&,
+		juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod,
+		bool const byDate, bool const groupByType);
 	static void listShortcuts(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
 	static void listRootFiles(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod);
 

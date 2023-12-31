@@ -9,7 +9,7 @@ bool extensionMatch(std::set<juce::String> const& e, juce::File const& f)
 	return extensionMatch(e, f.getFileExtension());
 }
 
-int FileSorter::rank(juce::File const& f)
+int FileSorter::rank(juce::File const& f) const
 {
 	if(f.isDirectory())
 	{
@@ -24,13 +24,25 @@ int FileSorter::rank(juce::File const& f)
 	}
 	return priorityExtensions.size()+1;
 }
-int FileSorter::compareElements(juce::File const& some, juce::File const& other)
+int FileSorter::compareElements(juce::File const& some, juce::File const& other) const
 {
-	int r1 = rank(some);
-	int r2 = rank(other);
-	if(r1 == r2)
+	int typeOrder = groupByType ? ( rank(some) - rank(other) ) : 0;
+	if(typeOrder == 0)
 	{
-		return some.getFileName().compareIgnoreCase(other.getFileName());
+		if(byDate)
+		{
+			auto someTime = some.getLastModificationTime();
+			auto otherTime = other.getLastModificationTime();
+			return (someTime==otherTime) ? 0 : ((someTime > otherTime) ? -1 : 1);
+		}
+		else
+		{
+			return some.getFileName().compareNatural(other.getFileName());
+		}
+
 	}
-	return r1 - r2;
+	else
+	{
+		return typeOrder;
+	}
 }

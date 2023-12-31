@@ -24,9 +24,13 @@
 #define SETTINGS_AUTO_SUBTITLES_HEIGHT "SETTINGS_AUTO_SUBTITLES_HEIGHT"
 #define SETTINGS_AUDIO_DEVICE "SETTINGS_AUDIO_DEVICE"
 #define SETTINGS_AUDIO_OUTPUT "SETTINGS_AUDIO_OUTPUT"
+#define SETTINGS_SORT_BY_DATE "SETTINGS_SORT_BY_DATE"
+#define SETTINGS_GROUP_BY_TYPE "SETTINGS_GROUP_BY_TYPE"
 #define SHORTCUTS_FILE "shortcuts.list"
 #define MAX_MEDIA_TIME_IN_SETTINGS 30
 
+#define SETTINGS_SORT_BY_DATE_DEFAULT false
+#define SETTINGS_GROUP_BY_TYPE_DEFAULT true
 
 
 using namespace std::placeholders;
@@ -334,13 +338,16 @@ void PlayerMenus::onMenuOpenFolder (MenuComponentValue const& value, juce::File 
 	{
 		m_settings.setValue(SETTINGS_LAST_OPEN_PATH, file.getFullPathName());
 
-		m_fileMenu->addMenuItem(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuOpenUnconditionnal, this, _1,
-				file.getFullPathName()), AbstractMenuItem::Icon::PlayAll);
-		m_fileMenu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuQueue, this, _1,
-				file.getFullPathName()), AbstractMenuItem::Icon::AddAll);
+		//m_fileMenu->addMenuItem(TRANS("Play All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuOpenUnconditionnal, this, _1,
+		//		file.getFullPathName()), AbstractMenuItem::Icon::PlayAll);
+		//m_fileMenu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuQueue, this, _1,
+		//		file.getFullPathName()), AbstractMenuItem::Icon::AddAll);m_fileMenu->addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuQueue, this, _1,
+		m_fileMenu->addMenuItem(TRANS("Sorting..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSortFilter, this, _1), AbstractMenuItem::Icon::None);
 
+		bool const byDate = m_settings.getBoolValue(SETTINGS_SORT_BY_DATE, SETTINGS_SORT_BY_DATE_DEFAULT);
+		bool const groupByType = m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT);
 		listFiles(*m_fileMenu, value, file, std::bind(&PlayerMenus::onMenuOpenFile, this, _1, _2),
-								std::bind(&PlayerMenus::onMenuOpenFolder, this, _1, _2));
+								std::bind(&PlayerMenus::onMenuOpenFolder, this, _1, _2), byDate, groupByType);
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
@@ -353,6 +360,30 @@ void PlayerMenus::onMenuOpenFolder (MenuComponentValue const& value, juce::File 
 				file.getFullPathName()), AbstractMenuItem::Icon::FolderShortcut);
 		}
 	}
+}
+
+void PlayerMenus::onMenuSortFilter (MenuComponentValue const&)
+{
+	bool const byDate = m_settings.getBoolValue(SETTINGS_SORT_BY_DATE, SETTINGS_SORT_BY_DATE_DEFAULT);
+	m_fileMenu->addMenuItem( TRANS("Sort by name"), AbstractMenuItem::REFRESH_MENU,
+		[this](MenuComponentValue const&)
+		{
+			m_settings.setValue(SETTINGS_SORT_BY_DATE, juce::var{false});
+		},
+		byDate?AbstractMenuItem::Icon::None : AbstractMenuItem::Icon::Check);
+	m_fileMenu->addMenuItem( TRANS("Sort by date"), AbstractMenuItem::REFRESH_MENU,
+		[this](MenuComponentValue const&)
+		{
+			m_settings.setValue(SETTINGS_SORT_BY_DATE, juce::var{true});
+		},
+		byDate?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	m_fileMenu->addMenuItem( TRANS("Group by type"), AbstractMenuItem::REFRESH_MENU,
+		[this](MenuComponentValue const&)
+		{
+			m_settings.setValue(SETTINGS_GROUP_BY_TYPE, !m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT));
+		},
+		m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT)?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+
 }
 
 void PlayerMenus::onMenuOpenFile (MenuComponentValue const& value, juce::File const& file)
@@ -909,6 +940,9 @@ void PlayerMenus::onMenuOpenSubtitleFolder (MenuComponentValue const&, juce::Fil
 {
 	if(file.isDirectory())
 	{
+		bool const byDate = m_settings.getBoolValue(SETTINGS_SORT_BY_DATE, SETTINGS_SORT_BY_DATE_DEFAULT);
+		bool const groupByType = m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT);
+
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false, "*");
 		for(int i=0;i<destArray.size();++i)
@@ -920,7 +954,7 @@ void PlayerMenus::onMenuOpenSubtitleFolder (MenuComponentValue const&, juce::Fil
 
 		destArray.clear();
 		file.findChildFiles(destArray, juce::File::findFiles|juce::File::ignoreHiddenFiles, false);
-		FileSorter sorter(Extensions::get().subtitlesExtensions());
+		FileSorter sorter(Extensions::get().subtitlesExtensions(), byDate, groupByType);
 		destArray.sort(sorter);
 		for(int i=0;i<destArray.size();++i)
 		{
@@ -1587,13 +1621,15 @@ void PlayerMenus::mayOpen(juce::String const& str)
 		onMenuOpenFile({}, path);
 	}
 }
-void PlayerMenus::listFiles(AbstractMenu& menu, MenuComponentValue const&, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod)
+void PlayerMenus::listFiles(AbstractMenu& menu, MenuComponentValue const&, juce::File const& file,
+	FileMethod const& fileMethod, FileMethod const& folderMethod,
+	bool const byDate, bool const groupByType)
 {
 	if(file.isDirectory())
 	{
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false);
-		FileSorter sorter(Extensions::get().supportedExtensions());
+		FileSorter sorter(Extensions::get().supportedExtensions(), byDate, groupByType);
 		destArray.sort(sorter);
 		for(int i=0;i<destArray.size();++i)
 		{

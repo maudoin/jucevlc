@@ -109,6 +109,10 @@ countries: fr be mc ch lu\n\
 \"Blue\" = \"Bleu\"\n\
 \"Grey\" = \"Gris\"\n\
 \"Output\" = \"Sortie\"\n\
+\"Sorting...\" = \"Tri...\"\n\
+\"Sort by name\" = \"Tri par nom\"\n\
+\"Sort by date\" = \"Tri par date\"\n\
+\"Group by type\" = \"Grouper par type\"\n\
 ";
 
 inline void add(std::map<std::string, std::string> & tgt, juce::String const& name, juce::String const& path)

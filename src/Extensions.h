@@ -30,6 +30,7 @@ void EXTENSIONS_SUBTITLE(Op const& add_)
 	add_("rt");add_("smi");add_("txt");
 	add_("smil");add_("stl");add_("usf");
 	add_("dks");add_("pjs");add_("mpl2");
+	add_("vtt");
 }
 
 class Extensions
