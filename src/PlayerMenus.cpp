@@ -1252,7 +1252,7 @@ void PlayerMenus::onMenuExit(MenuComponentValue const&)
 void PlayerMenus::onOptionMenuExit(MenuComponentValue const&)
 {
 	//m_optionsMenu->addMenuItem( TRANS(""), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [](MenuComponentValue const&){});//dirty workaround, shame, shame
-	m_optionsMenu->addMenuItem( TRANS("Confirm Exit"), AbstractMenuItem::EXECUTE_ONLY, [&](MenuComponentValue const&v){onMenuExitConfirmation(v);}, AbstractMenuItem::Icon::Exit);
+	m_optionsMenu->addMenuItem( TRANS("Confirm Exit"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuExitConfirmation, this, _1), AbstractMenuItem::Icon::Exit);
 	//m_optionsMenu->addMenuItem( TRANS(""), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, [](MenuComponentValue const&){});//dirty workaround, shame, shame
 }
 void PlayerMenus::onMenuExitConfirmation(MenuComponentValue const&)
@@ -1558,6 +1558,35 @@ void PlayerMenus::listRecentPath(AbstractMenu& menu, MenuComponentValue const&, 
 }
 
 
+void PlayerMenus::mayOpen(juce::String const& str)
+{
+	juce::File path = (str.startsWith("")&&str.endsWith(""))?str.substring(1, str.length()-2):str;
+	std::deque<juce::File> q;
+	if(path.isDirectory())
+	{
+		// path is folder
+		q.emplace_back(path);
+	}
+	// parents
+	for(juce::File folder = path.getParentDirectory();
+		folder.isDirectory() && (q.empty() || folder!=q.front());
+		folder = q.front().getParentDirectory())
+	{
+		q.emplace_front(folder);
+	}
+	// unwind
+	for(juce::File const& folder:q)
+	{
+		m_fileMenu->addRecentMenuItem( name(folder), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+			[this, folder](MenuComponentValue const& v){return this->onMenuOpenFolder(v, folder);}, AbstractMenuItem::Icon::Back);
+	}
+	m_fileMenu->forceMenuRefresh();
+	if(path.existsAsFile() && Extensions::get().videoExtensions().find(path.getFileExtension().substring(1))!=Extensions::get().videoExtensions().end())
+	{
+		//open
+		onMenuOpenFile({}, path);
+	}
+}
 void PlayerMenus::listFiles(AbstractMenu& menu, MenuComponentValue const&, juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod)
 {
 	if(file.isDirectory())

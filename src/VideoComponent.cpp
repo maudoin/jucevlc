@@ -184,7 +184,7 @@ public:
 // MAIN COMPONENT
 //
 ////////////////////////////////////////////////////////////
-VideoComponent::VideoComponent()
+VideoComponent::VideoComponent(const juce::String& commandLine)
 #ifdef BUFFER_DISPLAY
 	:img(new juce::Image(juce::Image::RGB, 2, 2, false))
 	,ptr(new juce::Image::BitmapData(*img, juce::Image::BitmapData::readWrite))
@@ -291,6 +291,8 @@ VideoComponent::VideoComponent()
 	m_backgroundTasks.startThread();
 
 	if(invokeLater)invokeLater->queuef(std::bind(&ControlComponent::hidePlayingControls,controlComponent.get()));
+
+	m_videoPlayerEngine->mayOpen(commandLine);
 }
 
 VideoComponent::~VideoComponent()

@@ -19,10 +19,10 @@ public:
     }
 
     //==============================================================================
-    void initialise (const juce::String& /*commandLine*/)
+    void initialise (const juce::String& commandLine)
     {
         // create the main window...
-        window = std::make_unique<VideoComponent>();
+        window = std::make_unique<VideoComponent>(commandLine);
     }
 
     void shutdown()

@@ -46,6 +46,8 @@ public:
     PlayerMenus(std::unique_ptr<VLCWrapper> const& vlc, ViewHandler* viewHandler, std::unique_ptr<AbstractMenu>& fileMenu, std::unique_ptr<AbstractMenu>& optionsMenu);
     virtual ~PlayerMenus();
 
+	void mayOpen(juce::String const& pathStr);
+
 	VLCWrapper& player();
 
 	bool isAutoSubtitlesHeight()const;

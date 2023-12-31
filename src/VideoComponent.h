@@ -63,7 +63,7 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<InvokeLater> invokeLater;
 
 public:
-    VideoComponent();
+    VideoComponent(const juce::String& commandLine);
     virtual ~VideoComponent();
 
 
