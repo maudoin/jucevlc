@@ -397,7 +397,7 @@ void MenuComponent::activateItem(MenuItem const& item, bool isRecent)
 			}
 
 			menuList->clear();
-			copy.execute(isRecent?MenuComponentValue{MenuComponentBack{}}:MenuComponentValue{});
+			copy.execute(isRecent?MenuComponentValue(*this, MenuComponentValue::Back{}):MenuComponentValue(*this, {}));
 
 			m_updateBoundsCallback();
 			break;
@@ -432,14 +432,14 @@ void MenuComponent::activateItem(MenuItem const& item, bool isRecent)
 		}
 		case AbstractMenuItem::EXECUTE_ONLY:
 		{
-			item.execute({});
+			item.execute({*this, {}});
 
 			m_updateBoundsCallback();
 			break;
 		}
 		case AbstractMenuItem::REFRESH_MENU:
 		{
-			item.execute({});
+			item.execute({*this, {}});
 
 			forceMenuRefresh();
 			break;
@@ -473,7 +473,7 @@ void MenuComponent::changeListenerCallback (ChangeBroadcaster* broadcaster)
 	{
 		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_COLOR &&  m_colourSelector.isVisible() && broadcaster == &m_colourSelector )
 		{
-			item->execute(m_colourSelector.getCurrentColour());
+			item->execute({*this, m_colourSelector.getCurrentColour()});
 		}
 	}
 }
@@ -484,7 +484,7 @@ void MenuComponent::sliderValueChanged (Slider* slider)
 	{
 		if( item->getActionEffect() == AbstractMenuItem::STORE_AND_OPEN_SLIDER && m_slider.isVisible() && m_slider.is(slider))
 		{
-			item->execute(m_slider.getValue());
+			item->execute({*this, m_slider.getValue()});
 		}
 	}
 }

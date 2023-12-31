@@ -258,7 +258,7 @@ VideoComponent::VideoComponent(const juce::String& commandLine)
 
 	vlc->SetInputCallBack(this);
 
-	m_videoPlayerEngine = std::make_unique<PlayerMenus>(vlc, this, m_fileMenu, m_optionsMenu);
+	m_videoPlayerEngine = std::make_unique<PlayerMenus>(vlc, this);
 
 	addToDesktop(juce::ComponentPeer::windowAppearsOnTaskbar);
 
@@ -292,7 +292,7 @@ VideoComponent::VideoComponent(const juce::String& commandLine)
 
 	if(invokeLater)invokeLater->queuef(std::bind(&ControlComponent::hidePlayingControls,controlComponent.get()));
 
-	m_videoPlayerEngine->mayOpen(commandLine);
+	m_videoPlayerEngine->mayOpen(*m_fileMenu, commandLine);
 }
 
 VideoComponent::~VideoComponent()

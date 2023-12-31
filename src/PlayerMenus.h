@@ -32,8 +32,6 @@ private:
 	//all thos pointers are fine, they are owned by the instance that owns this
 	VLCWrapper* vlc;
 	ViewHandler& m_viewHandler;
-	AbstractMenu* m_fileMenu;
-    AbstractMenu* m_optionsMenu;
 
 	std::unique_ptr<BackgoundUPNP> vlcMediaUPNPList;
 
@@ -43,10 +41,10 @@ private:
 	bool m_autoSubtitlesHeight;
 
 public:
-    PlayerMenus(std::unique_ptr<VLCWrapper> const& vlc, ViewHandler* viewHandler, std::unique_ptr<AbstractMenu>& fileMenu, std::unique_ptr<AbstractMenu>& optionsMenu);
+    PlayerMenus(std::unique_ptr<VLCWrapper> const& vlc, ViewHandler* viewHandler);
     virtual ~PlayerMenus();
 
-	void mayOpen(juce::String const& pathStr);
+	void mayOpen(AbstractMenu& menu, juce::String const& pathStr);
 
 	VLCWrapper& player();
 
@@ -65,9 +63,8 @@ public:
 
 	/////////////// MenuTree
 	void onFileMenuRoot(MenuComponentValue const&, FileMethod const& fileMethod);
+	void onOptionMenuRoot(MenuComponentValue const&);
 	void onFileMenuSettings(MenuComponentValue const&);
-	void onFileMenuLanguageOptions(MenuComponentValue const&);
-	void onFileMenuPlayerFonSize(MenuComponentValue const&);
 
 	void onMenuLoadSubtitle(MenuComponentValue const&, FileMethod const& fileMethod);
 	void onMenuListRootFiles(MenuComponentValue const&, FileMethod const& fileMethod);
@@ -137,7 +134,6 @@ public:
     void onMenuFullscreen(MenuComponentValue const&, bool fs);
 
 	void onMenuExit(MenuComponentValue const&);
-	void onOptionMenuExit(MenuComponentValue const&);
 	void onMenuExitConfirmation(MenuComponentValue const&);
 	void onMenuSoundOptions(MenuComponentValue const&);
 	void onMenuRatio(MenuComponentValue const&);
@@ -152,7 +148,6 @@ public:
 	void onSetVLCOptionInt(MenuComponentValue const&, std::string const& name, int enable);
 	void onSetVLCOption(MenuComponentValue const&, std::string const& name, bool enable);
 	void onPlayerOptions(MenuComponentValue const&);
-	void onOptionMenuRoot(MenuComponentValue const&);
 
 
 private:
@@ -161,12 +156,12 @@ private:
 	static AbstractMenuItem::Icon getIcon(juce::File const& f);
 
 
-	static void listRecentPath(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod, juce::File const& path);
-	static void listFiles(AbstractMenu& menu, MenuComponentValue const&,
+	static void listRecentPath(MenuComponentValue const&, FileMethod const& fileMethod, juce::File const& path);
+	static void listFiles(MenuComponentValue const&,
 		juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod,
 		bool const byDate, bool const groupByType);
-	static void listShortcuts(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
-	static void listRootFiles(AbstractMenu& menu, MenuComponentValue const&, FileMethod const& fileMethod);
+	static void listShortcuts(MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
+	static void listRootFiles(MenuComponentValue const&, FileMethod const& fileMethod);
 
 	void initBoolSetting(const char* name);
 	void initIntSetting(const char* name);
