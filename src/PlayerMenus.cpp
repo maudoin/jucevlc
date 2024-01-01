@@ -27,7 +27,10 @@
 #define SETTINGS_SORT_BY_DATE "SETTINGS_SORT_BY_DATE"
 #define SETTINGS_GROUP_BY_TYPE "SETTINGS_GROUP_BY_TYPE"
 #define SHORTCUTS_FILE "shortcuts.list"
-#define MAX_MEDIA_TIME_IN_SETTINGS 30
+
+#define MEDIA_TIMES_FILE "mediaTimes.xml"
+#define MAX_MEDIA_TIME_IN_SETTINGS 100
+#define MEDIA_END_DETECTION_RADIO 0.9
 
 #define SETTINGS_SORT_BY_DATE_DEFAULT false
 #define SETTINGS_GROUP_BY_TYPE_DEFAULT true
@@ -93,10 +96,11 @@ PlayerMenus::PlayerMenus(std::unique_ptr<VLCWrapper> const& vlc, ViewHandler* vi
 	: vlc(vlc.get())
 	, m_viewHandler(*viewHandler)
 	, m_settings(juce::File::getCurrentWorkingDirectory().getChildFile("settings.xml"), options())
-	, m_mediaTimes(juce::File::getCurrentWorkingDirectory().getChildFile("mediaTimes.xml"), options())
 	, m_autoSubtitlesHeight(true)
 {
 	Languages::getInstance();
+
+	loadMediaTimesFromFile();
 }
 
 PlayerMenus::~PlayerMenus()
@@ -104,6 +108,7 @@ PlayerMenus::~PlayerMenus()
 	Languages::getInstance().clear();
 
 	saveCurrentMediaTime();
+	saveMediaTimesToFile();
 
 }
 
@@ -322,10 +327,8 @@ void PlayerMenus::onMenuOpenFolder (MenuComponentValue const& entry, juce::File 
 		//		file.getFullPathName()), AbstractMenuItem::Icon::AddAll);entry.menu().addMenuItem(TRANS("Add All"), AbstractMenuItem::EXECUTE_ONLY, std::bind(&PlayerMenus::onMenuQueue, this, _1,
 		entry.menu().addMenuItem(TRANS("Sorting..."), AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onMenuSortFilter, this, _1), AbstractMenuItem::Icon::None);
 
-		bool const byDate = m_settings.getBoolValue(SETTINGS_SORT_BY_DATE, SETTINGS_SORT_BY_DATE_DEFAULT);
-		bool const groupByType = m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT);
 		listFiles(entry, file, std::bind(&PlayerMenus::onMenuOpenFile, this, _1, _2),
-								std::bind(&PlayerMenus::onMenuOpenFolder, this, _1, _2), byDate, groupByType);
+								std::bind(&PlayerMenus::onMenuOpenFolder, this, _1, _2));
 
 		if(!m_shortcuts.contains(file.getFullPathName()))
 		{
@@ -1506,50 +1509,122 @@ void PlayerMenus::initFromSettings()
 
 }
 
-
-struct MediaTimeSorter
+namespace MediatimesFileConstants
 {
-	juce::PropertySet const& propertySet;
-	MediaTimeSorter(juce::PropertySet const& propertySet_):propertySet(propertySet_) {}
-	int compareElements(juce::String const& some, juce::String const& other)
+    constexpr static const char* const fileTag        = "PROPERTIES";
+    constexpr static const char* const valueTag       = "VALUE";
+    constexpr static const char* const nameAttribute  = "name";
+    constexpr static const char* const valueAttribute = "val";
+}
+void PlayerMenus::updateMediaTimeCache()
+{
+	m_mediaTimesIndexCache.clear();
+	for (std::size_t i = 0;i!=m_mediaTimes.size();++i)
 	{
-		return propertySet.getIntValue(other, 0) - propertySet.getIntValue(some, 0);
+		m_mediaTimesIndexCache.emplace(std::next(m_mediaTimes.begin(), i)->first, i);
 	}
-};
+}
+void PlayerMenus::saveMediaTime(std::string const& media, int time)
+{
+	if((!m_mediaTimes.empty()) && m_mediaTimes.front().first == media)
+	{
+		// most current case
+		m_mediaTimes.front().second = time;
+	}
+	else
+	{
+		auto it = std::find_if(m_mediaTimes.begin(), m_mediaTimes.end(), [&media](auto const& entry)
+		{
+			return entry.first == media;
+		});
+		if(it == m_mediaTimes.end())
+		{
+			// new media, pretty current as well
+			m_mediaTimes.emplace_front(media, time);
+			if(m_mediaTimes.size()>MAX_MEDIA_TIME_IN_SETTINGS)
+			{
+				m_mediaTimes.erase(std::next(m_mediaTimes.begin(), MAX_MEDIA_TIME_IN_SETTINGS));
+			}
+		}
+		else
+		{
+			// less often, we open an old media
+			it->second = time;
+			//move it first
+			m_mediaTimes.splice(m_mediaTimes.begin(), m_mediaTimes, it);
+		}
+		updateMediaTimeCache();
+	}
 
-void PlayerMenus::saveCurrentMediaTime()
+}
+void PlayerMenus::loadMediaTimesFromFile()
+{
+    if (auto doc = parseXMLIfTagMatches(juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile(MEDIA_TIMES_FILE),
+		MediatimesFileConstants::fileTag))
+    {
+        for (auto* e : doc->getChildWithTagNameIterator (MediatimesFileConstants::valueTag))
+        {
+            auto const& media = e->getStringAttribute (MediatimesFileConstants::nameAttribute);
+			auto time = e->getIntAttribute (MediatimesFileConstants::valueAttribute);
+			m_mediaTimes.emplace_back(media.toUTF8().getAddress(), time);
+			if(m_mediaTimes.size()>=MAX_MEDIA_TIME_IN_SETTINGS)
+			{
+				break;
+			}
+        }
+    }
+	updateMediaTimeCache();
+}
+void PlayerMenus::saveMediaTimesToFile()
+{
+    XmlElement doc (MediatimesFileConstants::fileTag);
+    for (std::pair<std::string, int> const& entry : m_mediaTimes)
+    {
+        auto* e = doc.createNewChildElement (MediatimesFileConstants::valueTag);
+        e->setAttribute (MediatimesFileConstants::nameAttribute, entry.first);
+		e->setAttribute (MediatimesFileConstants::valueAttribute, entry.second);
+    }
+    doc.writeTo (juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile(MEDIA_TIMES_FILE), {});
+}
+
+void PlayerMenus::saveCurrentMediaTime(bool toFileSystem)
 {
 	if(!vlc || !vlc->isPlaying())
 	{
 		return;
 	}
-	std::string media = vlc->getCurrentPlayListItem();
-	if(media.empty())
+	std::string media = vlc->getCurrentPlayListItemMrl();
+	if(!media.empty())
 	{
-
-		return;
+		std::size_t i = media.find_last_of("/");
+		if(i != std::string::npos)
+		{
+			media = media.substr(i+1);
+		}
+		int const time = std::floor( vlc->GetTime() / 1000.);
+		int const end = std::floor( vlc->GetLength() / 1000.);
+		saveMediaTime(media, ((time/(double)end)>MEDIA_END_DETECTION_RADIO) ? -1 : time);
+		if(toFileSystem)
+		{
+			saveMediaTimesToFile();
+		}
 	}
-	int64_t time = vlc->GetTime();
-	m_mediaTimes.setValue(media.c_str(), std::floor(time / 1000.));
-
-	//clear old times
-	juce::StringArray props = m_mediaTimes.getAllProperties().getAllKeys();
-	while(m_mediaTimes.getAllProperties().getAllKeys().size()>MAX_MEDIA_TIME_IN_SETTINGS)
-	{
-		m_mediaTimes.removeValue(props[0]);
-	}
-	/*
-	MediaTimeSorter sorter(m_mediaTimes);
-	props.sort(sorter);
-	for(int i=MAX_MEDIA_TIME_IN_SETTINGS;i<props.size();++i)
-	{
-		m_mediaTimes.removeValue(props[i]);
-	}*/
 }
 
+int PlayerMenus::getMediaEntryTime(std::string const& name) const
+{
+	auto it = m_mediaTimesIndexCache.find(name);
+	return(it != m_mediaTimesIndexCache.end() && it->second < m_mediaTimes.size()) ?
+		std::next(m_mediaTimes.begin(),it->second)->second :
+		0;
+}
 int PlayerMenus::getMediaSavedTime(std::string const& name) const
 {
-	return m_mediaTimes.getIntValue(name.c_str(), 0);
+	return std::max(getMediaEntryTime(name), 0);
+}
+bool PlayerMenus::isMediaDone(std::string const& name) const
+{
+	return getMediaEntryTime(name) < 0;
 }
 
 void PlayerMenus::listShortcuts(MenuComponentValue const& entry, FileMethod const& fileMethod, juce::StringArray const& shortcuts)
@@ -1642,11 +1717,13 @@ void PlayerMenus::mayOpen(AbstractMenu& menu, juce::String const& str)
 	}
 }
 void PlayerMenus::listFiles(MenuComponentValue const& entry, juce::File const& file,
-	FileMethod const& fileMethod, FileMethod const& folderMethod,
-	bool const byDate, bool const groupByType)
+	FileMethod const& fileMethod, FileMethod const& folderMethod)
 {
 	if(file.isDirectory())
 	{
+		bool const byDate = m_settings.getBoolValue(SETTINGS_SORT_BY_DATE, SETTINGS_SORT_BY_DATE_DEFAULT);
+		bool const groupByType = m_settings.getBoolValue(SETTINGS_GROUP_BY_TYPE, SETTINGS_GROUP_BY_TYPE_DEFAULT);
+
 		juce::Array<juce::File> destArray;
 		file.findChildFiles(destArray, juce::File::findDirectories|juce::File::ignoreHiddenFiles, false);
 		FileSorter sorter(Extensions::get().supportedExtensions(), byDate, groupByType);
@@ -1663,7 +1740,13 @@ void PlayerMenus::listFiles(MenuComponentValue const& entry, juce::File const& f
 		for(int i=0;i<destArray.size();++i)
 		{
 			juce::File const& f(destArray[i]);
-			entry.menu().addMenuItem( name(f), AbstractMenuItem::EXECUTE_ONLY, [=](MenuComponentValue const& v){return fileMethod(v, f);}, getIcon(f));
+			juce::URL url(f);
+			auto icon = getIcon(f);
+			if(icon == AbstractMenuItem::Icon::Display && isMediaDone(url.toString(false).fromLastOccurrenceOf ("/", false, true).toUTF8().getAddress()))
+			{
+				icon = AbstractMenuItem::Icon::DisplayChecked;
+			}
+			entry.menu().addMenuItem( name(f), AbstractMenuItem::EXECUTE_ONLY, [=](MenuComponentValue const& v){return fileMethod(v, f);}, icon);
 
 		}
 	}

@@ -529,6 +529,7 @@ void VideoComponent::sliderValueChanged (juce::Slider* slider)
 	{
 		sliderUpdating = true;
 		vlc->SetTime((int64_t)(controlComponent->slider().getValue()*vlc->GetLength()/10000.));
+		m_videoPlayerEngine->saveCurrentMediaTime();
 		sliderUpdating =false;
 	}
 }
@@ -770,8 +771,9 @@ void VideoComponent::stop()
 	{
 		return;
 	}
-	m_videoPlayerEngine->saveCurrentMediaTime();
+	m_videoPlayerEngine->saveCurrentMediaTime(true);
 	vlc->Stop();
+	m_fileMenu->forceMenuRefresh();
 }
 
 
@@ -980,7 +982,7 @@ void VideoComponent::startedSynchronous()
 }
 void VideoComponent::stoppedSynchronous()
 {
-
+	m_videoPlayerEngine->saveCurrentMediaTime(true);
 	if(vlcNativePopupComponent->isVisible())
 	{
 		setAlpha(1.f);
@@ -988,6 +990,7 @@ void VideoComponent::stoppedSynchronous()
 		setMenuTreeVisibleAndUpdateMenuButtonIcon(false);
 		getPeer()->getComponent().removeComponentListener(this);
 	}
+	m_fileMenu->forceMenuRefresh();
 }
 void VideoComponent::playPlayListItem(int index, std::string const& name)
 {

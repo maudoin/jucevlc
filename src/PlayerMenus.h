@@ -36,7 +36,8 @@ private:
 	std::unique_ptr<BackgoundUPNP> vlcMediaUPNPList;
 
 	juce::PropertiesFile m_settings;
-	juce::PropertiesFile m_mediaTimes;
+	std::list<std::pair<std::string, int>> m_mediaTimes;
+	std::map<std::string, std::size_t> m_mediaTimesIndexCache;
 	juce::StringArray m_shortcuts;
 	bool m_autoSubtitlesHeight;
 
@@ -52,8 +53,9 @@ public:
 
 	double getSavedVolume()const;
 	int getMediaSavedTime(std::string const& name) const;
+	bool isMediaDone(std::string const& name) const;
 	void saveFullscreenState(bool);
-	void saveCurrentMediaTime();
+	void saveCurrentMediaTime(bool toFileSystem = false);
 	void initFromSettings();
 	void initFromMediaDependantSettings();
 
@@ -156,11 +158,15 @@ private:
 	static AbstractMenuItem::Icon getIcon(juce::String const& e);
 	static AbstractMenuItem::Icon getIcon(juce::File const& f);
 
+	void saveMediaTime(std::string const& media, int time);
+	void loadMediaTimesFromFile();
+	void saveMediaTimesToFile();
+	void updateMediaTimeCache();
+	int getMediaEntryTime(std::string const& media) const;
 
 	static void listRecentPath(MenuComponentValue const&, FileMethod const& fileMethod, juce::File const& path);
-	static void listFiles(MenuComponentValue const&,
-		juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod,
-		bool const byDate, bool const groupByType);
+	void listFiles(MenuComponentValue const&,
+		juce::File const& file, FileMethod const& fileMethod, FileMethod const& folderMethod);
 	static void listShortcuts(MenuComponentValue const&, FileMethod const& fileMethod, juce::StringArray const& shortcuts);
 	static void listRootFiles(MenuComponentValue const&, FileMethod const& fileMethod);
 

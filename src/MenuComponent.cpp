@@ -320,6 +320,7 @@ MenuComponent::MenuComponent(UpdateBoundsCallback const& updateBoundsCallback)
     m_iconImages[AbstractMenuItem::Icon::FolderShortcutOutline] = juce::Drawable::createFromImageData (Icons::star_outline_svg, Icons::star_outline_svgSize);
     m_iconImages[AbstractMenuItem::Icon::Audio]                 = juce::Drawable::createFromImageData (Icons::audio_svg, Icons::audio_svgSize);
     m_iconImages[AbstractMenuItem::Icon::Display]               = juce::Drawable::createFromImageData (Icons::video_svg, Icons::video_svgSize);
+    m_iconImages[AbstractMenuItem::Icon::DisplayChecked]        = juce::Drawable::createFromImageData (Icons::video_checked_svg, Icons::video_checked_svgSize);
     m_iconImages[AbstractMenuItem::Icon::Subtitles]             = juce::Drawable::createFromImageData (Icons::subtitles_svg, Icons::subtitles_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::Back]                  = juce::Drawable::createFromImageData (Icons::cancel_svg, Icons::cancel_svgSize);
 	m_iconImages[AbstractMenuItem::Icon::AddAll]                = juce::Drawable::createFromImageData (Icons::layers_svg, Icons::layers_svgSize);

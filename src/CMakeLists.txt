@@ -51,6 +51,7 @@ target_sources(jucevlc
         ../icons/layers.svg
         ../icons/sliders.svg
         ../icons/video.svg
+        ../icons/video_checked.svg
         ../icons/audio.svg
         ../icons/subtitles.svg
         ../icons/download.svg

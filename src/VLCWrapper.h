@@ -248,6 +248,7 @@ public:
 	int addPlayListItem(std::string const& path);
 	void playPlayListItem(int index);
 	std::string getCurrentPlayListItem();
+	std::string getCurrentPlayListItemMrl();
 	int getCurrentPlayListItemIndex();
 	void removePlaylistItem(int index);
 	void clearPlayList();

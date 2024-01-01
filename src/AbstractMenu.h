@@ -30,6 +30,7 @@ enum Icon
 	FolderShortcutOutline,
 	Audio,
 	Display,
+	DisplayChecked,
 	Subtitles,
 	PlayAll,
 	AddAll,

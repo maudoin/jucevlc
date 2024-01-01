@@ -990,6 +990,13 @@ bool addMediaSubItemsToMediaList(libvlc_media_t* media, libvlc_media_list_t* ml,
 	}
 	return false;
 }
+std::string getMediaMrl(libvlc_media_t* media)
+{
+	char* desc = libvlc_media_get_mrl 	( media ) ;
+	std::string name = (desc?desc:"???");
+	libvlc_free(desc);
+	return name;
+}
 std::string getMediaName(libvlc_media_t* media)
 {
 	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
@@ -1084,6 +1091,16 @@ std::string VLCWrapper::getCurrentPlayListItem()
 	return getMediaName(media);
 }
 
+std::string VLCWrapper::getCurrentPlayListItemMrl()
+{
+	libvlc_media_t* media = libvlc_media_player_get_media(pMediaPlayer_);
+	if(!media)
+	{
+		return "";
+	}
+	libvlc_media_parse(media);
+	return getMediaMrl(media);
+}
 bool VLCWrapper::isSeekable()
 {
 	return libvlc_media_player_is_seekable(pMediaPlayer_)!=0;
