@@ -1,5 +1,7 @@
 juce_add_gui_app(jucevlc
     COMPANY_NAME "Matthieu A"
+    COMPANY_COPYRIGHT "Matthieu A (2024)"
+    COMPANY_WEBSITE "https://github.com/maudoin/jucevlc"
     BUNDLE_ID "com.maudoin.jucevlc"
     PRODUCT_NAME "JuceVLC"
     ICON_BIG                        ${CMAKE_CURRENT_SOURCE_DIR}/../icons/vlc.png
