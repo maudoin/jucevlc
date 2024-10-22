@@ -1015,12 +1015,14 @@ void PlayerMenus::onMenuRateListAndSlider (MenuComponentValue const& entry)
 {
 	entry.menu().addMenuItem( "25%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 25.), 25==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "50%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 50.), 50==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	entry.menu().addMenuItem( "75%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 75.), 75==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "100%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 100.), 100==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "125%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 125.), 125==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "150%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 150.), 150==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
+	entry.menu().addMenuItem( "175%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 175.), 175==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "200%", AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRate, this, _1, 200.), 200==(int)(vlc->getRate())?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
 	entry.menu().addMenuItem( "Custom", AbstractMenuItem::STORE_AND_OPEN_SLIDER, std::bind(&PlayerMenus::onMenuCustomRate, this, _1),
-		AbstractMenuItem::Icon::None, SettingSlider::Params{"%.f%%", vlc->getRate(), 100., 25., 400., 25.});
+		AbstractMenuItem::Icon::None, SettingSlider::Params{"%.f%%", vlc->getRate(), 100., 25., 400., 5.});
 
 
 }
