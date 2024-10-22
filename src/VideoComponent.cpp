@@ -263,7 +263,7 @@ VideoComponent::VideoComponent(const juce::String& commandLine)
 	setSize(800, 600);
 
 	m_videoPlayerEngine->initFromSettings();
-	setVolumeSlider(m_videoPlayerEngine->getSavedVolume());
+	setupVolumeSlider(vlc->getVolume());
 
 	m_optionsMenu->addRecentMenuItem("Menu", AbstractMenuItem::STORE_AND_OPEN_CHILDREN, std::bind(&PlayerMenus::onOptionMenuRoot, m_videoPlayerEngine.get(), _1));
 	m_optionsMenu->forceMenuRefresh();
@@ -824,7 +824,7 @@ void VideoComponent::componentVisibilityChanged(Component &)
 
 #endif
 
-void VideoComponent::setVolumeSlider(double value)
+void VideoComponent::setupVolumeSlider(double value)
 {
 	controlComponent->setupVolumeSlider(
 		std::bind<void>(&VLCWrapper::setVolume, vlc.get(), _1),value, 1., 200., .1);
@@ -955,10 +955,10 @@ void VideoComponent::vlcMouseClick(int /*x*/, int /*y*/, int button)
 			if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::switchPlayPause, this));
 		break;
 		case 4:
-			if(invokeLater)invokeLater->queuef([this]{this->setVolumeSlider(vlc->getVolume()+VOLUME_SCROLL_STEP);});
+			if(invokeLater)invokeLater->queuef([this]{this->setupVolumeSlider(vlc->getVolume()+VOLUME_SCROLL_STEP);});
 		break;
 		case 5:
-			if(invokeLater)invokeLater->queuef([this]{this->setVolumeSlider(vlc->getVolume()-VOLUME_SCROLL_STEP);});
+			if(invokeLater)invokeLater->queuef([this]{this->setupVolumeSlider(vlc->getVolume()-VOLUME_SCROLL_STEP);});
 		break;
 	}
 }

@@ -83,7 +83,7 @@ public:
 	void advanceTime ();
 	void switchFullScreen();
 	void switchPlayPause();
-	void setVolumeSlider(double value);
+	void setupVolumeSlider(double value);
 
 #ifdef BUFFER_DISPLAY
 	//VLC DiaplListener

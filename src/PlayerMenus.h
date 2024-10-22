@@ -51,7 +51,6 @@ public:
 
 	bool isAutoSubtitlesHeight()const;
 
-	double getSavedVolume()const;
 	int getMediaSavedTime(std::string const& name) const;
 	bool isMediaDone(std::string const& name) const;
 	void saveFullscreenState(bool);

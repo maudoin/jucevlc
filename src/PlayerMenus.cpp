@@ -16,7 +16,6 @@
 #define SUBTITLE_DOWNLOAD_TIMEOUT_MS 30000
 
 #define SETTINGS_FULLSCREEN "SETTINGS_FULLSCREEN"
-#define SETTINGS_VOLUME "SETTINGS_VOLUME"
 #define SETTINGS_CROP "SETTINGS_CROP"
 #define SETTINGS_FONT_SIZE "SETTINGS_FONT_SIZE"
 #define SETTINGS_LAST_OPEN_PATH "SETTINGS_LAST_OPEN_PATH"
@@ -115,11 +114,6 @@ PlayerMenus::~PlayerMenus()
 bool PlayerMenus::isAutoSubtitlesHeight()const
 {
 	return m_autoSubtitlesHeight;
-}
-
-double PlayerMenus::getSavedVolume()const
-{
-	return m_settings.getDoubleValue(SETTINGS_VOLUME, 100.);
 }
 
 void PlayerMenus::saveFullscreenState(bool fs)
@@ -1435,8 +1429,6 @@ void PlayerMenus::onOptionMenuRoot(MenuComponentValue const& entry)
 }
 void PlayerMenus::initFromMediaDependantSettings()
 {
-	vlc->setVolume(m_settings.getDoubleValue(SETTINGS_VOLUME, 100.));
-
 	vlc->setCrop(m_settings.getValue(SETTINGS_CROP, "").toUTF8().getAddress());
 
 	vlc->setAudioOutputDevice(m_settings.getValue(SETTINGS_AUDIO_OUTPUT).toUTF8().getAddress(), m_settings.getValue(SETTINGS_AUDIO_DEVICE).toUTF8().getAddress());
