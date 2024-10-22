@@ -1272,8 +1272,6 @@ void  PlayerMenus::onMenuZoomSlider (MenuComponentValue const& entry)
 
 void PlayerMenus::onMenuVideoOptions(MenuComponentValue const& entry)
 {
-	entry.menu().addMenuItem( TRANS("Speed"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		std::bind(&PlayerMenus::onMenuRateListAndSlider, this, _1), AbstractMenuItem::Icon::FastForward);
 	entry.menu().addMenuItem( TRANS("Crop"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
 		std::bind(&PlayerMenus::onMenuCropList, this, _1), AbstractMenuItem::Icon::Crop);
 	entry.menu().addMenuItem( TRANS("Scale"), AbstractMenuItem::STORE_AND_OPEN_SLIDER,
@@ -1393,6 +1391,8 @@ void PlayerMenus::onSetVLCOption(MenuComponentValue const&, std::string const& n
 }
 void PlayerMenus::onPlayerOptions(MenuComponentValue const& entry)
 {
+	entry.menu().addMenuItem( TRANS("Speed"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
+		std::bind(&PlayerMenus::onMenuRateListAndSlider, this, _1), AbstractMenuItem::Icon::FastForward);
 	entry.menu().addMenuItem( TRANS("FullScreen"), AbstractMenuItem::REFRESH_MENU,
 		std::bind(&PlayerMenus::onMenuFullscreen, this, _1, true),
 		m_viewHandler.isFullScreen()?AbstractMenuItem::Icon::Check : AbstractMenuItem::Icon::None);
