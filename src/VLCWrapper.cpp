@@ -990,6 +990,7 @@ bool addMediaSubItemsToMediaList(libvlc_media_t* media, libvlc_media_list_t* ml,
 	}
 	return false;
 }
+
 std::string getMediaMrl(libvlc_media_t* media)
 {
 	char* desc = libvlc_media_get_mrl 	( media ) ;
@@ -997,47 +998,7 @@ std::string getMediaMrl(libvlc_media_t* media)
 	libvlc_free(desc);
 	return name;
 }
-std::string getMediaName(libvlc_media_t* media)
-{
-	char* desc = libvlc_media_get_meta 	( media, libvlc_meta_Title ) ;
-	std::string name = (desc?desc:"???");
-	libvlc_free(desc);
-	return name;
-	/*
-	auto urlDecode = [](std::string const &SRC)->std::string {
-		std::string ret;
-		char ch;
-		std::string::size_type i, ii;
-		for (i=0; i<SRC.length(); i++) {
-			if (int(SRC[i])==37) {
-				sscanf_s(SRC.substr(i+1,2).c_str(), "%x", &ii);
-				ch=static_cast<char>(ii);
-				ret+=ch;
-				i=i+2;
-			} else {
-				ret+=SRC[i];
-			}
-		}
-		return (ret);
-	}
-	char* str = libvlc_media_get_mrl(media );
-	std::string url = str?urlDecode(str):"";
-	libvlc_free(str);
-	if(url.find("rar")==0)
-	{
-		//strip content filename (after pipe character) for rars
-		std::string::size_type i = url.find_last_of("|");
-		if(i != std::string::npos)
-		{
-			url = url.substr(0, i);
-		}
 
-	}
-
-	std::string::size_type i = url.find_last_of("/\\");
-	return i == std::string::npos ? url : url.substr(i+1);
-	*/
-}
 std::vector<std::string> VLCWrapper::getCurrentPlayList()
 {
 	std::vector<std::string> out;
@@ -1057,7 +1018,7 @@ std::vector<std::string> VLCWrapper::getCurrentPlayList()
 			continue;
 		}
 		libvlc_media_parse(media);
-		out.push_back(getMediaName(media));
+		out.push_back(getMediaMrl(media));
 
 		libvlc_media_release(media);
 	}
@@ -1082,13 +1043,14 @@ int VLCWrapper::addPlayListItem(std::string const& path)
 }
 std::string VLCWrapper::getCurrentPlayListItem()
 {
-	libvlc_media_t* media = libvlc_media_player_get_media(pMediaPlayer_);
-	if(!media)
+	std::string mrl = getCurrentPlayListItemMrl();
+
+	std::size_t i = mrl.find_last_of("/");
+	if(i != std::string::npos)
 	{
-		return "";
+		mrl = mrl.substr(i+1);
 	}
-	libvlc_media_parse(media);
-	return getMediaName(media);
+	return mrl;
 }
 
 std::string VLCWrapper::getCurrentPlayListItemMrl()

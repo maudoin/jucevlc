@@ -541,7 +541,7 @@ void PlayerMenus::onMenuSubtitleSelectMenu(MenuComponentValue const& entry)
 		std::bind(&PlayerMenus::onMenuLoadSubtitle, this, _1,
 				  [this](auto& item, auto const& file){this->onMenuOpenSubtitleFolder(item, file);}), AbstractMenuItem::Icon::Folder);
 	entry.menu().addMenuItem( TRANS("opensubtitles.org"), AbstractMenuItem::STORE_AND_OPEN_CHILDREN,
-		[this](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectName(entry, vlc->getCurrentPlayListItem().c_str());},
+		[this](MenuComponentValue const& entry){this->onMenuSearchOpenSubtitlesSelectName(entry, juce::URL::removeEscapeChars(vlc->getCurrentPlayListItem().c_str()));},
 		AbstractMenuItem::Icon::Download);
 
 }
@@ -1588,17 +1588,12 @@ void PlayerMenus::saveCurrentMediaTime(bool toFileSystem)
 	{
 		return;
 	}
-	std::string media = vlc->getCurrentPlayListItemMrl();
-	if(!media.empty())
+	juce::String media = juce::URL::removeEscapeChars(vlc->getCurrentPlayListItem().c_str());
+	if(!media.isEmpty())
 	{
-		std::size_t i = media.find_last_of("/");
-		if(i != std::string::npos)
-		{
-			media = media.substr(i+1);
-		}
 		int const time = std::floor( vlc->GetTime() / 1000.);
 		int const end = std::floor( vlc->GetLength() / 1000.);
-		saveMediaTime(media, ((time/(double)end)>MEDIA_END_DETECTION_RADIO) ? -1 : time);
+		saveMediaTime(media.toUTF8().getAddress(), ((time/(double)end)>MEDIA_END_DETECTION_RADIO) ? -1 : time);
 		if(toFileSystem)
 		{
 			saveMediaTimesToFile();

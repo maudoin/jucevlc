@@ -903,7 +903,7 @@ void VideoComponent::vlcPaused()
 }
 void VideoComponent::vlcStarted()
 {
-	titleBar->setTitle(vlc->getCurrentPlayListItem());
+	titleBar->setTitle(juce::URL::removeEscapeChars(vlc->getCurrentPlayListItem().c_str()).toUTF8().getAddress());
 	if(invokeLater)invokeLater->queuef(std::bind(&ControlComponent::showPlayingControls,controlComponent.get()));
 	if(invokeLater)invokeLater->queuef(std::bind(&VideoComponent::startedSynchronous,this));
 }
