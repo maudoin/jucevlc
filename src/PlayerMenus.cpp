@@ -334,6 +334,7 @@ void PlayerMenus::onMenuOpenFolder (MenuComponentValue const& entry, juce::File 
 			entry.menu().addMenuItem(TRANS("Remove from favorites"), AbstractMenuItem::REFRESH_MENU, std::bind(&PlayerMenus::onMenuRemoveFavorite, this, _1,
 				file.getFullPathName()), AbstractMenuItem::Icon::FolderShortcut);
 		}
+		entry.menu().addMenuItem(TRANS("Explore folder"), AbstractMenuItem::EXECUTE_ONLY, [file](MenuComponentValue const&){file.revealToUser();}, AbstractMenuItem::Icon::None);
 	}
 }
 
