@@ -16,6 +16,8 @@
 
 #define DISAPEAR_DELAY_MS 500
 #define DISAPEAR_SPEED_MS 500
+#define FAST_FORWARD_ACTIVATION_TIME_MS 500
+#define FAST_FORWARD_RATE 200
 #define TIME_JUMP 10000
 #define VOLUME_SCROLL_STEP 2.
 
@@ -250,6 +252,11 @@ VideoComponent::VideoComponent(const juce::String& commandLine)
 	titleBar->addMouseListener(this, true);
     addChildComponent (*(resizableBorder = std::make_unique<juce::ResizableBorderComponent>(this, &defaultConstrainer)));
 
+	m_fastForwardKeyDown = KeyPress::isKeyCurrentlyDown(juce::KeyPress::spaceKey);
+	if (m_fastForwardKeyDown)
+	{
+		m_fastForwardKeyPressTime = juce::Time::currentTimeMillis ();
+	}
 	addKeyListener(this);
 
     juce::LookAndFeel::setDefaultLookAndFeel (&lnf);
@@ -393,8 +400,7 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 	}
 	if(key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
 	{
-		switchPlayPause();
-		return true;
+		return startFastForward();
 	}
 	if(key.isKeyCurrentlyDown(juce::KeyPress::leftKey))
 	{
@@ -413,6 +419,70 @@ bool VideoComponent::keyPressed (const juce::KeyPress& key,
 	}
 	return false;
 
+}
+
+bool VideoComponent::keyStateChanged (bool /*isKeyDown*/, juce::Component* /*originatingComponent*/)
+{
+
+	bool const spaceKeyDown = KeyPress::isKeyCurrentlyDown(juce::KeyPress::spaceKey);
+	if (spaceKeyDown!=m_fastForwardKeyDown)
+	{
+		// event is relative to "space"
+		if (spaceKeyDown)
+		{
+			// nothing on press, just record time
+			m_fastForwardKeyPressTime = juce::Time::currentTimeMillis();
+		}
+		else
+		{
+			if ( ! stopFastForward()  )
+			{
+				switchPlayPause();
+			}
+		}
+		m_fastForwardKeyDown = spaceKeyDown;
+		return true;
+	}
+	return false;
+}
+
+bool VideoComponent::startFastForward()
+{
+	// fast forward key pressed while playing ?
+	if (m_fastForwardKeyDown && vlc->isPlaying())
+	{
+		// for enough time ?
+		auto const currentTimeMillis = juce::Time::currentTimeMillis();
+		if ( (currentTimeMillis - m_fastForwardKeyPressTime) > FAST_FORWARD_ACTIVATION_TIME_MS)
+		{
+			// not already fast forwarding ?
+			double const currentRate = vlc->getRate();
+			if (FAST_FORWARD_RATE != currentRate)
+			{
+				m_fastForwardKeyPressTime = currentTimeMillis;
+				m_rateBeforeFastForward = currentRate;
+				vlc->setRate(FAST_FORWARD_RATE);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool VideoComponent::stopFastForward()
+{
+	// fast forward rate?
+	double const currentRate = vlc->getRate();
+	if (FAST_FORWARD_RATE == currentRate)
+	{
+		// previous rate was different ?
+		if (currentRate != m_rateBeforeFastForward)
+		{
+			vlc->setRate(m_rateBeforeFastForward);
+			return true;
+		}
+	}
+	return false;
 }
 
 bool VideoComponent::isFullScreen()const

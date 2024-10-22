@@ -60,6 +60,9 @@ class VideoComponent   : public juce::Component , public juce::KeyListener,
     std::unique_ptr<juce::ResizableBorderComponent> resizableBorder;
     juce::ComponentBoundsConstrainer defaultConstrainer;
 	juce::int64 lastMouseMoveMovieTime;
+	juce::int64 m_fastForwardKeyPressTime;
+	bool m_fastForwardKeyDown;
+	int m_rateBeforeFastForward;
     std::unique_ptr<InvokeLater> invokeLater;
 
 public:
@@ -83,6 +86,8 @@ public:
 	void advanceTime ();
 	void switchFullScreen();
 	void switchPlayPause();
+	bool startFastForward();
+	bool stopFastForward();
 	void setupVolumeSlider(double value);
 
 #ifdef BUFFER_DISPLAY
@@ -121,6 +126,8 @@ public:
 	using juce::Component::keyPressed;
 	bool keyPressed (const juce::KeyPress& key,
 								juce::Component* originatingComponent) override;
+	using juce::Component::keyStateChanged;
+    bool keyStateChanged (bool isKeyDown, juce::Component* originatingComponent) override;
     void mouseDown (const juce::MouseEvent& e) override;
 	void mouseDrag (const juce::MouseEvent& e) override;
     void mouseMove (const juce::MouseEvent& e) override;
